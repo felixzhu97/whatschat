@@ -2,14 +2,41 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
-import { Search, MoreVertical, Phone, Video, Send, Smile, Users, UserPlus, Star, Wifi, WifiOff } from "lucide-react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import {
+  Search,
+  MoreVertical,
+  Phone,
+  Video,
+  Send,
+  Smile,
+  Users,
+  UserPlus,
+  Star,
+  Wifi,
+  WifiOff,
+  Settings,
+  Archive,
+  MessageSquare,
+  Bell,
+  BellOff,
+  Trash2,
+  X,
+  Filter,
+} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { GroupInfoPanel } from "./group-info-panel"
 import { CreateGroupDialog } from "./create-group-dialog"
 import { SettingsPage } from "./settings-page"
@@ -28,6 +55,13 @@ import { RealIncomingCall } from "./real-incoming-call"
 import { useAuth } from "../hooks/use-auth"
 import type { Contact, Message } from "../types"
 import type { VoiceRecording } from "../hooks/use-voice-recorder"
+import { MessageSearchPage } from "./message-search-page"
+import { SearchSuggestions } from "./search-suggestions"
+import { AdvancedSearchDialog } from "./advanced-search-dialog"
+import { ContactListItem } from "./contact-list-item"
+import { SearchShortcuts } from "./search-shortcuts"
+import { LongPressGuide } from "./long-press-guide"
+import { HapticFeedback } from "../lib/haptic-feedback"
 
 const contacts: Contact[] = [
   {
@@ -38,6 +72,7 @@ const contacts: Contact[] = [
     time: "14:30",
     unread: 2,
     online: true,
+    pinned: true,
   },
   {
     id: "group1",
@@ -56,6 +91,7 @@ const contacts: Contact[] = [
       { id: "user3", name: "王五", avatar: "/placeholder.svg?height=32&width=32&text=王", role: "member" },
       { id: "user4", name: "赵六", avatar: "/placeholder.svg?height=32&width=32&text=赵", role: "member" },
     ],
+    muted: false,
   },
   {
     id: "2",
@@ -63,6 +99,7 @@ const contacts: Contact[] = [
     avatar: "/placeholder.svg?height=40&width=40&text=李",
     lastMessage: "好的，明天见！",
     time: "12:15",
+    muted: true,
   },
 ]
 
@@ -75,12 +112,23 @@ export function WhatsAppMain() {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [editingMessage, setEditingMessage] = useState<{ id: string; text: string } | null>(null)
   const [isRecordingVoice, setIsRecordingVoice] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([])
+  const [showMessageActions, setShowMessageActions] = useState(false)
   const [currentPage, setCurrentPage] = useState<"chat" | "settings" | "profile" | "calls" | "status" | "starred">(
     "chat",
   )
 
+  const [showSearchPage, setShowSearchPage] = useState(false)
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false)
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false)
+  const [recentSearches, setRecentSearches] = useState<string[]>(
+    JSON.parse(localStorage.getItem("recentSearches") || "[]"),
+  )
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const { user } = useAuth()
 
@@ -103,13 +151,28 @@ export function WhatsAppMain() {
     formatDuration,
   } = useRealCall()
 
+  // 过滤联系人
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
   // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  // 自动调整输入框高度
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto"
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`
+    }
+  }, [messageText])
+
   // 处理输入变化
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessageText(e.target.value)
     if (e.target.value.trim()) {
       startTyping()
@@ -119,21 +182,24 @@ export function WhatsAppMain() {
   }
 
   // 发送消息
-  const handleSendMessage = () => {
+  const handleSendMessage = useCallback(() => {
     if (!messageText.trim()) return
 
     if (editingMessage) {
       editMessage(editingMessage.id, messageText)
       setEditingMessage(null)
     } else {
-      sendMessage(messageText, "text")
+      sendMessage(messageText, "text", undefined, undefined, replyingTo?.id)
     }
 
     setMessageText("")
     setReplyingTo(null)
     stopTyping()
     inputRef.current?.focus()
-  }
+
+    // 发送成功的触觉反馈
+    HapticFeedback.light()
+  }, [messageText, editingMessage, replyingTo, editMessage, sendMessage, stopTyping])
 
   // 处理键盘事件
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -147,6 +213,7 @@ export function WhatsAppMain() {
   const handleEmojiSelect = (emoji: string) => {
     setMessageText((prev) => prev + emoji)
     inputRef.current?.focus()
+    HapticFeedback.selection()
   }
 
   // 处理文件上传
@@ -158,6 +225,7 @@ export function WhatsAppMain() {
     }
 
     sendMessage(type === "image" ? "" : file.name, type, fileData)
+    HapticFeedback.light()
   }
 
   // 处理语音消息发送
@@ -169,12 +237,14 @@ export function WhatsAppMain() {
 
     sendMessage("", "voice", voiceData)
     setIsRecordingVoice(false)
+    HapticFeedback.success()
   }
 
   // 处理消息回复
   const handleReply = (message: Message) => {
     setReplyingTo(message)
     inputRef.current?.focus()
+    HapticFeedback.light()
   }
 
   // 处理消息编辑
@@ -182,14 +252,29 @@ export function WhatsAppMain() {
     setEditingMessage({ id: messageId, text })
     setMessageText(text)
     inputRef.current?.focus()
+    HapticFeedback.light()
+  }
+
+  // 处理消息转发
+  const handleForward = (message: Message) => {
+    console.log("转发消息:", message)
+    HapticFeedback.light()
+  }
+
+  // 处理消息星标
+  const handleStar = (messageId: string) => {
+    console.log("星标消息:", messageId)
+    HapticFeedback.light()
   }
 
   // 发起语音通话
   const handleVoiceCall = async () => {
     try {
       await startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "voice")
+      HapticFeedback.light()
     } catch (error) {
       console.error("发起语音通话失败:", error)
+      HapticFeedback.error()
     }
   }
 
@@ -197,9 +282,106 @@ export function WhatsAppMain() {
   const handleVideoCall = async () => {
     try {
       await startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "video")
+      HapticFeedback.light()
     } catch (error) {
       console.error("发起视频通话失败:", error)
+      HapticFeedback.error()
     }
+  }
+
+  // 处理联系人操作
+  const handleContactAction = (action: string, contact: Contact) => {
+    switch (action) {
+      case "pin":
+        console.log("置顶聊天:", contact.name)
+        HapticFeedback.light()
+        break
+      case "mute":
+        console.log("静音聊天:", contact.name)
+        HapticFeedback.light()
+        break
+      case "archive":
+        console.log("归档聊天:", contact.name)
+        HapticFeedback.light()
+        break
+      case "delete":
+        console.log("删除聊天:", contact.name)
+        HapticFeedback.medium()
+        break
+    }
+  }
+
+  // 处理全局搜索
+  const handleGlobalSearch = (query: string) => {
+    if (!query.trim()) return
+
+    // 添加到最近搜索
+    const updatedSearches = [query, ...recentSearches.filter((s) => s !== query)].slice(0, 10)
+    setRecentSearches(updatedSearches)
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches))
+
+    setShowSearchPage(true)
+    setSearchQuery(query)
+    setShowSearchSuggestions(false)
+    HapticFeedback.light()
+  }
+
+  // 处理搜索建议选择
+  const handleSearchSuggestion = (suggestion: any) => {
+    if (suggestion.type === "contact") {
+      const contact = contacts.find((c) => c.id === suggestion.id.replace("contact-", ""))
+      if (contact) {
+        setSelectedContact(contact)
+        HapticFeedback.selection()
+      }
+    } else if (suggestion.type === "recent" || suggestion.type === "command") {
+      handleGlobalSearch(suggestion.title)
+    }
+    setShowSearchSuggestions(false)
+  }
+
+  // 移除单个搜索记录
+  const handleRemoveRecentSearch = (search: string) => {
+    const updatedSearches = recentSearches.filter((s) => s !== search)
+    setRecentSearches(updatedSearches)
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches))
+    HapticFeedback.light()
+  }
+
+  // 获取所有消息数据
+  const getAllMessages = useCallback(() => {
+    return contacts.map((contact) => ({
+      contactId: contact.id,
+      messages: messages,
+    }))
+  }, [contacts, messages])
+
+  // 处理消息选择（从搜索结果跳转）
+  const handleSelectMessage = (contactId: string, messageId: string) => {
+    const contact = contacts.find((c) => c.id === contactId)
+    if (contact) {
+      setSelectedContact(contact)
+      setShowSearchPage(false)
+      HapticFeedback.light()
+    }
+  }
+
+  // 处理高级搜索
+  const handleAdvancedSearch = (filters: any) => {
+    setShowSearchPage(true)
+    HapticFeedback.light()
+  }
+
+  // 处理搜索框焦点
+  const handleSearchFocus = () => {
+    setShowSearchSuggestions(true)
+  }
+
+  const handleSearchBlur = () => {
+    // 延迟关闭，给用户时间点击建议
+    setTimeout(() => {
+      setShowSearchSuggestions(false)
+    }, 200)
   }
 
   if (currentPage !== "chat") {
@@ -218,6 +400,18 @@ export function WhatsAppMain() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* 长按使用指导 */}
+      <LongPressGuide />
+
+      {/* 搜索快捷键 */}
+      <SearchShortcuts
+        onOpenSearch={() => {
+          setShowSearchPage(true)
+          searchInputRef.current?.focus()
+        }}
+        onOpenAdvancedSearch={() => setShowAdvancedSearch(true)}
+      />
+
       {/* 来电界面 */}
       {callState.isActive && callState.isIncoming && callState.status === "ringing" && (
         <RealIncomingCall callState={callState} onAnswer={answerCall} onDecline={endCall} />
@@ -245,7 +439,7 @@ export function WhatsAppMain() {
         <div className="bg-gray-50 p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 cursor-pointer" onClick={() => setCurrentPage("profile")}>
                 <AvatarImage src={user?.avatar || "/placeholder.svg?height=40&width=40&text=我"} />
                 <AvatarFallback>{user?.name?.[0] || "我"}</AvatarFallback>
               </Avatar>
@@ -268,16 +462,81 @@ export function WhatsAppMain() {
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowCreateGroup(true)}>
                 <UserPlus className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentPage("settings")}>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowSearchPage(true)}>
+                    <Search className="h-4 w-4 mr-2" />
+                    搜索消息
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowAdvancedSearch(true)}>
+                    <Filter className="h-4 w-4 mr-2" />
+                    高级搜索
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCurrentPage("starred")}>
+                    <Star className="h-4 w-4 mr-2" />
+                    星标消息
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Archive className="h-4 w-4 mr-2" />
+                    已归档
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCurrentPage("settings")}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    设置
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           {/* 搜索框 */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="搜索或开始新聊天" className="pl-10 bg-gray-100 border-none" />
+            <Input
+              ref={searchInputRef}
+              placeholder="搜索或开始新聊天"
+              className="pl-10 bg-gray-100 border-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  handleGlobalSearch(searchQuery)
+                }
+              }}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+
+            {/* 搜索建议 */}
+            <SearchSuggestions
+              isOpen={showSearchSuggestions}
+              query={searchQuery}
+              contacts={contacts}
+              recentSearches={recentSearches}
+              onSelectSuggestion={handleSearchSuggestion}
+              onClearRecentSearches={() => {
+                setRecentSearches([])
+                localStorage.removeItem("recentSearches")
+              }}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+            />
           </div>
         </div>
 
@@ -293,44 +552,22 @@ export function WhatsAppMain() {
 
         {/* 联系人列表 */}
         <ScrollArea className="flex-1">
-          {contacts.map((contact) => (
-            <div
-              key={contact.id}
-              className={`flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-                selectedContact.id === contact.id ? "bg-gray-100" : ""
-              }`}
-              onClick={() => setSelectedContact(contact)}
-            >
-              <div className="relative">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={contact.avatar || "/placeholder.svg"} />
-                  <AvatarFallback>{contact.name[0]}</AvatarFallback>
-                </Avatar>
-                {contact.online && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <h3 className="font-medium text-sm truncate">{contact.name}</h3>
-                    {contact.isGroup && <Users className="h-3 w-3 text-gray-500" />}
-                  </div>
-                  <span className="text-xs text-gray-500">{contact.time}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
-                  <div className="flex items-center gap-1">
-                    {contact.isGroup && contact.memberCount && (
-                      <span className="text-xs text-gray-400">{contact.memberCount}人</span>
-                    )}
-                    {contact.unread && <Badge className="bg-green-500 text-white text-xs">{contact.unread}</Badge>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+          {filteredContacts
+            .sort((a, b) => {
+              // 置顶的聊天排在前面
+              if (a.pinned && !b.pinned) return -1
+              if (!a.pinned && b.pinned) return 1
+              return 0
+            })
+            .map((contact) => (
+              <ContactListItem
+                key={contact.id}
+                contact={contact}
+                isSelected={selectedContact.id === contact.id}
+                onSelect={setSelectedContact}
+                onAction={handleContactAction}
+              />
+            ))}
         </ScrollArea>
       </div>
 
@@ -350,14 +587,18 @@ export function WhatsAppMain() {
               <div className="flex items-center gap-1">
                 <h2 className="font-medium">{selectedContact.name}</h2>
                 {selectedContact.isGroup && <Users className="h-4 w-4 text-gray-500" />}
+                {selectedContact.muted && <BellOff className="h-4 w-4 text-gray-400" />}
               </div>
               <p className="text-sm text-gray-500">
                 {isTyping ? (
-                  <span className="text-green-600">正在输入...</span>
+                  <span className="text-green-600 flex items-center gap-1">
+                    <span className="animate-pulse">●</span>
+                    正在输入...
+                  </span>
                 ) : selectedContact.isGroup ? (
                   `${selectedContact.memberCount} 位成员`
                 ) : selectedContact.online ? (
-                  "在线"
+                  <span className="text-green-600">在线</span>
                 ) : (
                   "上次在线时间：今天 14:30"
                 )}
@@ -375,9 +616,37 @@ export function WhatsAppMain() {
             <Button variant="ghost" size="icon" onClick={() => setCurrentPage("starred")}>
               <Star className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  查看联系人
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Search className="h-4 w-4 mr-2" />
+                  搜索消息
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  {selectedContact.muted ? <Bell className="h-4 w-4 mr-2" /> : <BellOff className="h-4 w-4 mr-2" />}
+                  {selectedContact.muted ? "取消静音" : "静音通知"}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Archive className="h-4 w-4 mr-2" />
+                  归档聊天
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  删除聊天
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -407,6 +676,8 @@ export function WhatsAppMain() {
                 onReply={handleReply}
                 onEdit={handleEdit}
                 onDelete={deleteMessage}
+                onForward={handleForward}
+                onStar={handleStar}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -415,10 +686,17 @@ export function WhatsAppMain() {
 
         {/* 回复预览 */}
         {replyingTo && (
-          <div className="bg-gray-100 p-3 border-t border-gray-200 flex items-center justify-between">
+          <div className="bg-blue-50 p-3 border-t border-blue-200 flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-green-600">回复 {replyingTo.senderName || "对方"}</p>
-              <p className="text-sm text-gray-600 truncate">{replyingTo.text}</p>
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-8 bg-blue-500 rounded"></div>
+                <div>
+                  <p className="text-sm font-medium text-blue-700">
+                    回复 {replyingTo.senderName || (replyingTo.sent ? "你" : selectedContact.name)}
+                  </p>
+                  <p className="text-sm text-blue-600 truncate max-w-[300px]">{replyingTo.text}</p>
+                </div>
+              </div>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
               ✕
@@ -428,9 +706,15 @@ export function WhatsAppMain() {
 
         {/* 编辑预览 */}
         {editingMessage && (
-          <div className="bg-blue-100 p-3 border-t border-gray-200 flex items-center justify-between">
+          <div className="bg-yellow-50 p-3 border-t border-yellow-200 flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-600">编辑消息</p>
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-8 bg-yellow-500 rounded"></div>
+                <div>
+                  <p className="text-sm font-medium text-yellow-700">编辑消息</p>
+                  <p className="text-sm text-yellow-600">按 Enter 保存，Esc 取消</p>
+                </div>
+              </div>
             </div>
             <Button
               variant="ghost"
@@ -450,36 +734,39 @@ export function WhatsAppMain() {
           {isRecordingVoice ? (
             <VoiceRecorder onSendVoice={handleSendVoice} onCancel={() => setIsRecordingVoice(false)} />
           ) : (
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+            <div className="flex items-end gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="mb-1">
                 <Smile className="h-5 w-5" />
               </Button>
 
               <FileUpload onFileSelect={handleFileSelect} />
 
               <div className="flex-1 relative">
-                <Input
+                <Textarea
                   ref={inputRef}
                   value={messageText}
                   onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder={editingMessage ? "编辑消息..." : "输入消息"}
-                  className="pr-12 bg-white"
+                  className="min-h-[40px] max-h-[120px] resize-none bg-white border-gray-300 focus:border-green-500 focus:ring-green-500"
                   disabled={!isConnected}
+                  rows={1}
                 />
               </div>
 
               {messageText.trim() ? (
                 <Button
                   size="icon"
-                  className="bg-green-500 hover:bg-green-600"
+                  className="bg-green-500 hover:bg-green-600 mb-1"
                   onClick={handleSendMessage}
                   disabled={!isConnected}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               ) : (
-                <VoiceRecorder onSendVoice={handleSendVoice} onCancel={() => setIsRecordingVoice(false)} />
+                <div className="mb-1">
+                  <VoiceRecorder onSendVoice={handleSendVoice} onCancel={() => setIsRecordingVoice(false)} />
+                </div>
               )}
             </div>
           )}
@@ -515,6 +802,24 @@ export function WhatsAppMain() {
         onCreateGroup={(name, members) => {
           console.log("创建群组:", name, members)
         }}
+      />
+
+      {/* 搜索页面 */}
+      {showSearchPage && (
+        <MessageSearchPage
+          onBack={() => setShowSearchPage(false)}
+          onSelectMessage={handleSelectMessage}
+          contacts={contacts}
+          getAllMessages={getAllMessages}
+        />
+      )}
+
+      {/* 高级搜索对话框 */}
+      <AdvancedSearchDialog
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleAdvancedSearch}
+        contacts={contacts}
       />
     </div>
   )
