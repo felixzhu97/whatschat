@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback } from "react"
 
 export type CallType = "voice" | "video"
 export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended"
+export type VideoLayout = "pip" | "split" | "fullscreen"
+export type CameraPosition = "front" | "back"
 
 export interface CallState {
   isActive: boolean
@@ -16,11 +18,17 @@ export interface CallState {
   isMuted: boolean
   isVideoOff: boolean
   isSpeakerOn: boolean
-  // 新增群组通话字段
   isGroupCall: boolean
   participants: CallParticipant[]
   maxParticipants: number
   speakingParticipant: string | null
+  isMinimized: boolean
+  cameraPosition: CameraPosition
+  videoLayout: VideoLayout
+  isBeautyMode: boolean
+  currentFilter: string | null
+  isScreenSharing: boolean
+  isRecording: boolean
 }
 
 export interface CallParticipant {
@@ -51,11 +59,46 @@ export function useCall() {
     participants: [],
     maxParticipants: 8,
     speakingParticipant: null,
+    isMinimized: false,
+    cameraPosition: "front",
+    videoLayout: "pip",
+    isBeautyMode: false,
+    currentFilter: null,
+    isScreenSharing: false,
+    isRecording: false,
   })
 
-  const durationTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+
   const localStreamRef = useRef<MediaStream | null>(null)
   const remoteStreamRef = useRef<MediaStream | null>(null)
+  const durationTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const screenStreamRef = useRef<MediaStream | null>(null)
+
+  // 获取媒体流
+  const getMediaStream = useCallback(async (callType: CallType, cameraPosition: CameraPosition = "front") => {
+    const constraints = {
+      audio: true,
+      video:
+        callType === "video"
+          ? {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              frameRate: { ideal: 30 },
+              facingMode: cameraPosition === "front" ? "user" : "environment",
+            }
+          : false,
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      return stream
+    } catch (error) {
+      console.error("获取媒体流失败:", error)
+      throw error
+    }
+  }, [])
 
   // 开始通话计时
   const startDurationTimer = useCallback(() => {
@@ -79,13 +122,8 @@ export function useCall() {
   const startCall = useCallback(
     async (contactId: string, contactName: string, contactAvatar: string, callType: CallType) => {
       try {
-        // 请求媒体权限
-        const constraints = {
-          audio: true,
-          video: callType === "video",
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints)
+        const stream = await getMediaStream(callType, "front")
+        setLocalStream(stream)
         localStreamRef.current = stream
 
         setCallState({
@@ -103,6 +141,13 @@ export function useCall() {
           participants: [],
           maxParticipants: 8,
           speakingParticipant: null,
+          isMinimized: false,
+          cameraPosition: "front",
+          videoLayout: "pip",
+          isBeautyMode: false,
+          currentFilter: null,
+          isScreenSharing: false,
+          isRecording: false,
         })
 
         // 模拟对方接听
@@ -123,153 +168,18 @@ export function useCall() {
         return false
       }
     },
-    [startDurationTimer],
+    [getMediaStream, startDurationTimer],
   )
-
-  // 开始群组通话
-  const startGroupCall = useCallback(
-    async (
-      groupId: string,
-      groupName: string,
-      groupAvatar: string,
-      callType: CallType,
-      participants: CallParticipant[],
-    ) => {
-      try {
-        const constraints = {
-          audio: true,
-          video: callType === "video",
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints)
-        localStreamRef.current = stream
-
-        setCallState({
-          isActive: true,
-          callType,
-          status: "calling",
-          contactName: groupName,
-          contactAvatar: groupAvatar,
-          contactId: groupId,
-          duration: 0,
-          isMuted: false,
-          isVideoOff: callType === "voice",
-          isSpeakerOn: false,
-          isGroupCall: true,
-          participants: participants.map((p) => ({ ...p, isSpeaking: false, joinedAt: Date.now() })),
-          maxParticipants: 8,
-          speakingParticipant: null,
-        })
-
-        // 模拟参与者陆续加入
-        setTimeout(() => {
-          setCallState((prev) => ({
-            ...prev,
-            status: "connected",
-          }))
-          startDurationTimer()
-
-          // 模拟参与者加入
-          simulateParticipantsJoining()
-        }, 2000)
-
-        return true
-      } catch (error) {
-        console.error("无法开始群组通话:", error)
-        return false
-      }
-    },
-    [startDurationTimer],
-  )
-
-  // 模拟参与者加入
-  const simulateParticipantsJoining = useCallback(() => {
-    const joinDelays = [1000, 2000, 3500, 5000]
-
-    joinDelays.forEach((delay, index) => {
-      setTimeout(() => {
-        setCallState((prev) => ({
-          ...prev,
-          participants: prev.participants.map((p, i) => (i === index ? { ...p, joinedAt: Date.now() } : p)),
-        }))
-      }, delay)
-    })
-  }, [])
-
-  // 邀请参与者
-  const inviteParticipant = useCallback((participant: CallParticipant) => {
-    setCallState((prev) => ({
-      ...prev,
-      participants: [...prev.participants, { ...participant, joinedAt: Date.now() }],
-    }))
-  }, [])
-
-  // 移除参与者
-  const removeParticipant = useCallback((participantId: string) => {
-    setCallState((prev) => ({
-      ...prev,
-      participants: prev.participants.filter((p) => p.id !== participantId),
-    }))
-  }, [])
-
-  // 切换参与者静音状态
-  const toggleParticipantMute = useCallback((participantId: string) => {
-    setCallState((prev) => ({
-      ...prev,
-      participants: prev.participants.map((p) => (p.id === participantId ? { ...p, isMuted: !p.isMuted } : p)),
-    }))
-  }, [])
-
-  // 模拟说话检测
-  const simulateSpeakingDetection = useCallback(() => {
-    const interval = setInterval(
-      () => {
-        setCallState((prev) => {
-          if (!prev.isActive || prev.status !== "connected") {
-            clearInterval(interval)
-            return prev
-          }
-
-          // 随机选择一个参与者作为正在说话的人
-          const activeParticipants = prev.participants.filter((p) => !p.isMuted)
-          const speakingParticipant =
-            activeParticipants.length > 0
-              ? activeParticipants[Math.floor(Math.random() * activeParticipants.length)]
-              : null
-
-          return {
-            ...prev,
-            speakingParticipant: speakingParticipant?.id || null,
-            participants: prev.participants.map((p) => ({
-              ...p,
-              isSpeaking: p.id === speakingParticipant?.id,
-            })),
-          }
-        })
-      },
-      2000 + Math.random() * 3000,
-    )
-
-    return () => clearInterval(interval)
-  }, [])
-
-  // 在通话连接时开始说话检测
-  useEffect(() => {
-    if (callState.isActive && callState.status === "connected" && callState.isGroupCall) {
-      const cleanup = simulateSpeakingDetection()
-      return cleanup
-    }
-  }, [callState.isActive, callState.status, callState.isGroupCall, simulateSpeakingDetection])
 
   // 接听通话
   const answerCall = useCallback(async () => {
     try {
-      const constraints = {
-        audio: true,
-        video: callState.callType === "video",
+      if (callState.status !== "ringing") {
+        throw new Error("没有来电可接听")
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      const stream = await getMediaStream(callState.callType, "front")
+      setLocalStream(stream)
       localStreamRef.current = stream
 
       setCallState((prev) => ({
@@ -283,7 +193,7 @@ export function useCall() {
       console.error("无法获取媒体权限:", error)
       return false
     }
-  }, [callState.callType, startDurationTimer])
+  }, [callState.callType, callState.status, getMediaStream, startDurationTimer])
 
   // 结束通话
   const endCall = useCallback(() => {
@@ -298,6 +208,13 @@ export function useCall() {
       remoteStreamRef.current = null
     }
 
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach((track) => track.stop())
+      screenStreamRef.current = null
+    }
+
+    setLocalStream(null)
+    setRemoteStream(null)
     stopDurationTimer()
 
     setCallState((prev) => ({
@@ -322,6 +239,13 @@ export function useCall() {
         participants: [],
         maxParticipants: 8,
         speakingParticipant: null,
+        isMinimized: false,
+        cameraPosition: "front",
+        videoLayout: "pip",
+        isBeautyMode: false,
+        currentFilter: null,
+        isScreenSharing: false,
+        isRecording: false,
       })
     }, 2000)
   }, [stopDurationTimer])
@@ -341,18 +265,55 @@ export function useCall() {
   }, [callState.isMuted])
 
   // 切换视频
-  const toggleVideo = useCallback(() => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0]
-      if (videoTrack) {
-        videoTrack.enabled = callState.isVideoOff
+  const toggleVideo = useCallback(async () => {
+    if (callState.callType !== "video") return
+
+    if (callState.isVideoOff) {
+      // 重新开启视频
+      try {
+        const stream = await getMediaStream("video", callState.cameraPosition)
+
+        // 如果已有流，先停止旧的视频轨道
+        if (localStreamRef.current) {
+          const oldVideoTrack = localStreamRef.current.getVideoTracks()[0]
+          if (oldVideoTrack) {
+            oldVideoTrack.stop()
+            localStreamRef.current.removeTrack(oldVideoTrack)
+          }
+
+          // 添加新的视频轨道
+          const newVideoTrack = stream.getVideoTracks()[0]
+          if (newVideoTrack) {
+            localStreamRef.current.addTrack(newVideoTrack)
+          }
+        } else {
+          localStreamRef.current = stream
+        }
+
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()))
+
         setCallState((prev) => ({
           ...prev,
-          isVideoOff: !prev.isVideoOff,
+          isVideoOff: false,
         }))
+      } catch (error) {
+        console.error("重新开启视频失败:", error)
       }
+    } else {
+      // 关闭视频
+      if (localStreamRef.current) {
+        const videoTrack = localStreamRef.current.getVideoTracks()[0]
+        if (videoTrack) {
+          videoTrack.stop()
+          localStreamRef.current.removeTrack(videoTrack)
+        }
+      }
+      setCallState((prev) => ({
+        ...prev,
+        isVideoOff: true,
+      }))
     }
-  }, [callState.isVideoOff])
+  }, [callState.callType, callState.isVideoOff, callState.cameraPosition, getMediaStream])
 
   // 切换扬声器
   const toggleSpeaker = useCallback(() => {
@@ -360,6 +321,190 @@ export function useCall() {
       ...prev,
       isSpeakerOn: !prev.isSpeakerOn,
     }))
+  }, [])
+
+  // 切换摄像头
+  const switchCamera = useCallback(async () => {
+    if (callState.callType !== "video" || callState.isVideoOff || callState.isScreenSharing) return
+
+    try {
+      const newCameraPosition: CameraPosition = callState.cameraPosition === "front" ? "back" : "front"
+      const stream = await getMediaStream("video", newCameraPosition)
+
+      // 停止当前视频流
+      if (localStreamRef.current) {
+        const oldVideoTrack = localStreamRef.current.getVideoTracks()[0]
+        if (oldVideoTrack) {
+          oldVideoTrack.stop()
+          localStreamRef.current.removeTrack(oldVideoTrack)
+        }
+
+        // 添加新的视频轨道
+        const newVideoTrack = stream.getVideoTracks()[0]
+        if (newVideoTrack) {
+          localStreamRef.current.addTrack(newVideoTrack)
+        }
+      } else {
+        localStreamRef.current = stream
+      }
+
+      setLocalStream(new MediaStream(localStreamRef.current.getTracks()))
+
+      setCallState((prev) => ({
+        ...prev,
+        cameraPosition: newCameraPosition,
+      }))
+    } catch (error) {
+      console.error("切换摄像头失败:", error)
+    }
+  }, [callState.callType, callState.isVideoOff, callState.cameraPosition, callState.isScreenSharing, getMediaStream])
+
+  // 切换视频布局
+  const switchVideoLayout = useCallback(() => {
+    setCallState((prev) => {
+      const layouts: VideoLayout[] = ["pip", "split", "fullscreen"]
+      const currentIndex = layouts.indexOf(prev.videoLayout)
+      const nextIndex = (currentIndex + 1) % layouts.length
+      return {
+        ...prev,
+        videoLayout: layouts[nextIndex],
+      }
+    })
+  }, [])
+
+  // 切换美颜模式
+  const toggleBeautyMode = useCallback(() => {
+    setCallState((prev) => ({
+      ...prev,
+      isBeautyMode: !prev.isBeautyMode,
+    }))
+  }, [])
+
+  // 应用滤镜
+  const applyFilter = useCallback((filterName: string | null) => {
+    setCallState((prev) => ({
+      ...prev,
+      currentFilter: filterName,
+    }))
+  }, [])
+
+  // 开始屏幕共享
+  const startScreenShare = useCallback(async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 },
+        },
+        audio: true,
+      })
+
+      screenStreamRef.current = screenStream
+
+      // 替换本地视频流
+      if (localStreamRef.current) {
+        const oldVideoTrack = localStreamRef.current.getVideoTracks()[0]
+        if (oldVideoTrack) {
+          oldVideoTrack.stop()
+          localStreamRef.current.removeTrack(oldVideoTrack)
+        }
+
+        const screenVideoTrack = screenStream.getVideoTracks()[0]
+        if (screenVideoTrack) {
+          localStreamRef.current.addTrack(screenVideoTrack)
+        }
+      }
+
+      setLocalStream(new MediaStream(localStreamRef.current?.getTracks() || []))
+
+      setCallState((prev) => ({
+        ...prev,
+        isScreenSharing: true,
+      }))
+
+      // 监听屏幕共享结束
+      screenStream.getVideoTracks()[0].onended = () => {
+        stopScreenShare()
+      }
+
+      return screenStream
+    } catch (error) {
+      console.error("屏幕共享失败:", error)
+      return null
+    }
+  }, [])
+
+  // 停止屏幕共享
+  const stopScreenShare = useCallback(async () => {
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach((track) => track.stop())
+      screenStreamRef.current = null
+    }
+
+    // 恢复摄像头
+    try {
+      const stream = await getMediaStream("video", callState.cameraPosition)
+
+      if (localStreamRef.current) {
+        const oldVideoTrack = localStreamRef.current.getVideoTracks()[0]
+        if (oldVideoTrack) {
+          oldVideoTrack.stop()
+          localStreamRef.current.removeTrack(oldVideoTrack)
+        }
+
+        const newVideoTrack = stream.getVideoTracks()[0]
+        if (newVideoTrack) {
+          localStreamRef.current.addTrack(newVideoTrack)
+        }
+      }
+
+      setLocalStream(new MediaStream(localStreamRef.current?.getTracks() || []))
+    } catch (error) {
+      console.error("恢复摄像头失败:", error)
+    }
+
+    setCallState((prev) => ({
+      ...prev,
+      isScreenSharing: false,
+    }))
+  }, [callState.cameraPosition, getMediaStream])
+
+  // 开始录制
+  const startRecording = useCallback(() => {
+    setCallState((prev) => ({
+      ...prev,
+      isRecording: true,
+    }))
+  }, [])
+
+  // 停止录制
+  const stopRecording = useCallback(() => {
+    setCallState((prev) => ({
+      ...prev,
+      isRecording: false,
+    }))
+  }, [])
+
+  // 最小化通话
+  const minimizeCall = useCallback(() => {
+    setCallState((prev) => ({
+      ...prev,
+      isMinimized: true,
+    }))
+  }, [])
+
+  // 最大化通话
+  const maximizeCall = useCallback(() => {
+    setCallState((prev) => ({
+      ...prev,
+      isMinimized: false,
+    }))
+  }, [])
+
+  // 显示控制按钮
+  const showControls = useCallback(() => {
+    // 控制按钮显示逻辑
   }, [])
 
   // 模拟来电
@@ -380,6 +525,13 @@ export function useCall() {
         participants: [],
         maxParticipants: 8,
         speakingParticipant: null,
+        isMinimized: false,
+        cameraPosition: "front",
+        videoLayout: "pip",
+        isBeautyMode: false,
+        currentFilter: null,
+        isScreenSharing: false,
+        isRecording: false,
       })
     },
     [],
@@ -399,19 +551,26 @@ export function useCall() {
 
   return {
     callState,
-    localStream: localStreamRef.current,
-    remoteStream: remoteStreamRef.current,
+    localStream,
+    remoteStream,
     startCall,
-    startGroupCall, // 新增
     answerCall,
     endCall,
     toggleMute,
     toggleVideo,
     toggleSpeaker,
+    switchCamera,
+    switchVideoLayout,
+    toggleBeautyMode,
+    applyFilter,
+    startScreenShare,
+    stopScreenShare,
+    startRecording,
+    stopRecording,
+    minimizeCall,
+    maximizeCall,
+    showControls,
     simulateIncomingCall,
     formatDuration,
-    inviteParticipant, // 新增
-    removeParticipant, // 新增
-    toggleParticipantMute, // 新增
   }
 }

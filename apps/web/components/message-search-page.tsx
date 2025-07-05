@@ -12,7 +12,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Message, Contact } from "../types"
-import { Users } from "lucide-react" // Declare the Users variable
+import { Users } from "lucide-react"
 
 interface SearchResult {
   message: Message
@@ -22,14 +22,23 @@ interface SearchResult {
 }
 
 interface MessageSearchPageProps {
-  onBack: () => void
-  onSelectMessage: (contactId: string, messageId: string) => void
+  isOpen: boolean
+  onClose: () => void
+  initialQuery?: string
+  allMessages: { contactId: string; messages: Message[] }[]
   contacts: Contact[]
-  getAllMessages: () => { contactId: string; messages: Message[] }[]
+  onSelectMessage: (contactId: string, messageId: string) => void
 }
 
-export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMessages }: MessageSearchPageProps) {
-  const [searchQuery, setSearchQuery] = useState("")
+export function MessageSearchPage({
+  isOpen,
+  onClose,
+  initialQuery = "",
+  allMessages = [],
+  contacts = [],
+  onSelectMessage,
+}: MessageSearchPageProps) {
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -39,11 +48,6 @@ export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMes
   })
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState<"relevance" | "date">("relevance")
-
-  // 获取所有消息数据
-  const allMessagesData = useMemo(() => {
-    return getAllMessages()
-  }, [getAllMessages])
 
   // 搜索功能
   const performSearch = useMemo(() => {
@@ -56,7 +60,10 @@ export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMes
     const query = searchQuery.toLowerCase()
     const results: SearchResult[] = []
 
-    allMessagesData.forEach(({ contactId, messages }) => {
+    // 确保 allMessages 是数组
+    const messagesData = Array.isArray(allMessages) ? allMessages : []
+
+    messagesData.forEach(({ contactId, messages }) => {
       const contact = contacts.find((c) => c.id === contactId)
       if (!contact) return
 
@@ -65,7 +72,10 @@ export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMes
         return
       }
 
-      messages.forEach((message) => {
+      // 确保 messages 是数组
+      const messageList = Array.isArray(messages) ? messages : []
+
+      messageList.forEach((message) => {
         // 应用消息类型过滤器
         if (selectedFilters.messageTypes.length > 0 && !selectedFilters.messageTypes.includes(message.type)) {
           return
@@ -125,12 +135,12 @@ export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMes
 
     setSearchResults(results)
     setIsSearching(false)
-  }, [searchQuery, selectedFilters, sortBy, allMessagesData, contacts])
+  }, [searchQuery, selectedFilters, sortBy, allMessages, contacts])
 
   // 执行搜索
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      performSearch()
+      performSearch
     }, 300) // 防抖
 
     return () => clearTimeout(timeoutId)
@@ -218,12 +228,14 @@ export function MessageSearchPage({ onBack, onSelectMessage, contacts, getAllMes
   const hasActiveFilters =
     selectedFilters.messageTypes.length > 0 || selectedFilters.contacts.length > 0 || selectedFilters.dateRange
 
+  if (!isOpen) return null
+
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* 头部 */}
       <div className="bg-green-600 text-white p-4">
         <div className="flex items-center gap-4 mb-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-green-700">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-medium">搜索消息</h1>
