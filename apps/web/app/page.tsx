@@ -1,5 +1,10 @@
-import WhatsAppWeb from "../whatsapp-web"
+import { AuthWrapper } from "../components/auth-wrapper"
+import { WhatsAppMain } from "../components/whatsapp-main"
 
 export default function Page() {
-  return <WhatsAppWeb />
+  return (
+    <AuthWrapper>
+      <WhatsAppMain />
+    </AuthWrapper>
+  )
 }
