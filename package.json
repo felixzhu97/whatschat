@@ -1,0 +1,31 @@
+{
+  "name": "whatschat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "turbo start",
+    "clean": "turbo clean",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck"
+  },
+  "keywords": [],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "turbo": "^2.4.2"
+  },
+  "engines": {
+    "pnpm": ">=9.15.0",
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
