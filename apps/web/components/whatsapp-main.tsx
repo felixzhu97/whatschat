@@ -834,7 +834,11 @@ export function WhatsAppMain() {
                   />
                   {showEmojiPicker && (
                     <div className="absolute bottom-full left-0 mb-2 z-10">
-                      <EmojiPicker onEmojiSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
+                      <EmojiPicker
+                        isOpen={showEmojiPicker}
+                        onEmojiSelect={handleEmojiSelect}
+                        onClose={() => setShowEmojiPicker(false)}
+                      />
                     </div>
                   )}
                 </div>

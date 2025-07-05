@@ -242,9 +242,22 @@ const emojiCategories = {
 
 export function EmojiPicker({ isOpen, onClose, onEmojiSelect }: EmojiPickerProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [recentEmojis, setRecentEmojis] = useState<string[]>(JSON.parse(localStorage.getItem("recentEmojis") || "[]"))
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([])
   const [hoveredEmoji, setHoveredEmoji] = useState<string | null>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
+
+  // 初始化最近使用的表情
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("recentEmojis")
+      if (saved) {
+        setRecentEmojis(JSON.parse(saved))
+      }
+    } catch (error) {
+      console.error("Failed to load recent emojis:", error)
+      setRecentEmojis([])
+    }
+  }, [])
 
   // 点击外部关闭
   useEffect(() => {
@@ -282,7 +295,14 @@ export function EmojiPicker({ isOpen, onClose, onEmojiSelect }: EmojiPickerProps
     // 更新最近使用的表情
     const updatedRecent = [emoji, ...recentEmojis.filter((e) => e !== emoji)].slice(0, 24)
     setRecentEmojis(updatedRecent)
-    localStorage.setItem("recentEmojis", JSON.stringify(updatedRecent))
+    try {
+      localStorage.setItem("recentEmojis", JSON.stringify(updatedRecent))
+    } catch (error) {
+      console.error("Failed to save recent emojis:", error)
+    }
+
+    // 选择表情后不关闭面板，让用户可以连续选择
+    // onClose() // 注释掉这行，让用户可以连续选择表情
   }
 
   const filteredEmojis = searchQuery
