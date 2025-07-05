@@ -17,10 +17,7 @@ import {
   WifiOff,
   Settings,
   Archive,
-  MessageSquare,
-  Bell,
   BellOff,
-  Trash2,
   X,
   Filter,
 } from "lucide-react"
@@ -39,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { GroupInfoPanel } from "./group-info-panel"
 import { CreateGroupDialog } from "./create-group-dialog"
+import { AddFriendDialog } from "./add-friend-dialog"
 import { SettingsPage } from "./settings-page"
 import { ProfilePage } from "./profile-page"
 import { CallsPage } from "./calls-page"
@@ -63,7 +61,7 @@ import { SearchShortcuts } from "./search-shortcuts"
 import { LongPressGuide } from "./long-press-guide"
 import { HapticFeedback } from "../lib/haptic-feedback"
 
-const contacts: Contact[] = [
+const initialContacts: Contact[] = [
   {
     id: "1",
     name: "张三",
@@ -73,6 +71,7 @@ const contacts: Contact[] = [
     unread: 2,
     online: true,
     pinned: true,
+    muted: false,
   },
   {
     id: "group1",
@@ -91,6 +90,7 @@ const contacts: Contact[] = [
       { id: "user3", name: "王五", avatar: "/placeholder.svg?height=32&width=32&text=王", role: "member" },
       { id: "user4", name: "赵六", avatar: "/placeholder.svg?height=32&width=32&text=赵", role: "member" },
     ],
+    pinned: false,
     muted: false,
   },
   {
@@ -99,15 +99,18 @@ const contacts: Contact[] = [
     avatar: "/placeholder.svg?height=40&width=40&text=李",
     lastMessage: "好的，明天见！",
     time: "12:15",
+    pinned: false,
     muted: true,
   },
 ]
 
 export function WhatsAppMain() {
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [selectedContact, setSelectedContact] = useState<Contact>(contacts[0])
   const [messageText, setMessageText] = useState("")
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [showAddFriend, setShowAddFriend] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [editingMessage, setEditingMessage] = useState<{ id: string; text: string } | null>(null)
@@ -267,6 +270,12 @@ export function WhatsAppMain() {
     HapticFeedback.light()
   }
 
+  // 处理消息信息
+  const handleMessageInfo = (message: Message) => {
+    console.log("查看消息信息:", message)
+    HapticFeedback.light()
+  }
+
   // 发起语音通话
   const handleVoiceCall = async () => {
     try {
@@ -291,24 +300,52 @@ export function WhatsAppMain() {
 
   // 处理联系人操作
   const handleContactAction = (action: string, contact: Contact) => {
-    switch (action) {
-      case "pin":
-        console.log("置顶聊天:", contact.name)
-        HapticFeedback.light()
-        break
-      case "mute":
-        console.log("静音聊天:", contact.name)
-        HapticFeedback.light()
-        break
-      case "archive":
-        console.log("归档聊天:", contact.name)
-        HapticFeedback.light()
-        break
-      case "delete":
-        console.log("删除聊天:", contact.name)
-        HapticFeedback.medium()
-        break
+    setContacts((prevContacts) =>
+      prevContacts.map((c) => {
+        if (c.id === contact.id) {
+          switch (action) {
+            case "pin":
+              HapticFeedback.light()
+              return { ...c, pinned: !c.pinned }
+            case "mute":
+              HapticFeedback.light()
+              return { ...c, muted: !c.muted }
+            case "archive":
+              console.log("归档聊天:", contact.name)
+              HapticFeedback.light()
+              return c
+            case "delete":
+              console.log("删除聊天:", contact.name)
+              HapticFeedback.medium()
+              return c
+            default:
+              return c
+          }
+        }
+        return c
+      }),
+    )
+
+    // 如果当前选中的联系人被修改，也要更新
+    if (selectedContact.id === contact.id) {
+      setSelectedContact((prev) => {
+        switch (action) {
+          case "pin":
+            return { ...prev, pinned: !prev.pinned }
+          case "mute":
+            return { ...prev, muted: !prev.muted }
+          default:
+            return prev
+        }
+      })
     }
+  }
+
+  // 处理添加好友
+  const handleAddFriend = (friendId: string) => {
+    console.log("添加好友:", friendId)
+    HapticFeedback.success()
+    // 这里可以添加实际的添加好友逻辑
   }
 
   // 处理全局搜索
@@ -459,7 +496,7 @@ export function WhatsAppMain() {
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentPage("calls")}>
                 <Phone className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowCreateGroup(true)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowAddFriend(true)}>
                 <UserPlus className="h-4 w-4" />
               </Button>
               <DropdownMenu>
@@ -469,6 +506,11 @@ export function WhatsAppMain() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowCreateGroup(true)}>
+                    <Users className="h-4 w-4 mr-2" />
+                    新建群组
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowSearchPage(true)}>
                     <Search className="h-4 w-4 mr-2" />
                     搜索消息
@@ -502,7 +544,6 @@ export function WhatsAppMain() {
             <Input
               ref={searchInputRef}
               placeholder="搜索或开始新聊天"
-              className="pl-10 bg-gray-100 border-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={handleSearchFocus}
@@ -512,49 +553,28 @@ export function WhatsAppMain() {
                   handleGlobalSearch(searchQuery)
                 }
               }}
+              className="pl-10 bg-white"
             />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
 
             {/* 搜索建议 */}
-            <SearchSuggestions
-              isOpen={showSearchSuggestions}
-              query={searchQuery}
-              contacts={contacts}
-              recentSearches={recentSearches}
-              onSelectSuggestion={handleSearchSuggestion}
-              onClearRecentSearches={() => {
-                setRecentSearches([])
-                localStorage.removeItem("recentSearches")
-              }}
-              onRemoveRecentSearch={handleRemoveRecentSearch}
-            />
+            {showSearchSuggestions && (
+              <SearchSuggestions
+                query={searchQuery}
+                contacts={contacts}
+                recentSearches={recentSearches}
+                onSelect={handleSearchSuggestion}
+                onRemoveRecent={handleRemoveRecentSearch}
+                onAdvancedSearch={() => setShowAdvancedSearch(true)}
+              />
+            )}
           </div>
         </div>
-
-        {/* 连接状态提示 */}
-        {!isConnected && (
-          <div className="p-2">
-            <Alert>
-              <WifiOff className="h-4 w-4" />
-              <AlertDescription>连接已断开，正在尝试重连...</AlertDescription>
-            </Alert>
-          </div>
-        )}
 
         {/* 联系人列表 */}
         <ScrollArea className="flex-1">
           {filteredContacts
             .sort((a, b) => {
-              // 置顶的聊天排在前面
+              // 置顶的联系人排在前面
               if (a.pinned && !b.pinned) return -1
               if (!a.pinned && b.pinned) return 1
               return 0
@@ -575,98 +595,59 @@ export function WhatsAppMain() {
       <div className="flex-1 flex flex-col">
         {/* 聊天头部 */}
         <div className="bg-gray-50 p-4 border-b border-gray-200 flex items-center justify-between">
-          <div
-            className="flex items-center gap-3 cursor-pointer"
-            onClick={() => selectedContact.isGroup && setShowGroupInfo(true)}
-          >
+          <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={selectedContact.avatar || "/placeholder.svg"} />
               <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-1">
-                <h2 className="font-medium">{selectedContact.name}</h2>
+              <h2 className="font-medium flex items-center gap-2">
+                {selectedContact.name}
                 {selectedContact.isGroup && <Users className="h-4 w-4 text-gray-500" />}
                 {selectedContact.muted && <BellOff className="h-4 w-4 text-gray-400" />}
-              </div>
-              <p className="text-sm text-gray-500">
-                {isTyping ? (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <span className="animate-pulse">●</span>
-                    正在输入...
-                  </span>
-                ) : selectedContact.isGroup ? (
-                  `${selectedContact.memberCount} 位成员`
-                ) : selectedContact.online ? (
-                  <span className="text-green-600">在线</span>
-                ) : (
-                  "上次在线时间：今天 14:30"
+              </h2>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                {selectedContact.online && !selectedContact.isGroup && (
+                  <>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>在线</span>
+                  </>
                 )}
-              </p>
+                {selectedContact.isGroup && <span>{selectedContact.memberCount} 位成员</span>}
+                {isTyping && <span className="text-green-600">正在输入...</span>}
+              </div>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={handleVoiceCall} disabled={callState.isActive || !isConnected}>
-              <Phone className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleVoiceCall}>
+              <Phone className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleVideoCall} disabled={callState.isActive || !isConnected}>
-              <Video className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleVideoCall}>
+              <Video className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentPage("starred")}>
-              <Star className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => setShowGroupInfo(!showGroupInfo)}>
+              <MoreVertical className="h-4 w-4" />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  查看联系人
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Search className="h-4 w-4 mr-2" />
-                  搜索消息
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  {selectedContact.muted ? <Bell className="h-4 w-4 mr-2" /> : <BellOff className="h-4 w-4 mr-2" />}
-                  {selectedContact.muted ? "取消静音" : "静音通知"}
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Archive className="h-4 w-4 mr-2" />
-                  归档聊天
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  删除聊天
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 
+        {/* 连接状态提示 */}
+        {!isConnected && (
+          <Alert className="m-4 border-orange-200 bg-orange-50">
+            <WifiOff className="h-4 w-4" />
+            <AlertDescription>连接已断开，正在重新连接...</AlertDescription>
+          </Alert>
+        )}
+
         {/* 通话错误提示 */}
         {callError && (
-          <div className="p-2">
-            <Alert variant="destructive">
-              <AlertDescription>{callError}</AlertDescription>
-            </Alert>
-          </div>
+          <Alert className="m-4 border-red-200 bg-red-50">
+            <AlertDescription>{callError}</AlertDescription>
+          </Alert>
         )}
 
         {/* 消息区域 */}
-        <ScrollArea
-          className="flex-1 p-4"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fillOpacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundColor: "#efeae2",
-          }}
-        >
+        <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <MessageBubble
@@ -678,6 +659,7 @@ export function WhatsAppMain() {
                 onDelete={deleteMessage}
                 onForward={handleForward}
                 onStar={handleStar}
+                onInfo={handleMessageInfo}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -686,131 +668,103 @@ export function WhatsAppMain() {
 
         {/* 回复预览 */}
         {replyingTo && (
-          <div className="bg-blue-50 p-3 border-t border-blue-200 flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-8 bg-blue-500 rounded"></div>
-                <div>
-                  <p className="text-sm font-medium text-blue-700">
-                    回复 {replyingTo.senderName || (replyingTo.sent ? "你" : selectedContact.name)}
-                  </p>
-                  <p className="text-sm text-blue-600 truncate max-w-[300px]">{replyingTo.text}</p>
-                </div>
-              </div>
+          <div className="mx-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-700">回复 {replyingTo.senderName || "对方"}</p>
+              <p className="text-sm text-gray-600 truncate">{replyingTo.text}</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
-              ✕
+            <Button variant="ghost" size="icon" onClick={() => setReplyingTo(null)}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         )}
 
         {/* 编辑预览 */}
         {editingMessage && (
-          <div className="bg-yellow-50 p-3 border-t border-yellow-200 flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-8 bg-yellow-500 rounded"></div>
-                <div>
-                  <p className="text-sm font-medium text-yellow-700">编辑消息</p>
-                  <p className="text-sm text-yellow-600">按 Enter 保存，Esc 取消</p>
-                </div>
-              </div>
+          <div className="mx-4 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-yellow-700">编辑消息</p>
+              <p className="text-sm text-gray-600 truncate">{editingMessage.text}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setEditingMessage(null)
-                setMessageText("")
-              }}
-            >
-              ✕
+            <Button variant="ghost" size="icon" onClick={() => setEditingMessage(null)}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         )}
 
         {/* 输入区域 */}
-        <div className="bg-gray-50 p-4 border-t border-gray-200 relative">
-          {isRecordingVoice ? (
-            <VoiceRecorder onSendVoice={handleSendVoice} onCancel={() => setIsRecordingVoice(false)} />
-          ) : (
-            <div className="flex items-end gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="mb-1">
-                <Smile className="h-5 w-5" />
-              </Button>
-
+        <div className="p-4 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-end gap-2">
+            <div className="flex items-center gap-2">
               <FileUpload onFileSelect={handleFileSelect} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="relative"
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+            </div>
 
-              <div className="flex-1 relative">
-                <Textarea
-                  ref={inputRef}
-                  value={messageText}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyPress}
-                  placeholder={editingMessage ? "编辑消息..." : "输入消息"}
-                  className="min-h-[40px] max-h-[120px] resize-none bg-white border-gray-300 focus:border-green-500 focus:ring-green-500"
-                  disabled={!isConnected}
-                  rows={1}
-                />
-              </div>
-
-              {messageText.trim() ? (
-                <Button
-                  size="icon"
-                  className="bg-green-500 hover:bg-green-600 mb-1"
-                  onClick={handleSendMessage}
-                  disabled={!isConnected}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              ) : (
-                <div className="mb-1">
-                  <VoiceRecorder onSendVoice={handleSendVoice} onCancel={() => setIsRecordingVoice(false)} />
+            <div className="flex-1 relative">
+              <Textarea
+                ref={inputRef}
+                value={messageText}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyPress}
+                placeholder="输入消息..."
+                className="min-h-[40px] max-h-[120px] resize-none pr-12"
+                rows={1}
+              />
+              {showEmojiPicker && (
+                <div className="absolute bottom-full left-0 mb-2 z-10">
+                  <EmojiPicker onEmojiSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
                 </div>
               )}
             </div>
-          )}
 
-          {/* 表情符号选择器 */}
-          <EmojiPicker
-            isOpen={showEmojiPicker}
-            onClose={() => setShowEmojiPicker(false)}
-            onEmojiSelect={handleEmojiSelect}
-          />
+            {messageText.trim() ? (
+              <Button onClick={handleSendMessage} size="icon" className="bg-green-500 hover:bg-green-600">
+                <Send className="h-4 w-4" />
+              </Button>
+            ) : (
+              <VoiceRecorder
+                onSendVoice={handleSendVoice}
+                isRecording={isRecordingVoice}
+                onRecordingChange={setIsRecordingVoice}
+              />
+            )}
+          </div>
         </div>
       </div>
 
       {/* 群组信息面板 */}
-      {selectedContact.isGroup && (
-        <GroupInfoPanel
-          isOpen={showGroupInfo}
-          onClose={() => setShowGroupInfo(false)}
-          groupName={selectedContact.name}
-          groupAvatar={selectedContact.avatar}
-          groupDescription={selectedContact.description || ""}
-          members={selectedContact.members || []}
-          memberCount={selectedContact.memberCount || 0}
-          isAdmin={true}
-        />
+      {showGroupInfo && selectedContact.isGroup && (
+        <GroupInfoPanel contact={selectedContact} onClose={() => setShowGroupInfo(false)} />
       )}
 
-      {/* 创建群组对话框 */}
+      {/* 对话框 */}
       <CreateGroupDialog
         isOpen={showCreateGroup}
         onClose={() => setShowCreateGroup(false)}
-        contacts={[]}
-        onCreateGroup={(name, members) => {
-          console.log("创建群组:", name, members)
+        onCreateGroup={(groupData) => {
+          console.log("创建群组:", groupData)
+          setShowCreateGroup(false)
         }}
       />
 
-      {/* 搜索页面 */}
+      <AddFriendDialog isOpen={showAddFriend} onClose={() => setShowAddFriend(false)} onAddFriend={handleAddFriend} />
+
+      {/* 消息搜索页面 */}
       {showSearchPage && (
         <MessageSearchPage
-          onBack={() => setShowSearchPage(false)}
-          onSelectMessage={handleSelectMessage}
+          isOpen={showSearchPage}
+          onClose={() => setShowSearchPage(false)}
+          initialQuery={searchQuery}
+          allMessages={getAllMessages()}
           contacts={contacts}
-          getAllMessages={getAllMessages}
+          onSelectMessage={handleSelectMessage}
         />
       )}
 

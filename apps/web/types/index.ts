@@ -22,6 +22,8 @@ export interface Contact {
   memberCount?: number
   description?: string
   admin?: string[]
+  pinned?: boolean
+  muted?: boolean
 }
 
 export interface GroupMember {
@@ -48,6 +50,7 @@ export interface Message {
   fileName?: string
   fileSize?: string
   duration?: number
+  starred?: boolean
 }
 
 export interface AuthState {

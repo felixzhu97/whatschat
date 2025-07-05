@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { MoreVertical, Reply, Edit, Trash, Copy, Forward, Star, Download } from "lucide-react"
+import { MoreVertical, Reply, Edit, Trash, Copy, Forward, Star, Download, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -19,28 +19,35 @@ interface MessageBubbleProps {
   onDelete?: (messageId: string) => void
   onForward?: (message: Message) => void
   onStar?: (messageId: string) => void
+  onInfo?: (message: Message) => void
 }
 
-export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onForward, onStar }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  isGroup,
+  onReply,
+  onEdit,
+  onDelete,
+  onForward,
+  onStar,
+  onInfo,
+}: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(message.text)
   const [showActions, setShowActions] = useState(false)
-  const [longPressPosition, setLongPressPosition] = useState({ x: 0, y: 0 })
   const editInputRef = useRef<HTMLInputElement>(null)
   const messageRef = useRef<HTMLDivElement>(null)
-  const actionsTimeoutRef = useRef<NodeJS.Timeout>()
 
   // 长按检测
   const longPressEvents = useLongPress({
     onLongPress: () => {
       setShowActions(true)
-      // 添加触觉反馈（如果支持）
       if ("vibrate" in navigator) {
         navigator.vibrate(50)
       }
     },
-    delay: 500, // 500ms 长按
+    delay: 500,
   })
 
   // 处理点击外部关闭操作菜单
@@ -60,22 +67,6 @@ export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onF
       }
     }
   }, [showActions])
-
-  // 清理定时器
-  useEffect(() => {
-    return () => {
-      if (actionsTimeoutRef.current) {
-        clearTimeout(actionsTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  // 当菜单关闭时，也隐藏操作按钮
-  useEffect(() => {
-    if (!showMenu && !showActions) {
-      setShowActions(false)
-    }
-  }, [showMenu, showActions])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.text)
@@ -158,6 +149,32 @@ export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onF
     return `${messageDate.getMonth() + 1}/${messageDate.getDate()} ${timeString}`
   }
 
+  // 根据消息发送者决定显示的功能
+  const getAvailableActions = () => {
+    const commonActions = [
+      { key: "reply", icon: Reply, label: "回复", action: () => onReply?.(message) },
+      { key: "forward", icon: Forward, label: "转发", action: () => onForward?.(message) },
+      { key: "star", icon: Star, label: message.starred ? "取消星标" : "加星标", action: () => onStar?.(message.id) },
+    ]
+
+    if (message.sent) {
+      // 自己发送的消息
+      return [
+        ...commonActions,
+        ...(message.type === "text" && !isEditing
+          ? [{ key: "edit", icon: Edit, label: "编辑", action: handleEdit }]
+          : []),
+        { key: "info", icon: Info, label: "消息信息", action: () => onInfo?.(message) },
+        { key: "delete", icon: Trash, label: "删除", action: () => onDelete?.(message.id), destructive: true },
+      ]
+    } else {
+      // 对方发送的消息
+      return [...commonActions, { key: "info", icon: Info, label: "消息信息", action: () => onInfo?.(message) }]
+    }
+  }
+
+  const availableActions = getAvailableActions()
+
   return (
     <div ref={messageRef} className={`flex ${message.sent ? "justify-end" : "justify-start"} group relative`}>
       {/* 快速回复按钮 - 左侧消息 */}
@@ -166,7 +183,7 @@ export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onF
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border"
+            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border rounded-full"
             onClick={() => handleQuickAction(() => onReply?.(message))}
           >
             <Reply className="h-4 w-4" />
@@ -292,85 +309,62 @@ export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onF
           </div>
         )}
 
-        {/* 消息操作菜单 - 改进的位置和样式 */}
+        {/* 消息操作菜单 - 根据发送者显示不同功能 */}
         {showActions && (
           <div className={`absolute -top-12 ${message.sent ? "right-0" : "left-0"} z-10`}>
             <div className="bg-white rounded-lg shadow-lg border p-1 flex items-center gap-1 animate-in slide-in-from-top-2 duration-200">
-              {/* 快速操作按钮 */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-gray-100"
-                onClick={() => handleQuickAction(() => onReply?.(message))}
-                title="回复"
-              >
-                <Reply className="h-4 w-4" />
-              </Button>
-
-              {message.sent && message.type === "text" && !isEditing && (
+              {/* 显示前4个快速操作 */}
+              {availableActions.slice(0, 4).map((action) => (
                 <Button
+                  key={action.key}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 hover:bg-gray-100"
-                  onClick={handleEdit}
-                  title="编辑"
+                  onClick={() => handleQuickAction(action.action)}
+                  title={action.label}
                 >
-                  <Edit className="h-4 w-4" />
+                  <action.icon
+                    className={`h-4 w-4 ${action.key === "star" && message.starred ? "fill-current text-yellow-400" : ""}`}
+                  />
                 </Button>
-              )}
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-gray-100"
-                onClick={() => handleQuickAction(() => onStar?.(message.id))}
-                title={message.starred ? "取消星标" : "加星标"}
-              >
-                <Star className={`h-4 w-4 ${message.starred ? "fill-current text-yellow-400" : ""}`} />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-gray-100"
-                onClick={() => handleQuickAction(() => onForward?.(message))}
-                title="转发"
-              >
-                <Forward className="h-4 w-4" />
-              </Button>
+              ))}
 
               {/* 更多选项菜单 */}
-              <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100" title="更多选项">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align={message.sent ? "end" : "start"} className="w-48">
-                  <DropdownMenuItem onClick={handleCopy}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    复制
-                  </DropdownMenuItem>
-                  {(message.type === "file" || message.type === "image") && (
-                    <DropdownMenuItem onClick={handleDownload}>
-                      <Download className="h-4 w-4 mr-2" />
-                      下载
+              {availableActions.length > 4 && (
+                <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100" title="更多选项">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align={message.sent ? "end" : "start"} className="w-48">
+                    <DropdownMenuItem onClick={handleCopy}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      复制
                     </DropdownMenuItem>
-                  )}
-                  {message.sent && (
-                    <DropdownMenuItem
-                      onClick={() => {
-                        onDelete?.(message.id)
-                        setShowActions(false)
-                      }}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <Trash className="h-4 w-4 mr-2" />
-                      删除
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {(message.type === "file" || message.type === "image") && (
+                      <DropdownMenuItem onClick={handleDownload}>
+                        <Download className="h-4 w-4 mr-2" />
+                        下载
+                      </DropdownMenuItem>
+                    )}
+                    {/* 显示剩余的操作 */}
+                    {availableActions.slice(4).map((action) => (
+                      <DropdownMenuItem
+                        key={action.key}
+                        onClick={() => {
+                          action.action()
+                          setShowActions(false)
+                        }}
+                        className={action.destructive ? "text-red-600 focus:text-red-600" : ""}
+                      >
+                        <action.icon className="h-4 w-4 mr-2" />
+                        {action.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {/* 关闭按钮 */}
               <Button
@@ -393,7 +387,7 @@ export function MessageBubble({ message, isGroup, onReply, onEdit, onDelete, onF
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border"
+            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border rounded-full"
             onClick={() => handleQuickAction(() => onForward?.(message))}
           >
             <Forward className="h-4 w-4" />

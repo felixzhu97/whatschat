@@ -25,20 +25,25 @@ interface ContactListItemProps {
 export function ContactListItem({ contact, isSelected, onSelect, onAction }: ContactListItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [localContact, setLocalContact] = useState(contact)
   const itemRef = useRef<HTMLDivElement>(null)
+
+  // 同步外部contact变化
+  useEffect(() => {
+    setLocalContact(contact)
+  }, [contact])
 
   // 长按检测
   const longPressEvents = useLongPress({
     onLongPress: () => {
       setShowActions(true)
-      // 添加触觉反馈
       if ("vibrate" in navigator) {
         navigator.vibrate(50)
       }
     },
     onPress: () => {
       if (!showActions) {
-        onSelect(contact)
+        onSelect(localContact)
       }
     },
     delay: 500,
@@ -72,7 +77,15 @@ export function ContactListItem({ contact, isSelected, onSelect, onAction }: Con
   }, [showMenu])
 
   const handleQuickAction = (action: string) => {
-    onAction(action, contact)
+    // 立即更新本地状态以提供即时反馈
+    if (action === "pin") {
+      setLocalContact((prev) => ({ ...prev, pinned: !prev.pinned }))
+    } else if (action === "mute") {
+      setLocalContact((prev) => ({ ...prev, muted: !prev.muted }))
+    }
+
+    // 调用父组件的处理函数
+    onAction(action, localContact)
     setShowActions(false)
   }
 
@@ -85,14 +98,14 @@ export function ContactListItem({ contact, isSelected, onSelect, onAction }: Con
       {...longPressEvents}
     >
       {/* 置顶指示器 */}
-      {contact.pinned && <Pin className="absolute top-2 right-2 h-3 w-3 text-gray-400" />}
+      {localContact.pinned && <Pin className="absolute top-2 right-2 h-3 w-3 text-green-500" />}
 
       <div className="relative">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={contact.avatar || "/placeholder.svg"} />
-          <AvatarFallback>{contact.name[0]}</AvatarFallback>
+          <AvatarImage src={localContact.avatar || "/placeholder.svg"} />
+          <AvatarFallback>{localContact.name[0]}</AvatarFallback>
         </Avatar>
-        {contact.online && (
+        {localContact.online && (
           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
         )}
       </div>
@@ -100,22 +113,24 @@ export function ContactListItem({ contact, isSelected, onSelect, onAction }: Con
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <h3 className="font-medium text-sm truncate">{contact.name}</h3>
-            {contact.isGroup && <Users className="h-3 w-3 text-gray-500" />}
-            {contact.muted && <BellOff className="h-3 w-3 text-gray-400" />}
+            <h3 className="font-medium text-sm truncate">{localContact.name}</h3>
+            {localContact.isGroup && <Users className="h-3 w-3 text-gray-500" />}
+            {localContact.muted && <BellOff className="h-3 w-3 text-gray-400" />}
           </div>
-          <span className="text-xs text-gray-500">{contact.time}</span>
+          <span className="text-xs text-gray-500">{localContact.time}</span>
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
+          <p className="text-sm text-gray-600 truncate">{localContact.lastMessage}</p>
           <div className="flex items-center gap-1">
-            {contact.isGroup && contact.memberCount && (
-              <span className="text-xs text-gray-400">{contact.memberCount}人</span>
+            {localContact.isGroup && localContact.memberCount && (
+              <span className="text-xs text-gray-400">{localContact.memberCount}人</span>
             )}
-            {contact.unread && !contact.muted && (
-              <Badge className="bg-green-500 text-white text-xs">{contact.unread}</Badge>
-            )}
-            {contact.unread && contact.muted && <div className="w-2 h-2 bg-gray-400 rounded-full"></div>}
+            {/* 免打扰时显示小圆点而不是数字 */}
+            {localContact.unread && localContact.muted ? (
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+            ) : localContact.unread && !localContact.muted ? (
+              <Badge className="bg-green-500 text-white text-xs">{localContact.unread}</Badge>
+            ) : null}
           </div>
         </div>
       </div>
@@ -138,9 +153,9 @@ export function ContactListItem({ contact, isSelected, onSelect, onAction }: Con
               e.stopPropagation()
               handleQuickAction("pin")
             }}
-            title={contact.pinned ? "取消置顶" : "置顶"}
+            title={localContact.pinned ? "取消置顶" : "置顶"}
           >
-            {contact.pinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+            {localContact.pinned ? <PinOff className="h-3 w-3 text-green-500" /> : <Pin className="h-3 w-3" />}
           </Button>
 
           <Button
@@ -151,9 +166,9 @@ export function ContactListItem({ contact, isSelected, onSelect, onAction }: Con
               e.stopPropagation()
               handleQuickAction("mute")
             }}
-            title={contact.muted ? "取消静音" : "静音"}
+            title={localContact.muted ? "取消静音" : "静音"}
           >
-            {contact.muted ? <Bell className="h-3 w-3" /> : <BellOff className="h-3 w-3" />}
+            {localContact.muted ? <Bell className="h-3 w-3 text-green-500" /> : <BellOff className="h-3 w-3" />}
           </Button>
 
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
