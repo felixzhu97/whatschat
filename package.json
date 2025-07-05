@@ -1,6 +1,17 @@
 {
-  "name": "my-turborepo",
+  "name": "whats-chat",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "whats-chat",
+    "whatsapp",
+    "chat"
+  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

@@ -1,106 +1,150 @@
 "use client"
 
-import { ArrowLeft, Star } from "lucide-react"
+import { useState } from "react"
+import { ArrowLeft, Star, Search } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { MessageBubble } from "./message-bubble"
+import type { Message } from "../types"
 
-interface StarredMessage {
-  id: string
-  text: string
-  sender: string
-  senderAvatar: string
-  time: string
-  date: string
+interface StarredMessage extends Message {
   chatName: string
+  chatAvatar: string
 }
 
 interface StarredMessagesPageProps {
   onBack: () => void
 }
 
-const starredMessages: StarredMessage[] = [
-  {
-    id: "1",
-    text: "记得明天下午3点开会",
-    sender: "李四",
-    senderAvatar: "/placeholder.svg?height=32&width=32&text=李",
-    time: "14:30",
-    date: "今天",
-    chatName: "项目讨论组",
-  },
-  {
-    id: "2",
-    text: "这个方案很不错，我们可以试试",
-    sender: "张三",
-    senderAvatar: "/placeholder.svg?height=32&width=32&text=张",
-    time: "16:45",
-    date: "昨天",
-    chatName: "张三",
-  },
-  {
-    id: "3",
-    text: "地址：北京市朝阳区xxx路xxx号",
-    sender: "王五",
-    senderAvatar: "/placeholder.svg?height=32&width=32&text=王",
-    time: "10:20",
-    date: "周二",
-    chatName: "王五",
-  },
-]
-
 export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // 模拟星标消息数据
+  const [starredMessages] = useState<StarredMessage[]>([
+    {
+      id: "1",
+      content: "记得明天的会议时间是下午2点",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1天前
+      senderId: "user1",
+      type: "text",
+      status: "read",
+      chatName: "张三",
+      chatAvatar: "/placeholder.svg?height=40&width=40&text=张",
+    },
+    {
+      id: "2",
+      content: "这个项目的截止日期是下周五",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2天前
+      senderId: "user2",
+      type: "text",
+      status: "read",
+      chatName: "李四",
+      chatAvatar: "/placeholder.svg?height=40&width=40&text=李",
+    },
+    {
+      id: "3",
+      content: "/placeholder.svg?height=200&width=300&text=重要图片",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72), // 3天前
+      senderId: "user3",
+      type: "image",
+      status: "read",
+      chatName: "工作群",
+      chatAvatar: "/placeholder.svg?height=40&width=40&text=工",
+    },
+    {
+      id: "4",
+      content: "生日聚会地址：中山路123号",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96), // 4天前
+      senderId: "user4",
+      type: "text",
+      status: "read",
+      chatName: "王五",
+      chatAvatar: "/placeholder.svg?height=40&width=40&text=王",
+    },
+  ])
+
+  // 过滤星标消息
+  const filteredMessages = starredMessages.filter(
+    (message) =>
+      message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      message.chatName.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const formatDate = (timestamp: Date) => {
+    const now = new Date()
+    const diffInDays = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (diffInDays === 0) {
+      return "今天"
+    } else if (diffInDays === 1) {
+      return "昨天"
+    } else if (diffInDays < 7) {
+      return `${diffInDays}天前`
+    } else {
+      return timestamp.toLocaleDateString()
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* 头部 */}
       <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mb-4">
           <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-medium">星标消息</h1>
         </div>
+
+        {/* 搜索框 */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="搜索星标消息"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
+          />
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4">
-          {starredMessages.length === 0 ? (
-            <div className="text-center py-12">
-              <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">暂无星标消息</p>
-              <p className="text-sm text-gray-500">点击并按住任何消息，然后点击星标图标来添加星标消息。</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {starredMessages.map((message) => (
-                <div key={message.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={message.senderAvatar || "/placeholder.svg"} />
-                      <AvatarFallback>{message.sender[0]}</AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-sm">{message.sender}</h3>
-                        <span className="text-xs text-gray-500">来自 {message.chatName}</span>
-                      </div>
-
-                      <p className="text-sm text-gray-900 mb-2">{message.text}</p>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          {message.date} {message.time}
-                        </span>
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      </div>
-                    </div>
-                  </div>
+        {filteredMessages.length > 0 ? (
+          <div className="p-4 space-y-4">
+            {filteredMessages.map((message) => (
+              <div key={message.id} className="space-y-2">
+                {/* 聊天信息 */}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={message.chatAvatar || "/placeholder.svg"} />
+                    <AvatarFallback className="text-xs">{message.chatName[0]}</AvatarFallback>
+                  </Avatar>
+                  <span>{message.chatName}</span>
+                  <span>•</span>
+                  <span>{formatDate(message.timestamp)}</span>
+                  <Star className="h-3 w-3 text-yellow-500 fill-current ml-auto" />
                 </div>
-              ))}
+
+                {/* 消息内容 */}
+                <div className="ml-8">
+                  <MessageBubble message={message} isOwn={false} showAvatar={false} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h2 className="text-lg font-medium text-gray-600 mb-2">没有星标消息</h2>
+              <p className="text-gray-500">
+                {searchQuery ? "没有找到匹配的星标消息" : "点击消息旁的星标图标来收藏重要消息"}
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </ScrollArea>
     </div>
   )

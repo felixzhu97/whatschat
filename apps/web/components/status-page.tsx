@@ -1,75 +1,79 @@
 "use client"
-import { ArrowLeft, Plus, Eye, MoreVertical } from "lucide-react"
+
+import { useState } from "react"
+import { ArrowLeft, Plus, MoreVertical } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "../hooks/use-auth"
 
 interface Status {
   id: string
   name: string
   avatar: string
-  time: string
+  timestamp: Date
   viewed: boolean
-  isMyStatus?: boolean
+  isOwn?: boolean
 }
 
 interface StatusPageProps {
   onBack: () => void
 }
 
-const myStatus: Status[] = [
-  {
-    id: "my1",
-    name: "我的状态",
-    avatar: "/placeholder.svg?height=40&width=40&text=我",
-    time: "2小时前",
-    viewed: true,
-    isMyStatus: true,
-  },
-]
-
-const recentStatuses: Status[] = [
-  {
-    id: "1",
-    name: "张三",
-    avatar: "/placeholder.svg?height=40&width=40&text=张",
-    time: "30分钟前",
-    viewed: false,
-  },
-  {
-    id: "2",
-    name: "李四",
-    avatar: "/placeholder.svg?height=40&width=40&text=李",
-    time: "1小时前",
-    viewed: true,
-  },
-  {
-    id: "3",
-    name: "王五",
-    avatar: "/placeholder.svg?height=40&width=40&text=王",
-    time: "3小时前",
-    viewed: false,
-  },
-]
-
-const viewedStatuses: Status[] = [
-  {
-    id: "4",
-    name: "赵六",
-    avatar: "/placeholder.svg?height=40&width=40&text=赵",
-    time: "昨天",
-    viewed: true,
-  },
-  {
-    id: "5",
-    name: "钱七",
-    avatar: "/placeholder.svg?height=40&width=40&text=钱",
-    time: "昨天",
-    viewed: true,
-  },
-]
-
 export function StatusPage({ onBack }: StatusPageProps) {
+  const { user } = useAuth()
+
+  // 模拟状态数据
+  const [statuses] = useState<Status[]>([
+    {
+      id: "own",
+      name: "我的状态",
+      avatar: user?.avatar || "/placeholder.svg?height=40&width=40&text=我",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2小时前
+      viewed: true,
+      isOwn: true,
+    },
+    {
+      id: "1",
+      name: "张三",
+      avatar: "/placeholder.svg?height=40&width=40&text=张",
+      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30分钟前
+      viewed: false,
+    },
+    {
+      id: "2",
+      name: "李四",
+      avatar: "/placeholder.svg?height=40&width=40&text=李",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1小时前
+      viewed: true,
+    },
+    {
+      id: "3",
+      name: "王五",
+      avatar: "/placeholder.svg?height=40&width=40&text=王",
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3小时前
+      viewed: false,
+    },
+  ])
+
+  const formatTimestamp = (timestamp: Date) => {
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60))
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60))
+      return `${diffInMinutes}分钟前`
+    } else if (diffInHours < 24) {
+      return `${diffInHours}小时前`
+    } else {
+      return timestamp.toLocaleDateString()
+    }
+  }
+
+  const recentStatuses = statuses.filter((s) => !s.isOwn && !s.viewed)
+  const viewedStatuses = statuses.filter((s) => !s.isOwn && s.viewed)
+  const myStatus = statuses.find((s) => s.isOwn)
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* 头部 */}
@@ -85,13 +89,13 @@ export function StatusPage({ onBack }: StatusPageProps) {
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
           {/* 我的状态 */}
-          <div className="space-y-3">
-            {myStatus.map((status) => (
-              <div key={status.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+          {myStatus && (
+            <div>
+              <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
                 <div className="relative">
                   <Avatar className="h-14 w-14">
-                    <AvatarImage src={status.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>{status.name[0]}</AvatarFallback>
+                    <AvatarImage src={myStatus.avatar || "/placeholder.svg"} />
+                    <AvatarFallback>{myStatus.name[0]}</AvatarFallback>
                   </Avatar>
                   <Button
                     size="icon"
@@ -100,77 +104,68 @@ export function StatusPage({ onBack }: StatusPageProps) {
                     <Plus className="h-3 w-3" />
                   </Button>
                 </div>
-
                 <div className="flex-1">
-                  <h3 className="font-medium">我的状态</h3>
-                  <p className="text-sm text-gray-600">{status.time}</p>
+                  <h3 className="font-medium text-gray-900">{myStatus.name}</h3>
+                  <p className="text-sm text-gray-600">{formatTimestamp(myStatus.timestamp)}</p>
                 </div>
-
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </div>
-            ))}
-
-            <div className="pl-4">
-              <Button variant="ghost" className="text-green-600 hover:text-green-700 p-0 h-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                添加状态更新
-              </Button>
-            </div>
-          </div>
-
-          {/* 最近更新 */}
-          {recentStatuses.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-gray-600 px-2">最近更新</h2>
-              {recentStatuses.map((status) => (
-                <div key={status.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                  <div className="relative">
-                    <Avatar className="h-14 w-14">
-                      <AvatarImage src={status.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{status.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div
-                      className={`absolute inset-0 rounded-full border-2 ${
-                        status.viewed ? "border-gray-300" : "border-green-500"
-                      }`}
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <h3 className="font-medium">{status.name}</h3>
-                    <p className="text-sm text-gray-600">{status.time}</p>
-                  </div>
-
-                  {status.viewed && <Eye className="h-4 w-4 text-gray-400" />}
-                </div>
-              ))}
             </div>
           )}
 
-          {/* 已查看的状态 */}
+          {/* 最近更新 */}
+          {recentStatuses.length > 0 && (
+            <div>
+              <h2 className="text-sm font-medium text-gray-600 mb-3 px-3">最近更新</h2>
+              <div className="space-y-2">
+                {recentStatuses.map((status) => (
+                  <div
+                    key={status.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src={status.avatar || "/placeholder.svg"} />
+                        <AvatarFallback>{status.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 rounded-full border-2 border-green-500"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{status.name}</h3>
+                      <p className="text-sm text-gray-600">{formatTimestamp(status.timestamp)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 已查看 */}
           {viewedStatuses.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-gray-600 px-2">已查看的状态</h2>
-              {viewedStatuses.map((status) => (
-                <div key={status.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                  <div className="relative">
-                    <Avatar className="h-14 w-14">
-                      <AvatarImage src={status.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{status.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute inset-0 rounded-full border-2 border-gray-300" />
+            <div>
+              <h2 className="text-sm font-medium text-gray-600 mb-3 px-3">已查看</h2>
+              <div className="space-y-2">
+                {viewedStatuses.map((status) => (
+                  <div
+                    key={status.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer opacity-60"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src={status.avatar || "/placeholder.svg"} />
+                        <AvatarFallback>{status.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{status.name}</h3>
+                      <p className="text-sm text-gray-600">{formatTimestamp(status.timestamp)}</p>
+                    </div>
                   </div>
-
-                  <div className="flex-1">
-                    <h3 className="font-medium">{status.name}</h3>
-                    <p className="text-sm text-gray-600">{status.time}</p>
-                  </div>
-
-                  <Eye className="h-4 w-4 text-gray-400" />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
