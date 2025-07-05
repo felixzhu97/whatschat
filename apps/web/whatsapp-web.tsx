@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Search, MoreVertical, Phone, Video, Paperclip, Mic, Send, Smile } from "lucide-react"
+import { Search, MoreVertical, Phone, Video, Paperclip, Mic, Send, Smile, Users, UserPlus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { GroupInfoPanel } from "./group-info-panel"
+import { CreateGroupDialog } from "./create-group-dialog"
 
 interface Contact {
   id: string
@@ -15,6 +17,19 @@ interface Contact {
   time: string
   unread?: number
   online?: boolean
+  isGroup?: boolean
+  members?: GroupMember[]
+  memberCount?: number
+  description?: string
+  admin?: string[]
+}
+
+interface GroupMember {
+  id: string
+  name: string
+  avatar: string
+  role: "admin" | "member"
+  phone?: string
 }
 
 interface Message {
@@ -24,6 +39,8 @@ interface Message {
   sent: boolean
   delivered?: boolean
   read?: boolean
+  sender?: string
+  senderName?: string
 }
 
 const contacts: Contact[] = [
@@ -37,6 +54,24 @@ const contacts: Contact[] = [
     online: true,
   },
   {
+    id: "group1",
+    name: "项目讨论组",
+    avatar: "/placeholder.svg?height=40&width=40&text=项目",
+    lastMessage: "李四: 明天的会议改到下午3点",
+    time: "15:20",
+    unread: 5,
+    isGroup: true,
+    memberCount: 8,
+    description: "项目开发讨论群组",
+    admin: ["user1", "user2"],
+    members: [
+      { id: "user1", name: "张三", avatar: "/placeholder.svg?height=32&width=32&text=张", role: "admin" },
+      { id: "user2", name: "李四", avatar: "/placeholder.svg?height=32&width=32&text=李", role: "admin" },
+      { id: "user3", name: "王五", avatar: "/placeholder.svg?height=32&width=32&text=王", role: "member" },
+      { id: "user4", name: "赵六", avatar: "/placeholder.svg?height=32&width=32&text=赵", role: "member" },
+    ],
+  },
+  {
     id: "2",
     name: "李四",
     avatar: "/placeholder.svg?height=40&width=40&text=李",
@@ -44,26 +79,21 @@ const contacts: Contact[] = [
     time: "12:15",
   },
   {
-    id: "3",
-    name: "王五",
-    avatar: "/placeholder.svg?height=40&width=40&text=王",
-    lastMessage: "文件已发送",
-    time: "昨天",
-    online: true,
-  },
-  {
-    id: "4",
-    name: "赵六",
-    avatar: "/placeholder.svg?height=40&width=40&text=赵",
-    lastMessage: "谢谢你的帮助",
-    time: "昨天",
-  },
-  {
-    id: "5",
-    name: "钱七",
-    avatar: "/placeholder.svg?height=40&width=40&text=钱",
-    lastMessage: "周末一起吃饭吧",
-    time: "周二",
+    id: "group2",
+    name: "家庭群",
+    avatar: "/placeholder.svg?height=40&width=40&text=家庭",
+    lastMessage: "妈妈: 晚饭做了你爱吃的菜",
+    time: "18:30",
+    unread: 1,
+    isGroup: true,
+    memberCount: 5,
+    description: "温馨的家庭群聊",
+    admin: ["mom"],
+    members: [
+      { id: "mom", name: "妈妈", avatar: "/placeholder.svg?height=32&width=32&text=妈", role: "admin" },
+      { id: "dad", name: "爸爸", avatar: "/placeholder.svg?height=32&width=32&text=爸", role: "member" },
+      { id: "me", name: "我", avatar: "/placeholder.svg?height=32&width=32&text=我", role: "member" },
+    ],
   },
 ]
 
@@ -104,9 +134,47 @@ const messages: Message[] = [
   },
 ]
 
+const groupMessages: Message[] = [
+  {
+    id: "1",
+    text: "大家好，今天的会议有什么要讨论的吗？",
+    time: "14:25",
+    sent: false,
+    sender: "user2",
+    senderName: "李四",
+  },
+  {
+    id: "2",
+    text: "我觉得我们需要重新评估项目时间线",
+    time: "14:26",
+    sent: true,
+    delivered: true,
+    read: true,
+  },
+  {
+    id: "3",
+    text: "同意，现在的进度确实有点紧张",
+    time: "14:28",
+    sent: false,
+    sender: "user3",
+    senderName: "王五",
+  },
+  {
+    id: "4",
+    text: "那我们明天下午3点开会详细讨论一下",
+    time: "14:30",
+    sent: false,
+    sender: "user2",
+    senderName: "李四",
+  },
+]
+
 export default function WhatsAppWeb() {
   const [selectedContact, setSelectedContact] = useState<Contact>(contacts[0])
   const [messageText, setMessageText] = useState("")
+  const [showGroupInfo, setShowGroupInfo] = useState(false)
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [currentMessages, setCurrentMessages] = useState<Message[]>(messages)
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -120,6 +188,9 @@ export default function WhatsAppWeb() {
               <AvatarFallback>我</AvatarFallback>
             </Avatar>
             <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowCreateGroup(true)}>
+                <UserPlus className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -155,16 +226,24 @@ export default function WhatsAppWeb() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm truncate">{contact.name}</h3>
+                  <div className="flex items-center gap-1">
+                    <h3 className="font-medium text-sm truncate">{contact.name}</h3>
+                    {contact.isGroup && <Users className="h-3 w-3 text-gray-500" />}
+                  </div>
                   <span className="text-xs text-gray-500">{contact.time}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
-                  {contact.unread && (
-                    <span className="bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                      {contact.unread}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {contact.isGroup && contact.memberCount && (
+                      <span className="text-xs text-gray-400">{contact.memberCount}人</span>
+                    )}
+                    {contact.unread && (
+                      <span className="bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                        {contact.unread}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,14 +255,27 @@ export default function WhatsAppWeb() {
       <div className="flex-1 flex flex-col">
         {/* 聊天头部 */}
         <div className="bg-gray-50 p-4 border-b border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3"
+            onClick={() => selectedContact.isGroup && setShowGroupInfo(true)}
+            className={selectedContact.isGroup ? "cursor-pointer" : ""}
+          >
             <Avatar className="h-10 w-10">
               <AvatarImage src={selectedContact.avatar || "/placeholder.svg"} />
               <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-medium">{selectedContact.name}</h2>
-              <p className="text-sm text-gray-500">{selectedContact.online ? "在线" : "上次在线时间：今天 14:30"}</p>
+              <div className="flex items-center gap-1">
+                <h2 className="font-medium">{selectedContact.name}</h2>
+                {selectedContact.isGroup && <Users className="h-4 w-4 text-gray-500" />}
+              </div>
+              <p className="text-sm text-gray-500">
+                {selectedContact.isGroup
+                  ? `${selectedContact.memberCount} 位成员`
+                  : selectedContact.online
+                    ? "在线"
+                    : "上次在线时间：今天 14:30"}
+              </p>
             </div>
           </div>
 
@@ -209,13 +301,16 @@ export default function WhatsAppWeb() {
           }}
         >
           <div className="space-y-4">
-            {messages.map((message) => (
+            {(selectedContact.isGroup ? groupMessages : messages).map((message) => (
               <div key={message.id} className={`flex ${message.sent ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[70%] rounded-lg px-3 py-2 ${
                     message.sent ? "bg-green-500 text-white" : "bg-white text-gray-900 shadow-sm"
                   }`}
                 >
+                  {!message.sent && selectedContact.isGroup && message.senderName && (
+                    <p className="text-xs font-medium text-green-600 mb-1">{message.senderName}</p>
+                  )}
                   <p className="text-sm">{message.text}</p>
                   <div
                     className={`flex items-center justify-end gap-1 mt-1 ${
@@ -276,6 +371,30 @@ export default function WhatsAppWeb() {
           </div>
         </div>
       </div>
+      {/* 群组信息面板 */}
+      {selectedContact.isGroup && (
+        <GroupInfoPanel
+          isOpen={showGroupInfo}
+          onClose={() => setShowGroupInfo(false)}
+          groupName={selectedContact.name}
+          groupAvatar={selectedContact.avatar}
+          groupDescription={selectedContact.description || ""}
+          members={selectedContact.members || []}
+          memberCount={selectedContact.memberCount || 0}
+          isAdmin={true}
+        />
+      )}
+
+      {/* 创建群组对话框 */}
+      <CreateGroupDialog
+        isOpen={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+        contacts={[]}
+        onCreateGroup={(name, members) => {
+          console.log("创建群组:", name, members)
+          // 这里可以添加创建群组的逻辑
+        }}
+      />
     </div>
   )
 }
