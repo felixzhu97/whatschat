@@ -2,148 +2,146 @@ import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { StorageManager } from "../lib/storage"
 
-export interface AppSettings {
-  // 主题设置
-  theme: "light" | "dark" | "system"
-  accentColor: string
+export interface NotificationSettings {
+  enabled: boolean
+  sound: boolean
+  vibration: boolean
+  showPreview: boolean
+  groupNotifications: boolean
+  callNotifications: boolean
+}
+
+export interface PrivacySettings {
+  lastSeen: "everyone" | "contacts" | "nobody"
+  profilePhoto: "everyone" | "contacts" | "nobody"
+  status: "everyone" | "contacts" | "nobody"
+  readReceipts: boolean
+  onlineStatus: boolean
+  blockedContacts: string[]
+}
+
+export interface ChatSettings {
   fontSize: "small" | "medium" | "large"
+  wallpaper: string
+  enterToSend: boolean
+  mediaAutoDownload: boolean
+  backupFrequency: "daily" | "weekly" | "monthly" | "never"
+  archiveSettings: boolean
+}
 
-  // 通知设置
-  notifications: {
-    enabled: boolean
-    sound: boolean
-    vibration: boolean
-    preview: boolean
-    groupNotifications: boolean
-    callNotifications: boolean
-  }
+export interface CallSettings {
+  lowDataUsage: boolean
+  callWaiting: boolean
+  autoAnswer: boolean
+  speakerphone: boolean
+  noiseReduction: boolean
+}
 
-  // 隐私设置
-  privacy: {
-    lastSeen: "everyone" | "contacts" | "nobody"
-    profilePhoto: "everyone" | "contacts" | "nobody"
-    status: "everyone" | "contacts" | "nobody"
-    readReceipts: boolean
-    onlineStatus: boolean
-  }
-
-  // 聊天设置
-  chat: {
-    enterToSend: boolean
-    mediaAutoDownload: boolean
-    linkPreview: boolean
-    emojiSuggestions: boolean
-    spellCheck: boolean
-    messageGrouping: boolean
-  }
-
-  // 通话设置
-  calls: {
-    ringtone: string
-    callWaiting: boolean
-    lowDataUsage: boolean
-    alwaysRelay: boolean
-  }
-
-  // 存储设置
+export interface AppSettings {
+  theme: "light" | "dark" | "system"
+  language: string
+  notifications: NotificationSettings
+  privacy: PrivacySettings
+  chat: ChatSettings
+  calls: CallSettings
   storage: {
     autoBackup: boolean
-    backupFrequency: "daily" | "weekly" | "monthly"
-    includeVideos: boolean
-    wifiOnly: boolean
+    backupLocation: string
+    maxStorageSize: number
   }
-
-  // 语言设置
-  language: string
-
-  // 实验性功能
-  experimental: {
-    betaFeatures: boolean
+  advanced: {
     debugMode: boolean
+    betaFeatures: boolean
+    crashReports: boolean
   }
+}
+
+interface SettingsState {
+  settings: AppSettings
+  isLoading: boolean
+  error: string | null
+
+  // Actions
+  updateSettings: (updates: Partial<AppSettings>) => void
+  updateNotificationSettings: (updates: Partial<NotificationSettings>) => void
+  updatePrivacySettings: (updates: Partial<PrivacySettings>) => void
+  updateChatSettings: (updates: Partial<ChatSettings>) => void
+  updateCallSettings: (updates: Partial<CallSettings>) => void
+  resetSettings: () => void
+  exportSettings: () => string
+  importSettings: (settingsJson: string) => boolean
+
+  // Getters
+  getTheme: () => "light" | "dark" | "system"
+  getEffectiveTheme: () => "light" | "dark"
+  isNotificationsEnabled: () => boolean
+  getLanguage: () => string
+  getFontSize: () => "small" | "medium" | "large"
+
+  // Privacy
+  canSeeLastSeen: (contactId: string) => boolean
+  canSeeProfilePhoto: (contactId: string) => boolean
+  canSeeStatus: (contactId: string) => boolean
+  isContactBlocked: (contactId: string) => boolean
+  blockContact: (contactId: string) => void
+  unblockContact: (contactId: string) => void
+
+  // Sync
+  syncSettings: () => Promise<void>
 }
 
 const defaultSettings: AppSettings = {
   theme: "system",
-  accentColor: "#25D366",
-  fontSize: "medium",
-
+  language: "zh-CN",
   notifications: {
     enabled: true,
     sound: true,
     vibration: true,
-    preview: true,
+    showPreview: true,
     groupNotifications: true,
     callNotifications: true,
   },
-
   privacy: {
     lastSeen: "everyone",
     profilePhoto: "everyone",
     status: "everyone",
     readReceipts: true,
     onlineStatus: true,
+    blockedContacts: [],
   },
-
   chat: {
+    fontSize: "medium",
+    wallpaper: "default",
     enterToSend: true,
     mediaAutoDownload: true,
-    linkPreview: true,
-    emojiSuggestions: true,
-    spellCheck: true,
-    messageGrouping: true,
+    backupFrequency: "daily",
+    archiveSettings: false,
   },
-
   calls: {
-    ringtone: "default",
-    callWaiting: true,
     lowDataUsage: false,
-    alwaysRelay: false,
+    callWaiting: true,
+    autoAnswer: false,
+    speakerphone: false,
+    noiseReduction: true,
   },
-
   storage: {
     autoBackup: true,
-    backupFrequency: "daily",
-    includeVideos: false,
-    wifiOnly: true,
+    backupLocation: "local",
+    maxStorageSize: 1024, // MB
   },
-
-  language: "zh-CN",
-
-  experimental: {
-    betaFeatures: false,
+  advanced: {
     debugMode: false,
+    betaFeatures: false,
+    crashReports: true,
   },
-}
-
-interface SettingsState {
-  settings: AppSettings
-
-  // Actions
-  updateSettings: (updates: Partial<AppSettings>) => void
-  updateThemeSettings: (theme: Partial<AppSettings["theme"]>) => void
-  updateNotificationSettings: (notifications: Partial<AppSettings["notifications"]>) => void
-  updatePrivacySettings: (privacy: Partial<AppSettings["privacy"]>) => void
-  updateChatSettings: (chat: Partial<AppSettings["chat"]>) => void
-  updateCallSettings: (calls: Partial<AppSettings["calls"]>) => void
-  updateStorageSettings: (storage: Partial<AppSettings["storage"]>) => void
-  resetSettings: () => void
-
-  // Computed
-  getEffectiveTheme: () => "light" | "dark"
-  isNotificationsEnabled: () => boolean
-  shouldShowPreviews: () => boolean
-  getLanguage: () => string
-
-  // Import/Export
-  exportSettings: () => string
-  importSettings: (settingsJson: string) => boolean
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       settings: defaultSettings,
+      isLoading: false,
+      error: null,
 
       // Actions
       updateSettings: (updates) =>
@@ -151,81 +149,40 @@ export const useSettingsStore = create<SettingsState>()(
           settings: { ...state.settings, ...updates },
         })),
 
-      updateThemeSettings: (themeUpdates) =>
+      updateNotificationSettings: (updates) =>
         set((state) => ({
           settings: {
             ...state.settings,
-            ...themeUpdates,
+            notifications: { ...state.settings.notifications, ...updates },
           },
         })),
 
-      updateNotificationSettings: (notifications) =>
+      updatePrivacySettings: (updates) =>
         set((state) => ({
           settings: {
             ...state.settings,
-            notifications: { ...state.settings.notifications, ...notifications },
+            privacy: { ...state.settings.privacy, ...updates },
           },
         })),
 
-      updatePrivacySettings: (privacy) =>
+      updateChatSettings: (updates) =>
         set((state) => ({
           settings: {
             ...state.settings,
-            privacy: { ...state.settings.privacy, ...privacy },
+            chat: { ...state.settings.chat, ...updates },
           },
         })),
 
-      updateChatSettings: (chat) =>
+      updateCallSettings: (updates) =>
         set((state) => ({
           settings: {
             ...state.settings,
-            chat: { ...state.settings.chat, ...chat },
-          },
-        })),
-
-      updateCallSettings: (calls) =>
-        set((state) => ({
-          settings: {
-            ...state.settings,
-            calls: { ...state.settings.calls, ...calls },
-          },
-        })),
-
-      updateStorageSettings: (storage) =>
-        set((state) => ({
-          settings: {
-            ...state.settings,
-            storage: { ...state.settings.storage, ...storage },
+            calls: { ...state.settings.calls, ...updates },
           },
         })),
 
       resetSettings: () => set({ settings: defaultSettings }),
 
-      // Computed
-      getEffectiveTheme: () => {
-        const { settings } = get()
-        if (settings.theme === "system") {
-          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-        }
-        return settings.theme
-      },
-
-      isNotificationsEnabled: () => {
-        const { settings } = get()
-        return settings.notifications.enabled
-      },
-
-      shouldShowPreviews: () => {
-        const { settings } = get()
-        return settings.notifications.enabled && settings.notifications.preview
-      },
-
-      getLanguage: () => {
-        const { settings } = get()
-        return settings.language
-      },
-
-      // Import/Export
       exportSettings: () => {
         const { settings } = get()
         return JSON.stringify(settings, null, 2)
@@ -239,6 +196,105 @@ export const useSettingsStore = create<SettingsState>()(
         } catch (error) {
           console.error("Failed to import settings:", error)
           return false
+        }
+      },
+
+      // Getters
+      getTheme: () => get().settings.theme,
+
+      getEffectiveTheme: () => {
+        const { theme } = get().settings
+        if (theme === "system") {
+          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        }
+        return theme
+      },
+
+      isNotificationsEnabled: () => get().settings.notifications.enabled,
+
+      getLanguage: () => get().settings.language,
+
+      getFontSize: () => get().settings.chat.fontSize,
+
+      // Privacy
+      canSeeLastSeen: (contactId) => {
+        const { privacy } = get().settings
+        if (privacy.blockedContacts.includes(contactId)) return false
+
+        switch (privacy.lastSeen) {
+          case "everyone":
+            return true
+          case "contacts":
+            return true // 简化处理，假设都是联系人
+          case "nobody":
+            return false
+          default:
+            return true
+        }
+      },
+
+      canSeeProfilePhoto: (contactId) => {
+        const { privacy } = get().settings
+        if (privacy.blockedContacts.includes(contactId)) return false
+
+        switch (privacy.profilePhoto) {
+          case "everyone":
+            return true
+          case "contacts":
+            return true // 简化处理
+          case "nobody":
+            return false
+          default:
+            return true
+        }
+      },
+
+      canSeeStatus: (contactId) => {
+        const { privacy } = get().settings
+        if (privacy.blockedContacts.includes(contactId)) return false
+
+        switch (privacy.status) {
+          case "everyone":
+            return true
+          case "contacts":
+            return true // 简化处理
+          case "nobody":
+            return false
+          default:
+            return true
+        }
+      },
+
+      isContactBlocked: (contactId) => {
+        const { privacy } = get().settings
+        return privacy.blockedContacts.includes(contactId)
+      },
+
+      blockContact: (contactId) => {
+        const { privacy } = get().settings
+        if (!privacy.blockedContacts.includes(contactId)) {
+          get().updatePrivacySettings({
+            blockedContacts: [...privacy.blockedContacts, contactId],
+          })
+        }
+      },
+
+      unblockContact: (contactId) => {
+        const { privacy } = get().settings
+        get().updatePrivacySettings({
+          blockedContacts: privacy.blockedContacts.filter((id) => id !== contactId),
+        })
+      },
+
+      // Sync
+      syncSettings: async () => {
+        set({ isLoading: true, error: null })
+        try {
+          // 这里可以实现与服务器同步设置的逻辑
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          set({ isLoading: false })
+        } catch (error) {
+          set({ isLoading: false, error: "同步设置失败" })
         }
       },
     }),

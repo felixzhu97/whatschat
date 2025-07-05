@@ -1,30 +1,27 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
-import { MoreVertical, Reply, Edit, Trash, Copy, Forward, Star, Download, Info } from "lucide-react"
+import { useState } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import { MoreVertical, Reply, Edit, Trash2, Forward, Star, Info, Play, Download, FileText } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { Message } from "../types"
-import { VoiceMessagePlayer } from "./voice-message-player"
-import { useLongPress } from "../hooks/use-long-press"
 
 interface MessageBubbleProps {
   message: Message
   isGroup?: boolean
-  onReply?: (message: Message) => void
-  onEdit?: (messageId: string, newText: string) => void
-  onDelete?: (messageId: string) => void
-  onForward?: (message: Message) => void
-  onStar?: (messageId: string) => void
-  onInfo?: (message: Message) => void
+  onReply: (message: Message) => void
+  onEdit: (messageId: string, text: string) => void
+  onDelete: (messageId: string) => void
+  onForward: (message: Message) => void
+  onStar: (messageId: string) => void
+  onInfo: (message: Message) => void
 }
 
 export function MessageBubble({
   message,
-  isGroup,
+  isGroup = false,
   onReply,
   onEdit,
   onDelete,
@@ -33,369 +30,158 @@ export function MessageBubble({
   onInfo,
 }: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editText, setEditText] = useState(message.content)
-  const [showActions, setShowActions] = useState(false)
-  const editInputRef = useRef<HTMLInputElement>(null)
-  const messageRef = useRef<HTMLDivElement>(null)
+  const isSent = message.senderId === "current-user"
 
-  // 长按检测
-  const longPressEvents = useLongPress({
-    onLongPress: () => {
-      setShowActions(true)
-      if ("vibrate" in navigator) {
-        navigator.vibrate(50)
-      }
-    },
-    delay: 500,
-  })
-
-  // 处理点击外部关闭操作菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (messageRef.current && !messageRef.current.contains(event.target as Node)) {
-        setShowActions(false)
-      }
-    }
-
-    if (showActions) {
-      document.addEventListener("mousedown", handleClickOutside)
-      document.addEventListener("touchstart", handleClickOutside)
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
-        document.removeEventListener("touchstart", handleClickOutside)
-      }
-    }
-  }, [showActions])
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(message.content)
-    setShowMenu(false)
-    setShowActions(false)
+  const formatTime = (timestamp: Date) => {
+    return new Date(timestamp).toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
 
-  const handleEdit = () => {
-    setIsEditing(true)
-    setShowMenu(false)
-    setShowActions(false)
-    setTimeout(() => editInputRef.current?.focus(), 100)
-  }
-
-  const handleSaveEdit = () => {
-    if (editText.trim() && editText !== message.content) {
-      onEdit?.(message.id, editText.trim())
-    }
-    setIsEditing(false)
-  }
-
-  const handleCancelEdit = () => {
-    setEditText(message.content)
-    setIsEditing(false)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSaveEdit()
-    } else if (e.key === "Escape") {
-      handleCancelEdit()
-    }
-  }
-
-  const handleDownload = () => {
-    if (message.fileUrl) {
-      const link = document.createElement("a")
-      link.href = message.fileUrl
-      link.download = message.fileName || "download"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-    setShowMenu(false)
-    setShowActions(false)
-  }
-
-  const handleQuickAction = (action: () => void) => {
-    action()
-    setShowActions(false)
-  }
-
-  const getMessageStatus = () => {
-    const isSentByMe = message.senderId === "me"
-    if (!isSentByMe && message.senderId !== "me") return null
-
-    if (message.status === "read") {
-      return <span className="text-blue-200 text-xs">✓✓</span>
-    } else if (message.status === "delivered") {
-      return <span className="text-green-200 text-xs">✓✓</span>
-    } else if (message.status === "sent") {
-      return <span className="text-green-300 text-xs">✓</span>
-    } else {
-      return <span className="text-gray-300 text-xs">⏳</span>
+  const renderMessageContent = () => {
+    switch (message.type) {
+      case "image":
+        return (
+          <div className="relative">
+            <img src="/placeholder.svg?height=200&width=300&text=图片" alt="图片消息" className="rounded-lg max-w-xs" />
+            <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+              {formatTime(message.timestamp)}
+            </div>
+          </div>
+        )
+      case "video":
+        return (
+          <div className="relative">
+            <div className="bg-gray-200 rounded-lg p-4 max-w-xs flex items-center justify-center">
+              <Play className="h-8 w-8 text-gray-600" />
+            </div>
+            <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+              {formatTime(message.timestamp)}
+            </div>
+          </div>
+        )
+      case "audio":
+        return (
+          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-3 max-w-xs">
+            <Button size="sm" variant="ghost">
+              <Play className="h-4 w-4" />
+            </Button>
+            <div className="flex-1">
+              <div className="h-2 bg-gray-300 rounded-full">
+                <div className="h-2 bg-blue-500 rounded-full w-1/3"></div>
+              </div>
+            </div>
+            <span className="text-xs text-gray-500">0:30</span>
+          </div>
+        )
+      case "file":
+        return (
+          <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-3 max-w-xs">
+            <FileText className="h-8 w-8 text-gray-600" />
+            <div className="flex-1">
+              <p className="font-medium text-sm">{message.fileName || "文件"}</p>
+              <p className="text-xs text-gray-500">{message.fileSize || "未知大小"}</p>
+            </div>
+            <Button size="sm" variant="ghost">
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      default:
+        return (
+          <div>
+            <p className="text-sm">{message.content}</p>
+            {message.isEdited && <span className="text-xs text-gray-500 italic">已编辑</span>}
+          </div>
+        )
     }
   }
-
-  const formatTime = (timeString: string) => {
-    const messageDate = new Date()
-    const today = new Date()
-
-    if (messageDate.toDateString() === today.toDateString()) {
-      return timeString
-    }
-
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    if (messageDate.toDateString() === yesterday.toDateString()) {
-      return `昨天 ${timeString}`
-    }
-
-    return `${messageDate.getMonth() + 1}/${messageDate.getDate()} ${timeString}`
-  }
-
-  // 根据消息发送者决定显示的功能
-  const getAvailableActions = () => {
-    const commonActions = [
-      { key: "reply", icon: Reply, label: "回复", action: () => onReply?.(message) },
-      { key: "forward", icon: Forward, label: "转发", action: () => onForward?.(message) },
-      { key: "star", icon: Star, label: message.starred ? "取消星标" : "加星标", action: () => onStar?.(message.id) },
-    ]
-
-    const isSentByMe = message.senderId === "me"
-
-    if (isSentByMe) {
-      // 自己发送的消息
-      return [
-        ...commonActions,
-        ...(message.type === "text" && !isEditing
-          ? [{ key: "edit", icon: Edit, label: "编辑", action: handleEdit }]
-          : []),
-        { key: "info", icon: Info, label: "消息信息", action: () => onInfo?.(message) },
-        { key: "delete", icon: Trash, label: "删除", action: () => onDelete?.(message.id), destructive: true },
-      ]
-    } else {
-      // 对方发送的消息
-      return [...commonActions, { key: "info", icon: Info, label: "消息信息", action: () => onInfo?.(message) }]
-    }
-  }
-
-  const availableActions = getAvailableActions()
-  const isSentByMe = message.senderId === "me"
 
   return (
-    <div ref={messageRef} className={`flex ${isSentByMe ? "justify-end" : "justify-start"} group relative`}>
-      {/* 快速回复按钮 - 左侧消息 */}
-      {showActions && !isSentByMe && (
-        <div className="flex items-center mr-2 animate-in slide-in-from-left-2 duration-200">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border rounded-full"
-            onClick={() => handleQuickAction(() => onReply?.(message))}
-          >
-            <Reply className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className={cn("flex items-start space-x-2 group", isSent ? "flex-row-reverse space-x-reverse" : "flex-row")}>
+      {/* Avatar for received messages in groups */}
+      {!isSent && isGroup && (
+        <Avatar className="h-8 w-8">
+          <AvatarImage src="/placeholder.svg?height=32&width=32&text=头像" />
+          <AvatarFallback>{message.senderName?.[0] || "U"}</AvatarFallback>
+        </Avatar>
       )}
 
       <div
-        className={`max-w-[70%] rounded-lg px-3 py-2 relative transition-all duration-200 select-none ${
-          isSentByMe ? "bg-green-500 text-white rounded-br-sm" : "bg-white text-gray-900 shadow-sm border rounded-bl-sm"
-        } ${showActions ? "shadow-lg scale-[1.02]" : ""} ${longPressEvents.isLongPressing ? "scale-95" : ""}`}
-        {...longPressEvents}
+        className={cn(
+          "max-w-xs lg:max-w-md xl:max-w-lg rounded-lg px-3 py-2 relative",
+          isSent ? "bg-green-500 text-white" : "bg-white border shadow-sm",
+        )}
       >
-        {/* 群组消息发送者 */}
-        {!isSentByMe && isGroup && message.senderName && (
-          <p className="text-xs font-medium text-green-600 mb-1">{message.senderName}</p>
-        )}
+        {/* Sender name for group messages */}
+        {!isSent && isGroup && <p className="text-xs font-medium text-gray-600 mb-1">{message.senderName}</p>}
 
-        {/* 回复消息预览 */}
-        {message.replyTo && (
+        {/* Message content */}
+        {renderMessageContent()}
+
+        {/* Message time and status */}
+        {message.type === "text" && (
           <div
-            className={`rounded p-2 mb-2 text-xs border-l-2 ${
-              isSentByMe ? "bg-green-600 border-green-300" : "bg-gray-100 border-green-500"
-            }`}
+            className={cn("flex items-center justify-end space-x-1 mt-1", isSent ? "text-green-100" : "text-gray-500")}
           >
-            <p className="opacity-70 font-medium">回复消息</p>
-            <p className="opacity-90 truncate">原消息内容...</p>
-          </div>
-        )}
-
-        {/* 消息内容 */}
-        {message.type === "text" &&
-          (isEditing ? (
-            <div className="space-y-2">
-              <Input
-                ref={editInputRef}
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="text-sm bg-transparent border-white/20 text-white placeholder:text-white/70"
-                placeholder="编辑消息..."
-              />
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={handleSaveEdit}>
-                  保存
-                </Button>
-                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                  取消
-                </Button>
+            <span className="text-xs">{formatTime(message.timestamp)}</span>
+            {isSent && (
+              <div className="flex">
+                {message.status === "sent" && <div className="w-3 h-3 text-green-100">✓</div>}
+                {message.status === "delivered" && <div className="w-3 h-3 text-green-100">✓✓</div>}
+                {message.status === "read" && <div className="w-3 h-3 text-blue-300">✓✓</div>}
               </div>
-            </div>
-          ) : (
-            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-          ))}
-
-        {message.type === "image" && (
-          <div className="space-y-2">
-            <div className="relative group/image">
-              <img
-                src={message.fileUrl || "/placeholder.svg?height=200&width=300&text=图片"}
-                alt="发送的图片"
-                className="rounded max-w-full h-auto cursor-pointer transition-transform hover:scale-105"
-                onClick={() => {
-                  window.open(message.fileUrl, "_blank")
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors rounded flex items-center justify-center">
-                <Download className="h-6 w-6 text-white opacity-0 group-hover/image:opacity-100 transition-opacity" />
-              </div>
-            </div>
-            {message.text && <p className="text-sm">{message.text}</p>}
+            )}
           </div>
         )}
 
-        {message.type === "file" && (
-          <div
-            className={`flex items-center gap-3 p-3 rounded cursor-pointer transition-colors ${
-              isSentByMe ? "bg-green-600 hover:bg-green-700" : "bg-gray-100 hover:bg-gray-200"
-            }`}
-            onClick={handleDownload}
-          >
-            <div
-              className={`w-10 h-10 rounded flex items-center justify-center text-sm font-medium ${
-                isSentByMe ? "bg-green-700 text-white" : "bg-gray-300 text-gray-700"
-              }`}
-            >
-              📄
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{message.fileName}</p>
-              <p className="text-xs opacity-70">{message.fileSize}</p>
-            </div>
-            <Download className="h-4 w-4 opacity-70" />
-          </div>
-        )}
-
-        {message.type === "voice" && (
-          <VoiceMessagePlayer audioUrl={message.fileUrl!} duration={message.duration || 0} sent={isSentByMe} />
-        )}
-
-        {/* 时间、状态和星标 */}
-        <div
-          className={`flex items-center justify-between gap-2 mt-1 ${isSentByMe ? "text-green-100" : "text-gray-500"}`}
-        >
-          <div className="flex items-center gap-1">
-            {message.edited && <span className="text-xs opacity-70">已编辑</span>}
-            <span className="text-xs">{formatTime(message.time)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {message.starred && <Star className="h-3 w-3 fill-current text-yellow-400" />}
-            {getMessageStatus()}
-          </div>
-        </div>
-
-        {/* 长按提示 */}
-        {longPressEvents.isLongPressing && (
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-20 animate-in fade-in-0 duration-200">
-            松开显示选项
-          </div>
-        )}
-
-        {/* 消息操作菜单 - 根据发送者显示不同功能 */}
-        {showActions && (
-          <div className={`absolute -top-12 ${isSentByMe ? "right-0" : "left-0"} z-10`}>
-            <div className="bg-white rounded-lg shadow-lg border p-1 flex items-center gap-1 animate-in slide-in-from-top-2 duration-200">
-              {/* 显示前4个快速操作 */}
-              {availableActions.slice(0, 4).map((action) => (
-                <Button
-                  key={action.key}
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-gray-100"
-                  onClick={() => handleQuickAction(action.action)}
-                  title={action.label}
-                >
-                  <action.icon
-                    className={`h-4 w-4 ${action.key === "star" && message.starred ? "fill-current text-yellow-400" : ""}`}
-                  />
-                </Button>
-              ))}
-
-              {/* 更多选项菜单 */}
-              {availableActions.length > 4 && (
-                <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100" title="更多选项">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align={isSentByMe ? "end" : "start"} className="w-48">
-                    <DropdownMenuItem onClick={handleCopy}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      复制
-                    </DropdownMenuItem>
-                    {(message.type === "file" || message.type === "image") && (
-                      <DropdownMenuItem onClick={handleDownload}>
-                        <Download className="h-4 w-4 mr-2" />
-                        下载
-                      </DropdownMenuItem>
-                    )}
-                    {/* 显示剩余的操作 */}
-                    {availableActions.slice(4).map((action) => (
-                      <DropdownMenuItem
-                        key={action.key}
-                        onClick={() => {
-                          action.action()
-                          setShowActions(false)
-                        }}
-                        className={action.destructive ? "text-red-600 focus:text-red-600" : ""}
-                      >
-                        <action.icon className="h-4 w-4 mr-2" />
-                        {action.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+        {/* Message menu */}
+        <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
+                isSent ? "bg-green-600 hover:bg-green-700" : "bg-gray-100 hover:bg-gray-200",
               )}
-
-              {/* 关闭按钮 */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-gray-100 ml-1 border-l"
-                onClick={() => setShowActions(false)}
-                title="关闭"
-              >
-                ✕
-              </Button>
-            </div>
-          </div>
-        )}
+            >
+              <MoreVertical className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onReply(message)}>
+              <Reply className="h-4 w-4 mr-2" />
+              回复
+            </DropdownMenuItem>
+            {isSent && message.type === "text" && (
+              <DropdownMenuItem onClick={() => onEdit(message.id, message.content)}>
+                <Edit className="h-4 w-4 mr-2" />
+                编辑
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => onForward(message)}>
+              <Forward className="h-4 w-4 mr-2" />
+              转发
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onStar(message.id)}>
+              <Star className="h-4 w-4 mr-2" />
+              收藏
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onInfo(message)}>
+              <Info className="h-4 w-4 mr-2" />
+              信息
+            </DropdownMenuItem>
+            {isSent && (
+              <DropdownMenuItem onClick={() => onDelete(message.id)} className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                删除
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-
-      {/* 快速操作按钮 - 右侧消息 */}
-      {showActions && isSentByMe && (
-        <div className="flex items-center ml-2 animate-in slide-in-from-right-2 duration-200">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 bg-white shadow-md hover:bg-gray-50 border rounded-full"
-            onClick={() => handleQuickAction(() => onForward?.(message))}
-          >
-            <Forward className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
     </div>
   )
 }

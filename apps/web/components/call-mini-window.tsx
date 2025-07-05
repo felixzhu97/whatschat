@@ -2,154 +2,138 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { PhoneOff, Maximize, Mic, MicOff, Video, VideoOff } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import type { CallState } from "../types"
+import { MicOff, VideoOff, PhoneOff, Maximize2, Volume2 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { CallState } from "../hooks/use-call"
 
 interface CallMiniWindowProps {
   callState: CallState
-  localStream: MediaStream | null
+  localStream?: MediaStream | null
   onEndCall: () => void
   onMaximize: () => void
   formatDuration: (seconds: number) => string
 }
 
 export function CallMiniWindow({ callState, localStream, onEndCall, onMaximize, formatDuration }: CallMiniWindowProps) {
+  const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 100 })
   const [isDragging, setIsDragging] = useState(false)
-  const [position, setPosition] = useState({ x: 20, y: 20 })
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const windowRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
+  // Set up local video stream
+  useEffect(() => {
+    if (videoRef.current && localStream && callState.callType === "video") {
+      videoRef.current.srcObject = localStream
+    }
+  }, [localStream, callState.callType])
+
+  // Handle dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    const rect = e.currentTarget.getBoundingClientRect()
-    const offsetX = e.clientX - rect.left
-    const offsetY = e.clientY - rect.top
-
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({
-        x: e.clientX - offsetX,
-        y: e.clientY - offsetY,
+    if (e.target === windowRef.current || (e.target as Element).closest(".drag-handle")) {
+      setIsDragging(true)
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
       })
+    }
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const newX = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragOffset.x))
+        const newY = Math.max(0, Math.min(window.innerHeight - 200, e.clientY - dragOffset.y))
+        setPosition({ x: newX, y: newY })
+      }
     }
 
     const handleMouseUp = () => {
       setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+    }
+
+    return () => {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
     }
-
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("mouseup", handleMouseUp)
-  }
-
-  if (!callState.isActive || !callState.isMinimized) return null
+  }, [isDragging, dragOffset])
 
   return (
     <div
-      className={`fixed z-50 w-80 h-48 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 overflow-hidden ${
-        isDragging ? "cursor-grabbing" : "cursor-grab"
-      }`}
+      ref={windowRef}
+      className={cn(
+        "fixed z-50 bg-black/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 overflow-hidden transition-transform duration-200",
+        isDragging ? "scale-105" : "scale-100",
+      )}
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
+        left: position.x,
+        top: position.y,
+        width: 300,
+        height: 200,
+        cursor: isDragging ? "grabbing" : "grab",
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* 视频区域 */}
-      <div className="relative h-32 bg-gray-800">
-        {callState.callType === "video" && !callState.isVideoOff && localStream ? (
-          <video
-            autoPlay
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-            style={{ transform: "scaleX(-1)" }}
-            ref={(video) => {
-              if (video && localStream) {
-                video.srcObject = localStream
-              }
-            }}
-          />
+      {/* Video/Avatar Area */}
+      <div className="relative h-32 bg-gray-900">
+        {callState.callType === "video" && !callState.isVideoOff ? (
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-              <AvatarFallback>{callState.contactName[0]}</AvatarFallback>
-            </Avatar>
+          <div className="w-full h-full flex items-center justify-center">
+            <img
+              src={callState.contactAvatar || "/placeholder.svg"}
+              alt={callState.contactName}
+              className="w-16 h-16 rounded-full object-cover"
+            />
           </div>
         )}
 
-        {/* 状态指示器 */}
-        <div className="absolute top-2 left-2 flex items-center gap-1">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-white text-xs">{formatDuration(callState.duration)}</span>
-        </div>
+        {/* Drag Handle */}
+        <div className="drag-handle absolute inset-0" />
 
-        {/* 最大化按钮 */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 w-6 h-6 text-white hover:bg-white/20"
-          onClick={(e) => {
-            e.stopPropagation()
-            onMaximize()
-          }}
-        >
-          <Maximize className="w-3 h-3" />
-        </Button>
+        {/* Status Indicators */}
+        <div className="absolute top-2 left-2 flex space-x-1">
+          {callState.isMuted && (
+            <div className="bg-red-500 rounded-full p-1">
+              <MicOff className="h-3 w-3 text-white" />
+            </div>
+          )}
+          {callState.isVideoOff && callState.callType === "video" && (
+            <div className="bg-red-500 rounded-full p-1">
+              <VideoOff className="h-3 w-3 text-white" />
+            </div>
+          )}
+          {callState.isSpeakerOn && (
+            <div className="bg-blue-500 rounded-full p-1">
+              <Volume2 className="h-3 w-3 text-white" />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 控制区域 */}
-      <div className="p-3 bg-gray-900">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h4 className="text-white text-sm font-medium truncate">{callState.contactName}</h4>
-            <p className="text-gray-400 text-xs">{callState.callType === "video" ? "视频通话" : "语音通话"}</p>
-          </div>
+      {/* Call Info and Controls */}
+      <div className="p-3 bg-black/80">
+        <div className="text-white text-sm mb-2">
+          <p className="font-medium truncate">{callState.contactName}</p>
+          <p className="text-xs text-gray-300">{formatDuration(callState.duration)}</p>
+        </div>
 
-          <div className="flex items-center gap-2">
-            {/* 静音按钮 */}
-            <Button
-              variant={callState.isMuted ? "destructive" : "ghost"}
-              size="icon"
-              className="w-8 h-8 text-white hover:bg-white/20"
-              onClick={(e) => {
-                e.stopPropagation()
-                // 这里应该调用静音切换函数
-              }}
-            >
-              {callState.isMuted ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
-            </Button>
+        {/* Control Buttons */}
+        <div className="flex justify-between items-center">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2" onClick={onMaximize}>
+            <Maximize2 className="h-4 w-4" />
+          </Button>
 
-            {/* 视频按钮 */}
-            {callState.callType === "video" && (
-              <Button
-                variant={callState.isVideoOff ? "destructive" : "ghost"}
-                size="icon"
-                className="w-8 h-8 text-white hover:bg-white/20"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  // 这里应该调用视频切换函数
-                }}
-              >
-                {callState.isVideoOff ? <VideoOff className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-              </Button>
-            )}
-
-            {/* 挂断按钮 */}
-            <Button
-              variant="destructive"
-              size="icon"
-              className="w-8 h-8 bg-red-500 hover:bg-red-600"
-              onClick={(e) => {
-                e.stopPropagation()
-                onEndCall()
-              }}
-            >
-              <PhoneOff className="w-3 h-3" />
-            </Button>
-          </div>
+          <Button variant="destructive" size="sm" className="p-2" onClick={onEndCall}>
+            <PhoneOff className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

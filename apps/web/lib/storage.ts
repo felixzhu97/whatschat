@@ -1,179 +1,169 @@
 export class StorageManager {
   private static readonly PREFIX = "whatsapp_"
-  private static readonly MAX_LOCALSTORAGE_SIZE = 5 * 1024 * 1024 // 5MB
+  private static db: IDBDatabase | null = null
+  private static dbName = "WhatsAppDB"
+  private static dbVersion = 1
 
-  // localStorage操作
-  static save(key: string, data: any): boolean {
-    try {
-      const prefixedKey = this.PREFIX + key
-      const serialized = JSON.stringify(data)
+  // 初始化 IndexedDB
+  static async initDB(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion)
 
-      // 检查数据大小
-      if (serialized.length > this.MAX_LOCALSTORAGE_SIZE) {
-        console.warn(`Data too large for localStorage: ${key}`)
-        return this.saveToIndexedDB(key, data)
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        this.db = request.result
+        resolve()
       }
 
-      localStorage.setItem(prefixedKey, serialized)
-      return true
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+
+        // 创建对象存储
+        if (!db.objectStoreNames.contains("contacts")) {
+          db.createObjectStore("contacts", { keyPath: "id" })
+        }
+
+        if (!db.objectStoreNames.contains("messages")) {
+          db.createObjectStore("messages", { keyPath: "id" })
+        }
+
+        if (!db.objectStoreNames.contains("calls")) {
+          db.createObjectStore("calls", { keyPath: "id" })
+        }
+
+        if (!db.objectStoreNames.contains("settings")) {
+          db.createObjectStore("settings", { keyPath: "key" })
+        }
+      }
+    })
+  }
+
+  // 保存数据到 localStorage
+  static save(key: string, data: any): void {
+    try {
+      const serializedData = JSON.stringify(data)
+      localStorage.setItem(this.PREFIX + key, serializedData)
     } catch (error) {
       console.error("Failed to save to localStorage:", error)
-      return this.saveToIndexedDB(key, data)
     }
   }
 
+  // 从 localStorage 加载数据
   static load<T>(key: string, defaultValue: T): T {
     try {
-      const prefixedKey = this.PREFIX + key
-      const stored = localStorage.getItem(prefixedKey)
-
-      if (stored === null) {
-        // 尝试从IndexedDB加载
-        this.loadFromIndexedDB(key).then((data) => {
-          if (data !== null) {
-            return data as T
-          }
-        })
-        return defaultValue
-      }
-
-      return JSON.parse(stored) as T
+      const item = localStorage.getItem(this.PREFIX + key)
+      if (item === null) return defaultValue
+      return JSON.parse(item)
     } catch (error) {
       console.error("Failed to load from localStorage:", error)
       return defaultValue
     }
   }
 
-  static remove(key: string): boolean {
+  // 从 localStorage 删除数据
+  static remove(key: string): void {
     try {
-      const prefixedKey = this.PREFIX + key
-      localStorage.removeItem(prefixedKey)
-      this.removeFromIndexedDB(key)
-      return true
+      localStorage.removeItem(this.PREFIX + key)
     } catch (error) {
-      console.error("Failed to remove from storage:", error)
-      return false
+      console.error("Failed to remove from localStorage:", error)
     }
   }
 
-  static clear(): boolean {
+  // 清空所有数据
+  static clear(): void {
     try {
       const keys = Object.keys(localStorage).filter((key) => key.startsWith(this.PREFIX))
       keys.forEach((key) => localStorage.removeItem(key))
-      this.clearIndexedDB()
-      return true
     } catch (error) {
-      console.error("Failed to clear storage:", error)
-      return false
+      console.error("Failed to clear localStorage:", error)
     }
   }
 
-  // IndexedDB操作
-  private static async saveToIndexedDB(key: string, data: any): Promise<boolean> {
-    try {
-      const db = await this.openIndexedDB()
-      const transaction = db.transaction(["storage"], "readwrite")
-      const store = transaction.objectStore("storage")
+  // IndexedDB 操作
+  static async saveToIndexedDB(storeName: string, data: any): Promise<void> {
+    if (!this.db) await this.initDB()
 
-      await store.put({ key, data, timestamp: Date.now() })
-      return true
-    } catch (error) {
-      console.error("Failed to save to IndexedDB:", error)
-      return false
-    }
-  }
-
-  private static async loadFromIndexedDB(key: string): Promise<any> {
-    try {
-      const db = await this.openIndexedDB()
-      const transaction = db.transaction(["storage"], "readonly")
-      const store = transaction.objectStore("storage")
-
-      const result = await store.get(key)
-      return result?.data || null
-    } catch (error) {
-      console.error("Failed to load from IndexedDB:", error)
-      return null
-    }
-  }
-
-  private static async removeFromIndexedDB(key: string): Promise<boolean> {
-    try {
-      const db = await this.openIndexedDB()
-      const transaction = db.transaction(["storage"], "readwrite")
-      const store = transaction.objectStore("storage")
-
-      await store.delete(key)
-      return true
-    } catch (error) {
-      console.error("Failed to remove from IndexedDB:", error)
-      return false
-    }
-  }
-
-  private static async clearIndexedDB(): Promise<boolean> {
-    try {
-      const db = await this.openIndexedDB()
-      const transaction = db.transaction(["storage"], "readwrite")
-      const store = transaction.objectStore("storage")
-
-      await store.clear()
-      return true
-    } catch (error) {
-      console.error("Failed to clear IndexedDB:", error)
-      return false
-    }
-  }
-
-  private static openIndexedDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("WhatsAppStorage", 1)
+      const transaction = this.db!.transaction([storeName], "readwrite")
+      const store = transaction.objectStore(storeName)
+      const request = store.put(data)
 
       request.onerror = () => reject(request.error)
-      request.onsuccess = () => resolve(request.result)
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-        if (!db.objectStoreNames.contains("storage")) {
-          db.createObjectStore("storage", { keyPath: "key" })
-        }
-      }
+      request.onsuccess = () => resolve()
     })
   }
 
-  // 工具方法
-  static getStorageInfo() {
-    const used = new Blob(Object.values(localStorage)).size
-    const quota = 10 * 1024 * 1024 // 估算10MB配额
+  static async loadFromIndexedDB<T>(storeName: string, key: string): Promise<T | null> {
+    if (!this.db) await this.initDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], "readonly")
+      const store = transaction.objectStore(storeName)
+      const request = store.get(key)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result || null)
+    })
+  }
+
+  static async removeFromIndexedDB(storeName: string, key: string): Promise<void> {
+    if (!this.db) await this.initDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], "readwrite")
+      const store = transaction.objectStore(storeName)
+      const request = store.delete(key)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  }
+
+  // 获取存储使用情况
+  static getStorageUsage(): { localStorage: number; indexedDB: number } {
+    let localStorageSize = 0
+    try {
+      for (const key in localStorage) {
+        if (key.startsWith(this.PREFIX)) {
+          localStorageSize += localStorage[key].length
+        }
+      }
+    } catch (error) {
+      console.error("Failed to calculate localStorage usage:", error)
+    }
 
     return {
-      used,
-      quota,
-      available: quota - used,
-      percentage: (used / quota) * 100,
+      localStorage: localStorageSize,
+      indexedDB: 0, // IndexedDB 大小计算比较复杂，这里简化处理
     }
   }
 
+  // 导出数据
   static exportData(): string {
-    const data: Record<string, any> = {}
+    const data: { [key: string]: any } = {}
 
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith(this.PREFIX)) {
-        const cleanKey = key.replace(this.PREFIX, "")
-        data[cleanKey] = JSON.parse(localStorage.getItem(key) || "{}")
+    try {
+      for (const key in localStorage) {
+        if (key.startsWith(this.PREFIX)) {
+          const cleanKey = key.replace(this.PREFIX, "")
+          data[cleanKey] = JSON.parse(localStorage[key])
+        }
       }
-    })
+    } catch (error) {
+      console.error("Failed to export data:", error)
+    }
 
     return JSON.stringify(data, null, 2)
   }
 
+  // 导入数据
   static importData(jsonData: string): boolean {
     try {
       const data = JSON.parse(jsonData)
 
-      Object.entries(data).forEach(([key, value]) => {
-        this.save(key, value)
-      })
+      for (const key in data) {
+        this.save(key, data[key])
+      }
 
       return true
     } catch (error) {
@@ -181,4 +171,26 @@ export class StorageManager {
       return false
     }
   }
+
+  // 数据备份
+  static async backup(): Promise<Blob> {
+    const data = this.exportData()
+    return new Blob([data], { type: "application/json" })
+  }
+
+  // 数据恢复
+  static async restore(file: File): Promise<boolean> {
+    try {
+      const text = await file.text()
+      return this.importData(text)
+    } catch (error) {
+      console.error("Failed to restore data:", error)
+      return false
+    }
+  }
+}
+
+// 初始化存储管理器
+if (typeof window !== "undefined") {
+  StorageManager.initDB().catch(console.error)
 }

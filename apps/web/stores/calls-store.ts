@@ -1,89 +1,59 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { StorageManager } from "../lib/storage"
-import type { CallRecord } from "../types"
 
-// 默认通话记录数据
-const defaultCalls: CallRecord[] = [
-  {
-    id: "call1",
-    contactId: "1",
-    contactName: "张三",
-    contactAvatar: "/placeholder.svg?height=40&width=40&text=张",
-    type: "voice",
-    direction: "outgoing",
-    status: "completed",
-    duration: 180,
-    timestamp: "2024-01-15T14:30:00Z",
-    isGroup: false,
-  },
-  {
-    id: "call2",
-    contactId: "2",
-    contactName: "李四",
-    contactAvatar: "/placeholder.svg?height=40&width=40&text=李",
-    type: "video",
-    direction: "incoming",
-    status: "missed",
-    duration: 0,
-    timestamp: "2024-01-15T10:15:00Z",
-    isGroup: false,
-  },
-  {
-    id: "call3",
-    contactId: "group1",
-    contactName: "项目讨论组",
-    contactAvatar: "/placeholder.svg?height=40&width=40&text=项目",
-    type: "video",
-    direction: "outgoing",
-    status: "completed",
-    duration: 1200,
-    timestamp: "2024-01-14T16:45:00Z",
-    isGroup: true,
-  },
-]
+export interface Call {
+  id: string
+  contactId: string
+  contactName: string
+  contactAvatar: string
+  type: "voice" | "video"
+  status: "incoming" | "outgoing" | "missed" | "answered" | "ended"
+  startTime: string
+  endTime?: string
+  duration?: number
+  isGroup?: boolean
+  participants?: string[]
+}
 
 interface CallsState {
-  calls: CallRecord[]
-  activeCall: CallRecord | null
-  incomingCall: CallRecord | null
-  callHistory: CallRecord[]
-  missedCalls: CallRecord[]
+  // State
+  calls: Call[]
+  activeCall: Call | null
+  incomingCall: Call | null
+  callHistory: Call[]
+  isCallActive: boolean
+  isMuted: boolean
+  isVideoEnabled: boolean
+  isSpeakerEnabled: boolean
 
   // Actions
-  setCalls: (calls: CallRecord[]) => void
-  addCall: (call: CallRecord) => void
-  updateCall: (callId: string, updates: Partial<CallRecord>) => void
-  deleteCall: (callId: string) => void
-  clearCallHistory: () => void
-
-  // Active Call Management
   startCall: (contactId: string, type: "voice" | "video") => void
   endCall: (callId: string, duration: number) => void
   answerCall: (callId: string) => void
   declineCall: (callId: string) => void
+  toggleMute: () => void
+  toggleVideo: () => void
+  toggleSpeaker: () => void
 
-  // Call Status
-  setCallStatus: (callId: string, status: CallRecord["status"]) => void
-  markCallAsRead: (callId: string) => void
+  // Call Management
+  addCall: (call: Call) => void
+  updateCall: (callId: string, updates: Partial<Call>) => void
+  removeCall: (callId: string) => void
+  clearCallHistory: () => void
 
-  // Computed
-  getCallsForContact: (contactId: string) => CallRecord[]
-  getMissedCallsCount: () => number
+  // Getters
+  getCallById: (callId: string) => Call | null
+  getCallsForContact: (contactId: string) => Call[]
+  getMissedCalls: () => Call[]
+  getRecentCalls: (limit?: number) => Call[]
   getTotalCallDuration: () => number
-  getCallById: (callId: string) => CallRecord | undefined
-
-  // Filters
-  getCallsByType: (type: "voice" | "video") => CallRecord[]
-  getCallsByDirection: (direction: "incoming" | "outgoing") => CallRecord[]
-  getCallsByStatus: (status: CallRecord["status"]) => CallRecord[]
-  getRecentCalls: (limit?: number) => CallRecord[]
 
   // Statistics
   getCallStats: () => {
     total: number
     missed: number
-    completed: number
+    answered: number
     totalDuration: number
     averageDuration: number
   }
@@ -92,116 +62,132 @@ interface CallsState {
 export const useCallsStore = create<CallsState>()(
   persist(
     (set, get) => ({
-      calls: defaultCalls,
+      // State
+      calls: [],
       activeCall: null,
       incomingCall: null,
-      callHistory: defaultCalls,
-      missedCalls: defaultCalls.filter((call) => call.status === "missed"),
+      callHistory: [],
+      isCallActive: false,
+      isMuted: false,
+      isVideoEnabled: false,
+      isSpeakerEnabled: false,
 
       // Actions
-      setCalls: (calls) =>
-        set({
-          calls,
-          callHistory: calls,
-          missedCalls: calls.filter((call) => call.status === "missed"),
-        }),
-
-      addCall: (call) =>
-        set((state) => {
-          const newCalls = [call, ...state.calls]
-          return {
-            calls: newCalls,
-            callHistory: newCalls,
-            missedCalls: call.status === "missed" ? [call, ...state.missedCalls] : state.missedCalls,
-          }
-        }),
-
-      updateCall: (callId, updates) =>
-        set((state) => {
-          const updatedCalls = state.calls.map((call) => (call.id === callId ? { ...call, ...updates } : call))
-
-          return {
-            calls: updatedCalls,
-            callHistory: updatedCalls,
-            missedCalls: updatedCalls.filter((call) => call.status === "missed"),
-            activeCall: state.activeCall?.id === callId ? { ...state.activeCall, ...updates } : state.activeCall,
-          }
-        }),
-
-      deleteCall: (callId) =>
-        set((state) => {
-          const filteredCalls = state.calls.filter((call) => call.id !== callId)
-          return {
-            calls: filteredCalls,
-            callHistory: filteredCalls,
-            missedCalls: filteredCalls.filter((call) => call.status === "missed"),
-            activeCall: state.activeCall?.id === callId ? null : state.activeCall,
-          }
-        }),
-
-      clearCallHistory: () =>
-        set({
-          calls: [],
-          callHistory: [],
-          missedCalls: [],
-        }),
-
-      // Active Call Management
       startCall: (contactId, type) => {
-        const newCall: CallRecord = {
-          id: `call_${Date.now()}`,
+        const call: Call = {
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           contactId,
-          contactName: "", // Will be filled by the component
-          contactAvatar: "",
+          contactName: `联系人${contactId}`,
+          contactAvatar: `/placeholder.svg?height=40&width=40&text=${contactId}`,
           type,
-          direction: "outgoing",
-          status: "connecting",
-          duration: 0,
-          timestamp: new Date().toISOString(),
-          isGroup: contactId.startsWith("group"),
+          status: "outgoing",
+          startTime: new Date().toISOString(),
         }
 
-        set({ activeCall: newCall })
-        get().addCall(newCall)
+        set({
+          activeCall: call,
+          isCallActive: true,
+          isVideoEnabled: type === "video",
+        })
+
+        get().addCall(call)
       },
 
       endCall: (callId, duration) => {
-        get().updateCall(callId, {
-          status: "completed",
-          duration,
-          endTime: new Date().toISOString(),
-        })
+        const call = get().getCallById(callId)
+        if (call) {
+          get().updateCall(callId, {
+            status: "ended",
+            endTime: new Date().toISOString(),
+            duration,
+          })
+        }
 
-        set({ activeCall: null })
+        set({
+          activeCall: null,
+          isCallActive: false,
+          isMuted: false,
+          isVideoEnabled: false,
+          isSpeakerEnabled: false,
+        })
       },
 
       answerCall: (callId) => {
-        get().updateCall(callId, { status: "active" })
         const call = get().getCallById(callId)
         if (call) {
-          set({ activeCall: call, incomingCall: null })
+          get().updateCall(callId, {
+            status: "answered",
+            startTime: new Date().toISOString(),
+          })
+
+          set({
+            activeCall: call,
+            incomingCall: null,
+            isCallActive: true,
+            isVideoEnabled: call.type === "video",
+          })
         }
       },
 
       declineCall: (callId) => {
-        get().updateCall(callId, { status: "declined" })
+        const call = get().getCallById(callId)
+        if (call) {
+          get().updateCall(callId, {
+            status: "missed",
+            endTime: new Date().toISOString(),
+          })
+        }
+
         set({ incomingCall: null })
       },
 
-      // Call Status
-      setCallStatus: (callId, status) => get().updateCall(callId, { status }),
+      toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
+      toggleVideo: () => set((state) => ({ isVideoEnabled: !state.isVideoEnabled })),
+      toggleSpeaker: () => set((state) => ({ isSpeakerEnabled: !state.isSpeakerEnabled })),
 
-      markCallAsRead: (callId) => get().updateCall(callId, { isRead: true }),
+      // Call Management
+      addCall: (call) =>
+        set((state) => ({
+          calls: [...state.calls, call],
+          callHistory: [...state.callHistory, call],
+        })),
 
-      // Computed
+      updateCall: (callId, updates) =>
+        set((state) => ({
+          calls: state.calls.map((call) => (call.id === callId ? { ...call, ...updates } : call)),
+          callHistory: state.callHistory.map((call) => (call.id === callId ? { ...call, ...updates } : call)),
+          activeCall: state.activeCall?.id === callId ? { ...state.activeCall, ...updates } : state.activeCall,
+        })),
+
+      removeCall: (callId) =>
+        set((state) => ({
+          calls: state.calls.filter((call) => call.id !== callId),
+          callHistory: state.callHistory.filter((call) => call.id !== callId),
+        })),
+
+      clearCallHistory: () => set({ callHistory: [] }),
+
+      // Getters
+      getCallById: (callId) => {
+        const { calls } = get()
+        return calls.find((call) => call.id === callId) || null
+      },
+
       getCallsForContact: (contactId) => {
         const { calls } = get()
         return calls.filter((call) => call.contactId === contactId)
       },
 
-      getMissedCallsCount: () => {
-        const { missedCalls } = get()
-        return missedCalls.filter((call) => !call.isRead).length
+      getMissedCalls: () => {
+        const { calls } = get()
+        return calls.filter((call) => call.status === "missed")
+      },
+
+      getRecentCalls: (limit = 50) => {
+        const { callHistory } = get()
+        return callHistory
+          .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+          .slice(0, limit)
       },
 
       getTotalCallDuration: () => {
@@ -209,44 +195,21 @@ export const useCallsStore = create<CallsState>()(
         return calls.reduce((total, call) => total + (call.duration || 0), 0)
       },
 
-      getCallById: (callId) => {
-        const { calls } = get()
-        return calls.find((call) => call.id === callId)
-      },
-
-      // Filters
-      getCallsByType: (type) => {
-        const { calls } = get()
-        return calls.filter((call) => call.type === type)
-      },
-
-      getCallsByDirection: (direction) => {
-        const { calls } = get()
-        return calls.filter((call) => call.direction === direction)
-      },
-
-      getCallsByStatus: (status) => {
-        const { calls } = get()
-        return calls.filter((call) => call.status === status)
-      },
-
-      getRecentCalls: (limit = 20) => {
-        const { calls } = get()
-        return calls.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, limit)
-      },
-
       // Statistics
       getCallStats: () => {
         const { calls } = get()
-        const completed = calls.filter((call) => call.status === "completed")
-        const totalDuration = completed.reduce((sum, call) => sum + (call.duration || 0), 0)
+        const total = calls.length
+        const missed = calls.filter((call) => call.status === "missed").length
+        const answered = calls.filter((call) => call.status === "answered" || call.status === "ended").length
+        const totalDuration = calls.reduce((sum, call) => sum + (call.duration || 0), 0)
+        const averageDuration = answered > 0 ? totalDuration / answered : 0
 
         return {
-          total: calls.length,
-          missed: calls.filter((call) => call.status === "missed").length,
-          completed: completed.length,
+          total,
+          missed,
+          answered,
           totalDuration,
-          averageDuration: completed.length > 0 ? totalDuration / completed.length : 0,
+          averageDuration,
         }
       },
     }),

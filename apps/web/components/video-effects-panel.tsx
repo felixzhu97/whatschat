@@ -1,214 +1,212 @@
 "use client"
 
 import { useState } from "react"
-import { X, Sparkles, Palette, RotateCcw, Sun, Moon, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
-import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { X, Sparkles, Palette, Sliders, Camera } from "lucide-react"
 
 interface VideoEffectsPanelProps {
   isOpen: boolean
   onClose: () => void
-  onApplyFilter: (filter: string) => void
-  currentFilter: string
-  beautyMode: boolean
-  onToggleBeauty: () => void
+  isBeautyMode?: boolean
+  currentFilter?: string | null
+  onToggleBeautyMode?: () => void
+  onApplyFilter?: (filter: string | null) => void
 }
+
+const filters = [
+  { id: null, name: "无滤镜", preview: "🚫" },
+  { id: "warm", name: "暖色调", preview: "🌅" },
+  { id: "cool", name: "冷色调", preview: "❄️" },
+  { id: "vintage", name: "复古", preview: "📷" },
+  { id: "black-white", name: "黑白", preview: "⚫" },
+  { id: "sepia", name: "棕褐色", preview: "🟤" },
+  { id: "vivid", name: "鲜艳", preview: "🌈" },
+  { id: "soft", name: "柔和", preview: "☁️" },
+]
+
+const backgrounds = [
+  { id: null, name: "无背景", preview: "🚫" },
+  { id: "blur", name: "模糊背景", preview: "🌫️" },
+  { id: "office", name: "办公室", preview: "🏢" },
+  { id: "home", name: "居家", preview: "🏠" },
+  { id: "nature", name: "自然", preview: "🌲" },
+  { id: "space", name: "太空", preview: "🌌" },
+  { id: "beach", name: "海滩", preview: "🏖️" },
+  { id: "city", name: "城市", preview: "🌆" },
+]
 
 export function VideoEffectsPanel({
   isOpen,
   onClose,
+  isBeautyMode = false,
+  currentFilter = null,
+  onToggleBeautyMode,
   onApplyFilter,
-  currentFilter,
-  beautyMode,
-  onToggleBeauty,
 }: VideoEffectsPanelProps) {
-  const [beautyIntensity, setBeautyIntensity] = useState(50)
-  const [brightness, setBrightness] = useState(50)
-  const [contrast, setContrast] = useState(50)
-  const [saturation, setSaturation] = useState(50)
-
-  const filters = [
-    { id: "none", name: "无滤镜", preview: "bg-gray-500" },
-    { id: "warm", name: "暖色调", preview: "bg-orange-400" },
-    { id: "cool", name: "冷色调", preview: "bg-blue-400" },
-    { id: "vintage", name: "复古", preview: "bg-amber-600" },
-    { id: "bw", name: "黑白", preview: "bg-gray-700" },
-    { id: "sepia", name: "棕褐色", preview: "bg-yellow-700" },
-    { id: "vivid", name: "鲜艳", preview: "bg-pink-500" },
-  ]
-
-  const presets = [
-    { id: "sunny", name: "阳光明媚", icon: Sun, settings: { brightness: 70, contrast: 60, saturation: 80 } },
-    { id: "night", name: "夜晚模式", icon: Moon, settings: { brightness: 30, contrast: 70, saturation: 40 } },
-    { id: "vivid", name: "鲜艳模式", icon: Zap, settings: { brightness: 60, contrast: 80, saturation: 90 } },
-  ]
-
-  const applyPreset = (preset: any) => {
-    setBrightness(preset.settings.brightness)
-    setContrast(preset.settings.contrast)
-    setSaturation(preset.settings.saturation)
-  }
-
-  const resetSettings = () => {
-    setBeautyIntensity(50)
-    setBrightness(50)
-    setContrast(50)
-    setSaturation(50)
-    onApplyFilter("none")
-  }
+  const [beautyLevel, setBeautyLevel] = useState([50])
+  const [brightness, setBrightness] = useState([50])
+  const [contrast, setContrast] = useState([50])
+  const [saturation, setSaturation] = useState([50])
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-gray-900 rounded-t-2xl p-6 shadow-2xl border-t border-gray-700">
-        {/* 头部 */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-pink-400" />
-            <h3 className="text-lg font-semibold text-white">视频特效</h3>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">视频特效</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* 美颜控制 */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-white">美颜效果</label>
-            <Button variant={beautyMode ? "default" : "outline"} size="sm" onClick={onToggleBeauty} className="text-xs">
-              {beautyMode ? "已开启" : "已关闭"}
+        {/* Content */}
+        <div className="p-4">
+          <Tabs defaultValue="beauty" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="beauty" className="flex flex-col gap-1 py-2">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-xs">美颜</span>
+              </TabsTrigger>
+              <TabsTrigger value="filters" className="flex flex-col gap-1 py-2">
+                <Palette className="h-4 w-4" />
+                <span className="text-xs">滤镜</span>
+              </TabsTrigger>
+              <TabsTrigger value="adjust" className="flex flex-col gap-1 py-2">
+                <Sliders className="h-4 w-4" />
+                <span className="text-xs">调节</span>
+              </TabsTrigger>
+              <TabsTrigger value="background" className="flex flex-col gap-1 py-2">
+                <Camera className="h-4 w-4" />
+                <span className="text-xs">背景</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Beauty Tab */}
+            <TabsContent value="beauty" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">美颜模式</span>
+                <Switch checked={isBeautyMode} onCheckedChange={onToggleBeautyMode} />
+              </div>
+
+              {isBeautyMode && (
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm">美颜强度</span>
+                      <span className="text-sm text-gray-500">{beautyLevel[0]}%</span>
+                    </div>
+                    <Slider value={beautyLevel} onValueChange={setBeautyLevel} max={100} step={1} className="w-full" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm">
+                      磨皮
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      美白
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      瘦脸
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      大眼
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Filters Tab */}
+            <TabsContent value="filters" className="mt-4">
+              <div className="grid grid-cols-4 gap-2">
+                {filters.map((filter) => (
+                  <Button
+                    key={filter.id}
+                    variant={currentFilter === filter.id ? "default" : "outline"}
+                    className="flex flex-col gap-1 h-auto py-3"
+                    onClick={() => onApplyFilter?.(filter.id)}
+                  >
+                    <span className="text-lg">{filter.preview}</span>
+                    <span className="text-xs">{filter.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Adjust Tab */}
+            <TabsContent value="adjust" className="space-y-4 mt-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">亮度</span>
+                  <span className="text-sm text-gray-500">{brightness[0]}%</span>
+                </div>
+                <Slider value={brightness} onValueChange={setBrightness} max={100} step={1} className="w-full" />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">对比度</span>
+                  <span className="text-sm text-gray-500">{contrast[0]}%</span>
+                </div>
+                <Slider value={contrast} onValueChange={setContrast} max={100} step={1} className="w-full" />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">饱和度</span>
+                  <span className="text-sm text-gray-500">{saturation[0]}%</span>
+                </div>
+                <Slider value={saturation} onValueChange={setSaturation} max={100} step={1} className="w-full" />
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() => {
+                  setBrightness([50])
+                  setContrast([50])
+                  setSaturation([50])
+                }}
+              >
+                重置所有调节
+              </Button>
+            </TabsContent>
+
+            {/* Background Tab */}
+            <TabsContent value="background" className="mt-4">
+              <div className="grid grid-cols-4 gap-2">
+                {backgrounds.map((bg) => (
+                  <Button
+                    key={bg.id}
+                    variant={selectedBackground === bg.id ? "default" : "outline"}
+                    className="flex flex-col gap-1 h-auto py-3"
+                    onClick={() => setSelectedBackground(bg.id)}
+                  >
+                    <span className="text-lg">{bg.preview}</span>
+                    <span className="text-xs">{bg.name}</span>
+                  </Button>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1 bg-transparent" onClick={onClose}>
+              取消
+            </Button>
+            <Button className="flex-1" onClick={onClose}>
+              应用
             </Button>
           </div>
-          {beautyMode && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-400">
-                <span>强度</span>
-                <span>{beautyIntensity}%</span>
-              </div>
-              <Slider
-                value={[beautyIntensity]}
-                onValueChange={(value) => setBeautyIntensity(value[0])}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* 滤镜选择 */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Palette className="w-4 h-4 text-purple-400" />
-            <label className="text-sm font-medium text-white">滤镜效果</label>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {filters.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => onApplyFilter(filter.id)}
-                className={`relative p-3 rounded-lg border-2 transition-all ${
-                  currentFilter === filter.id
-                    ? "border-blue-500 bg-blue-500/20"
-                    : "border-gray-600 hover:border-gray-500"
-                }`}
-              >
-                <div className={`w-full h-8 rounded ${filter.preview} mb-2`}></div>
-                <span className="text-xs text-white">{filter.name}</span>
-                {currentFilter === filter.id && (
-                  <Badge className="absolute -top-1 -right-1 bg-blue-500 text-xs px-1">✓</Badge>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 高级调节 */}
-        <div className="mb-6">
-          <h4 className="text-sm font-medium text-white mb-3">高级调节</h4>
-          <div className="space-y-4">
-            {/* 亮度 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-400">
-                <span>亮度</span>
-                <span>{brightness}%</span>
-              </div>
-              <Slider
-                value={[brightness]}
-                onValueChange={(value) => setBrightness(value[0])}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-            </div>
-
-            {/* 对比度 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-400">
-                <span>对比度</span>
-                <span>{contrast}%</span>
-              </div>
-              <Slider
-                value={[contrast]}
-                onValueChange={(value) => setContrast(value[0])}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-            </div>
-
-            {/* 饱和度 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-400">
-                <span>饱和度</span>
-                <span>{saturation}%</span>
-              </div>
-              <Slider
-                value={[saturation]}
-                onValueChange={(value) => setSaturation(value[0])}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 快速预设 */}
-        <div className="mb-6">
-          <h4 className="text-sm font-medium text-white mb-3">快速预设</h4>
-          <div className="flex gap-2">
-            {presets.map((preset) => (
-              <Button
-                key={preset.id}
-                variant="outline"
-                size="sm"
-                onClick={() => applyPreset(preset)}
-                className="flex items-center gap-2 text-white border-gray-600 hover:border-gray-500"
-              >
-                <preset.icon className="w-4 h-4" />
-                {preset.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* 底部操作 */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-          <Button
-            variant="outline"
-            onClick={resetSettings}
-            className="flex items-center gap-2 text-gray-400 bg-transparent"
-          >
-            <RotateCcw className="w-4 h-4" />
-            重置
-          </Button>
-          <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">
-            完成
-          </Button>
         </div>
       </div>
     </div>

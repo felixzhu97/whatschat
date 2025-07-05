@@ -1,13 +1,13 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useEffect, useRef } from "react"
 import { MessageBubble } from "./message-bubble"
-import type { Message, Contact } from "../types"
+import type { Contact, Message } from "../types"
 
 interface MessageAreaProps {
   messages: Message[]
-  selectedContact: Contact
+  selectedContact: Contact | null
+  isGroup?: boolean
   onReply: (message: Message) => void
   onEdit: (messageId: string, text: string) => void
   onDelete: (messageId: string) => void
@@ -19,6 +19,7 @@ interface MessageAreaProps {
 export function MessageArea({
   messages,
   selectedContact,
+  isGroup = false,
   onReply,
   onEdit,
   onDelete,
@@ -28,18 +29,27 @@ export function MessageArea({
 }: MessageAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 自动滚动到底部
+  // Auto scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const isGroup =
-    selectedContact.id === "group1" || selectedContact.name.includes("群") || selectedContact.name.includes("组")
+  if (!selectedContact) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500">选择一个联系人开始聊天</p>
+      </div>
+    )
+  }
 
   return (
-    <ScrollArea className="flex-1 p-4">
-      <div className="space-y-4">
-        {(messages || []).map((message) => (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      {messages.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-gray-500">还没有消息，开始聊天吧！</p>
+        </div>
+      ) : (
+        messages.map((message) => (
           <MessageBubble
             key={message.id}
             message={message}
@@ -51,9 +61,9 @@ export function MessageArea({
             onStar={onStar}
             onInfo={onInfo}
           />
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-    </ScrollArea>
+        ))
+      )}
+      <div ref={messagesEndRef} />
+    </div>
   )
 }

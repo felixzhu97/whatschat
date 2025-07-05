@@ -25,17 +25,20 @@ export function ChatHeader({ contact, isTyping, isGroup, onVoiceCall, onVideoCal
         <div>
           <h2 className="font-medium flex items-center gap-2">
             {contact.name}
-            {isGroup && <Users className="h-4 w-4 text-gray-500" />}
+            {contact.isGroup && <Users className="h-4 w-4 text-gray-500" />}
             {contact.muted && <BellOff className="h-4 w-4 text-gray-400" />}
           </h2>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            {contact.isOnline && !isGroup && (
+            {contact.isGroup ? (
+              <span>{contact.members?.length || 3} 位成员</span>
+            ) : contact.isOnline ? (
               <>
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span>在线</span>
               </>
+            ) : (
+              <span>离线</span>
             )}
-            {isGroup && <span>8 位成员</span>}
             {isTyping && <span className="text-green-600">正在输入...</span>}
           </div>
         </div>

@@ -2,37 +2,33 @@
 
 import type React from "react"
 
-import { WifiOff } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChatHeader } from "./chat-header"
 import { MessageArea } from "./message-area"
 import { MessageInput } from "./message-input"
-import { WelcomeScreen } from "./welcome-screen"
 import type { Contact, Message } from "../types"
-import type { VoiceRecording } from "../hooks/use-voice-recorder"
 
 interface ChatAreaProps {
-  selectedContact: Contact | null
+  selectedContact: Contact
   messages: Message[]
   messageText: string
   showEmojiPicker: boolean
   replyingTo: Message | null
-  editingMessage: { id: string; text: string } | null
+  editingMessage: Message | null
   isRecordingVoice: boolean
   isTyping: boolean
   isConnected: boolean
-  onMessageChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onMessageChange: (text: string) => void
   onKeyPress: (e: React.KeyboardEvent) => void
-  onSendMessage: () => void
+  onSendMessage: (content: string, type?: "text" | "image" | "video" | "audio" | "file") => void
   onEmojiSelect: (emoji: string) => void
   onToggleEmojiPicker: () => void
-  onFileSelect: (file: File, type: "image" | "file") => void
-  onSendVoice: (recording: VoiceRecording) => void
+  onFileSelect: (file: File) => void
+  onSendVoice: (audioBlob: Blob, duration: number) => void
   onReply: (message: Message) => void
-  onEdit: (messageId: string, text: string) => void
-  onDelete: (messageId: string) => void
+  onEdit: (message: Message) => void
+  onDelete: (message: Message) => void
   onForward: (message: Message) => void
-  onStar: (messageId: string) => void
+  onStar: (message: Message) => void
   onInfo: (message: Message) => void
   onVoiceCall: () => void
   onVideoCall: () => void
@@ -72,46 +68,49 @@ export function ChatArea({
   onCancelEdit,
   onRecordingChange,
 }: ChatAreaProps) {
-  if (!selectedContact) {
-    return <WelcomeScreen />
-  }
-
-  const isGroup =
-    selectedContact.id === "group1" || selectedContact.name.includes("群") || selectedContact.name.includes("组")
-
   return (
-    <div className="flex-1 flex flex-col">
-      {/* 聊天头部 */}
+    <div className="flex flex-col h-full bg-white">
+      {/* Chat Header */}
       <ChatHeader
         contact={selectedContact}
-        isTyping={isTyping}
-        isGroup={isGroup}
+        isConnected={isConnected}
         onVoiceCall={onVoiceCall}
         onVideoCall={onVideoCall}
         onShowInfo={onShowInfo}
       />
 
-      {/* 连接状态提示 */}
-      {!isConnected && (
-        <Alert className="m-4 border-orange-200 bg-orange-50">
-          <WifiOff className="h-4 w-4" />
-          <AlertDescription>连接已断开，正在重新连接...</AlertDescription>
-        </Alert>
-      )}
-
-      {/* 消息区域 */}
+      {/* Messages Area */}
       <MessageArea
         messages={messages}
         selectedContact={selectedContact}
+        isGroup={selectedContact.isGroup}
         onReply={onReply}
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onEdit={(messageId: string, text: string) => {
+          const message = messages.find((m) => m.id === messageId)
+          if (message) {
+            onEdit({ ...message, content: text })
+          }
+        }}
+        onDelete={(messageId: string) => {
+          const message = messages.find((m) => m.id === messageId)
+          if (message) {
+            onDelete(message)
+          }
+        }}
         onForward={onForward}
-        onStar={onStar}
+        onStar={(messageId: string) => {
+          const message = messages.find((m) => m.id === messageId)
+          if (message) {
+            onStar(message)
+          }
+        }}
         onInfo={onInfo}
       />
 
-      {/* 输入区域 */}
+      {/* Typing indicator */}
+      {isTyping && <div className="px-4 py-2 text-sm text-gray-500">{selectedContact.name} 正在输入...</div>}
+
+      {/* Message Input */}
       <MessageInput
         messageText={messageText}
         showEmojiPicker={showEmojiPicker}
@@ -120,7 +119,7 @@ export function ChatArea({
         isRecordingVoice={isRecordingVoice}
         onMessageChange={onMessageChange}
         onKeyPress={onKeyPress}
-        onSendMessage={onSendMessage}
+        onSendMessage={() => onSendMessage(messageText)}
         onEmojiSelect={onEmojiSelect}
         onToggleEmojiPicker={onToggleEmojiPicker}
         onFileSelect={onFileSelect}
