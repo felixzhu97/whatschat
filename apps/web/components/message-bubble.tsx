@@ -34,7 +34,7 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editText, setEditText] = useState(message.text)
+  const [editText, setEditText] = useState(message.content)
   const [showActions, setShowActions] = useState(false)
   const editInputRef = useRef<HTMLInputElement>(null)
   const messageRef = useRef<HTMLDivElement>(null)
@@ -69,7 +69,7 @@ export function MessageBubble({
   }, [showActions])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message.text)
+    navigator.clipboard.writeText(message.content)
     setShowMenu(false)
     setShowActions(false)
   }
@@ -82,14 +82,14 @@ export function MessageBubble({
   }
 
   const handleSaveEdit = () => {
-    if (editText.trim() && editText !== message.text) {
+    if (editText.trim() && editText !== message.content) {
       onEdit?.(message.id, editText.trim())
     }
     setIsEditing(false)
   }
 
   const handleCancelEdit = () => {
-    setEditText(message.text)
+    setEditText(message.content)
     setIsEditing(false)
   }
 
@@ -120,14 +120,17 @@ export function MessageBubble({
   }
 
   const getMessageStatus = () => {
-    if (!message.sent) return null
+    const isSentByMe = message.senderId === "me"
+    if (!isSentByMe && message.senderId !== "me") return null
 
-    if (message.read) {
+    if (message.status === "read") {
       return <span className="text-blue-200 text-xs">✓✓</span>
-    } else if (message.delivered) {
+    } else if (message.status === "delivered") {
       return <span className="text-green-200 text-xs">✓✓</span>
-    } else {
+    } else if (message.status === "sent") {
       return <span className="text-green-300 text-xs">✓</span>
+    } else {
+      return <span className="text-gray-300 text-xs">⏳</span>
     }
   }
 
@@ -157,7 +160,9 @@ export function MessageBubble({
       { key: "star", icon: Star, label: message.starred ? "取消星标" : "加星标", action: () => onStar?.(message.id) },
     ]
 
-    if (message.sent) {
+    const isSentByMe = message.senderId === "me"
+
+    if (isSentByMe) {
       // 自己发送的消息
       return [
         ...commonActions,
@@ -174,11 +179,12 @@ export function MessageBubble({
   }
 
   const availableActions = getAvailableActions()
+  const isSentByMe = message.senderId === "me"
 
   return (
-    <div ref={messageRef} className={`flex ${message.sent ? "justify-end" : "justify-start"} group relative`}>
+    <div ref={messageRef} className={`flex ${isSentByMe ? "justify-end" : "justify-start"} group relative`}>
       {/* 快速回复按钮 - 左侧消息 */}
-      {showActions && !message.sent && (
+      {showActions && !isSentByMe && (
         <div className="flex items-center mr-2 animate-in slide-in-from-left-2 duration-200">
           <Button
             variant="ghost"
@@ -193,14 +199,12 @@ export function MessageBubble({
 
       <div
         className={`max-w-[70%] rounded-lg px-3 py-2 relative transition-all duration-200 select-none ${
-          message.sent
-            ? "bg-green-500 text-white rounded-br-sm"
-            : "bg-white text-gray-900 shadow-sm border rounded-bl-sm"
+          isSentByMe ? "bg-green-500 text-white rounded-br-sm" : "bg-white text-gray-900 shadow-sm border rounded-bl-sm"
         } ${showActions ? "shadow-lg scale-[1.02]" : ""} ${longPressEvents.isLongPressing ? "scale-95" : ""}`}
         {...longPressEvents}
       >
         {/* 群组消息发送者 */}
-        {!message.sent && isGroup && message.senderName && (
+        {!isSentByMe && isGroup && message.senderName && (
           <p className="text-xs font-medium text-green-600 mb-1">{message.senderName}</p>
         )}
 
@@ -208,7 +212,7 @@ export function MessageBubble({
         {message.replyTo && (
           <div
             className={`rounded p-2 mb-2 text-xs border-l-2 ${
-              message.sent ? "bg-green-600 border-green-300" : "bg-gray-100 border-green-500"
+              isSentByMe ? "bg-green-600 border-green-300" : "bg-gray-100 border-green-500"
             }`}
           >
             <p className="opacity-70 font-medium">回复消息</p>
@@ -238,7 +242,7 @@ export function MessageBubble({
               </div>
             </div>
           ) : (
-            <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
           ))}
 
         {message.type === "image" && (
@@ -263,13 +267,13 @@ export function MessageBubble({
         {message.type === "file" && (
           <div
             className={`flex items-center gap-3 p-3 rounded cursor-pointer transition-colors ${
-              message.sent ? "bg-green-600 hover:bg-green-700" : "bg-gray-100 hover:bg-gray-200"
+              isSentByMe ? "bg-green-600 hover:bg-green-700" : "bg-gray-100 hover:bg-gray-200"
             }`}
             onClick={handleDownload}
           >
             <div
               className={`w-10 h-10 rounded flex items-center justify-center text-sm font-medium ${
-                message.sent ? "bg-green-700 text-white" : "bg-gray-300 text-gray-700"
+                isSentByMe ? "bg-green-700 text-white" : "bg-gray-300 text-gray-700"
               }`}
             >
               📄
@@ -283,14 +287,12 @@ export function MessageBubble({
         )}
 
         {message.type === "voice" && (
-          <VoiceMessagePlayer audioUrl={message.fileUrl!} duration={message.duration || 0} sent={message.sent} />
+          <VoiceMessagePlayer audioUrl={message.fileUrl!} duration={message.duration || 0} sent={isSentByMe} />
         )}
 
         {/* 时间、状态和星标 */}
         <div
-          className={`flex items-center justify-between gap-2 mt-1 ${
-            message.sent ? "text-green-100" : "text-gray-500"
-          }`}
+          className={`flex items-center justify-between gap-2 mt-1 ${isSentByMe ? "text-green-100" : "text-gray-500"}`}
         >
           <div className="flex items-center gap-1">
             {message.edited && <span className="text-xs opacity-70">已编辑</span>}
@@ -311,7 +313,7 @@ export function MessageBubble({
 
         {/* 消息操作菜单 - 根据发送者显示不同功能 */}
         {showActions && (
-          <div className={`absolute -top-12 ${message.sent ? "right-0" : "left-0"} z-10`}>
+          <div className={`absolute -top-12 ${isSentByMe ? "right-0" : "left-0"} z-10`}>
             <div className="bg-white rounded-lg shadow-lg border p-1 flex items-center gap-1 animate-in slide-in-from-top-2 duration-200">
               {/* 显示前4个快速操作 */}
               {availableActions.slice(0, 4).map((action) => (
@@ -337,7 +339,7 @@ export function MessageBubble({
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align={message.sent ? "end" : "start"} className="w-48">
+                  <DropdownMenuContent align={isSentByMe ? "end" : "start"} className="w-48">
                     <DropdownMenuItem onClick={handleCopy}>
                       <Copy className="h-4 w-4 mr-2" />
                       复制
@@ -382,7 +384,7 @@ export function MessageBubble({
       </div>
 
       {/* 快速操作按钮 - 右侧消息 */}
-      {showActions && message.sent && (
+      {showActions && isSentByMe && (
         <div className="flex items-center ml-2 animate-in slide-in-from-right-2 duration-200">
           <Button
             variant="ghost"

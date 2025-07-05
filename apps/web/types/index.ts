@@ -1,45 +1,22 @@
-export type CallType = "voice" | "video"
-export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended"
-export type VideoLayout = "pip" | "split" | "fullscreen"
-export type CameraPosition = "front" | "back"
-
-export interface CallState {
-  isActive: boolean
-  callType: CallType
-  status: CallStatus
-  contactName: string
-  contactAvatar: string
-  contactId: string
-  duration: number
-  isMuted: boolean
-  isVideoOff: boolean
-  isSpeakerOn: boolean
-  isGroupCall: boolean
-  participants: CallParticipant[]
-  maxParticipants: number
-  speakingParticipant: string | null
-  isMinimized: boolean
-  cameraPosition: CameraPosition
-  videoLayout: VideoLayout
-  isBeautyMode: boolean
-  currentFilter: string | null
-  isScreenSharing: boolean
-  isRecording: boolean
-  connectionQuality?: "excellent" | "good" | "poor"
-}
-
-export interface CallParticipant {
+export interface User {
   id: string
   name: string
   avatar: string
-  isMuted: boolean
-  isVideoOff: boolean
-  isSpeaking: boolean
-  isHost: boolean
-  joinedAt: number
-  stream?: MediaStream
+  phoneNumber: string
+  email?: string
+  status: string
+  isOnline: boolean
+  lastSeen?: string
+  settings?: {
+    theme: "light" | "dark" | "system"
+    notifications: any
+    privacy: any
+    chat: any
+    calls: any
+  }
 }
 
+// 联系人类型
 export interface Contact {
   id: string
   name: string
@@ -52,37 +29,12 @@ export interface Contact {
   phoneNumber?: string
   email?: string
   status?: string
+  pinned?: boolean
+  muted?: boolean
+  blocked?: boolean
 }
 
-export interface Message {
-  id: string
-  senderId: string
-  senderName: string
-  content: string
-  timestamp: string
-  type: "text" | "image" | "video" | "audio" | "file" | "location" | "contact"
-  status: "sending" | "sent" | "delivered" | "read"
-  replyTo?: string
-  isForwarded?: boolean
-  reactions?: MessageReaction[]
-  attachments?: MessageAttachment[]
-  duration?: number // for audio/video messages
-  size?: number // for file messages
-  fileName?: string // for file messages
-  location?: {
-    latitude: number
-    longitude: number
-    address?: string
-  }
-}
-
-export interface MessageReaction {
-  emoji: string
-  userId: string
-  userName: string
-  timestamp: string
-}
-
+// 消息附件类型
 export interface MessageAttachment {
   id: string
   type: "image" | "video" | "audio" | "file"
@@ -91,140 +43,270 @@ export interface MessageAttachment {
   size: number
   mimeType: string
   thumbnail?: string
+  duration?: number
 }
 
-export interface ChatState {
-  contacts: Contact[]
-  messages: { [contactId: string]: Message[] }
-  activeContactId: string | null
-  isTyping: { [contactId: string]: boolean }
-  searchQuery: string
-  selectedMessages: string[]
-  replyingTo: Message | null
-  isRecording: boolean
-  recordingDuration: number
-}
-
-export interface User {
+// 消息类型
+export interface Message {
   id: string
-  name: string
-  avatar: string
-  phoneNumber: string
-  email?: string
-  status: string
-  isOnline: boolean
-  lastSeen: string
-  settings: UserSettings
+  senderId: string
+  senderName: string
+  content: string
+  timestamp: string
+  type: "text" | "image" | "video" | "audio" | "file" | "system"
+  status: "sending" | "sent" | "delivered" | "read" | "failed"
+  attachments?: MessageAttachment[]
+  replyTo?: string
+  isEdited?: boolean
+  editedAt?: string
+  isStarred?: boolean
+  isForwarded?: boolean
+  duration?: number
+  reactions?: { [emoji: string]: string[] }
+  mentions?: string[]
+  isDeleted?: boolean
+  deletedAt?: string
 }
 
-export interface UserSettings {
-  theme: "light" | "dark" | "system"
-  notifications: {
-    messages: boolean
-    calls: boolean
-    groups: boolean
-    sound: boolean
-    vibration: boolean
-  }
-  privacy: {
-    lastSeen: "everyone" | "contacts" | "nobody"
-    profilePhoto: "everyone" | "contacts" | "nobody"
-    status: "everyone" | "contacts" | "nobody"
-    readReceipts: boolean
-    onlineStatus: boolean
-  }
-  chat: {
-    enterToSend: boolean
-    mediaAutoDownload: boolean
-    fontSize: "small" | "medium" | "large"
-    wallpaper: string | null
-  }
-  calls: {
-    autoAnswer: boolean
-    callWaiting: boolean
-    showMyVideo: boolean
-  }
+// 通话记录类型
+export interface CallRecord {
+  id: string
+  contactId: string
+  contactName: string
+  contactAvatar: string
+  type: "voice" | "video"
+  direction: "incoming" | "outgoing"
+  status: "connecting" | "active" | "completed" | "missed" | "declined" | "failed"
+  duration: number
+  timestamp: string
+  endTime?: string
+  isGroup: boolean
+  participants?: string[]
+  isRead?: boolean
 }
 
+// 状态更新类型
+export interface StatusUpdate {
+  id: string
+  userId: string
+  userName: string
+  userAvatar: string
+  content: string
+  type: "text" | "image" | "video"
+  timestamp: string
+  expiresAt: string
+  viewers: string[]
+  isViewed: boolean
+  privacy: "everyone" | "contacts" | "selected"
+  selectedContacts?: string[]
+}
+
+// 群组类型
 export interface Group {
   id: string
   name: string
-  description: string
+  description?: string
   avatar: string
-  participants: GroupParticipant[]
-  admins: string[]
   createdBy: string
   createdAt: string
-  settings: GroupSettings
-  lastMessage?: Message
-  unreadCount: number
+  participants: GroupParticipant[]
+  admins: string[]
+  settings: {
+    onlyAdminsCanMessage: boolean
+    onlyAdminsCanEditInfo: boolean
+    disappearingMessages: boolean
+    disappearingMessagesDuration: number
+  }
+  inviteLink?: string
+  isArchived: boolean
+  isMuted: boolean
+  lastActivity: string
 }
 
+// 群组参与者类型
 export interface GroupParticipant {
   id: string
   name: string
   avatar: string
   role: "admin" | "member"
   joinedAt: string
-  addedBy: string
   isOnline: boolean
   lastSeen?: string
 }
 
-export interface GroupSettings {
-  whoCanSendMessages: "everyone" | "admins"
-  whoCanEditGroupInfo: "everyone" | "admins"
-  whoCanAddMembers: "everyone" | "admins"
-  disappearingMessages: number | null // in seconds, null means disabled
-  isPublic: boolean
-  inviteLink?: string
-}
-
-export interface VoiceNote {
-  id: string
-  duration: number
-  waveform: number[]
-  url: string
-  isPlaying: boolean
-  currentTime: number
-}
-
+// 搜索结果类型
 export interface SearchResult {
   type: "contact" | "message" | "group"
   id: string
   title: string
-  subtitle: string
+  subtitle?: string
   avatar?: string
   timestamp?: string
-  messageId?: string
   contactId?: string
-  groupId?: string
+  messageId?: string
+  highlight?: string
 }
 
+// 通知类型
 export interface Notification {
   id: string
   type: "message" | "call" | "group" | "system"
   title: string
   body: string
-  avatar?: string
+  icon?: string
   timestamp: string
   isRead: boolean
   actionUrl?: string
   data?: any
 }
 
-export interface FileUpload {
+// 媒体文件类型
+export interface MediaFile {
   id: string
-  file: File
-  progress: number
-  status: "uploading" | "completed" | "error"
-  url?: string
-  error?: string
+  type: "image" | "video" | "audio" | "document"
+  url: string
+  name: string
+  size: number
+  mimeType: string
+  thumbnail?: string
+  duration?: number
+  dimensions?: { width: number; height: number }
+  uploadProgress?: number
+  isUploaded: boolean
+  createdAt: string
 }
 
-export interface EmojiReaction {
-  emoji: string
-  count: number
-  users: string[]
-  hasReacted: boolean
+// 备份数据类型
+export interface BackupData {
+  version: string
+  timestamp: string
+  contacts: Contact[]
+  messages: { [contactId: string]: Message[] }
+  calls: CallRecord[]
+  settings: any
+  groups: Group[]
+  statusUpdates: StatusUpdate[]
+}
+
+// API响应类型
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+  code?: number
+}
+
+// WebSocket消息类型
+export interface WebSocketMessage {
+  type: "message" | "typing" | "online" | "call" | "notification"
+  data: any
+  timestamp: string
+  from?: string
+  to?: string
+}
+
+// 语音录制类型
+export interface VoiceRecording {
+  url: string
+  duration: number
+  size?: number
+  blob?: Blob
+}
+
+// 主题类型
+export interface Theme {
+  name: string
+  colors: {
+    primary: string
+    secondary: string
+    background: string
+    surface: string
+    text: string
+    textSecondary: string
+    border: string
+    accent: string
+  }
+  isDark: boolean
+}
+
+// 表情符号类型
+export interface Emoji {
+  id: string
+  name: string
+  native: string
+  unified: string
+  keywords: string[]
+  shortcodes: string
+  category: string
+  skin?: number
+}
+
+// 贴纸类型
+export interface Sticker {
+  id: string
+  name: string
+  url: string
+  pack: string
+  keywords: string[]
+  animated: boolean
+}
+
+// 位置信息类型
+export interface Location {
+  latitude: number
+  longitude: number
+  address?: string
+  name?: string
+  accuracy?: number
+}
+
+// 联系人信息类型
+export interface ContactInfo {
+  name: string
+  phoneNumbers: string[]
+  emails: string[]
+  avatar?: string
+  organization?: string
+  birthday?: string
+  notes?: string
+}
+
+// 错误类型
+export interface AppError {
+  code: string
+  message: string
+  details?: any
+  timestamp: string
+  stack?: string
+}
+
+// 分页类型
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+// 排序类型
+export interface Sort {
+  field: string
+  direction: "asc" | "desc"
+}
+
+// 过滤器类型
+export interface Filter {
+  field: string
+  operator: "eq" | "ne" | "gt" | "gte" | "lt" | "lte" | "in" | "nin" | "contains"
+  value: any
+}
+
+// 查询参数类型
+export interface QueryParams {
+  pagination?: Pagination
+  sort?: Sort[]
+  filters?: Filter[]
+  search?: string
 }

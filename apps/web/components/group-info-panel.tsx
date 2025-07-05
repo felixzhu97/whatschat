@@ -18,33 +18,36 @@ interface GroupMember {
 }
 
 interface GroupInfoPanelProps {
-  isOpen: boolean
+  contact: {
+    id: string
+    name: string
+    avatar: string
+    isGroup?: boolean
+    memberCount?: number
+    description?: string
+    members?: GroupMember[]
+    admin?: string[]
+  }
   onClose: () => void
-  groupName: string
-  groupAvatar: string
-  groupDescription: string
-  members: GroupMember[]
-  memberCount: number
-  isAdmin: boolean
 }
 
-export function GroupInfoPanel({
-  isOpen,
-  onClose,
-  groupName,
-  groupAvatar,
-  groupDescription,
-  members,
-  memberCount,
-  isAdmin,
-}: GroupInfoPanelProps) {
+export function GroupInfoPanel({ contact, onClose }: GroupInfoPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editedName, setEditedName] = useState(groupName)
-  const [editedDescription, setEditedDescription] = useState(groupDescription)
+  const [editedName, setEditedName] = useState(contact?.name || "")
+  const [editedDescription, setEditedDescription] = useState(contact?.description || "")
   const [showAddMember, setShowAddMember] = useState(false)
 
+  // 安全地获取群组信息
+  const groupName = contact?.name || "未知群组"
+  const groupAvatar = contact?.avatar || "/placeholder.svg"
+  const groupDescription = contact?.description || "暂无描述"
+  const memberCount = contact?.memberCount || 0
+  const members = contact?.members || []
+  const admins = contact?.admin || []
+  const isAdmin = admins.includes("me") || admins.includes("user1") // 假设当前用户是管理员
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[80vh] p-0">
         <div className="flex flex-col h-full">
           {/* 头部 */}
@@ -64,7 +67,7 @@ export function GroupInfoPanel({
                 <div className="relative">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={groupAvatar || "/placeholder.svg"} />
-                    <AvatarFallback className="text-2xl">{groupName[0]}</AvatarFallback>
+                    <AvatarFallback className="text-2xl">{groupName ? groupName[0] : "G"}</AvatarFallback>
                   </Avatar>
                   {isAdmin && (
                     <Button
@@ -83,6 +86,7 @@ export function GroupInfoPanel({
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
                         className="text-center font-medium"
+                        placeholder="群组名称"
                       />
                       <Input
                         value={editedDescription}
@@ -142,34 +146,44 @@ export function GroupInfoPanel({
                 </h3>
 
                 <div className="space-y-2">
-                  {members.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>{member.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm">{member.name}</p>
-                            {member.role === "admin" && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Crown className="h-3 w-3 mr-1" />
-                                管理员
-                              </Badge>
-                            )}
+                  {members.length > 0 ? (
+                    members.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={member.avatar || "/placeholder.svg"} />
+                            <AvatarFallback>{member.name ? member.name[0] : "U"}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm">{member.name || "未知用户"}</p>
+                              {member.role === "admin" && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Crown className="h-3 w-3 mr-1" />
+                                  管理员
+                                </Badge>
+                              )}
+                            </div>
+                            {member.phone && <p className="text-xs text-gray-500">{member.phone}</p>}
                           </div>
-                          {member.phone && <p className="text-xs text-gray-500">{member.phone}</p>}
                         </div>
-                      </div>
 
-                      {isAdmin && member.role !== "admin" && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <UserMinus className="h-4 w-4" />
-                        </Button>
-                      )}
+                        {isAdmin && member.role !== "admin" && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">暂无成员信息</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
