@@ -3,11 +3,13 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, MoreVertical, Phone, Video, Send, Smile, Users, UserPlus, Star } from "lucide-react"
+import { Search, MoreVertical, Phone, Video, Send, Smile, Users, UserPlus, Star, Wifi, WifiOff } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { GroupInfoPanel } from "./group-info-panel"
 import { CreateGroupDialog } from "./create-group-dialog"
 import { SettingsPage } from "./settings-page"
@@ -15,17 +17,14 @@ import { ProfilePage } from "./profile-page"
 import { CallsPage } from "./calls-page"
 import { StatusPage } from "./status-page"
 import { StarredMessagesPage } from "./starred-messages-page"
-import { useChat } from "../hooks/use-chat"
+import { useRealChat } from "../hooks/use-real-chat"
+import { useRealCall } from "../hooks/use-real-call"
 import { MessageBubble } from "./message-bubble"
 import { EmojiPicker } from "./emoji-picker"
 import { FileUpload } from "./file-upload"
 import { VoiceRecorder } from "./voice-recorder"
-import { useCall } from "../hooks/use-call"
-import { CallInterface } from "./call-interface"
-import { IncomingCall } from "./incoming-call"
-import { CallMiniWindow } from "./call-mini-window"
-import { GroupCallInterface } from "./group-call-interface"
-import { InviteParticipantsDialog } from "./invite-participants-dialog"
+import { RealCallInterface } from "./real-call-interface"
+import { RealIncomingCall } from "./real-incoming-call"
 import { useAuth } from "../hooks/use-auth"
 import type { Contact, Message } from "../types"
 import type { VoiceRecording } from "../hooks/use-voice-recorder"
@@ -76,53 +75,38 @@ export function WhatsAppMain() {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [editingMessage, setEditingMessage] = useState<{ id: string; text: string } | null>(null)
   const [isRecordingVoice, setIsRecordingVoice] = useState(false)
-  const [callMinimized, setCallMinimized] = useState(false)
   const [currentPage, setCurrentPage] = useState<"chat" | "settings" | "profile" | "calls" | "status" | "starred">(
     "chat",
   )
-  const [showInviteDialog, setShowInviteDialog] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { user } = useAuth()
-  const { messages, isTyping, sendMessage, startTyping, stopTyping, deleteMessage, editMessage } = useChat(
-    selectedContact.id,
-  )
 
+  // 使用实时聊天 Hook
+  const { messages, isTyping, isConnected, sendMessage, startTyping, stopTyping, deleteMessage, editMessage } =
+    useRealChat(selectedContact.id)
+
+  // 使用实时通话 Hook
   const {
     callState,
     localStream,
     remoteStream,
+    error: callError,
     startCall,
-    startGroupCall,
     answerCall,
     endCall,
     toggleMute,
     toggleVideo,
     toggleSpeaker,
-    simulateIncomingCall,
     formatDuration,
-    inviteParticipant,
-    removeParticipant,
-    toggleParticipantMute,
-  } = useCall()
+  } = useRealCall()
 
   // 自动滚动到底部
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-
-  // 模拟来电（演示用）
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!callState.isActive && Math.random() > 0.7) {
-        simulateIncomingCall("2", "李四", "/placeholder.svg?height=40&width=40&text=李", "voice")
-      }
-    }, 10000)
-
-    return () => clearTimeout(timer)
-  }, [callState.isActive, simulateIncomingCall])
 
   // 处理输入变化
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,72 +184,22 @@ export function WhatsAppMain() {
     inputRef.current?.focus()
   }
 
-  // 发起群组通话
-  const handleGroupCall = (callType: "voice" | "video") => {
-    if (selectedContact.isGroup && selectedContact.members) {
-      const participants = selectedContact.members.map((member) => ({
-        id: member.id,
-        name: member.name,
-        avatar: member.avatar,
-        isMuted: false,
-        isVideoOff: callType === "voice",
-        isSpeaking: false,
-        isHost: member.role === "admin",
-        joinedAt: 0,
-      }))
-
-      startGroupCall(selectedContact.id, selectedContact.name, selectedContact.avatar, callType, participants)
-    }
-  }
-
-  // 邀请参与者
-  const handleInviteParticipants = (newParticipants: any[]) => {
-    newParticipants.forEach((participant) => {
-      inviteParticipant(participant)
-    })
-  }
-
-  // 打开邀请对话框
-  const handleOpenInviteDialog = () => {
-    setShowInviteDialog(true)
-  }
-
   // 发起语音通话
-  const handleVoiceCall = () => {
-    if (selectedContact.isGroup) {
-      handleGroupCall("voice")
-    } else {
-      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "voice")
+  const handleVoiceCall = async () => {
+    try {
+      await startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "voice")
+    } catch (error) {
+      console.error("发起语音通话失败:", error)
     }
   }
 
   // 发起视频通话
-  const handleVideoCall = () => {
-    if (selectedContact.isGroup) {
-      handleGroupCall("video")
-    } else {
-      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "video")
+  const handleVideoCall = async () => {
+    try {
+      await startCall(selectedContact.id, selectedContact.name, selectedContact.avatar, "video")
+    } catch (error) {
+      console.error("发起视频通话失败:", error)
     }
-  }
-
-  // 接听来电
-  const handleAnswerCall = () => {
-    answerCall()
-  }
-
-  // 拒绝来电
-  const handleDeclineCall = () => {
-    endCall()
-  }
-
-  // 最小化通话
-  const handleMinimizeCall = () => {
-    setCallMinimized(true)
-  }
-
-  // 最大化通话
-  const handleMaximizeCall = () => {
-    setCallMinimized(false)
   }
 
   if (currentPage !== "chat") {
@@ -284,15 +218,46 @@ export function WhatsAppMain() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* 来电界面 */}
+      {callState.isActive && callState.isIncoming && callState.status === "ringing" && (
+        <RealIncomingCall callState={callState} onAnswer={answerCall} onDecline={endCall} />
+      )}
+
+      {/* 通话界面 */}
+      {callState.isActive &&
+        callState.status !== "ended" &&
+        (!callState.isIncoming || callState.status !== "ringing") && (
+          <RealCallInterface
+            callState={callState}
+            localStream={localStream}
+            remoteStream={remoteStream}
+            onEndCall={endCall}
+            onToggleMute={toggleMute}
+            onToggleVideo={toggleVideo}
+            onToggleSpeaker={toggleSpeaker}
+            formatDuration={formatDuration}
+          />
+        )}
+
       {/* 左侧边栏 */}
       <div className="w-[400px] bg-white border-r border-gray-200 flex flex-col">
         {/* 头部 */}
         <div className="bg-gray-50 p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.avatar || "/placeholder.svg?height=40&width=40&text=我"} />
-              <AvatarFallback>{user?.name?.[0] || "我"}</AvatarFallback>
-            </Avatar>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user?.avatar || "/placeholder.svg?height=40&width=40&text=我"} />
+                <AvatarFallback>{user?.name?.[0] || "我"}</AvatarFallback>
+              </Avatar>
+              <div className="flex items-center gap-2">
+                {isConnected ? (
+                  <Wifi className="h-4 w-4 text-green-500" />
+                ) : (
+                  <WifiOff className="h-4 w-4 text-red-500" />
+                )}
+                <span className="text-xs text-gray-500">{isConnected ? "已连接" : "连接中..."}</span>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentPage("status")}>
                 <Users className="h-4 w-4" />
@@ -315,6 +280,16 @@ export function WhatsAppMain() {
             <Input placeholder="搜索或开始新聊天" className="pl-10 bg-gray-100 border-none" />
           </div>
         </div>
+
+        {/* 连接状态提示 */}
+        {!isConnected && (
+          <div className="p-2">
+            <Alert>
+              <WifiOff className="h-4 w-4" />
+              <AlertDescription>连接已断开，正在尝试重连...</AlertDescription>
+            </Alert>
+          </div>
+        )}
 
         {/* 联系人列表 */}
         <ScrollArea className="flex-1">
@@ -350,11 +325,7 @@ export function WhatsAppMain() {
                     {contact.isGroup && contact.memberCount && (
                       <span className="text-xs text-gray-400">{contact.memberCount}人</span>
                     )}
-                    {contact.unread && (
-                      <span className="bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {contact.unread}
-                      </span>
-                    )}
+                    {contact.unread && <Badge className="bg-green-500 text-white text-xs">{contact.unread}</Badge>}
                   </div>
                 </div>
               </div>
@@ -395,10 +366,10 @@ export function WhatsAppMain() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={handleVoiceCall} disabled={callState.isActive}>
+            <Button variant="ghost" size="icon" onClick={handleVoiceCall} disabled={callState.isActive || !isConnected}>
               <Phone className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleVideoCall} disabled={callState.isActive}>
+            <Button variant="ghost" size="icon" onClick={handleVideoCall} disabled={callState.isActive || !isConnected}>
               <Video className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={() => setCurrentPage("starred")}>
@@ -409,6 +380,15 @@ export function WhatsAppMain() {
             </Button>
           </div>
         </div>
+
+        {/* 通话错误提示 */}
+        {callError && (
+          <div className="p-2">
+            <Alert variant="destructive">
+              <AlertDescription>{callError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
 
         {/* 消息区域 */}
         <ScrollArea
@@ -485,11 +465,17 @@ export function WhatsAppMain() {
                   onKeyPress={handleKeyPress}
                   placeholder={editingMessage ? "编辑消息..." : "输入消息"}
                   className="pr-12 bg-white"
+                  disabled={!isConnected}
                 />
               </div>
 
               {messageText.trim() ? (
-                <Button size="icon" className="bg-green-500 hover:bg-green-600" onClick={handleSendMessage}>
+                <Button
+                  size="icon"
+                  className="bg-green-500 hover:bg-green-600"
+                  onClick={handleSendMessage}
+                  disabled={!isConnected}
+                >
                   <Send className="h-4 w-4" />
                 </Button>
               ) : (
@@ -506,54 +492,6 @@ export function WhatsAppMain() {
           />
         </div>
       </div>
-
-      {/* 通话界面 */}
-      {callState.isActive && callState.status === "ringing" && (
-        <IncomingCall callState={callState} onAnswer={handleAnswerCall} onDecline={handleDeclineCall} />
-      )}
-
-      {callState.isActive && callState.status !== "ringing" && !callMinimized && (
-        <>
-          {callState.isGroupCall ? (
-            <GroupCallInterface
-              callState={callState}
-              localStream={localStream}
-              onEndCall={endCall}
-              onToggleMute={toggleMute}
-              onToggleVideo={toggleVideo}
-              onToggleSpeaker={toggleSpeaker}
-              onInviteParticipant={handleOpenInviteDialog}
-              onRemoveParticipant={removeParticipant}
-              onToggleParticipantMute={toggleParticipantMute}
-              onMinimize={handleMinimizeCall}
-              formatDuration={formatDuration}
-            />
-          ) : (
-            <CallInterface
-              callState={callState}
-              localStream={localStream}
-              remoteStream={remoteStream}
-              onEndCall={endCall}
-              onToggleMute={toggleMute}
-              onToggleVideo={toggleVideo}
-              onToggleSpeaker={toggleSpeaker}
-              onMinimize={handleMinimizeCall}
-              formatDuration={formatDuration}
-            />
-          )}
-        </>
-      )}
-
-      {/* 小窗口通话 */}
-      {callState.isActive && callState.status === "connected" && callMinimized && (
-        <CallMiniWindow
-          callState={callState}
-          localStream={localStream}
-          onEndCall={endCall}
-          onMaximize={handleMaximizeCall}
-          formatDuration={formatDuration}
-        />
-      )}
 
       {/* 群组信息面板 */}
       {selectedContact.isGroup && (
@@ -577,14 +515,6 @@ export function WhatsAppMain() {
         onCreateGroup={(name, members) => {
           console.log("创建群组:", name, members)
         }}
-      />
-
-      {/* 邀请参与者对话框 */}
-      <InviteParticipantsDialog
-        isOpen={showInviteDialog}
-        onClose={() => setShowInviteDialog(false)}
-        currentParticipants={callState.participants}
-        onInvite={handleInviteParticipants}
       />
     </div>
   )
