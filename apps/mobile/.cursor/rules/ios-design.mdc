@@ -1,0 +1,56 @@
+---
+alwaysApply: true
+---
+
+# iOS 设计风格规则
+
+这个项目是 WhatsApp 的 iOS 风格克隆应用。请严格遵循以下设计和代码规范：
+
+## UI 组件规范
+
+### 使用 Cupertino 组件
+
+- 始终使用 `CupertinoApp` 替代 `MaterialApp`
+- 使用 `CupertinoPageScaffold` 替代 `Scaffold`
+- 使用 `CupertinoNavigationBar` 替代 `AppBar`
+- 使用 `CupertinoButton` 替代 `ElevatedButton` 或 `TextButton`
+- 使用 `CupertinoTextField` 替代 `TextField`
+- 使用 `CupertinoActionSheet` 替代 `BottomSheet`
+- 使用 `CupertinoAlertDialog` 替代 `AlertDialog`
+
+### 图标和颜色
+
+- 使用 `CupertinoIcons` 替代 `Icons`
+- 使用 [AppTheme](mdc:lib/themes/app_theme.dart) 中定义的 iOS 系统颜色
+- 主色调：`AppTheme.primaryGreen` (#1DAC5A)
+- 背景色：`AppTheme.lightBackground` (#F2F2F7)
+
+### 字体
+
+- 使用 SF Pro 字体系列：`.SF Pro Text` 和 `.SF Pro Display`
+- 遵循 iOS 字体大小规范 (17px 正文，34px 大标题等)
+
+### 圆角和阴影
+
+- 消息气泡：18px 顶部圆角，4px 底部圆角
+- 容器：12px 圆角
+- 使用 iOS 特有的浅色阴影效果
+
+## 交互规范
+
+### 模态弹窗
+
+- 使用 `showCupertinoModalPopup` 显示底部弹窗
+- 使用 `CupertinoActionSheet` 实现选项菜单
+- 使用 `CupertinoAlertDialog` 显示警告对话框
+
+### 导航
+
+- 使用 `CupertinoTabScaffold` 实现底部导航
+- 使用 `CupertinoPageRoute` 进行页面跳转
+- 遵循 iOS 导航模式（左滑返回等）
+
+### 状态管理
+
+- 使用 `setState` 进行简单状态管理
+- 保持状态管理逻辑简洁明了

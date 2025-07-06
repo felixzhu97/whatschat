@@ -1,0 +1,65 @@
+---
+alwaysApply: true
+---
+
+# WhatsChat 项目结构规则
+
+## 目录结构
+
+- `lib/screens/` - 存放所有页面组件
+- `lib/widgets/` - 存放可复用的 UI 组件
+- `lib/models/` - 存放数据模型
+- `lib/services/` - 存放服务层代码
+- `lib/themes/` - 存放主题和样式定义
+
+## 核心文件
+
+### 主要页面
+
+- [home_screen.dart](mdc:lib/screens/home_screen.dart) - 主页面，包含底部导航
+- [chat_list_screen.dart](mdc:lib/screens/chat_list_screen.dart) - 聊天列表
+- [chat_detail_screen.dart](mdc:lib/screens/chat_detail_screen.dart) - 聊天详情
+- [status_screen.dart](mdc:lib/screens/status_screen.dart) - 状态页面
+- [calls_screen.dart](mdc:lib/screens/calls_screen.dart) - 通话记录
+- [settings_screen.dart](mdc:lib/screens/settings_screen.dart) - 设置页面
+
+### 核心组件
+
+- [message_bubble.dart](mdc:lib/widgets/message_bubble.dart) - 消息气泡组件
+- [chat_input_field.dart](mdc:lib/widgets/chat_input_field.dart) - 聊天输入框
+
+### 数据模型
+
+- [chat.dart](mdc:lib/models/chat.dart) - 聊天模型
+- [message.dart](mdc:lib/models/message.dart) - 消息模型
+- [status.dart](mdc:lib/models/status.dart) - 状态模型
+
+### 主题配置
+
+- [app_theme.dart](mdc:lib/themes/app_theme.dart) - 应用主题定义
+
+## 编码规范
+
+### 命名约定
+
+- 使用小写字母和下划线命名文件
+- 使用驼峰命名法命名类和变量
+- 使用英文或中文注释，保持一致性
+
+### 导入顺序
+
+1. Dart 核心库
+2. Flutter 库
+3. 第三方包
+4. 本地文件
+
+### 模型属性
+
+- Status 模型使用 `viewers` 属性，不是 `viewerIds`
+- Status 模型使用 `mediaUrl` 属性，不是 `fileUrl`
+- Message 模型使用 `MessageStatus.sent` 状态，不是 `MessageStatus.sending`
+
+### 组件参数
+
+- ChatInputField 使用 `onSend` 回调，不是 `onSendText`
+- 保持组件接口简洁，避免过多参数
