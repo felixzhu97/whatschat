@@ -107,7 +107,7 @@ class _StatusScreenState extends State<StatusScreen> {
           onPressed: () => _showMoreOptions(),
           child: const Icon(CupertinoIcons.ellipsis),
         ),
-        middle: const Text('Updates'),
+        middle: const Text('更新'),
         backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
       ),
       child: SafeArea(
@@ -129,7 +129,7 @@ class _StatusScreenState extends State<StatusScreen> {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                   child: const Text(
-                    'Recent updates',
+                    '最近更新',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -163,7 +163,7 @@ class _StatusScreenState extends State<StatusScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: const Text(
-        'Status',
+        '更新',
         style: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w600,
@@ -227,7 +227,7 @@ class _StatusScreenState extends State<StatusScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'My status',
+                  '我的更新',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -236,7 +236,7 @@ class _StatusScreenState extends State<StatusScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Add to my status',
+                  '添加到我的更新',
                   style: TextStyle(
                     fontSize: 14,
                     color: CupertinoColors.systemGrey,
@@ -361,7 +361,7 @@ class _StatusScreenState extends State<StatusScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Channels',
+            '频道',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -370,7 +370,7 @@ class _StatusScreenState extends State<StatusScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Stay updated on topics that matter to you. Find channels to follow below.',
+            '关注你感兴趣的频道。',
             style: TextStyle(
               fontSize: 14,
               color: CupertinoColors.systemGrey,
@@ -383,7 +383,7 @@ class _StatusScreenState extends State<StatusScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'Find channels to follow',
+                  '发现频道',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -408,7 +408,7 @@ class _StatusScreenState extends State<StatusScreen> {
               color: AppTheme.primaryGreen,
               borderRadius: BorderRadius.circular(20),
               child: const Text(
-                'Explore more',
+                '探索更多',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -432,19 +432,19 @@ class _StatusScreenState extends State<StatusScreen> {
               Navigator.pop(context);
               // Status privacy
             },
-            child: const Text('Status privacy'),
+            child: const Text('更新隐私'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Clear all status
             },
-            child: const Text('Clear all status'),
+            child: const Text('清除所有更新'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -454,33 +454,33 @@ class _StatusScreenState extends State<StatusScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('Camera'),
+        title: const Text('相机'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Take photo
             },
-            child: const Text('Take photo'),
+            child: const Text('拍照'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Record video
             },
-            child: const Text('Record video'),
+            child: const Text('录制视频'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Choose from library
             },
-            child: const Text('Choose from library'),
+            child: const Text('从相册选择'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -490,26 +490,26 @@ class _StatusScreenState extends State<StatusScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('Edit status'),
+        title: const Text('编辑更新'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Text status
             },
-            child: const Text('Text status'),
+            child: const Text('文字更新'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Edit current status
             },
-            child: const Text('Edit current status'),
+            child: const Text('编辑当前更新'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -520,12 +520,12 @@ class _StatusScreenState extends State<StatusScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Explore Channels'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('探索频道'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),

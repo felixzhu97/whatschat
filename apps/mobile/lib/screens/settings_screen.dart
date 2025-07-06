@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Settings'),
+        middle: Text('设置'),
       ),
       child: SafeArea(
         child: Column(
@@ -39,27 +39,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Settings items
                   _buildSettingsItem(
                     icon: CupertinoIcons.person_circle,
-                    title: 'Avatar',
+                    title: '头像',
                     onTap: () => _openAvatar(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.list_bullet,
-                    title: 'List',
+                    title: '列表',
                     onTap: () => _openList(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.speaker_3,
-                    title: 'Broadcast messages',
+                    title: '广播消息',
                     onTap: () => _openBroadcast(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.star,
-                    title: 'Starred messages',
+                    title: '收藏消息',
                     onTap: () => _openStarred(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.device_laptop,
-                    title: 'Linked devices',
+                    title: '关联设备',
                     onTap: () => _openLinkedDevices(),
                   ),
 
@@ -67,27 +67,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   _buildSettingsItem(
                     icon: CupertinoIcons.location,
-                    title: 'Account',
+                    title: '账户',
                     onTap: () => _openAccount(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.lock,
-                    title: 'Privacy',
+                    title: '隐私',
                     onTap: () => _openPrivacy(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.chat_bubble,
-                    title: 'Chats',
+                    title: '聊天',
                     onTap: () => _openChats(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.bell,
-                    title: 'Notifications',
+                    title: '通知',
                     onTap: () => _openNotifications(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.arrow_up_arrow_down,
-                    title: 'Storage and data',
+                    title: '存储和数据',
                     onTap: () => _openStorage(),
                   ),
 
@@ -95,12 +95,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   _buildSettingsItem(
                     icon: CupertinoIcons.info,
-                    title: 'Help',
+                    title: '帮助',
                     onTap: () => _openHelp(),
                   ),
                   _buildSettingsItem(
                     icon: CupertinoIcons.heart,
-                    title: 'Invite a friend',
+                    title: '邀请朋友',
                     onTap: () => _inviteFriend(),
                   ),
 
@@ -124,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.all(16),
       child: CupertinoSearchTextField(
         controller: _searchController,
-        placeholder: 'Search',
+        placeholder: '搜索',
         style: CupertinoTheme.of(context).textTheme.textStyle,
       ),
     );
@@ -239,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Also from Meta',
+            'Meta',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -250,17 +250,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         _buildMetaItem(
           icon: CupertinoIcons.camera,
-          title: 'Open Instagram',
+          title: '打开Instagram',
           onTap: () => _openInstagram(),
         ),
         _buildMetaItem(
           icon: CupertinoIcons.f_cursive,
-          title: 'Open Facebook',
+          title: '打开Facebook',
           onTap: () => _openFacebook(),
         ),
         _buildMetaItem(
           icon: CupertinoIcons.at,
-          title: 'Open Threads',
+          title: '打开Threads',
           onTap: () => _openThreads(),
         ),
       ],
@@ -302,12 +302,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('QR Code'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('二维码'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -318,12 +318,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Avatar'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('头像'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -334,12 +334,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('List'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('列表'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -350,12 +350,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Broadcast Messages'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('广播消息'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -366,12 +366,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Starred Messages'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('收藏消息'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -382,12 +382,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Linked Devices'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('关联设备'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -398,12 +398,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Account'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('账户'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -414,12 +414,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Privacy'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('隐私'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -430,12 +430,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Chats'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('聊天'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -446,12 +446,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Notifications'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('通知'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -462,12 +462,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Storage and Data'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('存储和数据'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -478,12 +478,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Help'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('帮助'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -494,12 +494,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Invite a Friend'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('邀请朋友'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -510,12 +510,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Open Instagram'),
+        title: const Text('打开Instagram'),
         content: const Text('This would open Instagram app if installed.'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -526,12 +526,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Open Facebook'),
+        title: const Text('打开Facebook'),
         content: const Text('This would open Facebook app if installed.'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -542,12 +542,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Open Threads'),
+        title: const Text('打开Threads'),
         content: const Text('This would open Threads app if installed.'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),

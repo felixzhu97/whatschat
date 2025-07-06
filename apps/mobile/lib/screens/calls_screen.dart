@@ -77,7 +77,7 @@ class _CallsScreenState extends State<CallsScreen> {
           onPressed: () => _showMoreOptions(),
           child: const Icon(CupertinoIcons.ellipsis),
         ),
-        middle: const Text('Calls'),
+        middle: const Text('通话'),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => _showNewCallOptions(),
@@ -123,7 +123,7 @@ class _CallsScreenState extends State<CallsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Favourites',
+            '收藏',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -144,7 +144,7 @@ class _CallsScreenState extends State<CallsScreen> {
                 ),
                 SizedBox(width: 12),
                 Text(
-                  'Add favourite',
+                  '添加收藏',
                   style: TextStyle(
                     fontSize: 16,
                     color: CupertinoColors.black,
@@ -165,7 +165,7 @@ class _CallsScreenState extends State<CallsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Recent',
+            '最近',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -339,19 +339,19 @@ class _CallsScreenState extends State<CallsScreen> {
               Navigator.pop(context);
               // Clear call log
             },
-            child: const Text('Clear call log'),
+            child: const Text('清除通话记录'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Call settings
             },
-            child: const Text('Call settings'),
+            child: const Text('通话设置'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -361,33 +361,33 @@ class _CallsScreenState extends State<CallsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('New call'),
+        title: const Text('新通话'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // New voice call
             },
-            child: const Text('New voice call'),
+            child: const Text('新语音通话'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // New video call
             },
-            child: const Text('New video call'),
+            child: const Text('新视频通话'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // New group call
             },
-            child: const Text('New group call'),
+            child: const Text('新群组通话'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -397,12 +397,12 @@ class _CallsScreenState extends State<CallsScreen> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Add Favourite'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('添加收藏'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -420,26 +420,26 @@ class _CallsScreenState extends State<CallsScreen> {
               Navigator.pop(context);
               // Call back
             },
-            child: const Text('Call back'),
+            child: const Text('回拨'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Video call
             },
-            child: const Text('Video call'),
+            child: const Text('视频通话'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               // Remove from call log
             },
-            child: const Text('Remove from call log'),
+            child: const Text('从通话记录中删除'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );

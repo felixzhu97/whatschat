@@ -182,7 +182,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           onPressed: () => _showProfileSettings(),
           child: const Icon(CupertinoIcons.ellipsis),
         ),
-        middle: const Text('Chats'),
+        middle: const Text('聊天'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -594,7 +594,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Widget _buildCategoryTabs() {
-    final categories = ['All', 'Unread', 'Favourites', 'Groups'];
+    final categories = ['全部', '未读', '收藏', '群组'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -679,7 +679,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           color: CupertinoColors.systemGrey,
         ),
         title: const Text(
-          'Archived',
+          '归档',
           style: TextStyle(
             fontSize: 16,
             color: CupertinoColors.systemGrey,

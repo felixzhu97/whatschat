@@ -13,7 +13,7 @@ class CommunitiesScreen extends StatelessWidget {
         border: null,
         leading: const SizedBox.shrink(),
         middle: const Text(
-          'Communities',
+          '社区',
           style: TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.bold,
@@ -51,7 +51,7 @@ class CommunitiesScreen extends StatelessWidget {
 
               // 标题
               const Text(
-                'Stay connected with a community',
+                '保持与社区的联系',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -63,7 +63,7 @@ class CommunitiesScreen extends StatelessWidget {
 
               // 描述文本
               const Text(
-                'Communities bring members together in topic-based groups. Any community you\'re added to will appear here.',
+                '社区将成员聚集在基于主题的群组中。你加入的任何社区都将显示在这里。',
                 style: TextStyle(
                   fontSize: 14,
                   color: CupertinoColors.systemGrey,
@@ -78,7 +78,7 @@ class CommunitiesScreen extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 onPressed: () => _showExampleCommunities(context),
                 child: const Text(
-                  'See example communities',
+                  '查看示例社区',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppTheme.primaryGreen,
@@ -105,7 +105,7 @@ class CommunitiesScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 8),
                       Text(
-                        'New Community',
+                        '新社区',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -262,25 +262,25 @@ class CommunitiesScreen extends StatelessWidget {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('Create Community'),
-        message: const Text('Choose how to create your community'),
+        title: const Text('创建社区'),
+        message: const Text('选择如何创建你的社区'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Create from scratch'),
+            child: const Text('从头开始创建'),
           ),
           CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Use template'),
+            child: const Text('使用模板'),
           ),
           CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Import from group'),
+            child: const Text('从群组导入'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('取消'),
         ),
       ),
     );
@@ -290,20 +290,20 @@ class CommunitiesScreen extends StatelessWidget {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Example Communities'),
+        title: const Text('示例社区'),
         content: const Text(
-          'Here are some popular community types:\n\n'
-          '• Study Groups\n'
-          '• Sports Teams\n'
-          '• Hobby Clubs\n'
-          '• Work Teams\n'
-          '• Family Groups\n'
-          '• Local Neighborhoods',
+          '以下是一些流行的社区类型：\n\n'
+          '• 学习小组\n'
+          '• 运动团队\n'
+          '• 兴趣小组\n'
+          '• 工作团队\n'
+          '• 家庭小组\n'
+          '• 本地社区',
         ),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
+            child: const Text('知道了'),
           ),
         ],
       ),
@@ -314,12 +314,12 @@ class CommunitiesScreen extends StatelessWidget {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('Create Community'),
-        content: const Text('This feature is coming soon!'),
+        title: const Text('创建社区'),
+        content: const Text('这个功能即将推出！'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('确定'),
           ),
         ],
       ),

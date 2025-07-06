@@ -36,15 +36,15 @@ class _HomeScreenState extends State<HomeScreen> {
         items: [
           const BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.circle),
-            label: 'Updates',
+            label: '更新',
           ),
           const BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.phone),
-            label: 'Calls',
+            label: '通话',
           ),
           const BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.group),
-            label: 'Communities',
+            label: '社区',
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -76,11 +76,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            label: 'Chats',
+            label: '聊天',
           ),
           const BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.gear_alt),
-            label: 'Settings',
+            label: '设置',
           ),
         ],
       ),
