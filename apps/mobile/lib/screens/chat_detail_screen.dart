@@ -164,10 +164,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
           ],
         ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showChatOptions(),
-          child: const FaIcon(FontAwesomeIcons.phone),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _makeVideoCall(),
+              child: const Icon(CupertinoIcons.video_camera),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _makeVoiceCall(),
+              child: const Icon(CupertinoIcons.phone),
+            ),
+          ],
         ),
         backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
       ),
@@ -402,6 +412,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('消息已删除')),
+    );
+  }
+
+  void _makeVideoCall() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('正在发起与 ${widget.chat.name} 的视频通话...')),
+    );
+  }
+
+  void _makeVoiceCall() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('正在发起与 ${widget.chat.name} 的语音通话...')),
     );
   }
 

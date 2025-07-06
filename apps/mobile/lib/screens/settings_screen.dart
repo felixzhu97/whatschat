@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:flutter/cupertino.dart';
 import '../themes/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -11,113 +10,122 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-        actions: [
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.magnifyingGlass),
-            onPressed: () {
-              // 搜索设置
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('搜索设置功能待实现')),
-              );
-            },
-          ),
-        ],
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Settings'),
       ),
-      body: ListView(
-        children: [
-          // 用户资料
-          _buildUserProfile(),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Search bar
+            _buildSearchBar(),
 
-          const Divider(),
+            Expanded(
+              child: ListView(
+                children: [
+                  // User profile
+                  _buildUserProfile(),
 
-          // 设置选项
-          _buildSettingsSection('账户', [
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.key,
-              title: '隐私',
-              subtitle: '最后上线时间、头像等',
-              onTap: () => _showPrivacySettings(),
-            ),
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.shield,
-              title: '安全',
-              subtitle: '端到端加密、双重验证',
-              onTap: () => _showSecuritySettings(),
-            ),
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.userGroup,
-              title: '群组',
-              subtitle: '谁可以添加我到群组',
-              onTap: () => _showGroupSettings(),
-            ),
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.database,
-              title: '存储和数据',
-              subtitle: '网络使用、自动下载',
-              onTap: () => _showStorageSettings(),
-            ),
-          ]),
+                  // Settings items
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.person_circle,
+                    title: 'Avatar',
+                    onTap: () => _openAvatar(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.list_bullet,
+                    title: 'List',
+                    onTap: () => _openList(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.speaker_3,
+                    title: 'Broadcast messages',
+                    onTap: () => _openBroadcast(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.star,
+                    title: 'Starred messages',
+                    onTap: () => _openStarred(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.device_laptop,
+                    title: 'Linked devices',
+                    onTap: () => _openLinkedDevices(),
+                  ),
 
-          _buildSettingsSection('通知', [
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.bell,
-              title: '通知',
-              subtitle: '消息、群组和通话提醒',
-              onTap: () => _showNotificationSettings(),
-            ),
-          ]),
+                  const SizedBox(height: 20),
 
-          _buildSettingsSection('聊天', [
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.message,
-              title: '聊天',
-              subtitle: '主题、壁纸、聊天记录',
-              onTap: () => _showChatSettings(),
-            ),
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.star,
-              title: '星标消息',
-              subtitle: '查看所有星标消息',
-              onTap: () => _showStarredMessages(),
-            ),
-          ]),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.location,
+                    title: 'Account',
+                    onTap: () => _openAccount(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.lock,
+                    title: 'Privacy',
+                    onTap: () => _openPrivacy(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.chat_bubble,
+                    title: 'Chats',
+                    onTap: () => _openChats(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.bell,
+                    title: 'Notifications',
+                    onTap: () => _openNotifications(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.arrow_up_arrow_down,
+                    title: 'Storage and data',
+                    onTap: () => _openStorage(),
+                  ),
 
-          _buildSettingsSection('支持', [
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.circleQuestion,
-              title: '帮助',
-              subtitle: '帮助中心、联系我们、隐私政策',
-              onTap: () => _showHelp(),
+                  const SizedBox(height: 20),
+
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.info,
+                    title: 'Help',
+                    onTap: () => _openHelp(),
+                  ),
+                  _buildSettingsItem(
+                    icon: CupertinoIcons.heart,
+                    title: 'Invite a friend',
+                    onTap: () => _inviteFriend(),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Also from Meta section
+                  _buildMetaSection(),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.heart,
-              title: '告诉朋友',
-              subtitle: '分享 WhatsChat',
-              onTap: () => _shareApp(),
-            ),
-          ]),
+          ],
+        ),
+      ),
+    );
+  }
 
-          _buildSettingsSection('关于', [
-            _buildSettingsTile(
-              icon: FontAwesomeIcons.info,
-              title: '关于',
-              subtitle: '版本信息',
-              onTap: () => _showAbout(),
-            ),
-          ]),
-
-          const SizedBox(height: 20),
-
-          // 主题切换
-          _buildThemeSelector(),
-
-          const SizedBox(height: 20),
-        ],
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: CupertinoSearchTextField(
+        controller: _searchController,
+        placeholder: 'Search',
+        style: CupertinoTheme.of(context).textTheme.textStyle,
       ),
     );
   }
@@ -127,255 +135,419 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const CircleAvatar(
-            backgroundColor: AppTheme.primaryGreen,
-            radius: 30,
-            child: Text(
-              '我',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+          // Avatar
+          Container(
+            width: 60,
+            height: 60,
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text(
+                'M',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 16),
+
+          // User info
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '我的用户名',
+                  'Marty McFly',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.black,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '嗨，我正在使用 WhatsChat！',
+                  'Nobody calls me chicken! 🔥',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppTheme.lightSecondaryText,
+                    color: CupertinoColors.systemGrey,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.qrcode),
+
+          // QR code button
+          CupertinoButton(
+            padding: EdgeInsets.zero,
             onPressed: () => _showQRCode(),
+            child: Container(
+              width: 24,
+              height: 24,
+              child: const Icon(
+                CupertinoIcons.qrcode,
+                color: CupertinoColors.systemGrey,
+                size: 24,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsSection(String title, List<Widget> tiles) {
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CupertinoListTile(
+        leading: Icon(
+          icon,
+          color: CupertinoColors.systemGrey,
+          size: 22,
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            color: CupertinoColors.black,
+            height: 2.5,
+          ),
+        ),
+        trailing: const Icon(
+          CupertinoIcons.chevron_forward,
+          color: CupertinoColors.systemGrey2,
+          size: 16,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildMetaSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            title,
-            style: const TextStyle(
+            'Also from Meta',
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppTheme.primaryGreen,
+              color: CupertinoColors.systemGrey,
             ),
           ),
         ),
-        ...tiles,
         const SizedBox(height: 8),
+        _buildMetaItem(
+          icon: CupertinoIcons.camera,
+          title: 'Open Instagram',
+          onTap: () => _openInstagram(),
+        ),
+        _buildMetaItem(
+          icon: CupertinoIcons.f_cursive,
+          title: 'Open Facebook',
+          onTap: () => _openFacebook(),
+        ),
+        _buildMetaItem(
+          icon: CupertinoIcons.at,
+          title: 'Open Threads',
+          onTap: () => _openThreads(),
+        ),
       ],
     );
   }
 
-  Widget _buildSettingsTile({
+  Widget _buildMetaItem({
     required IconData icon,
     required String title,
-    String? subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.lightSecondaryText),
-      title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: const Icon(FontAwesomeIcons.chevronRight, size: 16),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildThemeSelector() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.lightSeparator),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              '主题',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CupertinoListTile(
+        leading: Icon(
+          icon,
+          color: CupertinoColors.systemGrey,
+          size: 22,
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            color: CupertinoColors.black,
           ),
-          ListTile(
-            leading: const Icon(FontAwesomeIcons.sun),
-            title: const Text('浅色主题'),
-            trailing: Radio<AdaptiveThemeMode>(
-              value: AdaptiveThemeMode.light,
-              groupValue: AdaptiveTheme.of(context).mode,
-              onChanged: (value) {
-                AdaptiveTheme.of(context).setLight();
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(FontAwesomeIcons.moon),
-            title: const Text('深色主题'),
-            trailing: Radio<AdaptiveThemeMode>(
-              value: AdaptiveThemeMode.dark,
-              groupValue: AdaptiveTheme.of(context).mode,
-              onChanged: (value) {
-                AdaptiveTheme.of(context).setDark();
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(FontAwesomeIcons.circleHalfStroke),
-            title: const Text('跟随系统'),
-            trailing: Radio<AdaptiveThemeMode>(
-              value: AdaptiveThemeMode.system,
-              groupValue: AdaptiveTheme.of(context).mode,
-              onChanged: (value) {
-                AdaptiveTheme.of(context).setSystem();
-              },
-            ),
-          ),
-        ],
+        ),
+        trailing: const Icon(
+          CupertinoIcons.chevron_forward,
+          color: CupertinoColors.systemGrey2,
+          size: 16,
+        ),
+        onTap: onTap,
       ),
     );
   }
 
   void _showQRCode() {
-    showDialog(
+    showCupertinoDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('我的二维码'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              FontAwesomeIcons.qrcode,
-              size: 100,
-              color: AppTheme.primaryGreen,
-            ),
-            SizedBox(height: 16),
-            Text('扫描二维码添加好友'),
-          ],
-        ),
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('QR Code'),
+        content: const Text('This feature is coming soon!'),
         actions: [
-          TextButton(
+          CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('分享二维码功能待实现')),
-              );
-            },
-            child: const Text('分享'),
+            child: const Text('OK'),
           ),
         ],
       ),
     );
   }
 
-  void _showPrivacySettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('隐私设置功能待实现')),
-    );
-  }
-
-  void _showSecuritySettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('安全设置功能待实现')),
-    );
-  }
-
-  void _showGroupSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('群组设置功能待实现')),
-    );
-  }
-
-  void _showStorageSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('存储设置功能待实现')),
-    );
-  }
-
-  void _showNotificationSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('通知设置功能待实现')),
-    );
-  }
-
-  void _showChatSettings() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('聊天设置功能待实现')),
-    );
-  }
-
-  void _showStarredMessages() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('星标消息功能待实现')),
-    );
-  }
-
-  void _showHelp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('帮助功能待实现')),
-    );
-  }
-
-  void _shareApp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('分享应用功能待实现')),
-    );
-  }
-
-  void _showAbout() {
-    showDialog(
+  void _openAvatar() {
+    showCupertinoDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('关于 WhatsChat'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('版本: 1.0.0'),
-            SizedBox(height: 8),
-            Text('构建: 2024.01.01'),
-            SizedBox(height: 8),
-            Text('一个功能完整的 WhatsApp 克隆应用'),
-            SizedBox(height: 8),
-            Text('使用 Flutter 开发'),
-          ],
-        ),
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Avatar'),
+        content: const Text('This feature is coming soon!'),
         actions: [
-          TextButton(
+          CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openList() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('List'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openBroadcast() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Broadcast Messages'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openStarred() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Starred Messages'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLinkedDevices() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Linked Devices'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openAccount() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Account'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openPrivacy() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Privacy'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openChats() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Chats'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openNotifications() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Notifications'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openStorage() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Storage and Data'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openHelp() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Help'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _inviteFriend() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Invite a Friend'),
+        content: const Text('This feature is coming soon!'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openInstagram() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Open Instagram'),
+        content: const Text('This would open Instagram app if installed.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openFacebook() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Open Facebook'),
+        content: const Text('This would open Facebook app if installed.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openThreads() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Open Threads'),
+        content: const Text('This would open Threads app if installed.'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),

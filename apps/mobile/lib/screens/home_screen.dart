@@ -5,6 +5,7 @@ import '../themes/app_theme.dart';
 import 'chat_list_screen.dart';
 import 'status_screen.dart';
 import 'calls_screen.dart';
+import 'communities_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 3; // 默认选中 Chats
 
   @override
   Widget build(BuildContext context) {
@@ -28,26 +29,58 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
-        activeColor: AppTheme.iosBlue,
+        activeColor: CupertinoColors.black,
         inactiveColor: CupertinoColors.systemGrey,
-        iconSize: 24,
-        height: 85,
-        items: const [
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.message),
-            label: '聊天',
+        iconSize: 26,
+        height: 90,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.circle),
+            label: 'Updates',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.phone),
+            label: 'Calls',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.group),
+            label: 'Communities',
           ),
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.camera),
-            label: '状态',
+            icon: Stack(
+              children: [
+                const Icon(CupertinoIcons.chat_bubble_2),
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryGreen,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: const Text(
+                      '1',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            label: 'Chats',
           ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.phone),
-            label: '通话',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.gear),
-            label: '设置',
+          const BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.gear_alt),
+            label: 'Settings',
           ),
         ],
       ),
@@ -55,23 +88,27 @@ class _HomeScreenState extends State<HomeScreen> {
         switch (index) {
           case 0:
             return CupertinoTabView(
-              builder: (context) => const ChatListScreen(),
+              builder: (context) => const StatusScreen(),
             );
           case 1:
             return CupertinoTabView(
-              builder: (context) => const StatusScreen(),
+              builder: (context) => const CallsScreen(),
             );
           case 2:
             return CupertinoTabView(
-              builder: (context) => const CallsScreen(),
+              builder: (context) => const CommunitiesScreen(),
             );
           case 3:
+            return CupertinoTabView(
+              builder: (context) => const ChatListScreen(),
+            );
+          case 4:
             return CupertinoTabView(
               builder: (context) => const SettingsScreen(),
             );
           default:
             return CupertinoTabView(
-              builder: (context) => const ChatListScreen(),
+              builder: (context) => const SettingsScreen(),
             );
         }
       },
@@ -153,4 +190,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-} 
+}

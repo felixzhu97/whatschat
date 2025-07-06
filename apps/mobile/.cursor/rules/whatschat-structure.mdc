@@ -63,3 +63,7 @@ alwaysApply: true
 
 - ChatInputField 使用 `onSend` 回调，不是 `onSendText`
 - 保持组件接口简洁，避免过多参数
+
+### 应用语言
+
+- 语言使用中文

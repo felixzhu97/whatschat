@@ -14,11 +14,13 @@ class StatusScreen extends StatefulWidget {
 class _StatusScreenState extends State<StatusScreen> {
   List<Status> _statuses = [];
   List<Status> _myStatuses = [];
+  List<Map<String, dynamic>> _recentUpdates = [];
 
   @override
   void initState() {
     super.initState();
     _loadStatuses();
+    _loadRecentUpdates();
   }
 
   void _loadStatuses() {
@@ -77,48 +79,57 @@ class _StatusScreenState extends State<StatusScreen> {
     setState(() {});
   }
 
+  void _loadRecentUpdates() {
+    _recentUpdates = [
+      {
+        'name': 'Mr. Strickland',
+        'time': '4h ago',
+        'avatarColor': Colors.brown,
+        'hasStory': true,
+      },
+      {
+        'name': 'Jenny',
+        'time': '9h ago',
+        'avatarColor': Colors.pink,
+        'hasStory': true,
+        'hasHeart': true,
+      },
+    ];
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('状态'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => _createStatus(),
-              child: const Icon(CupertinoIcons.camera_fill),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => _showStatusOptions(),
-              child: const Icon(CupertinoIcons.ellipsis),
-            ),
-          ],
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => _showMoreOptions(),
+          child: const Icon(CupertinoIcons.ellipsis),
         ),
+        middle: const Text('Updates'),
         backgroundColor: CupertinoTheme.of(context).barBackgroundColor,
       ),
       child: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // 我的状态
+            // Status Section
             SliverToBoxAdapter(
-              child: _buildMyStatusSection(),
+              child: _buildStatusSection(),
             ),
 
-            // 分割线
-            const SliverToBoxAdapter(
-              child: Divider(height: 1),
+            // My Status
+            SliverToBoxAdapter(
+              child: _buildMyStatus(),
             ),
 
-            // 最近更新
-            if (_statuses.isNotEmpty) ...[
+            // Recent Updates
+            if (_recentUpdates.isNotEmpty) ...[
               SliverToBoxAdapter(
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                   child: const Text(
-                    '最近更新',
+                    'Recent updates',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -130,408 +141,391 @@ class _StatusScreenState extends State<StatusScreen> {
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final status = _statuses[index];
-                    return _buildStatusTile(status);
+                    final update = _recentUpdates[index];
+                    return _buildUpdateTile(update);
                   },
-                  childCount: _statuses.length,
+                  childCount: _recentUpdates.length,
                 ),
               ),
             ],
 
-            // 已查看的状态
-            if (_getViewedStatuses().isNotEmpty) ...[
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: const Text(
-                    '已查看的状态',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: CupertinoColors.systemGrey,
-                    ),
-                  ),
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final status = _getViewedStatuses()[index];
-                    return _buildStatusTile(status);
-                  },
-                  childCount: _getViewedStatuses().length,
-                ),
-              ),
-            ],
+            // Channels Section
+            SliverToBoxAdapter(
+              child: _buildChannelsSection(),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMyStatusSection() {
+  Widget _buildStatusSection() {
     return Container(
-      decoration: BoxDecoration(
-        color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-        border: const Border(
-          bottom: BorderSide(
-            color: CupertinoColors.separator,
-            width: 0.5,
-          ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: const Text(
+        'Status',
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: CupertinoColors.black,
         ),
       ),
-      child: CupertinoListTile(
-        leading: Stack(
-          children: [
-            const CircleAvatar(
-              backgroundColor: AppTheme.primaryGreen,
-              radius: 25,
-              child: Text(
-                '我',
+    );
+  }
+
+  Widget _buildMyStatus() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // Avatar with green plus
+          Stack(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    'M',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.plus,
+                    color: Colors.white,
+                    size: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 12),
+
+          // Status Info
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My status',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: CupertinoColors.black,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Add to my status',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Camera and Edit buttons
+          Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _showCameraOptions(),
+                child: const Icon(
+                  CupertinoIcons.camera_fill,
+                  color: CupertinoColors.systemGrey,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 8),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _showEditOptions(),
+                child: const Icon(
+                  CupertinoIcons.pencil,
+                  color: CupertinoColors.systemGrey,
+                  size: 22,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpdateTile(Map<String, dynamic> update) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          // Avatar with story ring
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: update['hasStory']
+                    ? AppTheme.primaryGreen
+                    : Colors.transparent,
+                width: 2,
+              ),
+            ),
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: update['avatarColor'],
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  update['name'][0],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Name and time
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      update['name'],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    if (update['hasHeart'] == true) ...[
+                      const SizedBox(width: 4),
+                      const Text(
+                        '❤️',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  update['time'],
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChannelsSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Channels',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: CupertinoColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Stay updated on topics that matter to you. Find channels to follow below.',
+            style: TextStyle(
+              fontSize: 14,
+              color: CupertinoColors.systemGrey,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Find channels to follow
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Find channels to follow',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: CupertinoColors.black,
+                  ),
+                ),
+              ),
+              const Icon(
+                CupertinoIcons.chevron_down,
+                color: CupertinoColors.systemGrey,
+                size: 16,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Explore more button
+          Center(
+            child: CupertinoButton(
+              onPressed: () => _exploreChannels(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              color: AppTheme.primaryGreen,
+              borderRadius: BorderRadius.circular(20),
+              child: const Text(
+                'Explore more',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: AppTheme.primaryGreen,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  CupertinoIcons.plus,
-                  color: Colors.white,
-                  size: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-        title: const Text(
-          '我的状态',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        subtitle: Text(
-          _myStatuses.isNotEmpty ? '点击查看或更新状态' : '点击分享状态更新',
-          style: const TextStyle(
-            color: CupertinoColors.systemGrey,
-            fontSize: 13,
-          ),
-        ),
-        onTap: () {
-          if (_myStatuses.isNotEmpty) {
-            _viewMyStatuses();
-          } else {
-            _createStatus();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildStatusTile(Status status) {
-    final isViewed = status.viewers.contains('user1');
-
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: CupertinoColors.separator,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: CupertinoListTile(
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color:
-                  isViewed ? CupertinoColors.systemGrey : AppTheme.primaryGreen,
-              width: 2,
-            ),
-          ),
-          child: CircleAvatar(
-            backgroundColor: AppTheme.primaryGreen,
-            radius: 23,
-            child: Text(
-              status.userName[0].toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          status.userName,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        subtitle: Text(
-          _formatTime(status.timestamp),
-          style: const TextStyle(
-            color: CupertinoColors.systemGrey,
-            fontSize: 13,
-          ),
-        ),
-        trailing:
-            status.type == StatusType.image || status.type == StatusType.video
-                ? Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: CupertinoColors.systemGrey6,
-                    ),
-                    child: status.type == StatusType.image
-                        ? const Icon(
-                            CupertinoIcons.photo,
-                            color: CupertinoColors.systemGrey,
-                            size: 20,
-                          )
-                        : const Icon(
-                            CupertinoIcons.videocam_fill,
-                            color: CupertinoColors.systemGrey,
-                            size: 20,
-                          ),
-                  )
-                : null,
-        onTap: () => _viewStatus(status),
-      ),
-    );
-  }
-
-  List<Status> _getViewedStatuses() {
-    return _statuses
-        .where((status) => status.viewers.contains('user1'))
-        .toList();
-  }
-
-  String _formatTime(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inHours < 1) {
-      return '${difference.inMinutes}分钟前';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}小时前';
-    } else {
-      return '${difference.inDays}天前';
-    }
-  }
-
-  void _viewStatus(Status status) {
-    // 标记为已查看
-    if (!status.viewers.contains('user1')) {
-      setState(() {
-        status.viewers.add('user1');
-      });
-    }
-
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(status.userName),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_formatTime(status.timestamp)),
-            const SizedBox(height: 8),
-            Text(status.content),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _replyToStatus(status);
-            },
-            child: const Text('回复'),
           ),
         ],
       ),
     );
   }
 
-  void _viewMyStatuses() {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('我的状态'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _myStatuses
-              .map((status) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(status.content),
-                  ))
-              .toList(),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _createStatus();
-            },
-            child: const Text('添加新状态'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _createStatus() {
+  void _showMoreOptions() {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('创建状态'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _createTextStatus();
+              // Status privacy
             },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.textformat),
-                SizedBox(width: 8),
-                Text('文字状态'),
-              ],
-            ),
+            child: const Text('Status privacy'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _takePhoto();
+              // Clear all status
             },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.camera_fill),
-                SizedBox(width: 8),
-                Text('拍照'),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _pickFromGallery();
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.photo_fill),
-                SizedBox(width: 8),
-                Text('从相册选择'),
-              ],
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _recordVideo();
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.videocam_fill),
-                SizedBox(width: 8),
-                Text('录制视频'),
-              ],
-            ),
+            child: const Text('Clear all status'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: const Text('Cancel'),
         ),
       ),
     );
   }
 
-  void _showStatusOptions() {
+  void _showCameraOptions() {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('状态选项'),
+        title: const Text('Camera'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _showComingSoon('状态隐私设置');
+              // Take photo
             },
-            child: const Text('状态隐私'),
+            child: const Text('Take photo'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _showComingSoon('阅后即焚消息');
+              // Record video
             },
-            child: const Text('阅后即焚消息'),
+            child: const Text('Record video'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              // Choose from library
+            },
+            child: const Text('Choose from library'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: const Text('Cancel'),
         ),
       ),
     );
   }
 
-  void _createTextStatus() {
-    _showComingSoon('创建文字状态');
+  void _showEditOptions() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('Edit status'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              // Text status
+            },
+            child: const Text('Text status'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              // Edit current status
+            },
+            child: const Text('Edit current status'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
   }
 
-  void _takePhoto() {
-    _showComingSoon('拍照');
-  }
-
-  void _pickFromGallery() {
-    _showComingSoon('从相册选择');
-  }
-
-  void _recordVideo() {
-    _showComingSoon('录制视频');
-  }
-
-  void _replyToStatus(Status status) {
-    _showComingSoon('回复状态');
-  }
-
-  void _showComingSoon(String feature) {
+  void _exploreChannels() {
+    // Navigate to explore channels page
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('功能待实现'),
-        content: Text('$feature功能正在开发中，敬请期待！'),
+        title: const Text('Explore Channels'),
+        content: const Text('This feature is coming soon!'),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
+            child: const Text('OK'),
           ),
         ],
       ),

@@ -4,7 +4,7 @@ alwaysApply: true
 
 # iOS 设计风格规则
 
-这个项目是 WhatsApp 的 iOS 风格克隆应用。请严格遵循以下设计和代码规范：
+这个项目是 WhatsApp 的 iOS 风格应用。请严格遵循以下设计和代码规范：
 
 ## UI 组件规范
 
