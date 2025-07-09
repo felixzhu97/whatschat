@@ -1,0 +1,160 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title WhatsChat 核心模块代码图
+
+Container_Boundary(webApp, "Web应用代码结构") {
+    
+    Boundary(pages, "页面层 (app/)") {
+        Component(rootPage, "page.tsx", "Next.js Page", "应用根页面")
+        Component(loginPage, "login/page.tsx", "Next.js Page", "登录页面")
+        Component(registerPage, "register/page.tsx", "Next.js Page", "注册页面")
+        Component(layout, "layout.tsx", "Next.js Layout", "应用布局")
+    }
+    
+    Boundary(components, "组件层 (components/)") {
+        Component(authWrapper, "auth-wrapper.tsx", "React Component", "认证路由守卫")
+        Component(whatsappMain, "whatsapp-main.tsx", "React Component", "主聊天界面")
+        Component(chatArea, "chat-area.tsx", "React Component", "聊天区域")
+        Component(sidebar, "sidebar.tsx", "React Component", "侧边栏")
+        Component(messageArea, "message-area.tsx", "React Component", "消息显示区域")
+        Component(messageBubble, "message-bubble.tsx", "React Component", "消息气泡")
+        Component(messageInput, "message-input.tsx", "React Component", "消息输入")
+        Component(callInterface, "call-interface.tsx", "React Component", "通话界面")
+        Component(incomingCall, "incoming-call.tsx", "React Component", "来电界面")
+        Component(emojiPicker, "emoji-picker.tsx", "React Component", "表情选择器")
+        Component(voiceRecorder, "voice-recorder.tsx", "React Component", "语音录制")
+        Component(fileUpload, "file-upload.tsx", "React Component", "文件上传")
+    }
+    
+    Boundary(hooks, "Hooks层 (hooks/)") {
+        Component(useAuth, "use-auth.ts", "React Hook", "用户认证状态管理")
+        Component(useChat, "use-chat.ts", "React Hook", "聊天状态管理")
+        Component(useCall, "use-call.ts", "React Hook", "通话状态管理")
+        Component(useLongPress, "use-long-press.ts", "React Hook", "长按手势处理")
+        Component(useVoiceRecorder, "use-voice-recorder.ts", "React Hook", "语音录制")
+        Component(useRealCall, "use-real-call.ts", "React Hook", "真实通话功能")
+        Component(useRealChat, "use-real-chat.ts", "React Hook", "真实聊天功能")
+    }
+    
+    Boundary(stores, "状态管理 (stores/)") {
+        Component(messagesStore, "messages-store.ts", "Zustand Store", "消息状态管理")
+        Component(contactsStore, "contacts-store.ts", "Zustand Store", "联系人状态管理")
+        Component(callsStore, "calls-store.ts", "Zustand Store", "通话状态管理")
+        Component(settingsStore, "settings-store.ts", "Zustand Store", "设置状态管理")
+    }
+    
+    Boundary(lib, "工具库 (lib/)") {
+        Component(utils, "utils.ts", "TypeScript Utilities", "通用工具函数")
+        Component(websocket, "websocket.ts", "TypeScript Service", "WebSocket连接管理")
+        Component(webrtc, "webrtc.ts", "TypeScript Service", "WebRTC连接管理")
+        Component(hapticFeedback, "haptic-feedback.ts", "TypeScript Service", "触觉反馈")
+        Component(searchUtils, "search-utils.ts", "TypeScript Utilities", "搜索工具函数")
+        Component(storage, "storage.ts", "TypeScript Service", "本地存储管理")
+    }
+    
+    Boundary(types, "类型定义 (types/)") {
+        Component(indexTypes, "index.ts", "TypeScript Interface", "主要类型定义")
+    }
+    
+    Boundary(data, "数据层 (data/)") {
+        Component(mockData, "index.ts", "TypeScript Data", "模拟数据")
+        Component(mockMessages, "mock-messages.ts", "TypeScript Data", "模拟消息数据")
+        Component(mockContacts, "mock-contacts.ts", "TypeScript Data", "模拟联系人数据")
+        Component(mockCalls, "mock-calls.ts", "TypeScript Data", "模拟通话数据")
+        Component(mockStatus, "mock-status.ts", "TypeScript Data", "模拟状态数据")
+    }
+}
+
+Container_Boundary(mobileApp, "移动应用代码结构") {
+    
+    Boundary(screens, "屏幕层 (screens/)") {
+        Component(homeScreen, "home_screen.dart", "Flutter Widget", "主屏幕")
+        Component(chatListScreen, "chat_list_screen.dart", "Flutter Widget", "聊天列表")
+        Component(chatDetailScreen, "chat_detail_screen.dart", "Flutter Widget", "聊天详情")
+        Component(callsScreen, "calls_screen.dart", "Flutter Widget", "通话记录")
+        Component(statusScreen, "status_screen.dart", "Flutter Widget", "状态页面")
+        Component(settingsScreen, "settings_screen.dart", "Flutter Widget", "设置页面")
+        Component(communitiesScreen, "communities_screen.dart", "Flutter Widget", "社区页面")
+    }
+    
+    Boundary(widgets, "组件层 (widgets/)") {
+        Component(messageBubbleWidget, "message_bubble.dart", "Flutter Widget", "消息气泡")
+        Component(chatInputField, "chat_input_field.dart", "Flutter Widget", "聊天输入框")
+    }
+    
+    Boundary(models, "模型层 (models/)") {
+        Component(userModel, "user.dart", "Dart Class", "用户模型")
+        Component(chatModel, "chat.dart", "Dart Class", "聊天模型")
+        Component(messageModel, "message.dart", "Dart Class", "消息模型")
+        Component(callModel, "call.dart", "Dart Class", "通话模型")
+        Component(statusModel, "status.dart", "Dart Class", "状态模型")
+        Component(modelsIndex, "models.dart", "Dart Export", "模型导出文件")
+    }
+    
+    Boundary(services, "服务层 (services/)") {
+        Component(mobileServices, "服务目录", "Dart Services", "移动端服务实现")
+    }
+    
+    Boundary(themes, "主题层 (themes/)") {
+        Component(appTheme, "app_theme.dart", "Flutter Theme", "应用主题定义")
+    }
+}
+
+' Web应用内部关系
+Rel(layout, rootPage, "包含根页面")
+Rel(authWrapper, loginPage, "未认证时显示")
+Rel(authWrapper, whatsappMain, "认证后显示")
+Rel(whatsappMain, sidebar, "包含侧边栏")
+Rel(whatsappMain, chatArea, "包含聊天区域")
+Rel(chatArea, messageArea, "包含消息区域")
+Rel(messageArea, messageBubble, "渲染消息")
+Rel(chatArea, messageInput, "包含输入框")
+Rel(messageInput, emojiPicker, "选择表情")
+Rel(messageInput, voiceRecorder, "录制语音")
+Rel(messageInput, fileUpload, "上传文件")
+
+' Hooks关系
+Rel(authWrapper, useAuth, "使用认证状态")
+Rel(chatArea, useChat, "使用聊天状态")
+Rel(callInterface, useCall, "使用通话状态")
+Rel(voiceRecorder, useVoiceRecorder, "使用录制功能")
+
+' 状态管理关系
+Rel(useChat, messagesStore, "消息状态")
+Rel(sidebar, contactsStore, "联系人状态")
+Rel(useCall, callsStore, "通话状态")
+Rel(whatsappMain, settingsStore, "设置状态")
+
+' 服务关系
+Rel(useChat, websocket, "WebSocket通信")
+Rel(useCall, webrtc, "WebRTC通信")
+Rel(useAuth, storage, "存储管理")
+Rel(whatsappMain, hapticFeedback, "触觉反馈")
+Rel(chatArea, searchUtils, "搜索功能")
+
+' 数据关系
+Rel(messagesStore, mockMessages, "使用模拟数据")
+Rel(contactsStore, mockContacts, "使用模拟数据")
+Rel(callsStore, mockCalls, "使用模拟数据")
+
+' 类型关系
+Rel(useAuth, indexTypes, "使用类型定义")
+Rel(useChat, indexTypes, "使用类型定义")
+Rel(useCall, indexTypes, "使用类型定义")
+
+' 移动应用内部关系
+Rel(homeScreen, chatListScreen, "导航到聊天列表")
+Rel(chatListScreen, chatDetailScreen, "打开聊天详情")
+Rel(chatDetailScreen, messageBubbleWidget, "显示消息")
+Rel(chatDetailScreen, chatInputField, "消息输入")
+
+' 移动应用模型关系
+Rel(chatDetailScreen, messageModel, "使用消息模型")
+Rel(chatListScreen, chatModel, "使用聊天模型")
+Rel(homeScreen, userModel, "使用用户模型")
+Rel(modelsIndex, userModel, "导出用户模型")
+Rel(modelsIndex, chatModel, "导出聊天模型")
+Rel(modelsIndex, messageModel, "导出消息模型")
+
+@enduml 

@@ -1,0 +1,32 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title WhatsChat 系统上下文图
+
+Person(user, "用户", "使用WhatsChat进行即时通讯、语音视频通话、文件分享")
+Person(contact, "联系人", "与用户进行聊天交流的其他用户")
+Person(admin, "系统管理员", "管理系统配置和用户权限")
+
+System(whatsChat, "WhatsChat系统", "提供跨平台即时通讯、语音视频通话、文件共享、群聊等功能的现代化聊天应用")
+
+System_Ext(webrtc, "WebRTC服务", "提供端到端音视频通话能力和屏幕共享")
+System_Ext(storage, "云存储服务", "存储用户文件、图片、语音消息等媒体内容")
+System_Ext(pushNotification, "推送通知服务", "向移动设备推送消息通知")
+System_Ext(cdn, "内容分发网络", "加速静态资源和媒体文件访问")
+System_Ext(email, "邮件服务", "发送验证邮件和系统通知")
+System_Ext(analytics, "数据分析服务", "收集用户行为数据和系统性能指标")
+System_Ext(monitoring, "监控报警服务", "系统健康监控和异常报警")
+
+Rel(user, whatsChat, "使用Web/移动应用", "HTTPS/WebSocket")
+Rel(contact, whatsChat, "发送接收消息", "HTTPS/WebSocket")
+Rel(admin, whatsChat, "系统管理", "HTTPS")
+
+Rel(whatsChat, webrtc, "建立音视频通话", "WebRTC/STUN/TURN")
+Rel(whatsChat, storage, "存储/获取文件", "HTTPS/S3 API")
+Rel(whatsChat, pushNotification, "推送消息通知", "FCM/APNs API")
+Rel(whatsChat, cdn, "加载静态资源", "HTTPS")
+Rel(whatsChat, email, "发送邮件验证", "SMTP")
+Rel(whatsChat, analytics, "发送分析数据", "HTTPS")
+Rel(whatsChat, monitoring, "系统指标上报", "HTTPS")
+
+@enduml 

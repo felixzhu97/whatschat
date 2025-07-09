@@ -1,0 +1,133 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+title WhatsChat 部署架构图
+
+Deployment_Node(userDevice, "用户设备", "移动设备/桌面浏览器") {
+    Container(webBrowser, "Web浏览器", "Chrome/Firefox/Safari", "运行Web应用")
+    Container(mobileApp, "移动应用", "iOS/Android", "原生移动应用")
+}
+
+Deployment_Node(cdn, "CDN网络", "全球内容分发网络") {
+    Container(staticAssets, "静态资源", "CSS/JS/Images", "前端静态文件")
+    Container(mediaFiles, "媒体文件", "图片/视频/音频", "用户上传的媒体内容")
+}
+
+Deployment_Node(loadBalancer, "负载均衡器", "Nginx/Cloudflare") {
+    Container(reverseProxy, "反向代理", "Nginx", "请求路由和SSL终端")
+    Container(apiGateway, "API网关", "Kong/Nginx", "API请求路由")
+}
+
+Deployment_Node(k8sCluster, "Kubernetes集群", "生产环境") {
+    
+    Deployment_Node(webTier, "Web层", "容器化Web服务") {
+        Container(webAppPod, "Web应用Pod", "Next.js", "前端应用服务")
+        Container(webAppReplica, "Web应用副本", "Next.js", "水平扩展副本")
+    }
+    
+    Deployment_Node(apiTier, "API层", "容器化API服务") {
+        Container(apiServerPod, "API服务Pod", "Node.js", "后端API服务")
+        Container(apiServerReplica, "API服务副本", "Node.js", "水平扩展副本")
+        Container(websocketPod, "WebSocket服务Pod", "Socket.io", "实时通信服务")
+    }
+    
+    Deployment_Node(cacheTier, "缓存层", "内存数据库") {
+        ContainerDb(redisCluster, "Redis集群", "Redis", "会话缓存和消息队列")
+        ContainerDb(redisSentinel, "Redis哨兵", "Redis Sentinel", "高可用监控")
+    }
+    
+    Deployment_Node(searchTier, "搜索层", "全文搜索服务") {
+        ContainerDb(elasticsearch, "Elasticsearch集群", "Elasticsearch", "消息搜索和分析")
+        ContainerDb(kibana, "Kibana", "Kibana", "数据可视化")
+    }
+}
+
+Deployment_Node(database, "数据库层", "持久化存储") {
+    Deployment_Node(primaryDB, "主数据库", "PostgreSQL主库") {
+        ContainerDb(postgresqlMaster, "PostgreSQL主库", "PostgreSQL", "用户和消息数据")
+    }
+    
+    Deployment_Node(replicaDB, "只读副本", "PostgreSQL从库") {
+        ContainerDb(postgresqlSlave, "PostgreSQL从库", "PostgreSQL", "读取负载分离")
+    }
+    
+    Deployment_Node(backupDB, "备份存储", "数据备份") {
+        ContainerDb(backupStorage, "备份存储", "S3/MinIO", "数据库备份")
+    }
+}
+
+Deployment_Node(fileStorage, "文件存储", "对象存储服务") {
+    Container(objectStorage, "对象存储", "MinIO/AWS S3", "文件和媒体存储")
+    Container(backupStorage2, "备份存储", "异地备份", "文件备份和归档")
+}
+
+Deployment_Node(monitoring, "监控系统", "系统监控和告警") {
+    Container(prometheus, "Prometheus", "指标收集", "系统指标监控")
+    Container(grafana, "Grafana", "数据可视化", "监控仪表板")
+    Container(alertManager, "AlertManager", "告警管理", "告警通知")
+    Container(logAggregator, "日志聚合", "ELK Stack", "日志收集和分析")
+}
+
+Deployment_Node(external, "外部服务", "第三方服务集成") {
+    Container(fcmService, "FCM服务", "Firebase", "Android推送通知")
+    Container(apnsService, "APNs服务", "Apple", "iOS推送通知")
+    Container(emailService, "邮件服务", "SendGrid", "邮件发送")
+    Container(stunTurnService, "STUN/TURN服务", "coturn", "NAT穿透")
+}
+
+Deployment_Node(cicd, "CI/CD环境", "持续集成和部署") {
+    Container(gitRepo, "Git仓库", "GitHub/GitLab", "代码版本控制")
+    Container(ciPipeline, "CI流水线", "GitHub Actions", "自动化构建测试")
+    Container(registry, "镜像仓库", "Docker Registry", "容器镜像存储")
+    Container(deployment, "部署工具", "ArgoCD/Helm", "自动化部署")
+}
+
+' 用户访问关系
+Rel(userDevice, cdn, "获取静态资源", "HTTPS")
+Rel(userDevice, loadBalancer, "应用访问", "HTTPS")
+
+' CDN关系
+Rel(cdn, objectStorage, "源站拉取", "HTTPS")
+
+' 负载均衡关系
+Rel(loadBalancer, webTier, "前端请求", "HTTP")
+Rel(loadBalancer, apiTier, "API请求", "HTTP")
+
+' 应用层关系
+Rel(webTier, apiTier, "API调用", "HTTP")
+Rel(apiTier, cacheTier, "缓存操作", "Redis协议")
+Rel(apiTier, database, "数据库操作", "PostgreSQL")
+Rel(apiTier, fileStorage, "文件操作", "S3 API")
+Rel(apiTier, searchTier, "搜索操作", "HTTP")
+
+' 数据库关系
+Rel(primaryDB, replicaDB, "主从复制", "PostgreSQL复制")
+Rel(primaryDB, backupDB, "定期备份", "pg_dump")
+
+' 文件存储关系
+Rel(objectStorage, backupStorage2, "异地备份", "S3复制")
+
+' 监控关系
+Rel(k8sCluster, monitoring, "指标上报", "HTTP")
+Rel(monitoring, external, "告警通知", "HTTP/SMTP")
+
+' 外部服务关系
+Rel(apiTier, external, "推送通知", "HTTP API")
+Rel(websocketPod, stunTurnService, "WebRTC信令", "STUN/TURN")
+
+' CI/CD关系
+Rel(cicd, k8sCluster, "自动部署", "kubectl")
+Rel(cicd, registry, "镜像推送", "Docker Push")
+
+' 环境说明
+note top of userDevice : "用户接入层\n多设备支持\n跨平台兼容"
+note top of cdn : "内容分发层\n全球加速\n静态资源缓存"
+note top of loadBalancer : "接入层\nSSL终端\n负载分发"
+note top of k8sCluster : "应用服务层\n容器化部署\n自动扩缩容"
+note top of database : "数据持久层\n主从架构\n定期备份"
+note top of fileStorage : "文件存储层\n对象存储\n异地容灾"
+note top of monitoring : "监控运维层\n实时监控\n告警通知"
+note top of external : "外部服务层\n第三方集成\n功能扩展"
+note top of cicd : "开发运维层\n持续集成\n自动化部署"
+
+@enduml 
