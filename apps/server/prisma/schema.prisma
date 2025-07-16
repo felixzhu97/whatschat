@@ -1,0 +1,392 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  avatar    String?
+  status    String?
+  isOnline  Boolean  @default(false)
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  sentMessages     Message[]     @relation("MessageSender")
+  receivedMessages Message[]     @relation("MessageReceiver")
+  chats            ChatParticipant[]
+  groups           GroupParticipant[]
+  createdGroups    Group[]       @relation("GroupCreator")
+  calls            CallParticipant[]
+  initiatedCalls   Call[]        @relation("CallInitiator")
+  statuses         Status[]
+  statusViews      StatusView[]
+  notifications    Notification[]
+  settings         UserSettings?
+  contacts         Contact[]     @relation("ContactOwner")
+  blockedUsers     BlockedUser[] @relation("BlockedByUser")
+  blockedByUsers   BlockedUser[] @relation("BlockedUser")
+
+  @@map("users")
+}
+
+// 聊天模型
+model Chat {
+  id        String   @id @default(cuid())
+  type      ChatType @default(PRIVATE)
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  participants ChatParticipant[]
+  messages     Message[]
+  calls        Call[]
+
+  @@map("chats")
+}
+
+// 聊天参与者模型
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  chatId    String
+  userId    String
+  role      ParticipantRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  addedBy   String?
+  isArchived Boolean @default(false)
+  isMuted   Boolean @default(false)
+  muteUntil DateTime?
+
+  // 关系
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@map("chat_participants")
+}
+
+// 消息模型
+model Message {
+  id                String        @id @default(cuid())
+  chatId            String
+  senderId          String
+  type              MessageType   @default(TEXT)
+  content           String
+  mediaUrl          String?
+  thumbnailUrl      String?
+  duration          Int?
+  size              Int?
+  latitude          Float?
+  longitude         Float?
+  contactName       String?
+  contactPhone      String?
+  contactEmail      String?
+  contactAvatar     String?
+  isEdited          Boolean       @default(false)
+  isDeleted         Boolean       @default(false)
+  isForwarded       Boolean       @default(false)
+  originalMessageId String?
+  replyToMessageId  String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // 关系
+  chat              Chat              @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender            User              @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyToMessage    Message?          @relation("MessageReply", fields: [replyToMessageId], references: [id])
+  repliedByMessages Message[]         @relation("MessageReply")
+  reactions         MessageReaction[]
+  readBy            MessageRead[]
+
+  @@map("messages")
+}
+
+// 消息反应模型
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  // 关系
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+// 消息已读模型
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  // 关系
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_reads")
+}
+
+// 群组模型
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatar      String?
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关系
+  creator     User               @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  participants GroupParticipant[]
+
+  @@map("groups")
+}
+
+// 群组参与者模型
+model GroupParticipant {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      ParticipantRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  addedBy   String?
+
+  // 关系
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_participants")
+}
+
+// 通话模型
+model Call {
+  id           String     @id @default(cuid())
+  type         CallType   @default(AUDIO)
+  status       CallStatus @default(INCOMING)
+  initiatorId  String
+  chatId       String?
+  startTime    DateTime   @default(now())
+  endTime      DateTime?
+  duration     Int?
+  createdAt    DateTime   @default(now())
+
+  // 关系
+  initiator    User             @relation("CallInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  chat         Chat?            @relation(fields: [chatId], references: [id], onDelete: SetNull)
+  participants CallParticipant[]
+
+  @@map("calls")
+}
+
+// 通话参与者模型
+model CallParticipant {
+  id        String         @id @default(cuid())
+  callId    String
+  userId    String
+  status    CallParticipantStatus @default(CALLING)
+  joinedAt  DateTime?
+  leftAt    DateTime?
+
+  // 关系
+  call Call @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, userId])
+  @@map("call_participants")
+}
+
+// 状态模型
+model Status {
+  id          String   @id @default(cuid())
+  userId      String
+  type        StatusType @default(TEXT)
+  content     String
+  mediaUrl    String?
+  thumbnailUrl String?
+  duration    Int?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  // 关系
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views  StatusView[]
+
+  @@map("statuses")
+}
+
+// 状态查看模型
+model StatusView {
+  id       String   @id @default(cuid())
+  statusId String
+  userId   String
+  viewedAt DateTime @default(now())
+
+  // 关系
+  status Status @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([statusId, userId])
+  @@map("status_views")
+}
+
+// 联系人模型
+model Contact {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  phone     String?
+  email     String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  owner User @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, phone])
+  @@map("contacts")
+}
+
+// 黑名单模型
+model BlockedUser {
+  id          String   @id @default(cuid())
+  blockedById String
+  blockedId   String
+  createdAt   DateTime @default(now())
+
+  // 关系
+  blockedBy User @relation("BlockedByUser", fields: [blockedById], references: [id], onDelete: Cascade)
+  blocked   User @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockedById, blockedId])
+  @@map("blocked_users")
+}
+
+// 通知模型
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// 用户设置模型
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  theme     String   @default("light")
+  language  String   @default("zh-CN")
+  notifications Json @default("{\"messages\": true, \"calls\": true, \"groups\": true, \"status\": true}")
+  privacy   Json     @default("{\"lastSeen\": \"everyone\", \"profilePhoto\": \"everyone\", \"status\": \"everyone\", \"readReceipts\": true}")
+  chat      Json     @default("{\"enterToSend\": true, \"mediaAutoDownload\": true, \"fontSize\": \"medium\"}")
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// 文件上传模型
+model FileUpload {
+  id           String   @id @default(cuid())
+  originalName String
+  filename     String
+  mimetype     String
+  size         Int
+  url          String
+  thumbnailUrl String?
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+
+  // 关系
+  user User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("file_uploads")
+}
+
+// 枚举类型
+enum ChatType {
+  PRIVATE
+  GROUP
+}
+
+enum ParticipantRole {
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  LOCATION
+  CONTACT
+}
+
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  INCOMING
+  OUTGOING
+  ONGOING
+  ENDED
+  MISSED
+  REJECTED
+}
+
+enum CallParticipantStatus {
+  CALLING
+  CONNECTED
+  DISCONNECTED
+  BUSY
+  REJECTED
+}
+
+enum StatusType {
+  TEXT
+  IMAGE
+  VIDEO
+}
+
+enum NotificationType {
+  MESSAGE
+  CALL
+  GROUP
+  STATUS
+} 
