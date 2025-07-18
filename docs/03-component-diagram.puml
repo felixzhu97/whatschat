@@ -5,94 +5,131 @@ title WhatsChat Web应用组件图
 
 Person(user, "用户", "使用Web应用进行聊天")
 
-Container_Boundary(webapp, "Web应用") {
+Container_Boundary(webapp, "Web应用 (Next.js 15)") {
     
-    Boundary(pages, "页面层") {
-        Component(loginPage, "登录页面", "React Component", "用户登录界面")
-        Component(registerPage, "注册页面", "React Component", "用户注册界面")
-        Component(homePage, "主页", "React Component", "应用主入口")
+    Boundary(pages, "页面层 (App Router)") {
+        Component(rootLayout, "根布局", "Next.js Layout", "应用根布局组件")
+        Component(rootPage, "根页面", "Next.js Page", "应用主页面")
+        Component(loginPage, "登录页面", "Next.js Page", "用户登录页面")
+        Component(registerPage, "注册页面", "Next.js Page", "用户注册页面")
     }
     
     Boundary(components, "组件层") {
-        Component(authWrapper, "认证包装器", "React Component", "认证路由守卫")
-        Component(whatsappMain, "主聊天界面", "React Component", "WhatsApp风格的主界面")
-        Component(sidebar, "侧边栏", "React Component", "聊天列表和导航")
-        Component(chatArea, "聊天区域", "React Component", "消息显示和输入区域")
+        Component(authWrapper, "认证包装器", "React Component", "认证路由守卫和状态管理")
+        Component(whatsappMain, "主聊天界面", "React Component", "WhatsApp风格的主界面布局")
+        Component(sidebar, "侧边栏", "React Component", "聊天列表、联系人、设置导航")
+        Component(chatArea, "聊天区域", "React Component", "消息显示和交互区域")
+        Component(messageArea, "消息区域", "React Component", "消息列表显示区域")
+        Component(messageBubble, "消息气泡", "React Component", "单条消息显示组件")
+        Component(messageInput, "消息输入", "React Component", "消息输入和发送组件")
         Component(callInterface, "通话界面", "React Component", "音视频通话界面")
         Component(incomingCall, "来电界面", "React Component", "接听来电界面")
-        Component(messageBubble, "消息气泡", "React Component", "单条消息显示")
-        Component(messageInput, "消息输入", "React Component", "消息输入和发送")
-        Component(emojiPicker, "表情选择器", "React Component", "表情符号选择")
-        Component(fileUpload, "文件上传", "React Component", "文件上传组件")
-        Component(voiceRecorder, "语音录制", "React Component", "语音消息录制")
+        Component(emojiPicker, "表情选择器", "React Component", "表情符号选择组件")
+        Component(fileUpload, "文件上传", "React Component", "文件上传处理组件")
+        Component(voiceRecorder, "语音录制", "React Component", "语音消息录制组件")
+        Component(profilePage, "个人资料页", "React Component", "用户个人资料管理")
+        Component(settingsPage, "设置页面", "React Component", "应用设置界面")
     }
     
     Boundary(hooks, "Hook层") {
-        Component(useAuth, "认证Hook", "React Hook", "用户认证状态管理")
+        Component(useAuth, "认证Hook", "React Hook", "用户认证状态和操作管理")
         Component(useChat, "聊天Hook", "React Hook", "聊天状态和消息管理")
+        Component(useRealChat, "真实聊天Hook", "React Hook", "真实聊天功能实现")
         Component(useCall, "通话Hook", "React Hook", "音视频通话状态管理")
+        Component(useRealCall, "真实通话Hook", "React Hook", "真实通话功能实现")
         Component(useLongPress, "长按Hook", "React Hook", "长按手势处理")
-        Component(useVoiceRecorder, "语音录制Hook", "React Hook", "语音录制功能")
+        Component(useVoiceRecorder, "语音录制Hook", "React Hook", "语音录制功能管理")
+        Component(useMobile, "移动端Hook", "React Hook", "移动端适配检测")
     }
     
-    Boundary(services, "服务层") {
-        Component(webSocketService, "WebSocket服务", "TypeScript Service", "实时通信管理")
-        Component(webRTCService, "WebRTC服务", "TypeScript Service", "音视频通话管理")
-        Component(storageService, "存储服务", "TypeScript Service", "本地数据存储")
-        Component(searchService, "搜索服务", "TypeScript Service", "消息搜索功能")
-        Component(hapticService, "触觉反馈服务", "TypeScript Service", "触觉反馈控制")
+    Boundary(services, "服务层 (lib/)") {
+        Component(websocketService, "WebSocket服务", "TypeScript Service", "实时通信连接管理")
+        Component(webrtcService, "WebRTC服务", "TypeScript Service", "P2P音视频通话管理")
+        Component(apiService, "API服务", "TypeScript Service", "HTTP API调用封装")
+        Component(storageService, "存储服务", "TypeScript Service", "本地存储管理")
+        Component(searchUtils, "搜索工具", "TypeScript Utilities", "消息搜索功能")
+        Component(hapticFeedback, "触觉反馈", "TypeScript Service", "触觉反馈控制")
+        Component(utils, "工具函数", "TypeScript Utilities", "通用工具函数库")
     }
     
-    Boundary(stores, "状态管理") {
-        Component(messagesStore, "消息存储", "Zustand Store", "消息状态管理")
+    Boundary(stores, "状态管理 (Zustand)") {
+        Component(messagesStore, "消息存储", "Zustand Store", "消息状态和历史管理")
         Component(contactsStore, "联系人存储", "Zustand Store", "联系人状态管理")
-        Component(callsStore, "通话存储", "Zustand Store", "通话状态管理")
-        Component(settingsStore, "设置存储", "Zustand Store", "应用设置管理")
+        Component(callsStore, "通话存储", "Zustand Store", "通话状态和历史管理")
+        Component(settingsStore, "设置存储", "Zustand Store", "应用设置状态管理")
+    }
+    
+    Boundary(ui, "UI组件库") {
+        Component(radixComponents, "Radix UI组件", "React Components", "可访问的基础UI组件")
+        Component(customComponents, "自定义UI组件", "React Components", "项目特定UI组件")
+    }
+    
+    Boundary(data, "数据层") {
+        Component(mockData, "模拟数据", "TypeScript Data", "开发和测试用模拟数据")
+        Component(typeDefinitions, "类型定义", "TypeScript Types", "应用类型定义")
     }
 }
 
-Container_Ext(server, "服务器", "处理业务逻辑")
-System_Ext(webrtc, "WebRTC", "音视频通话")
-System_Ext(localStorage, "本地存储", "数据持久化")
+Container_Ext(server, "服务器", "Node.js后端服务")
+System_Ext(webrtcSignaling, "WebRTC信令", "音视频通话信令")
+System_Ext(browserStorage, "浏览器存储", "LocalStorage/SessionStorage")
 
-' 页面关系
-Rel(user, loginPage, "登录")
-Rel(user, registerPage, "注册")
+' 页面层关系
+Rel(user, rootPage, "访问应用")
+Rel(rootLayout, rootPage, "包含根页面")
 Rel(authWrapper, loginPage, "未认证时显示")
-Rel(authWrapper, homePage, "认证后显示")
+Rel(authWrapper, registerPage, "注册跳转")
+Rel(authWrapper, whatsappMain, "认证后显示主界面")
 
-' 组件关系
-Rel(homePage, whatsappMain, "渲染主界面")
+' 组件层关系
 Rel(whatsappMain, sidebar, "包含侧边栏")
 Rel(whatsappMain, chatArea, "包含聊天区域")
-Rel(chatArea, messageBubble, "渲染消息")
-Rel(chatArea, messageInput, "消息输入")
+Rel(chatArea, messageArea, "包含消息区域")
+Rel(messageArea, messageBubble, "渲染消息气泡")
+Rel(chatArea, messageInput, "包含输入组件")
 Rel(messageInput, emojiPicker, "表情选择")
 Rel(messageInput, fileUpload, "文件上传")
 Rel(messageInput, voiceRecorder, "语音录制")
+Rel(sidebar, profilePage, "个人资料")
+Rel(sidebar, settingsPage, "应用设置")
 
-' Hook关系
-Rel(authWrapper, useAuth, "使用认证状态")
-Rel(chatArea, useChat, "使用聊天状态")
-Rel(callInterface, useCall, "使用通话状态")
-Rel(voiceRecorder, useVoiceRecorder, "使用录制功能")
+' Hook层关系
+Rel(authWrapper, useAuth, "认证状态管理")
+Rel(chatArea, useChat, "聊天状态管理")
+Rel(chatArea, useRealChat, "真实聊天功能")
+Rel(callInterface, useCall, "通话状态管理")
+Rel(callInterface, useRealCall, "真实通话功能")
+Rel(voiceRecorder, useVoiceRecorder, "语音录制管理")
+Rel(whatsappMain, useMobile, "移动端适配")
 
-' 服务关系
-Rel(useChat, webSocketService, "WebSocket通信")
-Rel(useCall, webRTCService, "WebRTC通信")
+' 服务层关系
+Rel(useRealChat, websocketService, "WebSocket通信")
+Rel(useRealCall, webrtcService, "WebRTC通信")
+Rel(useAuth, apiService, "API调用")
 Rel(useAuth, storageService, "存储用户信息")
-Rel(chatArea, searchService, "搜索消息")
-Rel(whatsappMain, hapticService, "触觉反馈")
+Rel(messageArea, searchUtils, "消息搜索")
+Rel(whatsappMain, hapticFeedback, "触觉反馈")
+Rel(components, utils, "工具函数")
 
 ' 状态管理关系
 Rel(useChat, messagesStore, "消息状态")
 Rel(sidebar, contactsStore, "联系人状态")
 Rel(useCall, callsStore, "通话状态")
-Rel(whatsappMain, settingsStore, "应用设置")
+Rel(settingsPage, settingsStore, "设置状态")
 
-' 外部关系
-Rel(webSocketService, server, "WebSocket连接")
-Rel(webRTCService, webrtc, "建立P2P连接")
-Rel(storageService, localStorage, "数据持久化")
+' UI组件关系
+Rel(components, radixComponents, "使用基础组件")
+Rel(components, customComponents, "使用自定义组件")
+
+' 数据层关系
+Rel(stores, mockData, "使用模拟数据")
+Rel(hooks, typeDefinitions, "类型约束")
+Rel(services, typeDefinitions, "类型约束")
+
+' 外部服务关系
+Rel(websocketService, server, "WebSocket连接")
+Rel(apiService, server, "HTTP API调用")
+Rel(webrtcService, webrtcSignaling, "建立P2P连接")
+Rel(storageService, browserStorage, "本地数据持久化")
 
 @enduml 

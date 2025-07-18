@@ -3,38 +3,48 @@
 
 title WhatsChat 核心模块代码图
 
-Container_Boundary(webApp, "Web应用代码结构") {
+Container_Boundary(webApp, "Web应用代码结构 (Next.js 15)") {
     
     Boundary(pages, "页面层 (app/)") {
-        Component(rootPage, "page.tsx", "Next.js Page", "应用根页面")
-        Component(loginPage, "login/page.tsx", "Next.js Page", "登录页面")
-        Component(registerPage, "register/page.tsx", "Next.js Page", "注册页面")
-        Component(layout, "layout.tsx", "Next.js Layout", "应用布局")
+        Component(rootLayout, "layout.tsx", "Next.js Layout", "应用根布局，包含全局样式和元数据")
+        Component(rootPage, "page.tsx", "Next.js Page", "应用根页面，主要入口点")
+        Component(loginPage, "login/page.tsx", "Next.js Page", "用户登录页面")
+        Component(registerPage, "register/page.tsx", "Next.js Page", "用户注册页面")
+        Component(globalCSS, "globals.css", "CSS Styles", "全局样式定义")
     }
     
     Boundary(components, "组件层 (components/)") {
-        Component(authWrapper, "auth-wrapper.tsx", "React Component", "认证路由守卫")
-        Component(whatsappMain, "whatsapp-main.tsx", "React Component", "主聊天界面")
-        Component(chatArea, "chat-area.tsx", "React Component", "聊天区域")
-        Component(sidebar, "sidebar.tsx", "React Component", "侧边栏")
+        Component(authWrapper, "auth-wrapper.tsx", "React Component", "认证路由守卫和状态管理")
+        Component(whatsappMain, "whatsapp-main.tsx", "React Component", "WhatsApp风格主界面")
+        Component(chatArea, "chat-area.tsx", "React Component", "聊天区域容器")
+        Component(chatHeader, "chat-header.tsx", "React Component", "聊天头部信息")
+        Component(sidebar, "sidebar.tsx", "React Component", "侧边栏导航")
         Component(messageArea, "message-area.tsx", "React Component", "消息显示区域")
-        Component(messageBubble, "message-bubble.tsx", "React Component", "消息气泡")
-        Component(messageInput, "message-input.tsx", "React Component", "消息输入")
+        Component(messageBubble, "message-bubble.tsx", "React Component", "消息气泡组件")
+        Component(messageInput, "message-input.tsx", "React Component", "消息输入组件")
         Component(callInterface, "call-interface.tsx", "React Component", "通话界面")
+        Component(realCallInterface, "real-call-interface.tsx", "React Component", "真实通话界面")
         Component(incomingCall, "incoming-call.tsx", "React Component", "来电界面")
+        Component(realIncomingCall, "real-incoming-call.tsx", "React Component", "真实来电界面")
         Component(emojiPicker, "emoji-picker.tsx", "React Component", "表情选择器")
-        Component(voiceRecorder, "voice-recorder.tsx", "React Component", "语音录制")
-        Component(fileUpload, "file-upload.tsx", "React Component", "文件上传")
+        Component(voiceRecorder, "voice-recorder.tsx", "React Component", "语音录制组件")
+        Component(fileUpload, "file-upload.tsx", "React Component", "文件上传组件")
+        Component(profilePage, "profile-page.tsx", "React Component", "个人资料页面")
+        Component(settingsPage, "settings-page.tsx", "React Component", "设置页面")
+        Component(callsPage, "calls-page.tsx", "React Component", "通话记录页面")
+        Component(statusPage, "status-page.tsx", "React Component", "状态页面")
     }
     
     Boundary(hooks, "Hooks层 (hooks/)") {
         Component(useAuth, "use-auth.ts", "React Hook", "用户认证状态管理")
         Component(useChat, "use-chat.ts", "React Hook", "聊天状态管理")
+        Component(useRealChat, "use-real-chat.ts", "React Hook", "真实聊天功能实现")
         Component(useCall, "use-call.ts", "React Hook", "通话状态管理")
+        Component(useRealCall, "use-real-call.ts", "React Hook", "真实通话功能实现")
         Component(useLongPress, "use-long-press.ts", "React Hook", "长按手势处理")
-        Component(useVoiceRecorder, "use-voice-recorder.ts", "React Hook", "语音录制")
-        Component(useRealCall, "use-real-call.ts", "React Hook", "真实通话功能")
-        Component(useRealChat, "use-real-chat.ts", "React Hook", "真实聊天功能")
+        Component(useVoiceRecorder, "use-voice-recorder.ts", "React Hook", "语音录制功能")
+        Component(useMobile, "use-mobile.tsx", "React Hook", "移动端检测")
+        Component(useToast, "use-toast.ts", "React Hook", "消息提示管理")
     }
     
     Boundary(stores, "状态管理 (stores/)") {
@@ -48,105 +58,178 @@ Container_Boundary(webApp, "Web应用代码结构") {
         Component(utils, "utils.ts", "TypeScript Utilities", "通用工具函数")
         Component(websocket, "websocket.ts", "TypeScript Service", "WebSocket连接管理")
         Component(webrtc, "webrtc.ts", "TypeScript Service", "WebRTC连接管理")
-        Component(hapticFeedback, "haptic-feedback.ts", "TypeScript Service", "触觉反馈")
+        Component(api, "api.ts", "TypeScript Service", "HTTP API调用封装")
+        Component(hapticFeedback, "haptic-feedback.ts", "TypeScript Service", "触觉反馈控制")
         Component(searchUtils, "search-utils.ts", "TypeScript Utilities", "搜索工具函数")
         Component(storage, "storage.ts", "TypeScript Service", "本地存储管理")
     }
     
     Boundary(types, "类型定义 (types/)") {
-        Component(indexTypes, "index.ts", "TypeScript Interface", "主要类型定义")
+        Component(indexTypes, "index.ts", "TypeScript Interface", "主要类型定义和接口")
     }
     
     Boundary(data, "数据层 (data/)") {
-        Component(mockData, "index.ts", "TypeScript Data", "模拟数据")
+        Component(mockData, "index.ts", "TypeScript Data", "模拟数据入口")
         Component(mockMessages, "mock-messages.ts", "TypeScript Data", "模拟消息数据")
         Component(mockContacts, "mock-contacts.ts", "TypeScript Data", "模拟联系人数据")
         Component(mockCalls, "mock-calls.ts", "TypeScript Data", "模拟通话数据")
         Component(mockStatus, "mock-status.ts", "TypeScript Data", "模拟状态数据")
     }
+    
+    Boundary(ui, "UI组件 (components/ui/)") {
+        Component(button, "button.tsx", "Radix UI Component", "按钮组件")
+        Component(dialog, "dialog.tsx", "Radix UI Component", "对话框组件")
+        Component(input, "input.tsx", "Radix UI Component", "输入框组件")
+        Component(avatar, "avatar.tsx", "Radix UI Component", "头像组件")
+        Component(toast, "toast.tsx", "Radix UI Component", "消息提示组件")
+    }
 }
 
-Container_Boundary(mobileApp, "移动应用代码结构") {
+Container_Boundary(mobileApp, "移动应用代码结构 (Flutter 3.x)") {
     
-    Boundary(screens, "屏幕层 (screens/)") {
-        Component(homeScreen, "home_screen.dart", "Flutter Widget", "主屏幕")
-        Component(chatListScreen, "chat_list_screen.dart", "Flutter Widget", "聊天列表")
-        Component(chatDetailScreen, "chat_detail_screen.dart", "Flutter Widget", "聊天详情")
-        Component(callsScreen, "calls_screen.dart", "Flutter Widget", "通话记录")
-        Component(statusScreen, "status_screen.dart", "Flutter Widget", "状态页面")
-        Component(settingsScreen, "settings_screen.dart", "Flutter Widget", "设置页面")
-        Component(communitiesScreen, "communities_screen.dart", "Flutter Widget", "社区页面")
+    Boundary(screens, "屏幕层 (lib/screens/)") {
+        Component(homeScreen, "home_screen.dart", "Flutter Widget", "主屏幕，底部导航")
+        Component(chatListScreen, "chat_list_screen.dart", "Flutter Widget", "聊天列表屏幕")
+        Component(chatDetailScreen, "chat_detail_screen.dart", "Flutter Widget", "聊天详情屏幕")
+        Component(callsScreen, "calls_screen.dart", "Flutter Widget", "通话记录屏幕")
+        Component(statusScreen, "status_screen.dart", "Flutter Widget", "状态屏幕")
+        Component(settingsScreen, "settings_screen.dart", "Flutter Widget", "设置屏幕")
+        Component(communitiesScreen, "communities_screen.dart", "Flutter Widget", "社区屏幕")
     }
     
-    Boundary(widgets, "组件层 (widgets/)") {
-        Component(messageBubbleWidget, "message_bubble.dart", "Flutter Widget", "消息气泡")
-        Component(chatInputField, "chat_input_field.dart", "Flutter Widget", "聊天输入框")
+    Boundary(widgets, "组件层 (lib/widgets/)") {
+        Component(messageBubbleWidget, "message_bubble.dart", "Flutter Widget", "消息气泡组件")
+        Component(chatInputField, "chat_input_field.dart", "Flutter Widget", "聊天输入框组件")
     }
     
-    Boundary(models, "模型层 (models/)") {
-        Component(userModel, "user.dart", "Dart Class", "用户模型")
-        Component(chatModel, "chat.dart", "Dart Class", "聊天模型")
-        Component(messageModel, "message.dart", "Dart Class", "消息模型")
-        Component(callModel, "call.dart", "Dart Class", "通话模型")
-        Component(statusModel, "status.dart", "Dart Class", "状态模型")
-        Component(modelsIndex, "models.dart", "Dart Export", "模型导出文件")
+    Boundary(models, "模型层 (lib/models/)") {
+        Component(userModel, "user.dart", "Dart Class", "用户数据模型")
+        Component(chatModel, "chat.dart", "Dart Class", "聊天数据模型")
+        Component(messageModel, "message.dart", "Dart Class", "消息数据模型")
+        Component(callModel, "call.dart", "Dart Class", "通话数据模型")
+        Component(statusModel, "status.dart", "Dart Class", "状态数据模型")
+        Component(modelsIndex, "models.dart", "Dart Export", "模型统一导出")
     }
     
-    Boundary(services, "服务层 (services/)") {
-        Component(mobileServices, "服务目录", "Dart Services", "移动端服务实现")
+    Boundary(services, "服务层 (lib/services/)") {
+        Component(mobileServices, "服务目录", "Dart Services", "移动端服务实现（待实现）")
     }
     
-    Boundary(themes, "主题层 (themes/)") {
+    Boundary(themes, "主题层 (lib/themes/)") {
         Component(appTheme, "app_theme.dart", "Flutter Theme", "应用主题定义")
+    }
+    
+    Boundary(main, "应用入口") {
+        Component(mainDart, "main.dart", "Flutter App", "应用主入口文件")
+    }
+}
+
+Container_Boundary(serverApp, "服务器代码结构 (Node.js)") {
+    
+    Boundary(serverCore, "核心文件 (src/)") {
+        Component(serverIndex, "index.ts", "Node.js Entry", "服务器入口文件")
+        Component(serverApp, "app.ts", "Express App", "Express应用配置")
+    }
+    
+    Boundary(config, "配置层 (src/config/)") {
+        Component(configIndex, "index.ts", "Configuration", "应用配置管理")
+    }
+    
+    Boundary(controllers, "控制器层 (src/controllers/)") {
+        Component(authController, "auth.ts", "Express Controller", "认证控制器")
+    }
+    
+    Boundary(middleware, "中间件层 (src/middleware/)") {
+        Component(authMiddleware, "auth.ts", "Express Middleware", "认证中间件")
+        Component(errorMiddleware, "error.ts", "Express Middleware", "错误处理中间件")
+        Component(rateLimitMiddleware, "rate-limit.ts", "Express Middleware", "速率限制中间件")
+        Component(validationMiddleware, "validation.ts", "Express Middleware", "数据验证中间件")
+    }
+    
+    Boundary(services, "服务层 (src/services/)") {
+        Component(socketManager, "socket-manager.ts", "Socket.io Service", "Socket连接管理")
+        Component(socketService, "socket.ts", "Socket.io Service", "Socket事件处理")
+    }
+    
+    Boundary(database, "数据库层 (src/database/)") {
+        Component(dbClient, "client.ts", "Prisma Client", "数据库客户端")
+        Component(redisClient, "redis.ts", "Redis Client", "Redis缓存客户端")
+        Component(dbSeed, "seed.ts", "Database Seed", "数据库种子数据")
+    }
+    
+    Boundary(prisma, "数据库模式 (prisma/)") {
+        Component(prismaSchema, "schema.prisma", "Prisma Schema", "数据库模式定义")
     }
 }
 
 ' Web应用内部关系
-Rel(layout, rootPage, "包含根页面")
+Rel(rootLayout, rootPage, "包含根页面")
+Rel(rootLayout, globalCSS, "引入全局样式")
 Rel(authWrapper, loginPage, "未认证时显示")
+Rel(authWrapper, registerPage, "注册跳转")
 Rel(authWrapper, whatsappMain, "认证后显示")
 Rel(whatsappMain, sidebar, "包含侧边栏")
 Rel(whatsappMain, chatArea, "包含聊天区域")
+Rel(chatArea, chatHeader, "包含聊天头部")
 Rel(chatArea, messageArea, "包含消息区域")
-Rel(messageArea, messageBubble, "渲染消息")
-Rel(chatArea, messageInput, "包含输入框")
-Rel(messageInput, emojiPicker, "选择表情")
-Rel(messageInput, voiceRecorder, "录制语音")
-Rel(messageInput, fileUpload, "上传文件")
+Rel(messageArea, messageBubble, "渲染消息气泡")
+Rel(chatArea, messageInput, "包含输入组件")
+Rel(messageInput, emojiPicker, "表情选择")
+Rel(messageInput, voiceRecorder, "语音录制")
+Rel(messageInput, fileUpload, "文件上传")
 
 ' Hooks关系
-Rel(authWrapper, useAuth, "使用认证状态")
-Rel(chatArea, useChat, "使用聊天状态")
-Rel(callInterface, useCall, "使用通话状态")
-Rel(voiceRecorder, useVoiceRecorder, "使用录制功能")
+Rel(authWrapper, useAuth, "认证状态管理")
+Rel(chatArea, useChat, "聊天状态管理")
+Rel(chatArea, useRealChat, "真实聊天功能")
+Rel(callInterface, useCall, "通话状态管理")
+Rel(realCallInterface, useRealCall, "真实通话功能")
+Rel(voiceRecorder, useVoiceRecorder, "语音录制管理")
+Rel(whatsappMain, useMobile, "移动端检测")
+Rel(components, useToast, "消息提示")
 
 ' 状态管理关系
 Rel(useChat, messagesStore, "消息状态")
 Rel(sidebar, contactsStore, "联系人状态")
 Rel(useCall, callsStore, "通话状态")
-Rel(whatsappMain, settingsStore, "设置状态")
+Rel(settingsPage, settingsStore, "设置状态")
 
 ' 服务关系
-Rel(useChat, websocket, "WebSocket通信")
-Rel(useCall, webrtc, "WebRTC通信")
+Rel(useRealChat, websocket, "WebSocket通信")
+Rel(useRealCall, webrtc, "WebRTC通信")
+Rel(useAuth, api, "API调用")
 Rel(useAuth, storage, "存储管理")
+Rel(messageArea, searchUtils, "搜索功能")
 Rel(whatsappMain, hapticFeedback, "触觉反馈")
-Rel(chatArea, searchUtils, "搜索功能")
+
+' UI组件关系
+Rel(components, button, "使用按钮组件")
+Rel(components, dialog, "使用对话框组件")
+Rel(components, input, "使用输入框组件")
+Rel(components, avatar, "使用头像组件")
+Rel(useToast, toast, "使用消息提示组件")
 
 ' 数据关系
-Rel(messagesStore, mockMessages, "使用模拟数据")
-Rel(contactsStore, mockContacts, "使用模拟数据")
-Rel(callsStore, mockCalls, "使用模拟数据")
+Rel(messagesStore, mockMessages, "使用模拟消息数据")
+Rel(contactsStore, mockContacts, "使用模拟联系人数据")
+Rel(callsStore, mockCalls, "使用模拟通话数据")
+Rel(mockData, mockMessages, "导出消息数据")
+Rel(mockData, mockContacts, "导出联系人数据")
+Rel(mockData, mockCalls, "导出通话数据")
 
 ' 类型关系
-Rel(useAuth, indexTypes, "使用类型定义")
-Rel(useChat, indexTypes, "使用类型定义")
-Rel(useCall, indexTypes, "使用类型定义")
+Rel(hooks, indexTypes, "使用类型定义")
+Rel(stores, indexTypes, "使用类型定义")
+Rel(lib, indexTypes, "使用类型定义")
 
 ' 移动应用内部关系
+Rel(mainDart, homeScreen, "启动主屏幕")
 Rel(homeScreen, chatListScreen, "导航到聊天列表")
+Rel(homeScreen, callsScreen, "导航到通话记录")
+Rel(homeScreen, statusScreen, "导航到状态页面")
+Rel(homeScreen, settingsScreen, "导航到设置页面")
 Rel(chatListScreen, chatDetailScreen, "打开聊天详情")
-Rel(chatDetailScreen, messageBubbleWidget, "显示消息")
+Rel(chatDetailScreen, messageBubbleWidget, "显示消息气泡")
 Rel(chatDetailScreen, chatInputField, "消息输入")
 
 ' 移动应用模型关系
@@ -156,5 +239,20 @@ Rel(homeScreen, userModel, "使用用户模型")
 Rel(modelsIndex, userModel, "导出用户模型")
 Rel(modelsIndex, chatModel, "导出聊天模型")
 Rel(modelsIndex, messageModel, "导出消息模型")
+Rel(screens, appTheme, "使用应用主题")
+
+' 服务器应用关系
+Rel(serverIndex, serverApp, "创建Express应用")
+Rel(serverIndex, socketManager, "初始化Socket管理器")
+Rel(serverApp, authController, "使用认证控制器")
+Rel(serverApp, authMiddleware, "使用认证中间件")
+Rel(serverApp, errorMiddleware, "使用错误中间件")
+Rel(serverApp, rateLimitMiddleware, "使用速率限制")
+Rel(serverApp, validationMiddleware, "使用验证中间件")
+Rel(socketManager, socketService, "处理Socket事件")
+Rel(authController, dbClient, "数据库操作")
+Rel(socketService, redisClient, "缓存操作")
+Rel(dbClient, prismaSchema, "使用数据库模式")
+Rel(serverApp, configIndex, "使用配置")
 
 @enduml 

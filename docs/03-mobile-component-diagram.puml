@@ -5,96 +5,129 @@ title WhatsChat 移动应用组件图
 
 Person(user, "用户", "使用移动应用进行聊天")
 
-Container_Boundary(mobileApp, "移动应用 (Flutter)") {
+Container_Boundary(mobileApp, "移动应用 (Flutter 3.x)") {
     
-    Boundary(screens, "屏幕层") {
-        Component(homeScreen, "主屏幕", "Flutter Widget", "底部导航和主要功能入口")
-        Component(chatListScreen, "聊天列表屏幕", "Flutter Widget", "显示所有聊天会话")
-        Component(chatDetailScreen, "聊天详情屏幕", "Flutter Widget", "单个聊天会话界面")
-        Component(callsScreen, "通话记录屏幕", "Flutter Widget", "显示通话历史")
-        Component(statusScreen, "状态屏幕", "Flutter Widget", "用户状态和故事")
-        Component(settingsScreen, "设置屏幕", "Flutter Widget", "应用设置界面")
-        Component(communitiesScreen, "社区屏幕", "Flutter Widget", "社区功能")
+    Boundary(screens, "屏幕层 (screens/)") {
+        Component(homeScreen, "主屏幕", "Flutter Widget", "底部导航和主要功能入口，集成所有功能模块")
+        Component(chatListScreen, "聊天列表屏幕", "Flutter Widget", "显示所有聊天会话列表")
+        Component(chatDetailScreen, "聊天详情屏幕", "Flutter Widget", "单个聊天会话的详细界面")
+        Component(callsScreen, "通话记录屏幕", "Flutter Widget", "显示通话历史和记录")
+        Component(statusScreen, "状态屏幕", "Flutter Widget", "用户状态和动态故事")
+        Component(settingsScreen, "设置屏幕", "Flutter Widget", "应用设置和用户偏好")
+        Component(communitiesScreen, "社区屏幕", "Flutter Widget", "社区功能和群组管理")
     }
     
-    Boundary(widgets, "组件层") {
-        Component(messageBubble, "消息气泡", "Flutter Widget", "单条消息显示组件")
-        Component(chatInputField, "聊天输入框", "Flutter Widget", "消息输入和发送")
-        Component(voiceMessagePlayer, "语音播放器", "Flutter Widget", "语音消息播放")
-        Component(callInterface, "通话界面", "Flutter Widget", "音视频通话界面")
-        Component(incomingCall, "来电界面", "Flutter Widget", "接听来电界面")
-        Component(contactList, "联系人列表", "Flutter Widget", "联系人选择组件")
+    Boundary(widgets, "组件层 (widgets/)") {
+        Component(messageBubble, "消息气泡", "Flutter Widget", "单条消息显示组件，支持多种消息类型")
+        Component(chatInputField, "聊天输入框", "Flutter Widget", "消息输入、表情、文件上传组件")
+        Component(voiceMessagePlayer, "语音播放器", "Flutter Widget", "语音消息播放和控制")
+        Component(callInterface, "通话界面", "Flutter Widget", "音视频通话界面和控制")
+        Component(incomingCall, "来电界面", "Flutter Widget", "接听来电界面和操作")
+        Component(contactList, "联系人列表", "Flutter Widget", "联系人选择和管理组件")
+        Component(mediaViewer, "媒体查看器", "Flutter Widget", "图片、视频媒体查看")
+        Component(filePreview, "文件预览", "Flutter Widget", "文档文件预览组件")
     }
     
-    Boundary(services, "服务层") {
-        Component(webSocketService, "WebSocket服务", "Dart Service", "实时通信管理")
-        Component(webRTCService, "WebRTC服务", "Dart Service", "音视频通话管理")
-        Component(storageService, "存储服务", "Dart Service", "本地数据存储")
-        Component(audioService, "音频服务", "Dart Service", "音频录制和播放")
-        Component(fileService, "文件服务", "Dart Service", "文件上传下载")
-        Component(notificationService, "通知服务", "Dart Service", "推送通知处理")
+    Boundary(services, "服务层 (services/)") {
+        Component(webSocketService, "WebSocket服务", "Dart Service", "实时通信连接和消息处理")
+        Component(webRTCService, "WebRTC服务", "Dart Service", "P2P音视频通话管理")
+        Component(storageService, "存储服务", "Dart Service", "本地SQLite数据存储")
+        Component(audioService, "音频服务", "Dart Service", "音频录制、播放和处理")
+        Component(fileService, "文件服务", "Dart Service", "文件上传下载和管理")
+        Component(notificationService, "通知服务", "Dart Service", "推送通知处理和显示")
+        Component(cameraService, "相机服务", "Dart Service", "相机拍照和录像功能")
+        Component(locationService, "位置服务", "Dart Service", "地理位置获取和分享")
     }
     
-    Boundary(models, "数据模型层") {
-        Component(userModel, "用户模型", "Dart Class", "用户数据结构")
-        Component(chatModel, "聊天模型", "Dart Class", "聊天会话数据")
-        Component(messageModel, "消息模型", "Dart Class", "消息数据结构")
-        Component(callModel, "通话模型", "Dart Class", "通话记录数据")
-        Component(statusModel, "状态模型", "Dart Class", "用户状态数据")
+    Boundary(models, "数据模型层 (models/)") {
+        Component(userModel, "用户模型", "Dart Class", "用户信息和状态数据结构")
+        Component(chatModel, "聊天模型", "Dart Class", "聊天会话数据和元信息")
+        Component(messageModel, "消息模型", "Dart Class", "消息内容和类型数据结构")
+        Component(callModel, "通话模型", "Dart Class", "通话记录和状态数据")
+        Component(statusModel, "状态模型", "Dart Class", "用户状态和动态数据")
+        Component(modelsIndex, "模型导出", "Dart Export", "统一导出所有数据模型")
     }
     
-    Boundary(providers, "状态管理") {
-        Component(authProvider, "认证状态", "Provider", "用户认证状态管理")
-        Component(chatProvider, "聊天状态", "Provider", "聊天数据状态管理")
-        Component(callProvider, "通话状态", "Provider", "通话状态管理")
-        Component(settingsProvider, "设置状态", "Provider", "应用设置管理")
+    Boundary(providers, "状态管理 (Provider)") {
+        Component(authProvider, "认证状态", "Provider Pattern", "用户认证状态和登录管理")
+        Component(chatProvider, "聊天状态", "Provider Pattern", "聊天数据和消息状态管理")
+        Component(callProvider, "通话状态", "Provider Pattern", "通话状态和历史管理")
+        Component(settingsProvider, "设置状态", "Provider Pattern", "应用设置和用户偏好管理")
+        Component(themeProvider, "主题状态", "Provider Pattern", "应用主题和外观管理")
+    }
+    
+    Boundary(themes, "主题层 (themes/)") {
+        Component(appTheme, "应用主题", "Flutter Theme", "Material Design主题定义")
+        Component(darkTheme, "深色主题", "Flutter Theme", "深色模式主题配置")
+        Component(lightTheme, "浅色主题", "Flutter Theme", "浅色模式主题配置")
     }
 }
 
-Container_Ext(server, "服务器", "处理业务逻辑")
-System_Ext(webrtc, "WebRTC", "音视频通话")
-System_Ext(localStorage, "本地存储", "SQLite数据库")
-System_Ext(deviceAPIs, "设备API", "相机、麦克风、文件系统")
+Container_Ext(server, "服务器", "Node.js后端服务")
+System_Ext(webrtcSignaling, "WebRTC信令", "音视频通话信令服务")
+System_Ext(deviceStorage, "设备存储", "SQLite本地数据库")
+System_Ext(deviceAPIs, "设备API", "相机、麦克风、文件系统、位置服务")
+System_Ext(pushNotifications, "推送通知", "FCM/APNs推送服务")
 
-' 屏幕关系
+' 屏幕层关系
 Rel(user, homeScreen, "使用应用")
-Rel(homeScreen, chatListScreen, "查看聊天")
-Rel(homeScreen, callsScreen, "查看通话")
-Rel(homeScreen, statusScreen, "查看状态")
+Rel(homeScreen, chatListScreen, "查看聊天列表")
+Rel(homeScreen, callsScreen, "查看通话记录")
+Rel(homeScreen, statusScreen, "查看用户状态")
+Rel(homeScreen, communitiesScreen, "访问社区功能")
 Rel(homeScreen, settingsScreen, "应用设置")
-Rel(chatListScreen, chatDetailScreen, "打开聊天")
+Rel(chatListScreen, chatDetailScreen, "打开聊天详情")
 
-' 组件关系
-Rel(chatDetailScreen, messageBubble, "显示消息")
-Rel(chatDetailScreen, chatInputField, "输入消息")
-Rel(chatDetailScreen, voiceMessagePlayer, "播放语音")
+' 组件层关系
+Rel(chatDetailScreen, messageBubble, "显示消息气泡")
+Rel(chatDetailScreen, chatInputField, "消息输入")
+Rel(messageBubble, voiceMessagePlayer, "播放语音消息")
+Rel(messageBubble, mediaViewer, "查看媒体内容")
+Rel(messageBubble, filePreview, "预览文件")
 Rel(callsScreen, callInterface, "发起通话")
-Rel(callInterface, incomingCall, "来电显示")
+Rel(callInterface, incomingCall, "来电处理")
+Rel(chatInputField, contactList, "选择联系人")
 
-' 服务关系
-Rel(chatDetailScreen, webSocketService, "实时通信")
+' 服务层关系
+Rel(chatDetailScreen, webSocketService, "实时消息通信")
 Rel(callInterface, webRTCService, "音视频通话")
 Rel(chatInputField, audioService, "录制语音")
-Rel(chatInputField, fileService, "上传文件")
+Rel(chatInputField, fileService, "文件处理")
+Rel(chatInputField, cameraService, "拍照录像")
+Rel(messageBubble, locationService, "位置分享")
 Rel(homeScreen, notificationService, "推送通知")
+Rel(settingsScreen, storageService, "设置存储")
 
 ' 数据模型关系
-Rel(chatProvider, chatModel, "使用聊天模型")
-Rel(chatProvider, messageModel, "使用消息模型")
-Rel(authProvider, userModel, "使用用户模型")
-Rel(callProvider, callModel, "使用通话模型")
+Rel(chatProvider, chatModel, "聊天数据模型")
+Rel(chatProvider, messageModel, "消息数据模型")
+Rel(authProvider, userModel, "用户数据模型")
+Rel(callProvider, callModel, "通话数据模型")
+Rel(statusScreen, statusModel, "状态数据模型")
+Rel(modelsIndex, userModel, "导出用户模型")
+Rel(modelsIndex, chatModel, "导出聊天模型")
+Rel(modelsIndex, messageModel, "导出消息模型")
 
 ' 状态管理关系
-Rel(chatDetailScreen, chatProvider, "聊天状态")
-Rel(homeScreen, authProvider, "认证状态")
-Rel(callInterface, callProvider, "通话状态")
-Rel(settingsScreen, settingsProvider, "设置状态")
+Rel(chatDetailScreen, chatProvider, "聊天状态管理")
+Rel(homeScreen, authProvider, "认证状态管理")
+Rel(callInterface, callProvider, "通话状态管理")
+Rel(settingsScreen, settingsProvider, "设置状态管理")
+Rel(homeScreen, themeProvider, "主题状态管理")
 
-' 外部关系
-Rel(webSocketService, server, "WebSocket连接")
-Rel(webRTCService, webrtc, "建立P2P连接")
-Rel(storageService, localStorage, "数据持久化")
-Rel(audioService, deviceAPIs, "访问设备功能")
+' 主题层关系
+Rel(themeProvider, appTheme, "应用主题")
+Rel(appTheme, darkTheme, "深色主题")
+Rel(appTheme, lightTheme, "浅色主题")
+
+' 外部服务关系
+Rel(webSocketService, server, "WebSocket实时连接")
+Rel(webRTCService, webrtcSignaling, "建立P2P通话连接")
+Rel(storageService, deviceStorage, "本地数据持久化")
+Rel(audioService, deviceAPIs, "访问音频设备")
+Rel(cameraService, deviceAPIs, "访问相机设备")
 Rel(fileService, deviceAPIs, "访问文件系统")
+Rel(locationService, deviceAPIs, "访问位置服务")
+Rel(notificationService, pushNotifications, "接收推送通知")
 
 @enduml 

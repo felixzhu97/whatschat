@@ -7,22 +7,23 @@ Person(user, "用户", "使用WhatsChat进行即时通讯")
 Person(admin, "系统管理员", "管理系统配置")
 
 System_Boundary(whatsChat, "WhatsChat系统") {
-    Container(webApp, "Web应用", "Next.js 14, React 18, TypeScript", "提供现代化Web界面的即时通讯应用，支持响应式设计")
-    Container(mobileApp, "移动应用", "Flutter, Dart", "提供原生移动端体验的即时通讯应用，支持iOS和Android")
-    Container(server, "服务器应用", "Node.js, Express, WebSocket", "处理消息路由、用户认证、实时通信和业务逻辑")
-    Container(apiGateway, "API网关", "Nginx/Cloudflare", "请求路由、负载均衡、SSL终端、缓存")
+    Container(webApp, "Web应用", "Next.js 15.2.4, React 19, TypeScript", "提供现代化Web界面的即时通讯应用，使用App Router和Radix UI组件")
+    Container(mobileApp, "移动应用", "Flutter 3.x, Dart", "提供原生移动端体验的即时通讯应用，支持iOS和Android平台")
+    Container(server, "服务器应用", "Node.js 18+, Express, Socket.io", "处理消息路由、用户认证、实时通信和业务逻辑，支持WebSocket连接")
+    Container(apiGateway, "API网关", "Nginx/Cloudflare", "请求路由、负载均衡、SSL终端、静态资源缓存")
     
-    ContainerDb(database, "主数据库", "PostgreSQL/MongoDB", "存储用户信息、聊天记录、群组信息等结构化数据")
-    ContainerDb(redisCache, "缓存数据库", "Redis", "缓存会话、在线状态、临时数据")
+    ContainerDb(database, "主数据库", "PostgreSQL + Prisma ORM", "存储用户信息、聊天记录、群组信息、通话记录等结构化数据")
+    ContainerDb(redisCache, "缓存数据库", "Redis + ioredis", "缓存会话、在线状态、消息队列、临时数据")
     Container(fileStorage, "文件存储", "AWS S3/MinIO", "存储用户上传的文件、图片、语音、视频等媒体内容")
-    Container(searchEngine, "搜索引擎", "Elasticsearch", "提供全文搜索、消息搜索功能")
+    Container(searchEngine, "搜索引擎", "Elasticsearch", "提供全文搜索、消息历史检索功能")
 }
 
-System_Ext(webrtcService, "WebRTC信令服务", "处理音视频通话信令")
-System_Ext(stunTurnServer, "STUN/TURN服务器", "NAT穿透和中继服务")
-System_Ext(pushService, "推送服务", "FCM/APNs消息推送")
-System_Ext(emailService, "邮件服务", "SendGrid/AWS SES")
-System_Ext(monitoringService, "监控服务", "Prometheus/Grafana")
+System_Ext(webrtcService, "WebRTC信令服务", "处理P2P音视频通话信令和媒体协商")
+System_Ext(stunTurnServer, "STUN/TURN服务器", "NAT穿透和媒体中继服务")
+System_Ext(pushService, "推送服务", "Firebase FCM/Apple APNs消息推送")
+System_Ext(emailService, "邮件服务", "SendGrid/NodeMailer邮件发送")
+System_Ext(monitoringService, "监控服务", "Prometheus/Grafana系统监控")
+System_Ext(cdn, "内容分发网络", "全球CDN加速静态资源访问")
 
 Rel(user, apiGateway, "访问应用", "HTTPS")
 Rel(admin, apiGateway, "系统管理", "HTTPS")
@@ -32,20 +33,22 @@ Rel(apiGateway, server, "API调用", "HTTPS")
 
 Rel(user, mobileApp, "使用移动应用", "原生协议")
 
-Rel(webApp, server, "发送消息/API调用", "WebSocket/HTTPS")
-Rel(mobileApp, server, "发送消息/API调用", "WebSocket/HTTPS")
+Rel(webApp, server, "实时通信/API调用", "WebSocket/HTTPS")
+Rel(mobileApp, server, "实时通信/API调用", "WebSocket/HTTPS")
 
-Rel(server, database, "读写数据", "TCP/SQL")
+Rel(server, database, "数据持久化", "PostgreSQL协议")
 Rel(server, redisCache, "缓存操作", "Redis协议")
-Rel(server, fileStorage, "存储文件", "S3 API")
-Rel(server, searchEngine, "索引/搜索", "HTTP/REST")
+Rel(server, fileStorage, "文件存储", "S3兼容API")
+Rel(server, searchEngine, "消息索引/搜索", "HTTP/REST")
 
-Rel(webApp, webrtcService, "建立通话", "WebRTC")
-Rel(mobileApp, webrtcService, "建立通话", "WebRTC")
+Rel(webApp, webrtcService, "建立音视频通话", "WebRTC")
+Rel(mobileApp, webrtcService, "建立音视频通话", "WebRTC")
 Rel(webrtcService, stunTurnServer, "NAT穿透", "STUN/TURN")
 
-Rel(server, pushService, "推送通知", "HTTP API")
+Rel(server, pushService, "推送通知", "FCM/APNs API")
 Rel(server, emailService, "发送邮件", "SMTP/API")
-Rel(server, monitoringService, "指标上报", "HTTP")
+Rel(server, monitoringService, "指标上报", "Prometheus协议")
+Rel(webApp, cdn, "加载静态资源", "HTTPS")
+Rel(mobileApp, cdn, "加载静态资源", "HTTPS")
 
 @enduml 
