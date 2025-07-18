@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
 
   const { register, isAuthenticated, isLoading, error } = useAuth()
   const router = useRouter()
@@ -42,23 +43,48 @@ export default function RegisterPage() {
       ...formData,
       [e.target.name]: e.target.value,
     })
+    // Clear local error when user starts typing
+    if (localError) {
+      setLocalError(null)
+    }
+  }
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      return "姓名不能为空"
+    }
+    if (!formData.email.trim()) {
+      return "邮箱不能为空"
+    }
+    if (!formData.phone.trim()) {
+      return "手机号不能为空"
+    }
+    if (formData.password.length < 6) {
+      return "密码至少需要6位"
+    }
+    if (formData.password !== formData.confirmPassword) {
+      return "密码不匹配"
+    }
+    return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (formData.password !== formData.confirmPassword) {
+    const validationError = validateForm()
+    if (validationError) {
+      setLocalError(validationError)
       return
     }
 
-    const success = await register({
+    const result = await register({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
       password: formData.password,
     })
 
-    if (success) {
+    if (result.success) {
       router.push("/")
     }
   }
@@ -85,15 +111,9 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+            {(error || localError) && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {formData.password !== formData.confirmPassword && formData.confirmPassword && (
-              <Alert variant="destructive">
-                <AlertDescription>密码不匹配</AlertDescription>
+                <AlertDescription>{localError || error}</AlertDescription>
               </Alert>
             )}
 

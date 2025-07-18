@@ -39,6 +39,7 @@ model User {
   contacts         Contact[]     @relation("ContactOwner")
   blockedUsers     BlockedUser[] @relation("BlockedByUser")
   blockedByUsers   BlockedUser[] @relation("BlockedUser")
+  fileUploads      FileUpload[]
 
   @@map("users")
 }

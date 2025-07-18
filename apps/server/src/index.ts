@@ -1,63 +1,19 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import compression from "compression";
-import morgan from "morgan";
 import { createServer } from "http";
-import { Server } from "socket.io";
-import path from "path";
-
-import config from "@/config";
+import { createApp } from "@/app";
+import config, { validateConfig } from "@/config";
 import logger from "@/utils/logger";
-import { errorHandler, notFound } from "@/middleware/error";
+import SocketManager from "@/services/socket-manager";
+
+// 验证配置
+validateConfig();
 
 // 创建Express应用
-const app = express();
+const app = createApp();
 const server = createServer(app);
 
-// 创建Socket.IO服务器
-const io = new Server(server, {
-  cors: {
-    origin: config.security.cors.origin,
-    credentials: true,
-  },
-  transports: ["websocket", "polling"],
-});
-
-// 中间件
-app.use(helmet());
-app.use(compression());
-app.use(cors(config.security.cors));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-// 日志中间件
-app.use(morgan("combined"));
-
-// 静态文件服务
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
-
-// 健康检查
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "WhatsChat服务器运行正常",
-    timestamp: new Date(),
-    version: "1.0.0",
-    environment: config.server.nodeEnv,
-  });
-});
-
-// API路由
-app.use("/api/auth", (req, res) => {
-  res.json({ message: "认证路由" });
-});
-
-// 404处理
-app.use(notFound);
-
-// 错误处理中间件
-app.use(errorHandler);
+// 初始化Socket.IO
+const socketManager = SocketManager.getInstance();
+const io = socketManager.initialize(server);
 
 // 启动服务器
 const PORT = config.server.port;

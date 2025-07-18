@@ -1,36 +1,29 @@
 export interface User {
   id: string
-  name: string
-  avatar: string
-  phoneNumber: string
+  username: string
   email: string
-  status: string
+  phone?: string
+  avatar?: string
+  status?: string
   isOnline: boolean
-  lastSeen: string
-  settings: {
-    theme: "light" | "dark" | "system"
-    notifications: {
-      enabled: boolean
-      sound: boolean
-      vibration: boolean
-      preview: boolean
-    }
-    privacy: {
-      lastSeen: "everyone" | "contacts" | "nobody"
-      profilePhoto: "everyone" | "contacts" | "nobody"
-      about: "everyone" | "contacts" | "nobody"
-      status: "everyone" | "contacts" | "nobody"
-    }
-    chat: {
-      enterToSend: boolean
-      mediaAutoDownload: boolean
-      fontSize: "small" | "medium" | "large"
-    }
-    calls: {
-      lowDataUsage: boolean
-      callWaiting: boolean
-    }
-  }
+  lastSeen: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+// 认证状态类型
+export interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+}
+
+// 认证令牌类型
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
 }
 
 // 联系人类型

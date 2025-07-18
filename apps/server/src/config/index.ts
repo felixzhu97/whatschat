@@ -150,16 +150,34 @@ export const config = {
 // 验证必需的配置
 export const validateConfig = (): void => {
   const requiredConfigs = [
-    { key: "JWT_SECRET", value: config.jwt.secret },
-    { key: "DATABASE_URL", value: config.database.url },
-    { key: "REDIS_URL", value: config.redis.url },
+    { 
+      key: "JWT_SECRET", 
+      value: config.jwt.secret,
+      validator: (val: string) => val.length >= 32,
+      message: "JWT_SECRET must be at least 32 characters long"
+    },
+    { 
+      key: "DATABASE_URL", 
+      value: config.database.url,
+      validator: (val: string) => val.startsWith("postgresql://"),
+      message: "DATABASE_URL must be a valid PostgreSQL connection string"
+    },
+    { 
+      key: "REDIS_URL", 
+      value: config.redis.url,
+      validator: (val: string) => val.startsWith("redis://"),
+      message: "REDIS_URL must be a valid Redis connection string"
+    },
   ];
 
-  const missingConfigs = requiredConfigs.filter(({ value }) => !value);
+  const invalidConfigs = requiredConfigs.filter(({ value, validator }) => 
+    !value || !validator(value)
+  );
 
-  if (missingConfigs.length > 0) {
+  if (invalidConfigs.length > 0) {
+    const errorMessages = invalidConfigs.map(({ key, message }) => `${key}: ${message}`);
     throw new Error(
-      `缺少必需的配置: ${missingConfigs.map(({ key }) => key).join(", ")}`
+      `配置验证失败:\n${errorMessages.join('\n')}`
     );
   }
 };
