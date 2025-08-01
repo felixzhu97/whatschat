@@ -1,60 +1,43 @@
-import { PrismaClient } from "@prisma/client";
-import logger from "@/utils/logger";
+import { PrismaClient } from '@prisma/client'
 
-// 创建Prisma客户端实例
-const prisma = new PrismaClient({
-  log: [
-    {
-      emit: "event",
-      level: "query",
-    },
-    {
-      emit: "event",
-      level: "error",
-    },
-    {
-      emit: "event",
-      level: "info",
-    },
-    {
-      emit: "event",
-      level: "warn",
-    },
-  ],
-});
+// 创建 Prisma 客户端实例
+export const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+})
 
-// 开发环境下记录查询日志
-if (process.env.NODE_ENV === "development") {
-  prisma.$on("query", (e) => {
-    logger.debug(`Query: ${e.query}`);
-    logger.debug(`Params: ${e.params}`);
-    logger.debug(`Duration: ${e.duration}ms`);
-  });
+// 连接数据库
+export const connectDatabase = async () => {
+  try {
+    await prisma.$connect()
+    console.log('✅ Database connected successfully')
+  } catch (error) {
+    console.error('❌ Database connection failed:', error)
+    process.exit(1)
+  }
 }
 
+// 断开数据库连接
+export const disconnectDatabase = async () => {
+  try {
+    await prisma.$disconnect()
+    console.log('✅ Database disconnected successfully')
+  } catch (error) {
+    console.error('❌ Database disconnection failed:', error)
+  }
+}
+
+// 优雅关闭处理
+process.on('SIGINT', async () => {
+  await disconnectDatabase()
+  process.exit(0)
+})
+
+process.on('SIGTERM', async () => {
+  await disconnectDatabase()
+  process.exit(0)
+})
+
 // 错误日志
-prisma.$on("error", (e) => {
-  logger.error(`Database error: ${e.message}`);
-});
-
-// 信息日志
-prisma.$on("info", (e) => {
-  logger.info(`Database info: ${e.message}`);
-});
-
-// 警告日志
-prisma.$on("warn", (e) => {
-  logger.warn(`Database warning: ${e.message}`);
-});
-
-// 优雅关闭
-const gracefulShutdown = async () => {
-  logger.info("正在关闭数据库连接...");
-  await prisma.$disconnect();
-  logger.info("数据库连接已关闭");
-};
-
-process.on("SIGINT", gracefulShutdown);
-process.on("SIGTERM", gracefulShutdown);
-
-export default prisma;
+prisma.$on('error' as never, (e: any) => {
+  console.error(`Database error: ${e.message}`)
+})

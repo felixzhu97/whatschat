@@ -134,7 +134,7 @@ export function AddFriendDialog({ isOpen, onClose, onAddFriend }: AddFriendDialo
                       placeholder="输入手机号或用户名"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={isSearching}>
                       {isSearching ? "搜索中..." : "搜索"}

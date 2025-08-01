@@ -43,3 +43,7 @@ yarn-error.log*
 
 #  Kiro
 .kiro
+
+#  Log
+*.log
+**/logs
