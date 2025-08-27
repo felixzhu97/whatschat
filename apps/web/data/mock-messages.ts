@@ -124,11 +124,18 @@ export const mockMessages: Record<string, Message[]> = {
       timestamp: "2024-01-06T16:31:00Z",
       type: "file",
       status: "read",
-      fileData: {
-        fileName: "项目文档.pdf",
-        fileSize: "2.5 MB",
-        fileUrl: "/placeholder-file.pdf",
-      },
+      fileName: "项目文档.pdf",
+      fileSize: "2.5 MB",
+      attachments: [
+        {
+          id: "att1",
+          type: "file",
+          url: "/placeholder-file.pdf",
+          name: "项目文档.pdf",
+          size: 2500000,
+          mimeType: "application/pdf",
+        },
+      ],
     },
     {
       id: "msg14",
@@ -169,10 +176,17 @@ export const mockMessages: Record<string, Message[]> = {
       timestamp: "2024-01-04T10:30:00Z",
       type: "audio",
       status: "read",
-      voiceData: {
-        duration: 180,
-        fileUrl: "/placeholder-voice.mp3",
-      },
+      duration: 180,
+      attachments: [
+        {
+          id: "att2",
+          type: "audio",
+          url: "/placeholder-voice.mp3",
+          name: "语音.mp3",
+          size: 3000000,
+          mimeType: "audio/mpeg",
+        },
+      ],
     },
     {
       id: "msg18",

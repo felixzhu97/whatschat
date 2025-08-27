@@ -1,30 +1,39 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Search, Filter, FileText, ImageIcon, Video, Mic, File } from "lucide-react"
-import type { Contact, Message } from "../types"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Search,
+  Filter,
+  FileText,
+  ImageIcon,
+  Video,
+  Mic,
+  File,
+} from "lucide-react";
+import type { Contact, Message } from "../types";
 
 interface MessageSearchPageProps {
-  isOpen: boolean
-  onClose: () => void
-  initialQuery?: string
+  isOpen: boolean;
+  onClose: () => void;
+  initialQuery?: string;
   allMessages: Array<{
-    contactId: string
-    messages: Message[]
-  }>
-  contacts: Contact[]
-  onSelectMessage: (contactId: string, messageId: string) => void
+    contactId: string;
+    messages: Message[];
+  }>;
+  contacts: Contact[];
+  onSelectMessage: (contactId: string, messageId: string) => void;
 }
 
 interface SearchResult {
-  message: Message
-  contact: Contact
-  matchedText: string
+  message: Message;
+  contact: Contact;
+  matchedText: string;
 }
 
 export function MessageSearchPage({
@@ -35,10 +44,10 @@ export function MessageSearchPage({
   contacts,
   onSelectMessage,
 }: MessageSearchPageProps) {
-  const [searchQuery, setSearchQuery] = useState(initialQuery)
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [selectedFilter, setSelectedFilter] = useState<string>("all")
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
 
   const filters = [
     { id: "all", name: "全部", icon: Search },
@@ -47,32 +56,32 @@ export function MessageSearchPage({
     { id: "video", name: "视频", icon: Video },
     { id: "audio", name: "语音", icon: Mic },
     { id: "file", name: "文件", icon: File },
-  ]
+  ];
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      performSearch(searchQuery)
+      performSearch(searchQuery);
     } else {
-      setSearchResults([])
+      setSearchResults([]);
     }
-  }, [searchQuery, selectedFilter])
+  }, [searchQuery, selectedFilter]);
 
   const performSearch = async (query: string) => {
-    setIsSearching(true)
+    setIsSearching(true);
 
     // Simulate search delay
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const results: SearchResult[] = []
+    const results: SearchResult[] = [];
 
     allMessages.forEach(({ contactId, messages }) => {
-      const contact = contacts.find((c) => c.id === contactId)
-      if (!contact) return
+      const contact = contacts.find((c) => c.id === contactId);
+      if (!contact) return;
 
       messages.forEach((message) => {
         // Filter by message type
         if (selectedFilter !== "all" && message.type !== selectedFilter) {
-          return
+          return;
         }
 
         // Search in message content
@@ -81,59 +90,63 @@ export function MessageSearchPage({
             message,
             contact,
             matchedText: highlightMatch(message.content, query),
-          })
+          });
         }
-      })
-    })
+      });
+    });
 
     // Sort by date (newest first)
-    results.sort((a, b) => new Date(b.message.timestamp).getTime() - new Date(a.message.timestamp).getTime())
+    results.sort(
+      (a, b) =>
+        new Date(b.message.timestamp).getTime() -
+        new Date(a.message.timestamp).getTime()
+    );
 
-    setSearchResults(results)
-    setIsSearching(false)
-  }
+    setSearchResults(results);
+    setIsSearching(false);
+  };
 
   const highlightMatch = (text: string, query: string): string => {
-    const regex = new RegExp(`(${query})`, "gi")
-    return text.replace(regex, "<mark>$1</mark>")
-  }
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.replace(regex, "<mark>$1</mark>");
+  };
 
-  const formatDate = (date: Date) => {
-    const now = new Date()
-    const messageDate = new Date(date)
-    const diffTime = now.getTime() - messageDate.getTime()
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  const formatDate = (date: string) => {
+    const now = new Date();
+    const messageDate = new Date(date);
+    const diffTime = now.getTime() - messageDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
       return messageDate.toLocaleTimeString("zh-CN", {
         hour: "2-digit",
         minute: "2-digit",
-      })
+      });
     } else if (diffDays === 1) {
-      return "昨天"
+      return "昨天";
     } else if (diffDays < 7) {
-      return `${diffDays}天前`
+      return `${diffDays}天前`;
     } else {
-      return messageDate.toLocaleDateString("zh-CN")
+      return messageDate.toLocaleDateString("zh-CN");
     }
-  }
+  };
 
   const getMessageTypeIcon = (type: string) => {
     switch (type) {
       case "image":
-        return <ImageIcon className="h-4 w-4" />
+        return <ImageIcon className="h-4 w-4" />;
       case "video":
-        return <Video className="h-4 w-4" />
+        return <Video className="h-4 w-4" />;
       case "audio":
-        return <Mic className="h-4 w-4" />
+        return <Mic className="h-4 w-4" />;
       case "file":
-        return <File className="h-4 w-4" />
+        return <File className="h-4 w-4" />;
       default:
-        return <FileText className="h-4 w-4" />
+        return <FileText className="h-4 w-4" />;
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
@@ -161,8 +174,8 @@ export function MessageSearchPage({
       {/* Filters */}
       <div className="flex gap-2 p-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {filters.map((filter) => {
-          const IconComponent = filter.icon
-          const isSelected = selectedFilter === filter.id
+          const IconComponent = filter.icon;
+          const isSelected = selectedFilter === filter.id;
           return (
             <Button
               key={filter.id}
@@ -174,7 +187,7 @@ export function MessageSearchPage({
               <IconComponent className="h-4 w-4" />
               {filter.name}
             </Button>
-          )
+          );
         })}
       </div>
 
@@ -201,7 +214,9 @@ export function MessageSearchPage({
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">找到 {searchResults.length} 条相关消息</p>
+                <p className="text-sm text-gray-500">
+                  找到 {searchResults.length} 条相关消息
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -209,16 +224,24 @@ export function MessageSearchPage({
                   <div
                     key={`${result.message.id}-${index}`}
                     className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                    onClick={() => onSelectMessage(result.contact.id, result.message.id)}
+                    onClick={() =>
+                      onSelectMessage(result.contact.id, result.message.id)
+                    }
                   >
                     <div className="flex items-start gap-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={result.contact.avatar || "/placeholder.svg"} />
-                        <AvatarFallback>{result.contact.name[0]}</AvatarFallback>
+                        <AvatarImage
+                          src={result.contact.avatar || "/placeholder.svg"}
+                        />
+                        <AvatarFallback>
+                          {result.contact.name[0]}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-gray-900 dark:text-white">{result.contact.name}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {result.contact.name}
+                          </p>
                           {result.contact.isGroup && (
                             <Badge variant="secondary" className="text-xs">
                               群组
@@ -226,7 +249,9 @@ export function MessageSearchPage({
                           )}
                           <div className="flex items-center gap-1 text-gray-500">
                             {getMessageTypeIcon(result.message.type)}
-                            <span className="text-xs">{formatDate(result.message.timestamp)}</span>
+                            <span className="text-xs">
+                              {formatDate(result.message.timestamp)}
+                            </span>
                           </div>
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -244,9 +269,12 @@ export function MessageSearchPage({
                             </div>
                           )}
                         </div>
-                        {result.message.senderName && result.contact.isGroup && (
-                          <p className="text-xs text-gray-500 mt-1">{result.message.senderName}</p>
-                        )}
+                        {result.message.senderName &&
+                          result.contact.isGroup && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {result.message.senderName}
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -257,5 +285,5 @@ export function MessageSearchPage({
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }
