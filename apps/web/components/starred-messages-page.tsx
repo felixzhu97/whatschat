@@ -28,6 +28,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
       content: "记得明天的会议时间是下午2点",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1天前
       senderId: "user1",
+      senderName: "张三",
       type: "text",
       status: "read",
       chatName: "张三",
@@ -38,6 +39,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
       content: "这个项目的截止日期是下周五",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2天前
       senderId: "user2",
+      senderName: "李四",
       type: "text",
       status: "read",
       chatName: "李四",
@@ -48,6 +50,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
       content: "/placeholder.svg?height=200&width=300&text=重要图片",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3天前
       senderId: "user3",
+      senderName: "王五",
       type: "image",
       status: "read",
       chatName: "工作群",
@@ -58,6 +61,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
       content: "生日聚会地址：中山路123号",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(), // 4天前
       senderId: "user4",
+      senderName: "赵六",
       type: "text",
       status: "read",
       chatName: "王五",
@@ -86,7 +90,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     } else if (diffInDays < 7) {
       return `${diffInDays}天前`;
     } else {
-      return timestamp.toLocaleDateString();
+      return new Date(timestamp).toLocaleDateString();
     }
   };
 

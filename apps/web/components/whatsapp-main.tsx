@@ -715,14 +715,10 @@ export function WhatsAppMain() {
       {callState?.status === "ringing" && (
         <div className="fixed inset-0 z-50">
           <IncomingCall
-            call={{
-              id: callState.contactId,
-              contactName: callState.contactName,
-              contactAvatar: callState.contactAvatar,
-              type: callState.callType,
-            }}
+            callState={callState}
             onAnswer={answerCall}
             onDecline={endCall}
+            onQuickReply={(msg) => console.log("quick reply:", msg)}
           />
         </div>
       )}

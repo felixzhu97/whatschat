@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react";
 import {
   PhoneOff,
   Mic,
@@ -15,29 +15,34 @@ import {
   Minimize2,
   Grid3X3,
   User,
-} from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import type { CallState, CallParticipant } from "../types"
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { CallState, CallParticipant } from "../types";
 
 interface GroupCallInterfaceProps {
-  callState: CallState
-  localStream: MediaStream | null
-  onEndCall: () => void
-  onToggleMute: () => void
-  onToggleVideo: () => void
-  onToggleSpeaker: () => void
-  onInviteParticipant: () => void
-  onRemoveParticipant: (participantId: string) => void
-  onToggleParticipantMute: (participantId: string) => void
-  onMinimize?: () => void
-  formatDuration: (seconds: number) => string
+  callState: CallState;
+  localStream: MediaStream | null;
+  onEndCall: () => void;
+  onToggleMute: () => void;
+  onToggleVideo: () => void;
+  onToggleSpeaker: () => void;
+  onInviteParticipant: () => void;
+  onRemoveParticipant: (participantId: string) => void;
+  onToggleParticipantMute: (participantId: string) => void;
+  onMinimize?: () => void;
+  formatDuration: (seconds: number) => string;
 }
 
-type ViewMode = "grid" | "speaker"
+type ViewMode = "grid" | "speaker";
 
 export function GroupCallInterface({
   callState,
@@ -52,33 +57,40 @@ export function GroupCallInterface({
   onMinimize,
   formatDuration,
 }: GroupCallInterfaceProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("grid")
-  const [showParticipants, setShowParticipants] = useState(false)
-  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [showParticipants, setShowParticipants] = useState(false);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream
+      localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream])
+  }, [localStream]);
 
   const getStatusText = () => {
     switch (callState.status) {
-      case "calling":
-        return "正在连接..."
+      case "connecting":
+        return "正在连接...";
       case "connected":
-        return formatDuration(callState.duration)
+        return formatDuration(callState.duration);
       case "ended":
-        return "通话已结束"
+        return "通话已结束";
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
-  const activeParticipants = callState.participants.filter((p) => p.joinedAt > 0)
-  const speakingParticipant = callState.participants.find((p) => p.isSpeaking)
+  const activeParticipants = (callState.participants || []).filter(
+    (p) => p.joinedAt > 0
+  );
+  const speakingParticipant = (callState.participants || []).find(
+    (p) => p.isSpeaking
+  );
 
-  const renderParticipantVideo = (participant: CallParticipant, isMain = false) => (
+  const renderParticipantVideo = (
+    participant: CallParticipant,
+    isMain = false
+  ) => (
     <div
       key={participant.id}
       className={`relative bg-gray-800 rounded-lg overflow-hidden ${
@@ -95,9 +107,15 @@ export function GroupCallInterface({
           <div className="flex flex-col items-center justify-center h-full">
             <Avatar className={`${isMain ? "h-20 w-20" : "h-12 w-12"} mb-2`}>
               <AvatarImage src={participant.avatar || "/placeholder.svg"} />
-              <AvatarFallback className={isMain ? "text-2xl" : "text-lg"}>{participant.name[0]}</AvatarFallback>
+              <AvatarFallback className={isMain ? "text-2xl" : "text-lg"}>
+                {participant.name[0]}
+              </AvatarFallback>
             </Avatar>
-            <p className={`text-white font-medium ${isMain ? "text-lg" : "text-sm"}`}>{participant.name}</p>
+            <p
+              className={`text-white font-medium ${isMain ? "text-lg" : "text-sm"}`}
+            >
+              {participant.name}
+            </p>
           </div>
         )}
       </div>
@@ -110,7 +128,10 @@ export function GroupCallInterface({
           </Badge>
         )}
         {participant.isSpeaking && (
-          <Badge variant="secondary" className="text-xs bg-green-600 text-white animate-pulse">
+          <Badge
+            variant="secondary"
+            className="text-xs bg-green-600 text-white animate-pulse"
+          >
             正在说话
           </Badge>
         )}
@@ -118,7 +139,9 @@ export function GroupCallInterface({
 
       {/* 静音状态 */}
       <div className="absolute bottom-2 left-2 flex items-center gap-1">
-        <span className="text-white text-sm font-medium">{participant.name}</span>
+        <span className="text-white text-sm font-medium">
+          {participant.name}
+        </span>
         {participant.isMuted && (
           <div className="bg-red-600 rounded-full p-1">
             <MicOff className="h-3 w-3 text-white" />
@@ -135,22 +158,31 @@ export function GroupCallInterface({
       <div className="absolute top-2 right-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-white hover:bg-gray-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-white hover:bg-gray-700"
+            >
               <MoreVertical className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onToggleParticipantMute(participant.id)}>
+            <DropdownMenuItem
+              onClick={() => onToggleParticipantMute(participant.id)}
+            >
               {participant.isMuted ? "取消静音" : "静音"}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onRemoveParticipant(participant.id)} className="text-red-600">
+            <DropdownMenuItem
+              onClick={() => onRemoveParticipant(participant.id)}
+              className="text-red-600"
+            >
               移除参与者
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </div>
-  )
+  );
 
   const renderLocalVideo = () => (
     <div className="relative bg-gray-800 rounded-lg overflow-hidden">
@@ -188,7 +220,7 @@ export function GroupCallInterface({
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
@@ -211,10 +243,16 @@ export function GroupCallInterface({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setViewMode(viewMode === "grid" ? "speaker" : "grid")}
+            onClick={() =>
+              setViewMode(viewMode === "grid" ? "speaker" : "grid")
+            }
             className="text-white hover:bg-gray-700"
           >
-            {viewMode === "grid" ? <User className="h-5 w-5" /> : <Grid3X3 className="h-5 w-5" />}
+            {viewMode === "grid" ? (
+              <User className="h-5 w-5" />
+            ) : (
+              <Grid3X3 className="h-5 w-5" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -225,7 +263,12 @@ export function GroupCallInterface({
             <Users className="h-5 w-5" />
           </Button>
           {onMinimize && (
-            <Button variant="ghost" size="icon" onClick={onMinimize} className="text-white hover:bg-gray-700">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMinimize}
+              className="text-white hover:bg-gray-700"
+            >
               <Minimize2 className="h-5 w-5" />
             </Button>
           )}
@@ -238,7 +281,9 @@ export function GroupCallInterface({
           {viewMode === "speaker" && speakingParticipant ? (
             /* 演讲者模式 */
             <div className="h-full">
-              <div className="h-4/5 mb-4">{renderParticipantVideo(speakingParticipant, true)}</div>
+              <div className="h-4/5 mb-4">
+                {renderParticipantVideo(speakingParticipant, true)}
+              </div>
               <div className="h-1/5 flex gap-2 overflow-x-auto">
                 {renderLocalVideo()}
                 {activeParticipants
@@ -260,7 +305,9 @@ export function GroupCallInterface({
               }`}
             >
               {renderLocalVideo()}
-              {activeParticipants.map((participant) => renderParticipantVideo(participant))}
+              {activeParticipants.map((participant) =>
+                renderParticipantVideo(participant)
+              )}
             </div>
           )}
         </div>
@@ -270,7 +317,9 @@ export function GroupCallInterface({
           <div className="w-80 bg-gray-800 border-l border-gray-700">
             <div className="p-4 border-b border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-medium">参与者 ({activeParticipants.length + 1})</h3>
+                <h3 className="text-white font-medium">
+                  参与者 ({activeParticipants.length + 1})
+                </h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -296,7 +345,9 @@ export function GroupCallInterface({
                     <p className="text-gray-400 text-sm">主持人</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    {callState.isMuted && <MicOff className="h-4 w-4 text-red-400" />}
+                    {callState.isMuted && (
+                      <MicOff className="h-4 w-4 text-red-400" />
+                    )}
                     {callState.isVideoOff && callState.callType === "video" && (
                       <VideoOff className="h-4 w-4 text-gray-400" />
                     )}
@@ -305,35 +356,58 @@ export function GroupCallInterface({
 
                 {/* 其他参与者 */}
                 {activeParticipants.map((participant) => (
-                  <div key={participant.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700">
+                  <div
+                    key={participant.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700"
+                  >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={participant.avatar || "/placeholder.svg"} />
+                      <AvatarImage
+                        src={participant.avatar || "/placeholder.svg"}
+                      />
                       <AvatarFallback>{participant.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-medium">{participant.name}</p>
+                        <p className="text-white font-medium">
+                          {participant.name}
+                        </p>
                         {participant.isSpeaking && (
-                          <Badge variant="secondary" className="text-xs bg-green-600 text-white">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-green-600 text-white"
+                          >
                             说话中
                           </Badge>
                         )}
                       </div>
-                      {participant.isHost && <p className="text-blue-400 text-sm">主持人</p>}
+                      {participant.isHost && (
+                        <p className="text-blue-400 text-sm">主持人</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {participant.isMuted && <MicOff className="h-4 w-4 text-red-400" />}
-                      {participant.isVideoOff && callState.callType === "video" && (
-                        <VideoOff className="h-4 w-4 text-gray-400" />
+                      {participant.isMuted && (
+                        <MicOff className="h-4 w-4 text-red-400" />
                       )}
+                      {participant.isVideoOff &&
+                        callState.callType === "video" && (
+                          <VideoOff className="h-4 w-4 text-gray-400" />
+                        )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:bg-gray-600">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-gray-400 hover:bg-gray-600"
+                          >
                             <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onToggleParticipantMute(participant.id)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              onToggleParticipantMute(participant.id)
+                            }
+                          >
                             {participant.isMuted ? "取消静音" : "静音"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -361,11 +435,17 @@ export function GroupCallInterface({
             variant="ghost"
             size="icon"
             className={`h-14 w-14 rounded-full ${
-              callState.isMuted ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-600"
+              callState.isMuted
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-gray-700 hover:bg-gray-600"
             } text-white`}
             onClick={onToggleMute}
           >
-            {callState.isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            {callState.isMuted ? (
+              <MicOff className="h-6 w-6" />
+            ) : (
+              <Mic className="h-6 w-6" />
+            )}
           </Button>
 
           {/* 扬声器按钮 */}
@@ -373,11 +453,17 @@ export function GroupCallInterface({
             variant="ghost"
             size="icon"
             className={`h-14 w-14 rounded-full ${
-              callState.isSpeakerOn ? "bg-green-600 hover:bg-green-700" : "bg-gray-700 hover:bg-gray-600"
+              callState.isSpeakerOn
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-gray-700 hover:bg-gray-600"
             } text-white`}
             onClick={onToggleSpeaker}
           >
-            {callState.isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
+            {callState.isSpeakerOn ? (
+              <Volume2 className="h-6 w-6" />
+            ) : (
+              <VolumeX className="h-6 w-6" />
+            )}
           </Button>
 
           {/* 视频按钮 */}
@@ -386,11 +472,17 @@ export function GroupCallInterface({
               variant="ghost"
               size="icon"
               className={`h-14 w-14 rounded-full ${
-                callState.isVideoOff ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-600"
+                callState.isVideoOff
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-gray-700 hover:bg-gray-600"
               } text-white`}
               onClick={onToggleVideo}
             >
-              {callState.isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+              {callState.isVideoOff ? (
+                <VideoOff className="h-6 w-6" />
+              ) : (
+                <Video className="h-6 w-6" />
+              )}
             </Button>
           )}
 
@@ -416,5 +508,5 @@ export function GroupCallInterface({
         </div>
       </div>
     </div>
-  )
+  );
 }

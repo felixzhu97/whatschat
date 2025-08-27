@@ -20,7 +20,7 @@ interface User {
   avatar?: string;
   status?: string;
   isOnline: boolean;
-  lastSeen: Date;
+  lastSeen: string | Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -320,7 +320,7 @@ export interface CallState {
   isMinimized: boolean;
   isRecording: boolean;
   isScreenSharing: boolean;
-  participants?: string[];
+  participants?: CallParticipant[];
   effects?: {
     beautyMode: boolean;
     filter: string | null;

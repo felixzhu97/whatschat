@@ -65,7 +65,7 @@ export function ContactListItem({
 
   // 处理点击外部关闭操作菜单
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (itemRef.current && !itemRef.current.contains(event.target as Node)) {
         setShowActions(false);
       }
