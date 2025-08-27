@@ -1,14 +1,14 @@
 import { Router } from "express";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // 获取群组列表
-router.get("/", (req, res) => {
+router.get("/", (_req, res) => {
   res.json({ message: "获取群组列表" });
 });
 
 // 创建群组
-router.post("/", (req, res) => {
+router.post("/", (_req, res) => {
   res.json({ message: "创建群组" });
 });
 

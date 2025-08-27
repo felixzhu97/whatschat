@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { query } from "express-validator";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // 获取用户列表
 router.get(
@@ -17,7 +17,7 @@ router.get(
       .isLength({ min: 1 })
       .withMessage("搜索关键词不能为空"),
   ],
-  (req, res) => {
+  (_req: Request, res: Response) => {
     res.json({ message: "获取用户列表" });
   }
 );

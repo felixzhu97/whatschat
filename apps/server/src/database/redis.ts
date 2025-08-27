@@ -2,16 +2,19 @@ import Redis from "ioredis";
 import logger from "@/utils/logger";
 import config from "@/config";
 
-// 创建Redis客户端
-const redis = new Redis(config.redis.url, {
-  password: config.redis.password,
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-  keepAlive: 30000,
-  connectTimeout: 10000,
-  commandTimeout: 5000,
-});
+// 创建Redis客户端（使用标准 ioredis 连接参数）
+const redis = (() => {
+  const url = config.redis.url as string;
+  const password = config.redis.password;
+  if (url && (url.startsWith("redis://") || url.startsWith("rediss://"))) {
+    return new Redis(url, password ? { password } : {});
+  }
+  // 兼容 host:port 形式
+  const [hostRaw, portStr] = (url || "127.0.0.1:6379").split(":");
+  const host = hostRaw || "127.0.0.1";
+  const port = parseInt(portStr || "6379", 10);
+  return new Redis(port, host, password ? { password } : {});
+})();
 
 // 连接事件
 redis.on("connect", () => {

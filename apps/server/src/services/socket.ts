@@ -2,7 +2,6 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import config from "@/config";
 import prisma from "@/database/client";
-import { redisUtils } from "@/database/redis";
 import logger from "@/utils/logger";
 import { JwtPayload } from "@/types";
 
@@ -89,7 +88,7 @@ export const setupSocketHandlers = (io: Server) => {
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
       const token =
-        socket.handshake.auth.token ||
+        (socket.handshake.auth as any)["token"] ||
         socket.handshake.headers.authorization?.split(" ")[1];
 
       if (!token) {
@@ -162,7 +161,7 @@ export const setupSocketHandlers = (io: Server) => {
         });
 
         // 发送消息给所有参与者
-        participants.forEach(({ userId }) => {
+        participants.forEach(({ userId }: { userId: string }) => {
           const participantSocketId = onlineUsers.get(userId);
           if (participantSocketId && participantSocketId !== socket.id) {
             io.to(participantSocketId).emit("message:received", message);
@@ -253,7 +252,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     // 处理通话相关事件
     socket.on("call:incoming", (data) => {
-      const { targetUserId, callType } = data;
+      const { targetUserId } = data as { targetUserId: string };
       const targetSocketId = onlineUsers.get(targetUserId);
 
       if (targetSocketId) {
@@ -374,7 +373,7 @@ export const setupSocketHandlers = (io: Server) => {
           select: { phone: true },
         });
 
-        contacts.forEach((contact) => {
+        contacts.forEach((_contact: any) => {
           // 这里可以添加推送通知逻辑
         });
 

@@ -22,7 +22,7 @@ import {
   resetPasswordValidation,
 } from "@/validators/auth";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // 路由
 router.post("/register", validate(registerValidation), register);

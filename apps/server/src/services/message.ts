@@ -1,17 +1,17 @@
-import { prisma } from '../database/client'
+import { prisma } from "../database/client";
 
 export interface CreateMessageData {
-  content: string
-  type: 'text' | 'image' | 'video' | 'audio' | 'file'
-  senderId: string
-  chatId: string
-  metadata?: any
+  content: string;
+  type: "text" | "image" | "video" | "audio" | "file";
+  senderId: string;
+  chatId: string;
+  metadata?: any;
 }
 
 export interface GetMessagesOptions {
-  page: number
-  limit: number
-  search?: string
+  page: number;
+  limit: number;
+  search?: string;
 }
 
 export class MessageService {
@@ -19,10 +19,10 @@ export class MessageService {
     // Check if chat exists
     const chat = await prisma.chat.findUnique({
       where: { id: data.chatId },
-    })
+    });
 
     if (!chat) {
-      throw new Error('聊天不存在')
+      throw new Error("聊天不存在");
     }
 
     // Create message
@@ -37,7 +37,7 @@ export class MessageService {
           },
         },
       },
-    })
+    });
 
     // Update chat's last message
     await prisma.chat.update({
@@ -46,22 +46,22 @@ export class MessageService {
         lastMessageId: message.id,
         updatedAt: new Date(),
       },
-    })
+    });
 
-    return message
+    return message;
   }
 
   async getMessages(chatId: string, options: GetMessagesOptions) {
-    const { page, limit, search } = options
-    const skip = (page - 1) * limit
+    const { page, limit, search } = options;
+    const skip = (page - 1) * limit;
 
-    const where: any = { chatId }
-    
+    const where: any = { chatId };
+
     if (search) {
       where.content = {
         contains: search,
-        mode: 'insensitive',
-      }
+        mode: "insensitive",
+      };
     }
 
     return await prisma.message.findMany({
@@ -75,10 +75,10 @@ export class MessageService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       skip,
       take: limit,
-    })
+    });
   }
 
   async updateMessage(messageId: string, data: Partial<CreateMessageData>) {
@@ -97,25 +97,25 @@ export class MessageService {
           },
         },
       },
-    })
+    });
   }
 
   async deleteMessage(messageId: string) {
     return await prisma.message.delete({
       where: { id: messageId },
-    })
+    });
   }
 
   async markAsRead(chatId: string, userId: string) {
-    const unreadMessages = await prisma.message.findMany({
+    await prisma.message.findMany({
       where: {
         chatId,
         senderId: { not: userId },
         readAt: null,
       },
-    })
+    });
 
     // Mark messages as read (simplified implementation)
-    return true
+    return true;
   }
 }

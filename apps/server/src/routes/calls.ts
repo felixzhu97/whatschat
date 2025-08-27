@@ -1,14 +1,14 @@
 import { Router } from "express";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // 获取通话记录
-router.get("/", (req, res) => {
+router.get("/", (_req, res) => {
   res.json({ message: "获取通话记录" });
 });
 
 // 发起通话
-router.post("/", (req, res) => {
+router.post("/", (_req, res) => {
   res.json({ message: "发起通话" });
 });
 

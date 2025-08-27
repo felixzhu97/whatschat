@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { validateEmail, validatePassword } from "../utils/validation";
 
 export const authController = {
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response): Promise<Response> {
     try {
       const { email, password, name, phone } = req.body;
 
@@ -58,7 +58,7 @@ export const authController = {
         } as jwt.SignOptions
       );
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "用户注册成功",
         data: {
@@ -74,14 +74,14 @@ export const authController = {
         },
       });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "服务器内部错误",
       });
     }
   },
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<Response> {
     try {
       const { email, password } = req.body;
 
@@ -116,7 +116,7 @@ export const authController = {
         } as jwt.SignOptions
       );
 
-      res.json({
+      return res.json({
         success: true,
         message: "登录成功",
         data: {
@@ -132,14 +132,14 @@ export const authController = {
         },
       });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "服务器内部错误",
       });
     }
   },
 
-  async refreshToken(req: Request, res: Response) {
+  async refreshToken(req: Request, res: Response): Promise<Response> {
     try {
       const { refreshToken } = req.body;
 
@@ -170,7 +170,7 @@ export const authController = {
         } as jwt.SignOptions
       );
 
-      res.json({
+      return res.json({
         success: true,
         message: "Token刷新成功",
         data: {
@@ -178,15 +178,15 @@ export const authController = {
         },
       });
     } catch (error) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: "Refresh token无效",
       });
     }
   },
 
-  async logout(_req: Request, res: Response) {
-    res.json({
+  async logout(_req: Request, res: Response): Promise<Response> {
+    return res.json({
       success: true,
       message: "退出登录成功",
     });
