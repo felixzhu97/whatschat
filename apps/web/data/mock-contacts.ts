@@ -1,4 +1,4 @@
-import type { Contact } from "../types"
+import type { Contact } from "../types";
 
 export const mockContacts: Contact[] = [
   {
@@ -29,14 +29,54 @@ export const mockContacts: Contact[] = [
     memberCount: 8,
     description: "项目开发讨论群组",
     members: [
-      { id: "user1", name: "张三", avatar: "/placeholder.svg?height=32&width=32&text=张", role: "admin" },
-      { id: "user2", name: "李四", avatar: "/placeholder.svg?height=32&width=32&text=李", role: "admin" },
-      { id: "user3", name: "王五", avatar: "/placeholder.svg?height=32&width=32&text=王", role: "member" },
-      { id: "user4", name: "赵六", avatar: "/placeholder.svg?height=32&width=32&text=赵", role: "member" },
-      { id: "user5", name: "钱七", avatar: "/placeholder.svg?height=32&width=32&text=钱", role: "member" },
-      { id: "user6", name: "孙八", avatar: "/placeholder.svg?height=32&width=32&text=孙", role: "member" },
-      { id: "user7", name: "周九", avatar: "/placeholder.svg?height=32&width=32&text=周", role: "member" },
-      { id: "user8", name: "吴十", avatar: "/placeholder.svg?height=32&width=32&text=吴", role: "member" },
+      {
+        id: "user1",
+        name: "张三",
+        avatar: "/placeholder.svg?height=32&width=32&text=张",
+        role: "admin",
+      },
+      {
+        id: "user2",
+        name: "李四",
+        avatar: "/placeholder.svg?height=32&width=32&text=李",
+        role: "admin",
+      },
+      {
+        id: "user3",
+        name: "王五",
+        avatar: "/placeholder.svg?height=32&width=32&text=王",
+        role: "member",
+      },
+      {
+        id: "user4",
+        name: "赵六",
+        avatar: "/placeholder.svg?height=32&width=32&text=赵",
+        role: "member",
+      },
+      {
+        id: "user5",
+        name: "钱七",
+        avatar: "/placeholder.svg?height=32&width=32&text=钱",
+        role: "member",
+      },
+      {
+        id: "user6",
+        name: "孙八",
+        avatar: "/placeholder.svg?height=32&width=32&text=孙",
+        role: "member",
+      },
+      {
+        id: "user7",
+        name: "周九",
+        avatar: "/placeholder.svg?height=32&width=32&text=周",
+        role: "member",
+      },
+      {
+        id: "user8",
+        name: "吴十",
+        avatar: "/placeholder.svg?height=32&width=32&text=吴",
+        role: "member",
+      },
     ],
     admin: ["user1", "user2"],
     pinned: false,
@@ -98,4 +138,4 @@ export const mockContacts: Contact[] = [
     pinned: false,
     muted: false,
   },
-]
+];

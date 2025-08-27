@@ -1,59 +1,72 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react";
 
 interface UseLongPressOptions {
-  onLongPress: () => void
-  onPress?: () => void
-  delay?: number
-  shouldPreventDefault?: boolean
+  onLongPress: (...args: any[]) => void;
+  onPress?: (...args: any[]) => void;
+  delay?: number;
+  shouldPreventDefault?: boolean;
 }
 
-export function useLongPress({ onLongPress, onPress, delay = 500, shouldPreventDefault = true }: UseLongPressOptions) {
-  const [isLongPressing, setIsLongPressing] = useState(false)
-  const timeout = useRef<NodeJS.Timeout>()
-  const target = useRef<EventTarget>()
+export function useLongPress({
+  onLongPress,
+  onPress,
+  delay = 500,
+  shouldPreventDefault = true,
+}: UseLongPressOptions) {
+  const [isLongPressing, setIsLongPressing] = useState(false);
+  const timeout = useRef<NodeJS.Timeout | null>(null);
+  const target = useRef<EventTarget | null>(null);
 
   const start = useCallback(
     (event: React.MouseEvent | React.TouchEvent) => {
       if (shouldPreventDefault && event.target) {
-        event.target.addEventListener("touchend", preventDefault, { passive: false })
-        target.current = event.target
+        event.target.addEventListener("touchend", preventDefault, {
+          passive: false,
+        });
+        target.current = event.target;
       }
 
       timeout.current = setTimeout(() => {
-        onLongPress()
-        setIsLongPressing(true)
-      }, delay)
+        onLongPress();
+        setIsLongPressing(true);
+      }, delay);
     },
-    [onLongPress, delay, shouldPreventDefault],
-  )
+    [onLongPress, delay, shouldPreventDefault]
+  );
 
   const clear = useCallback(
-    (event?: React.MouseEvent | React.TouchEvent, shouldTriggerClick = true) => {
-      timeout.current && clearTimeout(timeout.current)
-      shouldTriggerClick && !isLongPressing && onPress && onPress()
+    (
+      event?: React.MouseEvent | React.TouchEvent,
+      shouldTriggerClick = true
+    ) => {
+      timeout.current && clearTimeout(timeout.current);
+      shouldTriggerClick && !isLongPressing && onPress && onPress();
 
       if (shouldPreventDefault && target.current) {
-        target.current.removeEventListener("touchend", preventDefault)
+        target.current.removeEventListener("touchend", preventDefault);
       }
 
-      setIsLongPressing(false)
+      setIsLongPressing(false);
     },
-    [shouldPreventDefault, onPress, isLongPressing],
-  )
+    [shouldPreventDefault, onPress, isLongPressing]
+  );
 
   const preventDefault = (event: Event) => {
-    if (!("touches" in event)) {
-      return
+    const touchEvent = event as unknown as TouchEvent;
+    // 只处理触摸事件
+    if (!touchEvent || !("touches" in touchEvent)) return;
+    if (
+      touchEvent.touches &&
+      touchEvent.touches.length < 2 &&
+      event.preventDefault
+    ) {
+      event.preventDefault();
     }
-
-    if (event.touches.length < 2 && event.preventDefault) {
-      event.preventDefault()
-    }
-  }
+  };
 
   return {
     onMouseDown: (e: React.MouseEvent) => start(e),
@@ -62,5 +75,8 @@ export function useLongPress({ onLongPress, onPress, delay = 500, shouldPreventD
     onMouseLeave: (e: React.MouseEvent) => clear(e, false),
     onTouchEnd: (e: React.TouchEvent) => clear(e),
     isLongPressing,
-  }
+    // 暴露原始回调，便于需要手动触发的场景
+    onPress,
+    onLongPress,
+  };
 }
