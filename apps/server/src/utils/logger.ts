@@ -1,7 +1,6 @@
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import path from "path";
-import config from "@/config";
 
 // 创建日志目录
 const logDir = path.join(__dirname, "../../logs");
@@ -17,7 +16,7 @@ const levels = {
 
 // 根据环境选择日志级别
 const level = () => {
-  const env = process.env.NODE_ENV || "development";
+  const env = process.env["NODE_ENV"] || "development";
   const isDevelopment = env === "development";
   return isDevelopment ? "debug" : "warn";
 };
@@ -38,7 +37,7 @@ const format = winston.format.combine(
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
   winston.format.colorize({ all: true }),
   winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
+    (info) => `${info["timestamp"]} ${info["level"]}: ${info["message"]}`
   )
 );
 
@@ -87,7 +86,7 @@ const logger = winston.createLogger({
 });
 
 // 开发环境下添加更多调试信息
-if (process.env.NODE_ENV === "development") {
+if (process.env["NODE_ENV"] === "development") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
@@ -117,7 +116,7 @@ export const requestLogger = (req: any, res: any, next: any) => {
 };
 
 // 创建错误日志中间件
-export const errorLogger = (err: any, req: any, res: any, next: any) => {
+export const errorLogger = (err: any, req: any, _res: any, next: any) => {
   logger.error(
     `${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`
   );

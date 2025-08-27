@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { validationResult } from "express-validator";
 import { AppError } from "@/types";
 import logger from "@/utils/logger";
 
@@ -12,7 +13,9 @@ export class CustomError extends Error implements AppError {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;
-    this.code = code;
+    if (code !== undefined) {
+      this.code = code;
+    }
 
     Error.captureStackTrace(this, this.constructor);
   }
@@ -50,7 +53,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   let error = { ...err };
   error.message = err.message;
@@ -109,7 +112,7 @@ export const errorHandler = (
   }
 
   // 重复键错误处理
-  if (err.code === 11000) {
+  if ((err as any).code === 11000) {
     const duplicateError = err as any;
     const field = Object.keys(duplicateError.keyValue)[0];
     error = createError.conflict(`${field}已存在`, "DUPLICATE_FIELD");
@@ -120,7 +123,7 @@ export const errorHandler = (
   const message = error.message || "服务器内部错误";
 
   // 开发环境返回详细错误信息
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = process.env["NODE_ENV"] === "development";
 
   res.status(statusCode).json({
     success: false,
@@ -133,7 +136,7 @@ export const errorHandler = (
 // 404错误处理
 export const notFound = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const error = createError.notFound(`路径 ${req.originalUrl} 不存在`);
@@ -150,12 +153,13 @@ export const asyncHandler = (fn: Function) => {
 // 验证错误处理
 export const validationErrorHandler = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
-  const errors = req.validationErrors?.();
+  const result = validationResult(req);
+  const errors = result.array();
 
-  if (errors && errors.length > 0) {
+  if (errors.length > 0) {
     const errorMessages = errors.map((error: any) => error.msg).join(", ");
     const error = createError.badRequest(errorMessages, "VALIDATION_ERROR");
     return next(error);
@@ -167,8 +171,8 @@ export const validationErrorHandler = (
 // 文件上传错误处理
 export const fileUploadErrorHandler = (
   err: Error,
-  req: Request,
-  res: Response,
+  _req: Request,
+  _res: Response,
   next: NextFunction
 ): void => {
   if (err.message.includes("LIMIT_FILE_SIZE")) {
@@ -194,8 +198,8 @@ export const fileUploadErrorHandler = (
 
 // 速率限制错误处理
 export const rateLimitErrorHandler = (
-  req: Request,
-  res: Response,
+  _req: Request,
+  _res: Response,
   next: NextFunction
 ): void => {
   const error = createError.tooManyRequests(

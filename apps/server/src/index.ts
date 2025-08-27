@@ -13,7 +13,7 @@ const server = createServer(app);
 
 // 初始化Socket.IO
 const socketManager = SocketManager.getInstance();
-const io = socketManager.initialize(server);
+socketManager.initialize(server);
 
 // 启动服务器
 const PORT = config.server.port;

@@ -1,6 +1,5 @@
 import rateLimit from "express-rate-limit";
 import config from "@/config";
-import { createError } from "@/middleware/error";
 
 // 通用速率限制
 export const generalRateLimit = rateLimit({
