@@ -540,7 +540,19 @@ export function WhatsAppMain() {
       unreadCount: 0,
       isOnline: true,
       isGroup: true,
-      members: selectedMembers.map((m) => m.id).concat("current-user"),
+      members: selectedMembers
+        .map((m) => ({
+          id: m.id,
+          name: m.name,
+          avatar: m.avatar,
+          role: "member" as const,
+        }))
+        .concat({
+          id: "current-user",
+          name: user.name || "我",
+          avatar: user.avatar || "",
+          role: "owner" as const,
+        }),
     };
     setShowCreateGroupDialog(false);
   };

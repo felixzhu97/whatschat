@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Mic,
   MicOff,
@@ -21,33 +21,33 @@ import {
   Settings,
   X,
   AlertTriangle,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { VideoEffectsPanel } from "./video-effects-panel"
-import type { CallState } from "../hooks/use-call"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { VideoEffectsPanel } from "./video-effects-panel";
+import type { CallState } from "../hooks/use-call";
 
 interface CallInterfaceProps {
-  callState: CallState
-  localStream?: MediaStream | null
-  remoteStream?: MediaStream | null
-  onEndCall: () => void
-  onToggleMute: () => void
-  onToggleVideo: () => void
-  onToggleSpeaker: () => void
-  onSwitchCamera?: () => void
-  onSwitchVideoLayout?: () => void
-  onToggleBeautyMode?: () => void
-  onApplyFilter?: (filter: string) => void
-  onStartScreenShare: () => void
-  onStopScreenShare: () => void
-  onStartRecording?: () => void
-  onStopRecording?: () => void
-  onMinimize: () => void
-  onShowControls?: () => void
-  formatDuration: (seconds: number) => string
-  screenShareError?: string | null
-  isScreenShareSupported?: () => boolean
-  onClearScreenShareError?: () => void
+  callState: CallState;
+  localStream?: MediaStream | null;
+  remoteStream?: MediaStream | null;
+  onEndCall: () => void;
+  onToggleMute: () => void;
+  onToggleVideo: () => void;
+  onToggleSpeaker: () => void;
+  onSwitchCamera?: () => void;
+  onSwitchVideoLayout?: () => void;
+  onToggleBeautyMode?: () => void;
+  onApplyFilter?: (filter: string | null) => void;
+  onStartScreenShare: () => void;
+  onStopScreenShare: () => void;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
+  onMinimize: () => void;
+  onShowControls?: () => void;
+  formatDuration: (seconds: number) => string;
+  screenShareError?: string | null;
+  isScreenShareSupported?: () => boolean;
+  onClearScreenShareError?: () => void;
 }
 
 export function CallInterface({
@@ -73,81 +73,87 @@ export function CallInterface({
   isScreenShareSupported,
   onClearScreenShareError,
 }: CallInterfaceProps) {
-  const [showEffectsPanel, setShowEffectsPanel] = useState(false)
-  const [showControls, setShowControls] = useState(true)
-  const [videoLayout, setVideoLayout] = useState<"grid" | "speaker" | "sidebar">("speaker")
-  const localVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [showEffectsPanel, setShowEffectsPanel] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [videoLayout, setVideoLayout] = useState<
+    "grid" | "speaker" | "sidebar"
+  >("speaker");
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-hide controls after 3 seconds of inactivity
   useEffect(() => {
     const resetControlsTimeout = () => {
       if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
+        clearTimeout(controlsTimeoutRef.current);
       }
-      setShowControls(true)
+      setShowControls(true);
       controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false)
-      }, 3000)
-    }
+        setShowControls(false);
+      }, 3000);
+    };
 
-    const handleMouseMove = () => resetControlsTimeout()
-    const handleMouseClick = () => resetControlsTimeout()
+    const handleMouseMove = () => resetControlsTimeout();
+    const handleMouseClick = () => resetControlsTimeout();
 
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("click", handleMouseClick)
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("click", handleMouseClick);
 
-    resetControlsTimeout()
+    resetControlsTimeout();
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("click", handleMouseClick)
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("click", handleMouseClick);
       if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
+        clearTimeout(controlsTimeoutRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   // Set up video streams
   useEffect(() => {
     if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream
+      localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream])
+  }, [localStream]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream
+      remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [remoteStream])
+  }, [remoteStream]);
 
   const handleScreenShare = () => {
     if (callState.isScreenSharing) {
-      onStopScreenShare()
+      onStopScreenShare();
     } else {
-      onStartScreenShare()
+      onStartScreenShare();
     }
-  }
+  };
 
   const handleRecording = () => {
     if (callState.isRecording) {
-      onStopRecording?.()
+      onStopRecording?.();
     } else {
-      onStartRecording?.()
+      onStartRecording?.();
     }
-  }
+  };
 
   const handleVideoLayoutChange = () => {
-    const layouts: Array<"grid" | "speaker" | "sidebar"> = ["grid", "speaker", "sidebar"]
-    const currentIndex = layouts.indexOf(videoLayout)
-    const nextLayout = layouts[(currentIndex + 1) % layouts.length]
-    setVideoLayout(nextLayout)
-    onSwitchVideoLayout?.()
-  }
+    const layouts: Array<"grid" | "speaker" | "sidebar"> = [
+      "grid",
+      "speaker",
+      "sidebar",
+    ];
+    const currentIndex = layouts.indexOf(videoLayout);
+    const nextLayout = layouts[(currentIndex + 1) % layouts.length];
+    setVideoLayout(nextLayout);
+    onSwitchVideoLayout?.();
+  };
 
-  const isVideoCall = callState.callType === "video"
-  const isScreenShareSupportedResult = isScreenShareSupported?.() ?? true
+  const isVideoCall = callState.callType === "video";
+  const isScreenShareSupportedResult = isScreenShareSupported?.() ?? true;
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -155,7 +161,9 @@ export function CallInterface({
       {screenShareError && (
         <Alert className="absolute top-4 left-1/2 transform -translate-x-1/2 z-60 bg-red-50 border-red-200 max-w-md">
           <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800 pr-8">{screenShareError}</AlertDescription>
+          <AlertDescription className="text-red-800 pr-8">
+            {screenShareError}
+          </AlertDescription>
           <Button
             variant="ghost"
             size="sm"
@@ -185,7 +193,13 @@ export function CallInterface({
                 "flex-1": videoLayout === "sidebar",
               })}
             >
-              <video ref={remoteVideoRef} autoPlay playsInline muted={false} className="w-full h-full object-cover" />
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                muted={false}
+                className="w-full h-full object-cover"
+              />
               {!remoteStream && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-white">
@@ -196,9 +210,13 @@ export function CallInterface({
                         className="w-20 h-20 rounded-full object-cover"
                       />
                     </div>
-                    <p className="text-lg font-medium">{callState.contactName}</p>
+                    <p className="text-lg font-medium">
+                      {callState.contactName}
+                    </p>
                     <p className="text-sm text-gray-300">
-                      {callState.status === "connecting" ? "连接中..." : formatDuration(callState.duration)}
+                      {callState.status === "connecting"
+                        ? "连接中..."
+                        : formatDuration(callState.duration)}
                     </p>
                   </div>
                 </div>
@@ -209,11 +227,18 @@ export function CallInterface({
             <div
               className={cn("relative bg-gray-800 rounded-lg overflow-hidden", {
                 "": videoLayout === "grid",
-                "absolute bottom-4 right-4 w-48 h-36": videoLayout === "speaker",
+                "absolute bottom-4 right-4 w-48 h-36":
+                  videoLayout === "speaker",
                 "w-48": videoLayout === "sidebar",
               })}
             >
-              <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
               {callState.isVideoOff && (
                 <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
                   <VideoOff className="h-8 w-8 text-gray-400" />
@@ -232,11 +257,17 @@ export function CallInterface({
                   className="w-28 h-28 rounded-full object-cover"
                 />
               </div>
-              <h2 className="text-2xl font-medium mb-2">{callState.contactName}</h2>
+              <h2 className="text-2xl font-medium mb-2">
+                {callState.contactName}
+              </h2>
               <p className="text-lg text-gray-300">
-                {callState.status === "connecting" ? "连接中..." : formatDuration(callState.duration)}
+                {callState.status === "connecting"
+                  ? "连接中..."
+                  : formatDuration(callState.duration)}
               </p>
-              {callState.isMuted && <p className="text-sm text-red-400 mt-2">麦克风已静音</p>}
+              {callState.isMuted && (
+                <p className="text-sm text-red-400 mt-2">麦克风已静音</p>
+              )}
             </div>
           </div>
         )}
@@ -246,7 +277,7 @@ export function CallInterface({
       <div
         className={cn(
           "absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300",
-          showControls ? "opacity-100" : "opacity-0",
+          showControls ? "opacity-100" : "opacity-0"
         )}
       >
         <div className="flex items-center justify-center space-x-4">
@@ -257,7 +288,11 @@ export function CallInterface({
             className="rounded-full w-14 h-14"
             onClick={onToggleMute}
           >
-            {callState.isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            {callState.isMuted ? (
+              <MicOff className="h-6 w-6" />
+            ) : (
+              <Mic className="h-6 w-6" />
+            )}
           </Button>
 
           {/* Video Button (only for video calls) */}
@@ -268,7 +303,11 @@ export function CallInterface({
               className="rounded-full w-14 h-14"
               onClick={onToggleVideo}
             >
-              {callState.isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+              {callState.isVideoOff ? (
+                <VideoOff className="h-6 w-6" />
+              ) : (
+                <Video className="h-6 w-6" />
+              )}
             </Button>
           )}
 
@@ -279,7 +318,11 @@ export function CallInterface({
             className="rounded-full w-14 h-14"
             onClick={onToggleSpeaker}
           >
-            {callState.isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
+            {callState.isSpeakerOn ? (
+              <Volume2 className="h-6 w-6" />
+            ) : (
+              <VolumeX className="h-6 w-6" />
+            )}
           </Button>
 
           {/* Screen Share Button */}
@@ -289,9 +332,17 @@ export function CallInterface({
             className="rounded-full w-14 h-14"
             onClick={handleScreenShare}
             disabled={!isScreenShareSupportedResult}
-            title={!isScreenShareSupportedResult ? "当前环境不支持屏幕共享" : undefined}
+            title={
+              !isScreenShareSupportedResult
+                ? "当前环境不支持屏幕共享"
+                : undefined
+            }
           >
-            {callState.isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
+            {callState.isScreenSharing ? (
+              <MonitorOff className="h-6 w-6" />
+            ) : (
+              <Monitor className="h-6 w-6" />
+            )}
           </Button>
 
           {/* Recording Button */}
@@ -301,7 +352,11 @@ export function CallInterface({
             className="rounded-full w-14 h-14"
             onClick={handleRecording}
           >
-            {callState.isRecording ? <Square className="h-6 w-6" /> : <Circle className="h-6 w-6" />}
+            {callState.isRecording ? (
+              <Square className="h-6 w-6" />
+            ) : (
+              <Circle className="h-6 w-6" />
+            )}
           </Button>
 
           {/* Effects Button (only for video calls) */}
@@ -318,25 +373,45 @@ export function CallInterface({
 
           {/* Camera Switch Button (only for video calls) */}
           {isVideoCall && (
-            <Button variant="secondary" size="lg" className="rounded-full w-14 h-14" onClick={onSwitchCamera}>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="rounded-full w-14 h-14"
+              onClick={onSwitchCamera}
+            >
               <RotateCcw className="h-6 w-6" />
             </Button>
           )}
 
           {/* Layout Button (only for video calls) */}
           {isVideoCall && (
-            <Button variant="secondary" size="lg" className="rounded-full w-14 h-14" onClick={handleVideoLayoutChange}>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="rounded-full w-14 h-14"
+              onClick={handleVideoLayoutChange}
+            >
               <Settings className="h-6 w-6" />
             </Button>
           )}
 
           {/* Minimize Button */}
-          <Button variant="secondary" size="lg" className="rounded-full w-14 h-14" onClick={onMinimize}>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="rounded-full w-14 h-14"
+            onClick={onMinimize}
+          >
             <Minimize2 className="h-6 w-6" />
           </Button>
 
           {/* End Call Button */}
-          <Button variant="destructive" size="lg" className="rounded-full w-16 h-16" onClick={onEndCall}>
+          <Button
+            variant="destructive"
+            size="lg"
+            className="rounded-full w-16 h-16"
+            onClick={onEndCall}
+          >
             <PhoneOff className="h-6 w-6" />
           </Button>
         </div>
@@ -344,7 +419,9 @@ export function CallInterface({
         {/* Call Info */}
         <div className="text-center mt-4 text-white">
           <p className="text-sm opacity-75">
-            {callState.status === "connecting" ? "连接中..." : formatDuration(callState.duration)}
+            {callState.status === "connecting"
+              ? "连接中..."
+              : formatDuration(callState.duration)}
           </p>
         </div>
       </div>
@@ -361,5 +438,5 @@ export function CallInterface({
         />
       )}
     </div>
-  )
+  );
 }

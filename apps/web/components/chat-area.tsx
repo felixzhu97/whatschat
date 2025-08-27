@@ -1,41 +1,44 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { ChatHeader } from "./chat-header"
-import { MessageArea } from "./message-area"
-import { MessageInput } from "./message-input"
-import type { Contact, Message } from "../types"
+import { ChatHeader } from "./chat-header";
+import { MessageArea } from "./message-area";
+import { MessageInput } from "./message-input";
+import type { Contact, Message } from "../types";
 
 interface ChatAreaProps {
-  selectedContact: Contact
-  messages: Message[]
-  messageText: string
-  showEmojiPicker: boolean
-  replyingTo: Message | null
-  editingMessage: Message | null
-  isRecordingVoice: boolean
-  isTyping: boolean
-  isConnected: boolean
-  onMessageChange: (text: string) => void
-  onKeyPress: (e: React.KeyboardEvent) => void
-  onSendMessage: (content: string, type?: "text" | "image" | "video" | "audio" | "file") => void
-  onEmojiSelect: (emoji: string) => void
-  onToggleEmojiPicker: () => void
-  onFileSelect: (file: File) => void
-  onSendVoice: (audioBlob: Blob, duration: number) => void
-  onReply: (message: Message) => void
-  onEdit: (message: Message) => void
-  onDelete: (message: Message) => void
-  onForward: (message: Message) => void
-  onStar: (message: Message) => void
-  onInfo: (message: Message) => void
-  onVoiceCall: () => void
-  onVideoCall: () => void
-  onShowInfo: () => void
-  onCancelReply: () => void
-  onCancelEdit: () => void
-  onRecordingChange: (isRecording: boolean) => void
+  selectedContact: Contact;
+  messages: Message[];
+  messageText: string;
+  showEmojiPicker: boolean;
+  replyingTo: Message | null;
+  editingMessage: Message | null;
+  isRecordingVoice: boolean;
+  isTyping: boolean;
+  isConnected: boolean;
+  onMessageChange: (text: string) => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
+  onSendMessage: (
+    content: string,
+    type?: "text" | "image" | "video" | "audio" | "file"
+  ) => void;
+  onEmojiSelect: (emoji: string) => void;
+  onToggleEmojiPicker: () => void;
+  onFileSelect: (file: File) => void;
+  onSendVoice: (audioBlob: Blob, duration: number) => void;
+  onReply: (message: Message) => void;
+  onEdit: (message: Message) => void;
+  onDelete: (message: Message) => void;
+  onForward: (message: Message) => void;
+  onStar: (message: Message) => void;
+  onInfo: (message: Message) => void;
+  onVoiceCall: () => void;
+  onVideoCall: () => void;
+  onShowInfo: () => void;
+  onCancelReply: () => void;
+  onCancelEdit: () => void;
+  onRecordingChange: (isRecording: boolean) => void;
 }
 
 export function ChatArea({
@@ -73,7 +76,8 @@ export function ChatArea({
       {/* Chat Header */}
       <ChatHeader
         contact={selectedContact}
-        isConnected={isConnected}
+        isTyping={isTyping}
+        isGroup={selectedContact.isGroup}
         onVoiceCall={onVoiceCall}
         onVideoCall={onVideoCall}
         onShowInfo={onShowInfo}
@@ -86,29 +90,33 @@ export function ChatArea({
         isGroup={selectedContact.isGroup}
         onReply={onReply}
         onEdit={(messageId: string, text: string) => {
-          const message = messages.find((m) => m.id === messageId)
+          const message = messages.find((m) => m.id === messageId);
           if (message) {
-            onEdit({ ...message, content: text })
+            onEdit({ ...message, content: text });
           }
         }}
         onDelete={(messageId: string) => {
-          const message = messages.find((m) => m.id === messageId)
+          const message = messages.find((m) => m.id === messageId);
           if (message) {
-            onDelete(message)
+            onDelete(message);
           }
         }}
         onForward={onForward}
         onStar={(messageId: string) => {
-          const message = messages.find((m) => m.id === messageId)
+          const message = messages.find((m) => m.id === messageId);
           if (message) {
-            onStar(message)
+            onStar(message);
           }
         }}
         onInfo={onInfo}
       />
 
       {/* Typing indicator */}
-      {isTyping && <div className="px-4 py-2 text-sm text-gray-500">{selectedContact.name} 正在输入...</div>}
+      {isTyping && (
+        <div className="px-4 py-2 text-sm text-gray-500">
+          {selectedContact.name} 正在输入...
+        </div>
+      )}
 
       {/* Message Input */}
       <MessageInput
@@ -129,5 +137,5 @@ export function ChatArea({
         onRecordingChange={onRecordingChange}
       />
     </div>
-  )
+  );
 }

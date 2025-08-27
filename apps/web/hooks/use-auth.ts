@@ -15,6 +15,8 @@ interface AuthState {
 interface User {
   id: string;
   username: string;
+  name?: string;
+  about?: string;
   email: string;
   phone?: string;
   avatar?: string;
@@ -53,7 +55,7 @@ export function useAuth() {
 
           try {
             // 验证token是否有效
-            const response = await authApi.getCurrentUser();
+            const response: any = await authApi.getCurrentUser();
             if (response.success && response.data) {
               setAuthState({
                 user: response.data.user,
@@ -67,7 +69,7 @@ export function useAuth() {
             // token无效，尝试刷新
             if (refreshToken) {
               try {
-                const refreshResponse =
+                const refreshResponse: any =
                   await authApi.refreshToken(refreshToken);
                 if (refreshResponse.success && refreshResponse.data) {
                   const { user, tokens } = refreshResponse.data;
@@ -127,7 +129,7 @@ export function useAuth() {
     setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await authApi.login({ email, password });
+      const response: any = await authApi.login({ email, password });
 
       if (response.success && response.data) {
         const { user, tokens } = response.data;
@@ -163,17 +165,32 @@ export function useAuth() {
   }, []);
 
   // 注册
+  type RegisterParams = {
+    username: string;
+    email: string;
+    phone?: string;
+    password: string;
+  };
   const register = useCallback(
-    async (name: string, email: string, phone: string, password: string) => {
+    async (
+      nameOrParams: string | RegisterParams,
+      email?: string,
+      phone?: string,
+      password?: string
+    ) => {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        const response = await authApi.register({
-          username: name,
-          email,
-          phone,
-          password,
-        });
+        const payload: RegisterParams =
+          typeof nameOrParams === "string"
+            ? {
+                username: nameOrParams,
+                email: email || "",
+                phone,
+                password: password || "",
+              }
+            : nameOrParams;
+        const response: any = await authApi.register(payload);
 
         if (response.success && response.data) {
           const { user, tokens } = response.data;
@@ -241,7 +258,7 @@ export function useAuth() {
       if (!authState.user) return { success: false, error: "用户未登录" };
 
       try {
-        const response = await authApi.updateProfile(updates);
+        const response: any = await authApi.updateProfile(updates);
 
         if (response.success && response.data) {
           const updatedUser = response.data.user;

@@ -312,7 +312,7 @@ export interface CallState {
   contactName: string;
   contactAvatar: string;
   callType: CallType;
-  status: "connecting" | "ringing" | "connected" | "ended";
+  status: "idle" | "connecting" | "ringing" | "connected" | "ended";
   duration: number;
   isMuted: boolean;
   isVideoOff: boolean;
