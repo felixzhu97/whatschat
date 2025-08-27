@@ -58,7 +58,7 @@ export function useRealChat(contactId: string) {
 
         // 发送已读回执（仅对真实用户消息）
         if (
-          !message.sent &&
+          message.senderId !== "current-user" &&
           wsMessage.from !== "simulated_user" &&
           wsMessage.from !== "echo_server" &&
           wsMessage.from !== "server"

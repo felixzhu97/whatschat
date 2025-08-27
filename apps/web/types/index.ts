@@ -73,6 +73,7 @@ export interface Message {
   status: "sending" | "sent" | "delivered" | "read" | "failed";
   replyTo?: string;
   isEdited?: boolean;
+  editedAt?: string;
   isStarred?: boolean;
   isForwarded?: boolean;
   attachments?: Attachment[];

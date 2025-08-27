@@ -162,7 +162,7 @@ export function SearchSuggestions({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, suggestions, hoveredIndex, onSelectSuggestion]);
+  }, [suggestions, hoveredIndex, onSelect]);
 
   if (suggestions.length === 0) return null;
 
