@@ -27,7 +27,6 @@ export const mockContacts: Contact[] = [
     isGroup: true,
     lastSeen: "1小时前",
     status: "项目开发讨论群组",
-    isGroup: true,
     memberCount: 8,
     description: "项目开发讨论群组",
     members: [

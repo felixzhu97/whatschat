@@ -1,9 +1,9 @@
-import '@testing-library/jest-dom'
-import { vi } from 'vitest'
-import React from 'react'
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
+import React from "react";
 
 // Mock next/navigation
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -15,25 +15,38 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: vi.fn(),
   }),
-  usePathname: () => '/',
-}))
+  usePathname: () => "/",
+}));
 
 // Mock next/image
-vi.mock('next/image', () => ({
+vi.mock("next/image", () => ({
   default: (props: any) => {
-    const { src, alt, ...rest } = props
+    const { src, alt, ...rest } = props;
     // eslint-disable-next-line @next/next/no-img-element
-    return React.createElement('img', { src, alt, ...rest })
+    return React.createElement("img", { src, alt, ...rest });
   },
-}))
+}));
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
+// Mock IntersectionObserver with proper shape
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = "";
+  readonly thresholds: ReadonlyArray<number> = [];
+  constructor(
+    _callback: IntersectionObserverCallback,
+    _options?: IntersectionObserverInit
+  ) {}
+  observe(_target: Element): void {}
+  unobserve(_target: Element): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
 }
+(
+  global as unknown as { IntersectionObserver: typeof IntersectionObserver }
+).IntersectionObserver =
+  MockIntersectionObserver as unknown as typeof IntersectionObserver;
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
@@ -41,12 +54,12 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-}
+};
 
 // Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -56,4 +69,4 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});

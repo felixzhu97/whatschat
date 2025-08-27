@@ -540,19 +540,20 @@ export function WhatsAppMain() {
       unreadCount: 0,
       isOnline: true,
       isGroup: true,
-      members: selectedMembers
-        .map((m) => ({
+      members: [
+        ...selectedMembers.map((m) => ({
           id: m.id,
           name: m.name,
           avatar: m.avatar,
           role: "member" as const,
-        }))
-        .concat({
+        })),
+        {
           id: "current-user",
           name: user.name || "我",
           avatar: user.avatar || "",
           role: "owner" as const,
-        }),
+        },
+      ],
     };
     setShowCreateGroupDialog(false);
   };
@@ -595,7 +596,7 @@ export function WhatsAppMain() {
           onSwitchCamera={switchCamera}
           onSwitchVideoLayout={switchVideoLayout}
           onToggleBeautyMode={toggleBeautyMode}
-          onApplyFilter={applyFilter}
+          onApplyFilter={(filter) => applyFilter(filter ?? "none")}
           onStartScreenShare={startScreenShare}
           onStopScreenShare={stopScreenShare}
           onStartRecording={startRecording}
@@ -684,7 +685,7 @@ export function WhatsAppMain() {
       <Sidebar
         user={user}
         contacts={filteredContacts}
-        selectedContact={selectedContact}
+        selectedContact={selectedContact ?? null}
         searchQuery={searchQuery}
         isConnected={isConnected}
         showSearchSuggestions={showSearchSuggestions}

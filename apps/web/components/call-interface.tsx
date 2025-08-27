@@ -431,7 +431,7 @@ export function CallInterface({
         <VideoEffectsPanel
           isOpen={showEffectsPanel}
           onClose={() => setShowEffectsPanel(false)}
-          beautyMode={callState.beautyMode}
+          isBeautyMode={callState.beautyMode}
           currentFilter={callState.currentFilter}
           onToggleBeautyMode={onToggleBeautyMode}
           onApplyFilter={onApplyFilter}
