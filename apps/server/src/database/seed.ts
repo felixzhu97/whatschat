@@ -1,37 +1,37 @@
-import bcrypt from "bcryptjs"
-import prisma from "./client"
-import config from "@/config"
-import logger from "@/utils/logger"
+import bcrypt from "bcryptjs";
+import prisma, { prisma as prismaNamed } from "./client";
+import config from "@/config";
+import logger from "@/utils/logger";
 
 async function main() {
-  logger.info("开始数据库种子...")
+  logger.info("开始数据库种子...");
 
   try {
     // 清理现有数据（开发环境）
     if (config.server.isDevelopment) {
-      logger.info("清理现有数据...")
-      await prisma.messageReaction.deleteMany()
-      await prisma.messageRead.deleteMany()
-      await prisma.message.deleteMany()
-      await prisma.chatParticipant.deleteMany()
-      await prisma.chat.deleteMany()
-      await prisma.callParticipant.deleteMany()
-      await prisma.call.deleteMany()
-      await prisma.statusView.deleteMany()
-      await prisma.status.deleteMany()
-      await prisma.groupParticipant.deleteMany()
-      await prisma.group.deleteMany()
-      await prisma.contact.deleteMany()
-      await prisma.blockedUser.deleteMany()
-      await prisma.notification.deleteMany()
-      await prisma.fileUpload.deleteMany()
-      await prisma.userSettings.deleteMany()
-      await prisma.user.deleteMany()
+      logger.info("清理现有数据...");
+      await prisma.messageReaction.deleteMany();
+      await prisma.messageRead.deleteMany();
+      await prisma.message.deleteMany();
+      await prisma.chatParticipant.deleteMany();
+      await prisma.chat.deleteMany();
+      await prisma.callParticipant.deleteMany();
+      await prisma.call.deleteMany();
+      await prisma.statusView.deleteMany();
+      await prisma.status.deleteMany();
+      await prisma.groupParticipant.deleteMany();
+      await prisma.group.deleteMany();
+      await prisma.contact.deleteMany();
+      await prisma.blockedUser.deleteMany();
+      await prisma.notification.deleteMany();
+      await prisma.fileUpload.deleteMany();
+      await prisma.userSettings.deleteMany();
+      await prisma.user.deleteMany();
     }
 
     // 创建测试用户
-    const saltRounds = config.security.bcrypt.saltRounds
-    const hashedPassword = await bcrypt.hash("123456", saltRounds)
+    const saltRounds = config.security.bcrypt.saltRounds;
+    const hashedPassword = await bcrypt.hash("123456", saltRounds);
 
     const users = await Promise.all([
       prisma.user.create({
@@ -78,9 +78,9 @@ async function main() {
           isOnline: true,
         },
       }),
-    ])
+    ]);
 
-    logger.info(`创建了 ${users.length} 个用户`)
+    logger.info(`创建了 ${users.length} 个用户`);
 
     // 为每个用户创建默认设置
     for (const user of users) {
@@ -88,10 +88,10 @@ async function main() {
         data: {
           userId: user.id,
         },
-      })
+      });
     }
 
-    logger.info("创建了用户设置")
+    logger.info("创建了用户设置");
 
     // 创建私人聊天
     const privateChat = await prisma.chat.create({
@@ -110,9 +110,9 @@ async function main() {
           ],
         },
       },
-    })
+    });
 
-    logger.info("创建了私人聊天")
+    logger.info("创建了私人聊天");
 
     // 创建群组聊天
     const groupChat = await prisma.chat.create({
@@ -141,9 +141,9 @@ async function main() {
           ],
         },
       },
-    })
+    });
 
-    logger.info("创建了群组聊天")
+    logger.info("创建了群组聊天");
 
     // 创建一些测试消息
     const messages = await Promise.all([
@@ -179,9 +179,9 @@ async function main() {
           content: "很高兴能参与这个项目！",
         },
       }),
-    ])
+    ]);
 
-    logger.info(`创建了 ${messages.length} 条消息`)
+    logger.info(`创建了 ${messages.length} 条消息`);
 
     // 创建联系人关系
     await Promise.all([
@@ -203,13 +203,13 @@ async function main() {
           avatar: users[0].avatar,
         },
       }),
-    ])
+    ]);
 
-    logger.info("创建了联系人关系")
+    logger.info("创建了联系人关系");
 
     // 创建一些状态更新
-    const statusExpiresAt = new Date()
-    statusExpiresAt.setHours(statusExpiresAt.getHours() + 24) // 24小时后过期
+    const statusExpiresAt = new Date();
+    statusExpiresAt.setHours(statusExpiresAt.getHours() + 24); // 24小时后过期
 
     await Promise.all([
       prisma.status.create({
@@ -228,27 +228,27 @@ async function main() {
           expiresAt: statusExpiresAt,
         },
       }),
-    ])
+    ]);
 
-    logger.info("创建了状态更新")
+    logger.info("创建了状态更新");
 
-    logger.info("数据库种子完成！")
-    logger.info("测试账户:")
-    logger.info("- admin@whatschat.com / 123456")
-    logger.info("- alice@example.com / 123456")
-    logger.info("- bob@example.com / 123456")
-    logger.info("- charlie@example.com / 123456")
+    logger.info("数据库种子完成！");
+    logger.info("测试账户:");
+    logger.info("- admin@whatschat.com / 123456");
+    logger.info("- alice@example.com / 123456");
+    logger.info("- bob@example.com / 123456");
+    logger.info("- charlie@example.com / 123456");
   } catch (error) {
-    logger.error("数据库种子失败:", error)
-    throw error
+    logger.error("数据库种子失败:", error);
+    throw error;
   }
 }
 
 main()
   .catch((e) => {
-    console.error(e)
-    process.exit(1)
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prismaNamed.$disconnect();
+  });

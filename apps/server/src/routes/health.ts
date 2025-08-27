@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
 import config from "@/config";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
 const redis = new Redis(config.redis.url);
 
@@ -21,7 +21,7 @@ interface HealthStatus {
 }
 
 // 基础健康检查
-router.get("/", (req: Request, res: Response) => {
+router.get("/", (_req: Request, res: Response) => {
   const healthStatus: HealthStatus = {
     status: "healthy",
     timestamp: new Date().toISOString(),
@@ -42,7 +42,7 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 // 详细健康检查
-router.get("/detailed", async (req: Request, res: Response) => {
+router.get("/detailed", async (_req: Request, res: Response) => {
   const healthStatus: HealthStatus = {
     status: "healthy",
     timestamp: new Date().toISOString(),
@@ -70,11 +70,16 @@ router.get("/detailed", async (req: Request, res: Response) => {
     healthStatus.services.redis = "up";
   } catch (error) {
     healthStatus.services.redis = "down";
-    healthStatus.status = healthStatus.status === "unhealthy" ? "unhealthy" : "degraded";
+    healthStatus.status =
+      healthStatus.status === "unhealthy" ? "unhealthy" : "degraded";
   }
 
-  const statusCode = healthStatus.status === "healthy" ? 200 : 
-                    healthStatus.status === "degraded" ? 200 : 503;
+  const statusCode =
+    healthStatus.status === "healthy"
+      ? 200
+      : healthStatus.status === "degraded"
+        ? 200
+        : 503;
 
   res.status(statusCode).json({
     success: healthStatus.status !== "unhealthy",
