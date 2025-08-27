@@ -46,7 +46,7 @@ export const authMiddleware = async (
         select: {
           id: true,
           email: true,
-          name: true,
+          username: true,
           phone: true,
           avatar: true,
           status: true,

@@ -26,7 +26,6 @@ model User {
 
   // 关系
   sentMessages     Message[]     @relation("MessageSender")
-  receivedMessages Message[]     @relation("MessageReceiver")
   chats            ChatParticipant[]
   groups           GroupParticipant[]
   createdGroups    Group[]       @relation("GroupCreator")

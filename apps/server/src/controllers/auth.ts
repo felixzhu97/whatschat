@@ -42,9 +42,9 @@ export const authController = {
       // Create user
       const user = await prisma.user.create({
         data: {
+          username: name || email,
           email,
           password: hashedPassword,
-          name,
           phone,
         },
       });
@@ -65,7 +65,7 @@ export const authController = {
           user: {
             id: user.id,
             email: user.email,
-            name: user.name,
+            username: user.username,
             phone: user.phone,
             avatar: user.avatar,
             status: user.status,
@@ -123,7 +123,7 @@ export const authController = {
           user: {
             id: user.id,
             email: user.email,
-            name: user.name,
+            username: user.username,
             phone: user.phone,
             avatar: user.avatar,
             status: user.status,

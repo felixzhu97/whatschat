@@ -2,7 +2,7 @@ import { prisma } from "../database/client";
 
 export interface CreateMessageData {
   content: string;
-  type: "text" | "image" | "video" | "audio" | "file";
+  type: "TEXT" | "IMAGE" | "VIDEO" | "AUDIO" | "FILE";
   senderId: string;
   chatId: string;
   metadata?: any;
@@ -27,12 +27,17 @@ export class MessageService {
 
     // Create message
     const message = await prisma.message.create({
-      data,
+      data: {
+        chatId: data.chatId,
+        senderId: data.senderId,
+        type: data.type as any,
+        content: data.content,
+      },
       include: {
         sender: {
           select: {
             id: true,
-            name: true,
+            username: true,
             avatar: true,
           },
         },
@@ -43,7 +48,6 @@ export class MessageService {
     await prisma.chat.update({
       where: { id: data.chatId },
       data: {
-        lastMessageId: message.id,
         updatedAt: new Date(),
       },
     });
@@ -70,7 +74,7 @@ export class MessageService {
         sender: {
           select: {
             id: true,
-            name: true,
+            username: true,
             avatar: true,
           },
         },
@@ -85,14 +89,15 @@ export class MessageService {
     return await prisma.message.update({
       where: { id: messageId },
       data: {
-        ...data,
+        content: data.content ?? undefined,
+        type: (data.type as any) ?? undefined,
         updatedAt: new Date(),
       },
       include: {
         sender: {
           select: {
             id: true,
-            name: true,
+            username: true,
             avatar: true,
           },
         },
@@ -111,7 +116,7 @@ export class MessageService {
       where: {
         chatId,
         senderId: { not: userId },
-        readAt: null,
+        // Message 模型无 readAt 字段，如需已读状态请使用 MessageRead 表
       },
     });
 
