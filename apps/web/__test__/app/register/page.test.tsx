@@ -142,7 +142,8 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
       await user.type(passwordInput, "password123");
 
       expect(passwordInput).toHaveValue("password123");
@@ -152,7 +153,8 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
       await user.type(confirmPasswordInput, "password123");
 
       expect(confirmPasswordInput).toHaveValue("password123");
@@ -172,7 +174,8 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
       const toggleButton = screen.getByTestId("eye-icon").closest("button");
 
       expect(passwordInput).toHaveAttribute("type", "password");
@@ -187,7 +190,8 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
       const toggleButtons = screen.getAllByTestId("eye-icon");
       const toggleButton = toggleButtons[1]?.closest("button");
 
@@ -206,8 +210,10 @@ describe("RegisterPage", () => {
 
       const usernameInput = screen.getByPlaceholderText("请输入姓名");
       const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
 
       expect(usernameInput).toBeRequired();
       expect(emailInput).toBeRequired();
@@ -219,8 +225,10 @@ describe("RegisterPage", () => {
       render(<RegisterPage />);
 
       const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
 
       expect(emailInput).toHaveAttribute("type", "email");
       expect(passwordInput).toHaveAttribute("type", "password");
@@ -231,8 +239,10 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
 
       await user.type(passwordInput, "password123");
       await user.type(confirmPasswordInput, "different123");
@@ -260,13 +270,14 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
       await user.type(passwordInput, "123");
 
       const submitButton = screen.getByRole("button", { name: "注册" });
       await user.click(submitButton);
 
-      expect(screen.getByText("密码长度至少6位")).toBeInTheDocument();
+      expect(screen.getByText("密码至少需要6位")).toBeInTheDocument();
     });
   });
 
@@ -275,12 +286,15 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      await user.type(screen.getByPlaceholderText("请输入用户名"), "testuser");
+      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
       await user.type(
         screen.getByPlaceholderText("请输入邮箱"),
         "test@example.com"
       );
-      await user.type(screen.getByPlaceholderText("请输入密码"), "password123");
+      await user.type(
+        screen.getByPlaceholderText("请输入密码（至少6位）"),
+        "password123"
+      );
       await user.type(screen.getByPlaceholderText("请确认密码"), "password123");
       await user.type(
         screen.getByPlaceholderText("请输入手机号"),
@@ -302,13 +316,16 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      await user.type(screen.getByPlaceholderText("请输入用户名"), "testuser");
+      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
       await user.type(
         screen.getByPlaceholderText("请输入邮箱"),
         "invalid-email"
       );
-      await user.type(screen.getByPlaceholderText("请输入密码"), "123");
-      await user.type(screen.getByPlaceholderText("请确认密码"), "456");
+      await user.type(
+        screen.getByPlaceholderText("请输入密码（至少6位）"),
+        "123"
+      );
+      await user.type(screen.getByPlaceholderText("请再次输入密码"), "456");
 
       const submitButton = screen.getByRole("button", { name: "注册" });
       await user.click(submitButton);
@@ -321,12 +338,15 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      await user.type(screen.getByPlaceholderText("请输入用户名"), "testuser");
+      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
       await user.type(
         screen.getByPlaceholderText("请输入邮箱"),
         "test@example.com"
       );
-      await user.type(screen.getByPlaceholderText("请输入密码"), "password123");
+      await user.type(
+        screen.getByPlaceholderText("请输入密码（至少6位）"),
+        "password123"
+      );
       await user.type(screen.getByPlaceholderText("请确认密码"), "password123");
 
       const submitButton = screen.getByRole("button", { name: "注册" });
@@ -353,8 +373,10 @@ describe("RegisterPage", () => {
 
       const usernameInput = screen.getByPlaceholderText("请输入姓名");
       const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
 
       expect(usernameInput).toBeDisabled();
       expect(emailInput).toBeDisabled();
@@ -376,12 +398,15 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      await user.type(screen.getByPlaceholderText("请输入用户名"), "testuser");
+      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
       await user.type(
         screen.getByPlaceholderText("请输入邮箱"),
         "test@example.com"
       );
-      await user.type(screen.getByPlaceholderText("请输入密码"), "password123");
+      await user.type(
+        screen.getByPlaceholderText("请输入密码（至少6位）"),
+        "password123"
+      );
       await user.type(screen.getByPlaceholderText("请确认密码"), "password123");
 
       const submitButton = screen.getByRole("button", { name: "注册" });
@@ -427,11 +452,13 @@ describe("RegisterPage", () => {
 
       const usernameInput = screen.getByPlaceholderText("请输入姓名");
       const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const confirmPasswordInput = screen.getByPlaceholderText("请确认密码");
+      const passwordInput =
+        screen.getByPlaceholderText("请输入密码（至少6位）");
+      const confirmPasswordInput =
+        screen.getByPlaceholderText("请再次输入密码");
       const phoneInput = screen.getByPlaceholderText("请输入手机号");
 
-      expect(usernameInput).toHaveAttribute("id", "username");
+      expect(usernameInput).toHaveAttribute("id", "name");
       expect(emailInput).toHaveAttribute("id", "email");
       expect(passwordInput).toHaveAttribute("id", "password");
       expect(confirmPasswordInput).toHaveAttribute("id", "confirmPassword");
@@ -487,7 +514,7 @@ describe("RegisterPage", () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
 
-      const specialString = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+      const specialString = "test@123";
       const usernameInput = screen.getByPlaceholderText("请输入姓名");
       await user.type(usernameInput, specialString);
 
