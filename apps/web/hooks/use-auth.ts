@@ -72,21 +72,14 @@ export function useAuth() {
                 const refreshResponse: any =
                   await authApi.refreshToken(refreshToken);
                 if (refreshResponse.success && refreshResponse.data) {
-                  const { user, tokens } = refreshResponse.data;
+                  const { token } = refreshResponse.data;
 
-                  // 更新存储的token和用户信息
-                  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-                  localStorage.setItem(
-                    STORAGE_KEYS.ACCESS_TOKEN,
-                    tokens.accessToken
-                  );
-                  localStorage.setItem(
-                    STORAGE_KEYS.REFRESH_TOKEN,
-                    tokens.refreshToken
-                  );
+                  // 更新存储的token
+                  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+                  // 注意：后端目前没有返回新的refreshToken，保持原有的
 
                   // 设置API客户端的新token
-                  apiClient.setToken(tokens.accessToken);
+                  apiClient.setToken(token);
 
                   setAuthState({
                     user,
@@ -132,15 +125,15 @@ export function useAuth() {
       const response: any = await authApi.login({ email, password });
 
       if (response.success && response.data) {
-        const { user, tokens } = response.data;
+        const { user, token } = response.data;
 
         // 保存到本地存储
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+        // 注意：后端目前没有返回refreshToken，所以暂时不保存
 
         // 设置API客户端的token
-        apiClient.setToken(tokens.accessToken);
+        apiClient.setToken(token);
 
         setAuthState({
           user,
@@ -193,15 +186,15 @@ export function useAuth() {
         const response: any = await authApi.register(payload);
 
         if (response.success && response.data) {
-          const { user, tokens } = response.data;
+          const { user, token } = response.data;
 
           // 保存到本地存储
           localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
-          localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+          // 注意：后端目前没有返回refreshToken，所以暂时不保存
 
           // 设置API客户端的token
-          apiClient.setToken(tokens.accessToken);
+          apiClient.setToken(token);
 
           setAuthState({
             user,

@@ -95,7 +95,7 @@ cd apps/web
 创建 `.env.local` 文件：
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
 ### 4. 数据库设置
@@ -149,6 +149,7 @@ node test-auth.js
 ```
 
 该脚本会测试：
+
 - 服务器连接
 - 用户注册
 - 用户登录

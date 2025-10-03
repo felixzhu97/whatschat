@@ -7,7 +7,7 @@ import { validateEmail, validatePassword } from "../utils/validation";
 export const authController = {
   async register(req: Request, res: Response): Promise<Response> {
     try {
-      const { email, password, name, phone } = req.body;
+      const { email, password, username, phone } = req.body;
 
       // Validation
       if (!validateEmail(email)) {
@@ -42,7 +42,7 @@ export const authController = {
       // Create user
       const user = await prisma.user.create({
         data: {
-          username: name || email,
+          username: username || email,
           email,
           password: hashedPassword,
           phone,
@@ -74,9 +74,14 @@ export const authController = {
         },
       });
     } catch (error) {
+      console.error("注册错误:", error);
       return res.status(500).json({
         success: false,
         message: "服务器内部错误",
+        error:
+          process.env["NODE_ENV"] === "development"
+            ? (error as Error).message
+            : undefined,
       });
     }
   },
@@ -199,11 +204,33 @@ export const login = authController.login;
 export const refreshToken = authController.refreshToken;
 export const logout = authController.logout;
 
-// 未实现的方法提供占位实现，避免路由导入缺失
-export const getCurrentUser = async (_req: Request, res: Response) => {
-  return res
-    .status(501)
-    .json({ success: false, message: "未实现", code: "NOT_IMPLEMENTED" });
+// 获取当前用户信息
+export const getCurrentUser = async (req: Request, res: Response) => {
+  try {
+    // 从中间件验证后的req.user获取用户信息
+    const user = (req as any).user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "用户信息不存在",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "获取用户信息成功",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    console.error("获取用户信息错误:", error);
+    return res.status(500).json({
+      success: false,
+      message: "服务器内部错误",
+    });
+  }
 };
 
 export const updateProfile = async (_req: Request, res: Response) => {
