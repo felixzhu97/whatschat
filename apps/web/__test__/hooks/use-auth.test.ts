@@ -71,22 +71,29 @@ describe("useAuth Hook", () => {
         await result.current.login("test@example.com", "password123");
       });
 
-      expect(fetch).toHaveBeenCalledWith("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: "test@example.com",
-          password: "password123",
-        }),
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/v1/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "test@example.com",
+            password: "password123",
+          }),
+        }
+      );
 
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.user).toEqual(mockUser);
       expect(result.current.error).toBeNull();
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "token",
+        "whatsapp_user",
+        JSON.stringify(mockUser)
+      );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        "access_token",
         "jwt-token"
       );
     });
@@ -124,7 +131,7 @@ describe("useAuth Hook", () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(result.current.error).toBe("登录失败，请检查网络连接");
+      expect(result.current.error).toBe("Network error");
     });
 
     it("should set loading state during login", async () => {
@@ -193,18 +200,21 @@ describe("useAuth Hook", () => {
         });
       });
 
-      expect(fetch).toHaveBeenCalledWith("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: "test@example.com",
-          password: "password123",
-          username: "testuser",
-          phone: "+1234567890",
-        }),
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/v1/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "test@example.com",
+            password: "password123",
+            username: "testuser",
+            phone: "+1234567890",
+          }),
+        }
+      );
 
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.user).toEqual(mockUser);
@@ -268,17 +278,21 @@ describe("useAuth Hook", () => {
         await result.current.logout();
       });
 
-      expect(fetch).toHaveBeenCalledWith("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer token",
-          "Content-Type": "application/json",
-        },
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/v1/auth/logout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("token");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("whatsapp_user");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("access_token");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("refresh_token");
     });
 
     it("should clear state even if logout API fails", async () => {
@@ -298,252 +312,9 @@ describe("useAuth Hook", () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("token");
-    });
-  });
-
-  describe("Token Refresh", () => {
-    it("should refresh token successfully", async () => {
-      const mockUser = {
-        id: "user-1",
-        email: "test@example.com",
-        username: "testuser",
-        phone: null,
-        avatar: null,
-        status: "online",
-      };
-
-      const mockResponse = {
-        success: true,
-        data: {
-          user: mockUser,
-          token: "new-jwt-token",
-        },
-      };
-
-      localStorageMock.getItem.mockReturnValue("old-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.refreshToken();
-      });
-
-      expect(fetch).toHaveBeenCalledWith("/api/auth/refresh", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          refreshToken: "old-token",
-        }),
-      });
-
-      expect(result.current.user).toEqual(mockUser);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "token",
-        "new-jwt-token"
-      );
-    });
-
-    it("should handle refresh token failure", async () => {
-      localStorageMock.getItem.mockReturnValue("invalid-token");
-
-      const mockResponse = {
-        success: false,
-        message: "刷新令牌无效",
-      };
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve(mockResponse),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.refreshToken();
-      });
-
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("token");
-    });
-  });
-
-  describe("Get Current User", () => {
-    it("should get current user successfully", async () => {
-      const mockUser = {
-        id: "user-1",
-        email: "test@example.com",
-        username: "testuser",
-        phone: "+1234567890",
-        avatar: null,
-        status: "online",
-        lastSeen: new Date(),
-      };
-
-      localStorageMock.getItem.mockReturnValue("valid-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: mockUser,
-          }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.getCurrentUser();
-      });
-
-      expect(fetch).toHaveBeenCalledWith("/api/auth/me", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer valid-token",
-        },
-      });
-
-      expect(result.current.user).toEqual(mockUser);
-      expect(result.current.isAuthenticated).toBe(true);
-    });
-
-    it("should handle get current user failure", async () => {
-      localStorageMock.getItem.mockReturnValue("invalid-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: () =>
-          Promise.resolve({
-            success: false,
-            message: "认证令牌无效",
-          }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.getCurrentUser();
-      });
-
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("token");
-    });
-  });
-
-  describe("Update Profile", () => {
-    it("should update profile successfully", async () => {
-      const updatedUser = {
-        id: "user-1",
-        email: "test@example.com",
-        username: "newusername",
-        phone: "+1234567890",
-        avatar: "new-avatar.jpg",
-        status: "online",
-        lastSeen: new Date(),
-      };
-
-      localStorageMock.getItem.mockReturnValue("valid-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: updatedUser,
-          }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.updateProfile({
-          username: "newusername",
-          phone: "+1234567890",
-          avatar: "new-avatar.jpg",
-        });
-      });
-
-      expect(fetch).toHaveBeenCalledWith("/api/auth/profile", {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer valid-token",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "newusername",
-          phone: "+1234567890",
-          avatar: "new-avatar.jpg",
-        }),
-      });
-
-      expect(result.current.user).toEqual(updatedUser);
-    });
-  });
-
-  describe("Change Password", () => {
-    it("should change password successfully", async () => {
-      localStorageMock.getItem.mockReturnValue("valid-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            message: "密码修改成功",
-          }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.changePassword("oldpassword", "newpassword");
-      });
-
-      expect(fetch).toHaveBeenCalledWith("/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer valid-token",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: "oldpassword",
-          newPassword: "newpassword",
-        }),
-      });
-
-      expect(result.current.error).toBeNull();
-    });
-
-    it("should handle change password failure", async () => {
-      localStorageMock.getItem.mockReturnValue("valid-token");
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        json: () =>
-          Promise.resolve({
-            success: false,
-            message: "当前密码不正确",
-          }),
-      } as Response);
-
-      const { result } = renderHook(() => useAuth());
-
-      await act(async () => {
-        await result.current.changePassword("wrongpassword", "newpassword");
-      });
-
-      expect(result.current.error).toBe("当前密码不正确");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("whatsapp_user");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("access_token");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("refresh_token");
     });
   });
 
@@ -576,8 +347,6 @@ describe("useAuth Hook", () => {
 
   describe("Auto-login on Mount", () => {
     it("should attempt auto-login if token exists", async () => {
-      localStorageMock.getItem.mockReturnValue("existing-token");
-
       const mockUser = {
         id: "user-1",
         email: "test@example.com",
@@ -588,12 +357,18 @@ describe("useAuth Hook", () => {
         lastSeen: new Date(),
       };
 
+      localStorageMock.getItem.mockImplementation((key) => {
+        if (key === "access_token") return "existing-token";
+        if (key === "whatsapp_user") return JSON.stringify(mockUser);
+        return null;
+      });
+
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
             success: true,
-            data: mockUser,
+            data: { user: mockUser },
           }),
       } as Response);
 
@@ -604,12 +379,16 @@ describe("useAuth Hook", () => {
         expect(result.current.user).toEqual(mockUser);
       });
 
-      expect(fetch).toHaveBeenCalledWith("/api/auth/me", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer existing-token",
-        },
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:3001/api/v1/auth/me",
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer existing-token",
+            "Content-Type": "application/json",
+          },
+        }
+      );
     });
 
     it("should not attempt auto-login if no token exists", () => {

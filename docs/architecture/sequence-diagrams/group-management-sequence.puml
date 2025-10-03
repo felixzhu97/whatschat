@@ -1,0 +1,125 @@
+# 群组管理时序图
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant W as Web前端
+    participant A as API服务器
+    participant D as 数据库
+    participant WS as WebSocket服务器
+    participant M as 群组成员
+
+    Note over U,M: 创建群组流程
+
+    U->>W: 创建群组
+    W->>A: POST /api/v1/groups
+    Note right of W: {name, description, members}
+    
+    A->>A: 验证用户权限
+    A->>D: 创建群组记录
+    D-->>A: 返回群组ID
+    
+    A->>D: 添加创建者为群主
+    D-->>A: 添加成功
+    
+    loop 为每个成员
+        A->>D: 添加群组成员
+        D-->>A: 添加成功
+    end
+    
+    A-->>W: 201 群组创建成功
+    Note right of A: {groupId, groupInfo}
+    
+    W->>WS: 通知群组成员
+    WS->>M: 推送群组邀请
+    Note right of WS: {type: 'group_invitation', groupId}
+
+    Note over U,M: 加入群组流程
+
+    U->>W: 接受群组邀请
+    W->>A: POST /api/v1/groups/{id}/join
+    Note right of W: {groupId}
+    
+    A->>D: 检查群组状态
+    D-->>A: 返回群组信息
+    
+    alt 群组已满
+        A-->>W: 400 群组已满
+        W-->>U: 显示错误信息
+    else 可以加入
+        A->>D: 添加用户到群组
+        D-->>A: 添加成功
+        
+        A->>WS: 通知群组成员
+        WS->>M: 推送新成员通知
+        Note right of WS: {type: 'member_joined', userId, groupId}
+        
+        A-->>W: 200 加入成功
+        W-->>U: 跳转到群组页面
+    end
+
+    Note over U,M: 群组消息发送
+
+    U->>W: 发送群组消息
+    W->>WS: 发送消息事件
+    Note right of W: {type: 'send_group_message', groupId, content}
+    
+    WS->>A: 保存群组消息
+    A->>D: INSERT INTO group_messages
+    D-->>A: 返回消息ID
+    
+    WS->>WS: 广播给群组成员
+    loop 为每个在线成员
+        WS->>M: 推送群组消息
+        Note right of WS: {type: 'new_group_message', message}
+    end
+
+    Note over U,M: 群组权限管理
+
+    U->>W: 修改成员权限
+    W->>A: PUT /api/v1/groups/{id}/members/{userId}
+    Note right of W: {role: 'admin'}
+    
+    A->>A: 验证操作权限
+    A->>D: 更新成员角色
+    D-->>A: 更新成功
+    
+    A->>WS: 通知权限变更
+    WS->>M: 推送权限更新
+    Note right of WS: {type: 'role_updated', userId, newRole}
+    
+    A-->>W: 200 权限更新成功
+
+    Note over U,M: 退出群组流程
+
+    U->>W: 退出群组
+    W->>A: DELETE /api/v1/groups/{id}/leave
+    Note right of W: {groupId}
+    
+    A->>D: 移除群组成员
+    D-->>A: 移除成功
+    
+    A->>WS: 通知群组成员
+    WS->>M: 推送成员退出通知
+    Note right of WS: {type: 'member_left', userId, groupId}
+    
+    A-->>W: 200 退出成功
+    W-->>U: 跳转到聊天列表
+
+    Note over U,M: 解散群组流程
+
+    U->>W: 解散群组
+    W->>A: DELETE /api/v1/groups/{id}
+    Note right of W: {groupId}
+    
+    A->>A: 验证群主权限
+    A->>D: 软删除群组
+    D-->>A: 删除成功
+    
+    A->>WS: 通知所有成员
+    WS->>M: 推送群组解散通知
+    Note right of WS: {type: 'group_disbanded', groupId}
+    
+    A-->>W: 200 解散成功
+    W-->>U: 跳转到聊天列表
+```

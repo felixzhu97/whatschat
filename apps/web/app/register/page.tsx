@@ -62,6 +62,11 @@ export default function RegisterPage() {
     if (!formData.email.trim()) {
       return "邮箱不能为空";
     }
+    // 添加邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return "邮箱格式不正确";
+    }
     if (!formData.phone.trim()) {
       return "手机号不能为空";
     }

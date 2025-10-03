@@ -118,6 +118,7 @@ describe("LoginPage", () => {
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText("请输入邮箱");
+      await user.clear(emailInput);
       await user.type(emailInput, "test@example.com");
 
       expect(emailInput).toHaveValue("test@example.com");
@@ -128,6 +129,7 @@ describe("LoginPage", () => {
       render(<LoginPage />);
 
       const passwordInput = screen.getByPlaceholderText("请输入密码");
+      await user.clear(passwordInput);
       await user.type(passwordInput, "password123");
 
       expect(passwordInput).toHaveValue("password123");

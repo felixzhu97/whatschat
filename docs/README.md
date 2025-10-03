@@ -1,18 +1,60 @@
-# WhatsChat 架构文档
+# WhatsChat 项目文档
 
-本文件夹包含了 WhatsChat 项目的 C4 架构图，使用 PlantUML 格式定义，全面展示了系统的架构设计和技术实现。
+本文件夹包含了 WhatsChat 项目的完整技术文档，涵盖架构设计、开发指南、部署运维等各个方面。
 
-## 📋 文件说明
+## 📚 文档分类
 
-### C4 架构图层次
+### 🏗️ 架构设计
 
-- `01-system-context.puml` - 系统上下文图 (Level 1)
-- `02-container-diagram.puml` - 容器图 (Level 2)
-- `03-component-diagram.puml` - Web应用组件图 (Level 3)
-- `03-mobile-component-diagram.puml` - 移动应用组件图 (Level 3)
-- `04-code-diagram.puml` - 代码结构图 (Level 4)
-- `05-architecture-overview.puml` - 系统架构概览
-- `06-deployment-diagram.puml` - 部署架构图
+#### C4 架构图
+
+- [`architecture/c4-diagrams/01-system-context.puml`](./architecture/c4-diagrams/01-system-context.puml) - 系统上下文图 (Level 1)
+- [`architecture/c4-diagrams/02-container-diagram.puml`](./architecture/c4-diagrams/02-container-diagram.puml) - 容器图 (Level 2)
+- [`architecture/c4-diagrams/03-component-diagram.puml`](./architecture/c4-diagrams/03-component-diagram.puml) - Web应用组件图 (Level 3)
+- [`architecture/c4-diagrams/03-mobile-component-diagram.puml`](./architecture/c4-diagrams/03-mobile-component-diagram.puml) - 移动应用组件图 (Level 3)
+- [`architecture/c4-diagrams/04-code-diagram.puml`](./architecture/c4-diagrams/04-code-diagram.puml) - 代码结构图 (Level 4)
+- [`architecture/c4-diagrams/05-architecture-overview.puml`](./architecture/c4-diagrams/05-architecture-overview.puml) - 系统架构概览
+- [`architecture/c4-diagrams/06-deployment-diagram.puml`](./architecture/c4-diagrams/06-deployment-diagram.puml) - 部署架构图
+
+#### 时序图
+
+- [`architecture/sequence-diagrams/README.md`](./architecture/sequence-diagrams/README.md) - 时序图索引
+- [`architecture/sequence-diagrams/user-auth-sequence.puml`](./architecture/sequence-diagrams/user-auth-sequence.puml) - 用户认证流程
+- [`architecture/sequence-diagrams/message-flow-sequence.puml`](./architecture/sequence-diagrams/message-flow-sequence.puml) - 消息通信流程
+- [`architecture/sequence-diagrams/webrtc-call-sequence.puml`](./architecture/sequence-diagrams/webrtc-call-sequence.puml) - 音视频通话流程
+- [`architecture/sequence-diagrams/group-management-sequence.puml`](./architecture/sequence-diagrams/group-management-sequence.puml) - 群组管理流程
+- [`architecture/sequence-diagrams/file-upload-sequence.puml`](./architecture/sequence-diagrams/file-upload-sequence.puml) - 文件管理流程
+- [`architecture/sequence-diagrams/deployment-sequence.puml`](./architecture/sequence-diagrams/deployment-sequence.puml) - 系统部署流程
+
+#### 数据库设计
+
+- [`architecture/database/database-design.md`](./architecture/database/database-design.md) - 数据库设计文档 (ER图、数据模型)
+
+#### 技术决策
+
+- [`architecture/decisions/adr.md`](./architecture/decisions/adr.md) - 技术决策记录 (ADR)
+
+### 📋 需求与规范
+
+- [`requirements/functional/requirements.md`](./requirements/functional/requirements.md) - 需求清单 (功能需求、非功能需求)
+- [`project-records/glossary/glossary.md`](./project-records/glossary/glossary.md) - 术语表 (项目术语定义)
+
+### 🔧 开发文档
+
+- [`development/api/api-documentation.md`](./development/api/api-documentation.md) - API接口文档
+- [`development/guides/development-guide.md`](./development/guides/development-guide.md) - 开发指南
+- [`development/testing/testing-guide.md`](./development/testing/testing-guide.md) - 测试指南
+- [`development/contributing/contributing-guide.md`](./development/contributing/contributing-guide.md) - 贡献指南
+
+### 🚀 部署运维
+
+- [`operations/deployment/deployment-guide.md`](./operations/deployment/deployment-guide.md) - 部署指南
+- [`operations/security/security-guide.md`](./operations/security/security-guide.md) - 安全指南
+- [`operations/troubleshooting/troubleshooting-guide.md`](./operations/troubleshooting/troubleshooting-guide.md) - 故障排除指南
+
+### 📝 项目记录
+
+- [`project-records/changelog/CHANGELOG.md`](./project-records/changelog/CHANGELOG.md) - 变更日志
 
 ## 🔧 如何查看架构图
 
@@ -245,6 +287,38 @@ plantuml -tsvg docs/*.puml
 - [PlantUML C4 语法](https://github.com/plantuml-stdlib/C4-PlantUML)
 - [架构图最佳实践](https://c4model.com/review/)
 - [系统架构设计原则](https://docs.microsoft.com/en-us/azure/architecture/guide/)
+
+## 🔗 快速导航
+
+### 新手指南
+
+- [`project-records/glossary/glossary.md`](./project-records/glossary/glossary.md) - 了解项目术语
+- [`requirements/functional/requirements.md`](./requirements/functional/requirements.md) - 了解项目需求
+- [`architecture/decisions/adr.md`](./architecture/decisions/adr.md) - 了解技术选型
+
+### 开发指南
+
+- [`development/guides/development-guide.md`](./development/guides/development-guide.md) - 开发环境设置和代码规范
+- [`development/api/api-documentation.md`](./development/api/api-documentation.md) - 详细的API接口说明
+- [`development/testing/testing-guide.md`](./development/testing/testing-guide.md) - 单元测试、集成测试、E2E测试
+- [`development/contributing/contributing-guide.md`](./development/contributing/contributing-guide.md) - 代码贡献流程和规范
+
+### 架构设计
+
+- [`architecture/c4-diagrams/05-architecture-overview.puml`](./architecture/c4-diagrams/05-architecture-overview.puml) - 整体技术架构
+- [`architecture/database/database-design.md`](./architecture/database/database-design.md) - 数据库设计和ER图
+- [`architecture/c4-diagrams/06-deployment-diagram.puml`](./architecture/c4-diagrams/06-deployment-diagram.puml) - 生产环境部署
+- [`architecture/sequence-diagrams/README.md`](./architecture/sequence-diagrams/README.md) - 业务流程时序图
+
+### 运维部署
+
+- [`operations/deployment/deployment-guide.md`](./operations/deployment/deployment-guide.md) - Docker和Kubernetes部署
+- [`operations/security/security-guide.md`](./operations/security/security-guide.md) - 安全最佳实践和防护措施
+- [`operations/troubleshooting/troubleshooting-guide.md`](./operations/troubleshooting/troubleshooting-guide.md) - 常见问题解决方案
+
+### 项目记录
+
+- [`project-records/changelog/CHANGELOG.md`](./project-records/changelog/CHANGELOG.md) - 版本更新记录
 
 ## 🚀 快速开始
 
