@@ -32,6 +32,7 @@ export class MessageService {
         senderId: data.senderId,
         type: data.type as any,
         content: data.content,
+        ...(data.metadata && { metadata: data.metadata }),
       },
       include: {
         sender: {
