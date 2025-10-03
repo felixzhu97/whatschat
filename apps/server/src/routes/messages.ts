@@ -1,9 +1,17 @@
 import { Router } from "express";
-import { MessageService } from "../services/message";
-import { authMiddleware } from "../middleware/auth";
+import { MessageService } from "@/services/message";
+import { authMiddleware } from "@/middleware/auth";
 
 const router: ReturnType<typeof Router> = Router();
-const messageService = new MessageService();
+
+// 创建 MessageService 实例的函数，允许测试时注入 mock
+const createMessageService = () => new MessageService();
+let messageService = createMessageService();
+
+// 允许测试时设置 messageService
+export const setMessageService = (service: MessageService) => {
+  messageService = service;
+};
 
 // Get messages for a chat
 router.get("/:chatId", authMiddleware, async (req, res) => {

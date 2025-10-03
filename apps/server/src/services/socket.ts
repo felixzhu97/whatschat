@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import config from "@/config";
-import prisma from "@/database/client";
+import { prisma } from "@/database/client";
 import logger from "@/utils/logger";
 import { JwtPayload } from "@/types";
 
@@ -11,7 +11,7 @@ interface AuthenticatedSocket extends Socket {
 }
 
 // 在线用户管理
-const onlineUsers = new Map<string, string>(); // userId -> socketId
+export const onlineUsers = new Map<string, string>(); // userId -> socketId
 
 // 验证Socket连接
 const authenticateSocket = async (

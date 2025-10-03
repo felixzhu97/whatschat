@@ -1,12 +1,13 @@
 import { Router, Request, Response } from "express";
 import { query } from "express-validator";
+import { validate } from "@/middleware/validation";
 
 const router: ReturnType<typeof Router> = Router();
 
 // 获取用户列表
 router.get(
   "/",
-  [
+  validate([
     query("page").optional().isInt({ min: 1 }).withMessage("页码必须是正整数"),
     query("limit")
       .optional()
@@ -16,7 +17,7 @@ router.get(
       .optional()
       .isLength({ min: 1 })
       .withMessage("搜索关键词不能为空"),
-  ],
+  ]),
   (_req: Request, res: Response) => {
     res.json({ message: "获取用户列表" });
   }

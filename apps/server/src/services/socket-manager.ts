@@ -17,6 +17,10 @@ class SocketManager {
   }
 
   public initialize(server: HttpServer): Server {
+    if (this.io) {
+      return this.io; // Return existing instance if already initialized
+    }
+
     this.io = new Server(server, {
       cors: {
         origin: config.security.cors.origin,

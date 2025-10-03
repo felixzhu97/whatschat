@@ -3,7 +3,7 @@ import prisma, { prisma as prismaNamed } from "./client";
 import config from "@/config";
 import logger from "@/utils/logger";
 
-async function main() {
+export async function main() {
   logger.info("开始数据库种子...");
 
   try {
