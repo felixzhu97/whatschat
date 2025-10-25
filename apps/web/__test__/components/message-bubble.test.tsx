@@ -305,7 +305,10 @@ describe("MessageBubble", () => {
     });
 
     it("should handle missing sender name", () => {
-      const messageWithoutSender = { ...mockMessage, senderName: "Unknown User" };
+      const messageWithoutSender = {
+        ...mockMessage,
+        senderName: "Unknown User",
+      };
       render(<MessageBubble {...mockProps} message={messageWithoutSender} />);
 
       expect(screen.getByText("Hello, world!")).toBeInTheDocument();
