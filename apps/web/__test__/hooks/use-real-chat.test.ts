@@ -289,8 +289,7 @@ describe("useRealChat Hook", () => {
       const updatedMessage = result.current.messages.find(
         (msg) => msg.id === "msg-1"
       );
-      expect(updatedMessage?.read).toBe(true);
-      expect(updatedMessage?.delivered).toBe(true);
+      expect(updatedMessage?.status).toBe("read");
     });
 
     it("should handle typing indicators", () => {
@@ -421,8 +420,8 @@ describe("useRealChat Hook", () => {
       const updatedMessage = result.current.messages.find(
         (msg) => msg.id === "msg-1"
       );
-      expect(updatedMessage?.text).toBe("Updated message");
-      expect(updatedMessage?.edited).toBe(true);
+      expect(updatedMessage?.content).toBe("Updated message");
+      expect(updatedMessage?.isEdited).toBe(true);
     });
 
     it("should handle message deletion", () => {
