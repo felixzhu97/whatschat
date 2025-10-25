@@ -1,19 +1,19 @@
 @startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!include lib/C4_Component.puml
 
 title WhatsChat Web应用组件图
 
 Person(user, "用户", "使用Web应用进行聊天")
 
 Container_Boundary(webapp, "Web应用 (Next.js 15)") {
-    
+
     Boundary(pages, "页面层 (App Router)") {
         Component(rootLayout, "根布局", "Next.js Layout", "应用根布局组件")
         Component(rootPage, "根页面", "Next.js Page", "应用主页面")
         Component(loginPage, "登录页面", "Next.js Page", "用户登录页面")
         Component(registerPage, "注册页面", "Next.js Page", "用户注册页面")
     }
-    
+
     Boundary(components, "组件层") {
         Component(authWrapper, "认证包装器", "React Component", "认证路由守卫和状态管理")
         Component(whatsappMain, "主聊天界面", "React Component", "WhatsApp风格的主界面布局")
@@ -30,7 +30,7 @@ Container_Boundary(webapp, "Web应用 (Next.js 15)") {
         Component(profilePage, "个人资料页", "React Component", "用户个人资料管理")
         Component(settingsPage, "设置页面", "React Component", "应用设置界面")
     }
-    
+
     Boundary(hooks, "Hook层") {
         Component(useAuth, "认证Hook", "React Hook", "用户认证状态和操作管理")
         Component(useChat, "聊天Hook", "React Hook", "聊天状态和消息管理")
@@ -41,7 +41,7 @@ Container_Boundary(webapp, "Web应用 (Next.js 15)") {
         Component(useVoiceRecorder, "语音录制Hook", "React Hook", "语音录制功能管理")
         Component(useMobile, "移动端Hook", "React Hook", "移动端适配检测")
     }
-    
+
     Boundary(services, "服务层 (lib/)") {
         Component(websocketService, "WebSocket服务", "TypeScript Service", "实时通信连接管理")
         Component(webrtcService, "WebRTC服务", "TypeScript Service", "P2P音视频通话管理")
@@ -51,19 +51,19 @@ Container_Boundary(webapp, "Web应用 (Next.js 15)") {
         Component(hapticFeedback, "触觉反馈", "TypeScript Service", "触觉反馈控制")
         Component(utils, "工具函数", "TypeScript Utilities", "通用工具函数库")
     }
-    
+
     Boundary(stores, "状态管理 (Zustand)") {
         Component(messagesStore, "消息存储", "Zustand Store", "消息状态和历史管理")
         Component(contactsStore, "联系人存储", "Zustand Store", "联系人状态管理")
         Component(callsStore, "通话存储", "Zustand Store", "通话状态和历史管理")
         Component(settingsStore, "设置存储", "Zustand Store", "应用设置状态管理")
     }
-    
+
     Boundary(ui, "UI组件库") {
         Component(radixComponents, "Radix UI组件", "React Components", "可访问的基础UI组件")
         Component(customComponents, "自定义UI组件", "React Components", "项目特定UI组件")
     }
-    
+
     Boundary(data, "数据层") {
         Component(mockData, "模拟数据", "TypeScript Data", "开发和测试用模拟数据")
         Component(typeDefinitions, "类型定义", "TypeScript Types", "应用类型定义")
@@ -132,4 +132,4 @@ Rel(apiService, server, "HTTP API调用")
 Rel(webrtcService, webrtcSignaling, "建立P2P连接")
 Rel(storageService, browserStorage, "本地数据持久化")
 
-@enduml 
+@enduml
