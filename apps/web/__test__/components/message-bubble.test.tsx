@@ -67,13 +67,13 @@ describe("MessageBubble", () => {
   const mockMessage = {
     id: "msg-1",
     content: "Hello, world!",
-    type: "text",
+    type: "text" as const,
     senderId: "user-1",
     senderName: "John Doe",
     timestamp: "2024-01-01T10:00:00Z",
-    status: "read",
+    status: "read" as const,
     isStarred: false,
-    replyTo: null,
+    replyTo: undefined,
   };
 
   const mockProps = {
@@ -140,7 +140,7 @@ describe("MessageBubble", () => {
     it("should show single check for sent status", () => {
       const sentMessage = {
         ...mockMessage,
-        status: "sent",
+        status: "sent" as const,
         senderId: "current-user",
       };
       render(<MessageBubble {...mockProps} message={sentMessage} />);
@@ -151,7 +151,7 @@ describe("MessageBubble", () => {
     it("should show double check for delivered status", () => {
       const deliveredMessage = {
         ...mockMessage,
-        status: "delivered",
+        status: "delivered" as const,
         senderId: "current-user",
       };
       render(<MessageBubble {...mockProps} message={deliveredMessage} />);
@@ -162,7 +162,7 @@ describe("MessageBubble", () => {
     it("should show double check with blue color for read status", () => {
       const readMessage = {
         ...mockMessage,
-        status: "read",
+        status: "read" as const,
         senderId: "current-user",
       };
       render(<MessageBubble {...mockProps} message={readMessage} />);
@@ -190,11 +190,7 @@ describe("MessageBubble", () => {
     it("should render message normally", () => {
       const messageWithReply = {
         ...mockMessage,
-        replyTo: {
-          id: "reply-1",
-          content: "Original message",
-          senderName: "Jane Doe",
-        },
+        replyTo: "reply-1",
       };
       render(<MessageBubble {...mockProps} message={messageWithReply} />);
 
@@ -232,7 +228,7 @@ describe("MessageBubble", () => {
     it("should render image message", () => {
       const imageMessage = {
         ...mockMessage,
-        type: "image",
+        type: "image" as const,
         content: "image.jpg",
         mediaUrl: "https://example.com/image.jpg",
       };
@@ -249,7 +245,7 @@ describe("MessageBubble", () => {
     it("should render file message", () => {
       const fileMessage = {
         ...mockMessage,
-        type: "file",
+        type: "file" as const,
         content: "document.pdf",
         fileName: "document.pdf",
         fileSize: "1.2 MB",
@@ -263,7 +259,7 @@ describe("MessageBubble", () => {
     it("should render audio message", () => {
       const audioMessage = {
         ...mockMessage,
-        type: "audio",
+        type: "audio" as const,
         content: "voice message",
         duration: 30,
       };
@@ -309,7 +305,10 @@ describe("MessageBubble", () => {
     });
 
     it("should handle missing sender name", () => {
-      const messageWithoutSender = { ...mockMessage, senderName: undefined };
+      const messageWithoutSender = {
+        ...mockMessage,
+        senderName: "Unknown User",
+      };
       render(<MessageBubble {...mockProps} message={messageWithoutSender} />);
 
       expect(screen.getByText("Hello, world!")).toBeInTheDocument();

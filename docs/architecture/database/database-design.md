@@ -663,5 +663,3 @@ WHERE created_at < NOW() - INTERVAL '6 months';
 - 慢查询日志
 
 ---
-
-_本文档随数据库设计更新持续维护，最后更新时间：2024年1月_

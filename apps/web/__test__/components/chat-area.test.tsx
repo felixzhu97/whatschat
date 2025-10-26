@@ -119,7 +119,7 @@ describe("ChatArea", () => {
     name: "John Doe",
     avatar: "https://example.com/avatar.jpg",
     status: "online",
-    lastSeen: new Date(),
+    lastSeen: new Date().toISOString(),
     isGroup: false,
     phone: "+1234567890",
     email: "john@example.com",
@@ -133,26 +133,24 @@ describe("ChatArea", () => {
     {
       id: "msg-1",
       content: "Hello!",
-      type: "text",
+      type: "text" as const,
       senderId: "contact-1",
       senderName: "John Doe",
-      timestamp: new Date("2024-01-01T10:00:00Z"),
-      isOwn: false,
-      status: "read",
+      timestamp: "2024-01-01T10:00:00Z",
+      status: "read" as const,
       isStarred: false,
-      replyTo: null,
+      replyTo: undefined,
     },
     {
       id: "msg-2",
       content: "Hi there!",
-      type: "text",
+      type: "text" as const,
       senderId: "user-1",
       senderName: "Me",
-      timestamp: new Date("2024-01-01T10:01:00Z"),
-      isOwn: true,
-      status: "read",
+      timestamp: "2024-01-01T10:01:00Z",
+      status: "read" as const,
       isStarred: false,
-      replyTo: null,
+      replyTo: undefined,
     },
   ];
 
@@ -324,7 +322,7 @@ describe("ChatArea", () => {
       const offlineContact = {
         ...mockContact,
         status: "offline",
-        lastSeen: new Date("2024-01-01T09:00:00Z"),
+        lastSeen: "2024-01-01T09:00:00Z",
       };
       render(<ChatArea {...mockProps} selectedContact={offlineContact} />);
 

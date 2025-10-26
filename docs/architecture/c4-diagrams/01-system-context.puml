@@ -1,5 +1,5 @@
 @startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include lib/C4_Context.puml
 
 title WhatsChat 系统上下文图
 
@@ -32,4 +32,4 @@ Rel(whatsChat, cdn, "加载静态资源", "HTTPS")
 Rel(whatsChat, monitoring, "系统指标上报", "HTTP/Prometheus")
 Rel(whatsChat, searchService, "消息搜索索引", "HTTP/REST")
 
-@enduml 
+@enduml

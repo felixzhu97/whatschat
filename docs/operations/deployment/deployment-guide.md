@@ -629,5 +629,3 @@ docker push registry.whatschat.com/whatschat/server:latest
 - [Grafana 官方文档](https://grafana.com/docs/)
 
 ---
-
-_本文档随部署方案更新持续维护，最后更新时间：2024年1月_

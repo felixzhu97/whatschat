@@ -1,5 +1,5 @@
 @startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include lib/C4_Context.puml
 
 title WhatsChat 系统架构概览
 

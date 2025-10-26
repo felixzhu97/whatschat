@@ -283,5 +283,3 @@ test: add unit tests for user service
 - 技术栈的维护者
 
 ---
-
-_本文档随项目发展持续更新，最后更新时间：2024年1月_

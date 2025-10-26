@@ -1605,5 +1605,3 @@ socket.on("user_status_changed", (data) => {
 - [部署指南](./deployment-guide.md)
 
 ---
-
-_本文档随API更新持续维护，最后更新时间：2024年1月_

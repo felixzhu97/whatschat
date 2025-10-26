@@ -82,7 +82,7 @@ export function useAuth() {
                   apiClient.setToken(token);
 
                   setAuthState({
-                    user,
+                    user: JSON.parse(savedUser),
                     isAuthenticated: true,
                     isLoading: false,
                     error: null,
