@@ -1494,5 +1494,3 @@ export const performanceMonitor = (
 - [Vitest 测试框架](https://vitest.dev/)
 
 ---
-
-_本文档随项目发展持续更新，最后更新时间：2024年1月_

@@ -1,0 +1,208 @@
+@startuml web-single-chat-sequence
+!theme plain
+title Web端单人聊天完整时序图
+
+actor 用户 as U
+participant "浏览器" as B
+participant "WhatsAppMain组件" as WA
+participant "Sidebar组件" as SA
+participant "ChatArea组件" as CA
+participant "MessageArea组件" as MA
+participant "MessageInput组件" as MI
+participant "useRealChat Hook" as UC
+participant "WebSocketManager" as WS
+participant "API Client" as API
+participant "服务器" as S
+database "数据库" as DB
+
+== 1. 用户认证和初始化 ==
+
+U -> B : 访问应用
+B -> WA : 加载WhatsAppMain组件
+WA -> UC : 初始化useAuth Hook
+UC -> API : 检查本地token
+API -> S : GET /auth/me
+S -> DB : 验证用户token
+DB --> S : 返回用户信息
+S --> API : 返回用户数据
+API --> UC : 设置认证状态
+UC --> WA : 返回认证状态
+
+== 2. 加载聊天列表 ==
+
+WA -> SA : 渲染Sidebar组件
+SA -> API : 获取联系人列表
+API -> S : GET /users
+S -> DB : 查询用户列表
+DB --> S : 返回用户数据
+S --> API : 返回联系人列表
+API --> SA : 返回联系人数据
+SA --> WA : 渲染联系人列表
+
+== 3. 建立WebSocket连接 ==
+
+WA -> UC : 初始化useRealChat Hook
+UC -> WS : 创建WebSocketManager实例
+WS -> WS : 建立WebSocket连接
+WS --> UC : 连接状态更新
+UC --> WA : 设置连接状态
+
+== 4. 选择联系人开始聊天 ==
+
+U -> SA : 点击联系人
+SA -> WA : handleContactSelect(contact)
+WA -> WA : setSelectedContactId(contact.id)
+WA -> CA : 渲染ChatArea组件
+CA -> UC : 加载聊天历史
+UC -> API : 获取聊天消息
+API -> S : GET /messages/:chatId
+S -> DB : 查询消息历史
+DB --> S : 返回消息数据
+S --> API : 返回消息列表
+API --> UC : 返回消息数据
+UC --> CA : 设置消息状态
+CA -> MA : 渲染MessageArea组件
+MA --> U : 显示聊天界面
+
+== 5. 发送文本消息 ==
+
+U -> MI : 输入消息文本
+MI -> UC : onMessageChange(text)
+UC -> UC : 更新messageText状态
+U -> MI : 按Enter或点击发送
+MI -> UC : onSendMessage()
+UC -> UC : 创建新消息对象
+UC -> UC : 添加到本地消息列表
+UC -> WS : 发送消息到WebSocket
+WS -> S : WebSocket发送消息
+S -> DB : 保存消息到数据库
+DB --> S : 确认保存
+S -> WS : 发送消息状态更新
+WS --> UC : 消息状态更新(delivered)
+UC --> MA : 更新消息状态
+MA --> U : 显示消息已送达
+
+== 6. 接收消息 ==
+
+S -> WS : 推送新消息
+WS -> UC : 触发message事件
+UC -> UC : 处理接收到的消息
+UC -> UC : 添加到消息列表
+UC --> MA : 更新消息列表
+MA --> U : 显示新消息
+UC -> WS : 发送已读回执
+WS -> S : message_read事件
+S -> DB : 更新消息已读状态
+
+== 7. 输入状态指示 ==
+
+U -> MI : 开始输入
+MI -> UC : startTyping()
+UC -> WS : 发送typing事件
+WS -> S : typing: {isTyping: true}
+S -> WS : 转发给接收方
+WS --> UC : 接收typing事件
+UC --> CA : 显示"正在输入..."
+CA --> U : 显示输入状态
+
+== 8. 发送文件/图片 ==
+
+U -> MI : 点击附件按钮
+MI -> MI : 打开文件选择器
+U -> MI : 选择文件
+MI -> UC : onFileSelect(file)
+UC -> API : 上传文件
+API -> S : POST /files/upload
+S -> DB : 保存文件信息
+DB --> S : 返回文件URL
+S --> API : 返回文件信息
+API --> UC : 返回文件数据
+UC -> UC : 创建文件消息
+UC -> WS : 发送文件消息
+WS -> S : 转发文件消息
+S -> DB : 保存消息
+DB --> S : 确认保存
+S -> WS : 发送状态更新
+WS --> UC : 更新消息状态
+UC --> MA : 显示文件消息
+
+== 9. 语音消息 ==
+
+U -> MI : 长按录音按钮
+MI -> MI : 开始录音
+U -> MI : 松开录音按钮
+MI -> UC : onSendVoice(audioBlob, duration)
+UC -> API : 上传音频文件
+API -> S : POST /files/upload
+S -> DB : 保存音频文件
+DB --> S : 返回音频URL
+S --> API : 返回音频信息
+API --> UC : 返回音频数据
+UC -> UC : 创建语音消息
+UC -> WS : 发送语音消息
+WS -> S : 转发语音消息
+S -> DB : 保存消息
+DB --> S : 确认保存
+S -> WS : 发送状态更新
+WS --> UC : 更新消息状态
+UC --> MA : 显示语音消息
+
+== 10. 消息操作 ==
+
+U -> MA : 长按消息
+MA -> MA : 显示消息菜单
+U -> MA : 选择操作(回复/编辑/删除/转发)
+MA -> UC : 执行相应操作
+UC -> UC : 更新消息状态
+UC -> API : 调用相应API
+API -> S : 相应的HTTP请求
+S -> DB : 更新数据库
+DB --> S : 确认更新
+S --> API : 返回操作结果
+API --> UC : 返回操作结果
+UC --> MA : 更新UI状态
+MA --> U : 显示操作结果
+
+== 11. 消息状态更新 ==
+
+S -> WS : 推送消息状态更新
+WS -> UC : message_status事件
+UC -> UC : 更新消息状态
+UC --> MA : 更新消息显示
+MA --> U : 显示状态变化(已送达/已读)
+
+== 12. 本地存储同步 ==
+
+UC -> UC : 保存消息到localStorage
+UC -> UC : 定期同步聊天历史
+UC -> API : 同步未发送的消息
+API -> S : 批量发送消息
+S -> DB : 批量保存消息
+DB --> S : 确认保存
+S --> API : 返回同步结果
+API --> UC : 更新同步状态
+
+== 13. 连接状态管理 ==
+
+WS -> WS : 检测连接状态
+WS -> WS : 自动重连机制
+WS --> UC : 连接状态变化
+UC --> CA : 更新连接指示器
+CA --> U : 显示连接状态
+
+== 14. 错误处理 ==
+
+UC -> UC : 检测发送失败
+UC -> UC : 标记消息为失败状态
+UC --> MA : 显示重试按钮
+U -> MA : 点击重试
+MA -> UC : 重新发送消息
+UC -> WS : 重新发送
+WS -> S : 重试发送
+S -> DB : 保存消息
+DB --> S : 确认保存
+S --> WS : 发送成功确认
+WS --> UC : 更新消息状态
+UC --> MA : 显示发送成功
+
+@enduml

@@ -835,5 +835,3 @@ export const handleCriticalEvent = async (event: any) => {
 - [Node.js安全最佳实践](https://nodejs.org/en/docs/guides/security/)
 
 ---
-
-_本文档随安全策略更新持续维护，最后更新时间：2024年1月_

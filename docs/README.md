@@ -122,9 +122,10 @@ plantuml -tsvg docs/*.puml
 
 - **页面层**：登录、注册、主页面
 - **组件层**：聊天界面、侧边栏、通话界面、消息组件
-- **Hook层**：认证、聊天、通话、语音录制等状态管理
+- **Hook层**：认证、聊天、通话、语音录制、搜索、对话框、导航等状态管理
 - **服务层**：WebSocket、WebRTC、存储、搜索、触觉反馈
 - **状态管理**：Zustand状态存储（消息、联系人、通话、设置）
+- **工具层**：消息处理工具、模拟数据管理
 
 ### 4. 移动应用组件图 (Mobile Component Diagram)
 
@@ -148,12 +149,12 @@ plantuml -tsvg docs/*.puml
 
 - **Web应用代码结构**：
   - 页面层 (app/): Next.js页面和布局
-  - 组件层 (components/): React组件
-  - Hooks层 (hooks/): 自定义Hook
+  - 组件层 (components/): React组件（已重构优化）
+  - Hooks层 (hooks/): 自定义Hook（useMessages、useSearch、useDialogs、useNavigation）
   - 状态管理 (stores/): Zustand状态存储
-  - 工具库 (lib/): 核心服务和工具函数
+  - 工具库 (lib/): 核心服务和工具函数（message-utils）
   - 类型定义 (types/): TypeScript类型
-  - 数据层 (data/): 模拟数据
+  - 数据层 (data/): 模拟数据集中管理
 
 - **移动应用代码结构**：
   - 屏幕层 (screens/): Flutter屏幕Widget
@@ -250,6 +251,39 @@ plantuml -tsvg docs/*.puml
 - 完整的监控体系
 - CI/CD自动化
 
+### v4.1 - 代码重构优化 (2025年10月)
+
+- **Web应用组件重构**：将 764 行的单体组件拆分为多个自定义 Hooks
+- **模块化设计**：创建了 `useMessages`、`useSearch`、`useDialogs`、`useNavigation` 等专用 Hooks
+- **代码质量提升**：零 Linting 错误，完善的 TypeScript 类型定义
+- **可维护性增强**：关注点分离，单一职责原则
+- **性能优化**：使用 useCallback 避免不必要的重新渲染
+- **可复用性**：自定义 Hooks 可在其他组件中复用
+
+#### 重构详情
+
+**新增文件结构：**
+
+```text
+apps/web/
+├── hooks/
+│   ├── use-messages.ts      # 消息管理逻辑
+│   ├── use-search.ts        # 搜索功能逻辑
+│   ├── use-dialogs.ts       # 对话框状态管理
+│   └── use-navigation.ts    # 页面导航逻辑
+├── data/
+│   └── mock-data.ts         # 模拟数据集中管理
+└── lib/
+    └── message-utils.ts     # 消息处理工具函数
+```
+
+**重构成果：**
+
+- 主组件代码行数从 764 行减少到约 400 行
+- 创建了 4 个自定义 Hooks 和 2 个工具文件
+- 提高了代码的可测试性和可维护性
+- 为未来的功能扩展奠定了良好的架构基础
+
 ### v5.0 - 未来规划
 
 - 服务网格架构
@@ -302,6 +336,40 @@ plantuml -tsvg docs/*.puml
 - [`development/api/api-documentation.md`](./development/api/api-documentation.md) - 详细的API接口说明
 - [`development/testing/testing-guide.md`](./development/testing/testing-guide.md) - 单元测试、集成测试、E2E测试
 - [`development/contributing/contributing-guide.md`](./development/contributing/contributing-guide.md) - 代码贡献流程和规范
+
+#### 代码重构最佳实践
+
+**自定义 Hooks 设计原则：**
+
+- **单一职责**：每个 Hook 专注于一个特定的功能领域
+- **可复用性**：Hook 可以在多个组件中复用
+- **类型安全**：完善的 TypeScript 类型定义
+- **性能优化**：合理使用 useCallback 和 useMemo
+
+**组件重构模式：**
+
+- **状态分离**：将相关状态分组到不同的 Hooks 中
+- **逻辑提取**：将复杂逻辑提取到工具函数中
+- **数据集中**：模拟数据集中管理，便于测试和维护
+- **关注点分离**：UI 渲染与业务逻辑分离
+
+**重构示例：**
+
+```typescript
+// 重构前：单体组件，所有逻辑混在一起
+export function WhatsAppMain() {
+  const [messageText, setMessageText] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  // ... 大量状态和逻辑
+}
+
+// 重构后：使用自定义 Hooks，职责清晰
+export function WhatsAppMain() {
+  const { messageText, handleMessageChange } = useMessages();
+  const { searchQuery, handleSearchChange } = useSearch();
+  // ... 清晰的职责分工
+}
+```
 
 ### 架构设计
 
@@ -363,4 +431,6 @@ plantuml -tsvg docs/*.puml
 
 ---
 
-_本文档随项目架构演进持续更新，最后更新时间：2024年1月_
+## 文档更新记录
+
+本文档随项目架构演进持续更新，最后更新时间：2025年10月（代码重构优化版本）
