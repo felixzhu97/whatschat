@@ -1,80 +1,81 @@
-# 用户注册登录时序图
+@startuml user-auth-sequence
+!theme plain
+title 用户注册登录时序图
 
-```mermaid
-sequenceDiagram
-    participant U as 用户
-    participant W as Web前端
-    participant A as API服务器
-    participant D as 数据库
-    participant E as 邮件服务
+actor 用户 as U
+participant "Web前端" as W
+participant "API服务器" as A
+database "数据库" as D
+participant "邮件服务" as E
 
-    Note over U,E: 用户注册流程
+== 用户注册流程 ==
 
-    U->>W: 填写注册信息
-    W->>A: POST /api/v1/auth/register
-    Note right of W: {username, email, password}
+U -> W : 填写注册信息
+W -> A : POST /api/v1/auth/register
+note right of W : {username, email, password}
+
+A -> A : 验证输入数据
+A -> D : 检查邮箱是否已存在
+D --> A : 返回检查结果
+
+alt 邮箱已存在
+    A --> W : 400 邮箱已存在
+    W --> U : 显示错误信息
+else 邮箱可用
+    A -> A : 密码哈希处理
+    A -> D : 创建用户记录
+    D --> A : 返回用户ID
     
-    A->>A: 验证输入数据
-    A->>D: 检查邮箱是否已存在
-    D-->>A: 返回检查结果
+    A -> E : 发送验证邮件
+    E --> A : 邮件发送成功
     
-    alt 邮箱已存在
-        A-->>W: 400 邮箱已存在
-        W-->>U: 显示错误信息
-    else 邮箱可用
-        A->>A: 密码哈希处理
-        A->>D: 创建用户记录
-        D-->>A: 返回用户ID
-        
-        A->>E: 发送验证邮件
-        E-->>A: 邮件发送成功
-        
-        A->>A: 生成JWT令牌
-        A-->>W: 201 注册成功
-        Note right of A: {user, token}
-        W-->>U: 跳转到登录页面
+    A -> A : 生成JWT令牌
+    A --> W : 201 注册成功
+    note right of A : {user, token}
+    W --> U : 跳转到登录页面
+end
+
+== 用户登录流程 ==
+
+U -> W : 输入登录信息
+W -> A : POST /api/v1/auth/login
+note right of W : {email, password}
+
+A -> D : 根据邮箱查找用户
+D --> A : 返回用户信息
+
+alt 用户不存在
+    A --> W : 401 用户不存在
+    W --> U : 显示错误信息
+else 用户存在
+    A -> A : 验证密码
+    alt 密码错误
+        A --> W : 401 密码错误
+        W --> U : 显示错误信息
+    else 密码正确
+        A -> A : 生成JWT令牌
+        A -> D : 更新最后登录时间
+        A --> W : 200 登录成功
+        note right of A : {user, token}
+        W -> W : 存储令牌到本地
+        W --> U : 跳转到主页面
     end
+end
 
-    Note over U,E: 用户登录流程
+== 令牌刷新流程 ==
 
-    U->>W: 输入登录信息
-    W->>A: POST /api/v1/auth/login
-    Note right of W: {email, password}
-    
-    A->>D: 根据邮箱查找用户
-    D-->>A: 返回用户信息
-    
-    alt 用户不存在
-        A-->>W: 401 用户不存在
-        W-->>U: 显示错误信息
-    else 用户存在
-        A->>A: 验证密码
-        alt 密码错误
-            A-->>W: 401 密码错误
-            W-->>U: 显示错误信息
-        else 密码正确
-            A->>A: 生成JWT令牌
-            A->>D: 更新最后登录时间
-            A-->>W: 200 登录成功
-            Note right of A: {user, token}
-            W->>W: 存储令牌到本地
-            W-->>U: 跳转到主页面
-        end
-    end
+W -> A : POST /api/v1/auth/refresh
+note right of W : {refreshToken}
 
-    Note over U,E: 令牌刷新流程
+A -> A : 验证刷新令牌
+alt 令牌无效
+    A --> W : 401 令牌无效
+    W --> U : 跳转到登录页面
+else 令牌有效
+    A -> A : 生成新的访问令牌
+    A --> W : 200 新令牌
+    note right of A : {accessToken}
+    W -> W : 更新本地令牌
+end
 
-    W->>A: POST /api/v1/auth/refresh
-    Note right of W: {refreshToken}
-    
-    A->>A: 验证刷新令牌
-    alt 令牌无效
-        A-->>W: 401 令牌无效
-        W-->>U: 跳转到登录页面
-    else 令牌有效
-        A->>A: 生成新的访问令牌
-        A-->>W: 200 新令牌
-        Note right of A: {accessToken}
-        W->>W: 更新本地令牌
-    end
-```
+@enduml

@@ -1,128 +1,129 @@
-# 文件上传时序图
+@startuml file-upload-sequence
+!theme plain
+title 文件上传时序图
 
-```mermaid
-sequenceDiagram
-    participant U as 用户
-    participant W as Web前端
-    participant A as API服务器
-    participant FS as 文件存储
-    participant D as 数据库
-    participant WS as WebSocket服务器
-    participant R as 接收者
+actor 用户 as U
+participant "Web前端" as W
+participant "API服务器" as A
+participant "文件存储" as FS
+database "数据库" as D
+participant "WebSocket服务器" as WS
+actor "接收者" as R
 
-    Note over U,R: 文件上传流程
+== 文件上传流程 ==
 
-    U->>W: 选择文件
-    W->>W: 验证文件类型和大小
+U -> W : 选择文件
+W -> W : 验证文件类型和大小
+
+alt 文件验证失败
+    W --> U : 显示错误信息
+else 文件验证通过
+    W -> A : POST /api/v1/files/upload
+    note right of W : 开始分片上传
     
-    alt 文件验证失败
-        W-->>U: 显示错误信息
-    else 文件验证通过
-        W->>A: POST /api/v1/files/upload
-        Note right of W: 开始分片上传
-        
-        A->>A: 生成文件ID和上传令牌
-        A->>D: 创建文件记录
-        D-->>A: 返回文件ID
-        
-        A-->>W: 200 上传准备完成
-        Note right of A: {fileId, uploadToken, chunkSize}
-        
-        loop 分片上传
-            W->>FS: PUT /files/{fileId}/chunks/{chunkIndex}
-            Note right of W: {chunkData, uploadToken}
-            FS-->>W: 200 分片上传成功
-        end
-        
-        W->>A: POST /api/v1/files/{fileId}/complete
-        Note right of W: {fileId, uploadToken}
-        
-        A->>FS: 合并文件分片
-        FS-->>A: 文件合并完成
-        
-        A->>A: 生成文件访问URL
-        A->>D: 更新文件状态
-        D-->>A: 更新成功
-        
-        A-->>W: 200 文件上传完成
-        Note right of A: {fileId, fileUrl, fileSize}
+    A -> A : 生成文件ID和上传令牌
+    A -> D : 创建文件记录
+    D --> A : 返回文件ID
+    
+    A --> W : 200 上传准备完成
+    note right of A : {fileId, uploadToken, chunkSize}
+    
+    loop 分片上传
+        W -> FS : PUT /files/{fileId}/chunks/{chunkIndex}
+        note right of W : {chunkData, uploadToken}
+        FS --> W : 200 分片上传成功
     end
-
-    Note over U,R: 文件消息发送
-
-    W->>WS: 发送文件消息
-    Note right of W: {type: 'send_file_message', fileId, chatId}
     
-    WS->>A: 保存文件消息
-    A->>D: INSERT INTO messages
-    D-->>A: 返回消息ID
+    W -> A : POST /api/v1/files/{fileId}/complete
+    note right of W : {fileId, uploadToken}
     
-    WS->>R: 推送文件消息
-    Note right of WS: {type: 'new_file_message', message}
+    A -> FS : 合并文件分片
+    FS --> A : 文件合并完成
+    
+    A -> A : 生成文件访问URL
+    A -> D : 更新文件状态
+    D --> A : 更新成功
+    
+    A --> W : 200 文件上传完成
+    note right of A : {fileId, fileUrl, fileSize}
+end
 
-    Note over U,R: 文件下载流程
+== 文件消息发送 ==
 
-    R->>W: 点击下载文件
-    W->>A: GET /api/v1/files/{fileId}/download
-    Note right of W: {fileId}
+W -> WS : 发送文件消息
+note right of W : {type: 'send_file_message', fileId, chatId}
+
+WS -> A : 保存文件消息
+A -> D : INSERT INTO messages
+D --> A : 返回消息ID
+
+WS -> R : 推送文件消息
+note right of WS : {type: 'new_file_message', message}
+
+== 文件下载流程 ==
+
+R -> W : 点击下载文件
+W -> A : GET /api/v1/files/{fileId}/download
+note right of W : {fileId}
+
+A -> D : 检查文件权限
+D --> A : 返回文件信息
+
+alt 无权限访问
+    A --> W : 403 无权限访问
+    W --> R : 显示错误信息
+else 有权限访问
+    A -> FS : 获取文件下载URL
+    FS --> A : 返回临时下载链接
     
-    A->>D: 检查文件权限
-    D-->>A: 返回文件信息
-    
-    alt 无权限访问
-        A-->>W: 403 无权限访问
-        W-->>R: 显示错误信息
-    else 有权限访问
-        A->>FS: 获取文件下载URL
-        FS-->>A: 返回临时下载链接
-        
-        A-->>W: 302 重定向到下载链接
-        W->>FS: 下载文件
-        FS-->>W: 文件数据流
-        W-->>R: 保存文件到本地
+    A --> W : 302 重定向到下载链接
+    W -> FS : 下载文件
+    FS --> W : 文件数据流
+    W --> R : 保存文件到本地
+end
+
+== 文件预览流程 ==
+
+R -> W : 预览文件
+W -> A : GET /api/v1/files/{fileId}/preview
+note right of W : {fileId}
+
+A -> D : 检查文件权限
+D --> A : 返回文件信息
+
+alt 无权限访问
+    A --> W : 403 无权限访问
+else 有权限访问
+    alt 图片文件
+        A -> FS : 获取图片URL
+        FS --> A : 返回图片URL
+        A --> W : 200 图片URL
+        W --> R : 显示图片预览
+    else 文档文件
+        A -> FS : 生成文档预览
+        FS --> A : 返回预览URL
+        A --> W : 200 预览URL
+        W --> R : 显示文档预览
+    else 其他文件
+        A --> W : 200 文件信息
+        W --> R : 显示文件信息
     end
+end
 
-    Note over U,R: 文件预览流程
+== 文件删除流程 ==
 
-    R->>W: 预览文件
-    W->>A: GET /api/v1/files/{fileId}/preview
-    Note right of W: {fileId}
-    
-    A->>D: 检查文件权限
-    D-->>A: 返回文件信息
-    
-    alt 无权限访问
-        A-->>W: 403 无权限访问
-    else 有权限访问
-        alt 图片文件
-            A->>FS: 获取图片URL
-            FS-->>A: 返回图片URL
-            A-->>W: 200 图片URL
-            W-->>R: 显示图片预览
-        else 文档文件
-            A->>FS: 生成文档预览
-            FS-->>A: 返回预览URL
-            A-->>W: 200 预览URL
-            W-->>R: 显示文档预览
-        else 其他文件
-            A-->>W: 200 文件信息
-            W-->>R: 显示文件信息
-        end
-    end
+U -> W : 删除文件
+W -> A : DELETE /api/v1/files/{fileId}
+note right of W : {fileId}
 
-    Note over U,R: 文件删除流程
+A -> A : 验证删除权限
+A -> D : 软删除文件记录
+D --> A : 删除成功
 
-    U->>W: 删除文件
-    W->>A: DELETE /api/v1/files/{fileId}
-    Note right of W: {fileId}
-    
-    A->>A: 验证删除权限
-    A->>D: 软删除文件记录
-    D-->>A: 删除成功
-    
-    A->>FS: 标记文件为删除
-    FS-->>A: 标记成功
-    
-    A-->>W: 200 删除成功
-    W-->>U: 更新文件列表
-```
+A -> FS : 标记文件为删除
+FS --> A : 标记成功
+
+A --> W : 200 删除成功
+W --> U : 更新文件列表
+
+@enduml
