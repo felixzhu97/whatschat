@@ -1,0 +1,195 @@
+@startuml Clean Architecture Package Structure
+!theme plain
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title 整洁架构包结构图（Web 应用）
+
+package "apps/web/src" {
+  
+  package "domain" #LightGreen {
+    package "entities" {
+      [User Entity]
+      [Message Entity]
+      [Contact Entity]
+      [Call Entity]
+      [Group Entity]
+    }
+    
+    package "value-objects" {
+      [Email VO]
+      [Password VO]
+      [MessageStatus VO]
+    }
+    
+    package "interfaces" {
+      [Repository Interface]
+      [Service Interface]
+    }
+  }
+  
+  package "application" #LightBlue {
+    package "use-cases" {
+      package "auth" {
+        [Login Use Case]
+        [Register Use Case]
+        [Logout Use Case]
+      }
+      package "messages" {
+        [Send Message Use Case]
+        [Get Messages Use Case]
+        [Delete Message Use Case]
+      }
+      package "contacts" {
+        [Add Contact Use Case]
+        [Search Contacts Use Case]
+      }
+      package "calls" {
+        [Start Call Use Case]
+        [End Call Use Case]
+      }
+    }
+    
+    package "dto" {
+      [Auth DTO]
+      [Message DTO]
+      [Contact DTO]
+    }
+    
+    package "ports" {
+      package "repositories" {
+        [User Repository Port]
+        [Message Repository Port]
+        [Contact Repository Port]
+      }
+      package "services" {
+        [Auth Service Port]
+        [WebSocket Service Port]
+        [WebRTC Service Port]
+      }
+    }
+  }
+  
+  package "infrastructure" #LightYellow {
+    package "adapters" {
+      package "repositories" {
+        [API User Repository]
+        [API Message Repository]
+        [Local Storage Repository]
+      }
+      package "services" {
+        [HTTP Auth Service]
+        [WebSocket Client Service]
+        [WebRTC Client Service]
+      }
+      package "mappers" {
+        [User Mapper]
+        [Message Mapper]
+      }
+    }
+    
+    package "framework" {
+      package "api" {
+        [API Client]
+      }
+      package "websocket" {
+        [WebSocket Client]
+      }
+      package "webrtc" {
+        [WebRTC Client]
+      }
+      package "storage" {
+        [LocalStorage Adapter]
+        [SessionStorage Adapter]
+      }
+    }
+    
+    package "presentation" {
+      package "stores" {
+        [Auth Store]
+        [Messages Store]
+        [Contacts Store]
+      }
+      package "hooks" {
+        [useAuth Hook]
+        [useMessages Hook]
+        [useContacts Hook]
+      }
+      package "providers" {
+        [Dependencies Provider]
+        [Auth Provider]
+      }
+    }
+  }
+  
+  package "ui" #LightCoral {
+    package "components" {
+      package "chat" {
+        [Chat Area]
+        [Message Bubble]
+        [Message Input]
+      }
+      package "contacts" {
+        [Contact List Item]
+      }
+      package "calls" {
+        [Call Interface]
+      }
+      package "auth" {
+        [Login Form]
+        [Register Form]
+      }
+    }
+    package "components/ui" {
+      [Button]
+      [Input]
+      [Dialog]
+    }
+    package "layouts" {
+      [Main Layout]
+      [Auth Layout]
+    }
+  }
+}
+
+' 依赖关系
+[Login Use Case] --> [User Entity]
+[Login Use Case] --> [User Repository Port]
+[API User Repository] ..|> [User Repository Port]
+[API User Repository] --> [API Client]
+[useAuth Hook] --> [Login Use Case]
+[useAuth Hook] --> [Auth Store]
+[Login Form] --> [useAuth Hook]
+
+[Send Message Use Case] --> [Message Entity]
+[Send Message Use Case] --> [Message Repository Port]
+[API Message Repository] ..|> [Message Repository Port]
+[useMessages Hook] --> [Send Message Use Case]
+[Message Input] --> [useMessages Hook]
+
+note right of domain
+  实体层
+  最内层
+  不依赖任何外部包
+end note
+
+note right of application
+  用例层
+  依赖实体层
+  定义端口（接口）
+end note
+
+note right of infrastructure
+  基础设施层
+  实现端口
+  依赖用例层和实体层
+end note
+
+note right of ui
+  UI 层
+  最外层
+  依赖所有内层
+end note
+
+@enduml
+

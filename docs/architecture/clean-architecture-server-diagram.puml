@@ -1,0 +1,176 @@
+@startuml Clean Architecture Server Structure
+!theme plain
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title 整洁架构包结构图（Server 应用）
+
+package "apps/server/src" {
+  
+  package "domain" #LightGreen {
+    package "entities" {
+      [User Entity]
+      [Message Entity]
+      [Contact Entity]
+      [Call Entity]
+      [Group Entity]
+    }
+    
+    package "value-objects" {
+      [Email VO]
+      [Password VO]
+      [MessageContent VO]
+    }
+    
+    package "interfaces" {
+      [Repository Interface]
+      [Service Interface]
+    }
+  }
+  
+  package "application" #LightBlue {
+    package "use-cases" {
+      package "auth" {
+        [Login Use Case]
+        [Register Use Case]
+        [Refresh Token Use Case]
+      }
+      package "messages" {
+        [Send Message Use Case]
+        [Get Messages Use Case]
+        [Delete Message Use Case]
+      }
+      package "contacts" {
+        [Add Contact Use Case]
+        [Search Contacts Use Case]
+      }
+      package "calls" {
+        [Start Call Use Case]
+        [End Call Use Case]
+      }
+    }
+    
+    package "dto" {
+      [Auth DTO]
+      [Message DTO]
+      [Contact DTO]
+    }
+    
+    package "ports" {
+      package "repositories" {
+        [User Repository Port]
+        [Message Repository Port]
+        [Contact Repository Port]
+      }
+      package "services" {
+        [JWT Service Port]
+        [Encryption Service Port]
+        [WebSocket Service Port]
+      }
+    }
+  }
+  
+  package "infrastructure" #LightYellow {
+    package "adapters" {
+      package "repositories" {
+        [Prisma User Repository]
+        [Prisma Message Repository]
+        [Redis Cache Repository]
+      }
+      package "services" {
+        [JWT Service]
+        [Bcrypt Service]
+        [WebSocket Server Service]
+      }
+      package "mappers" {
+        [User Mapper]
+        [Message Mapper]
+      }
+    }
+    
+    package "framework" {
+      package "express" {
+        [Express App]
+        [Express Server]
+      }
+      package "database" {
+        package "prisma" {
+          [Prisma Client]
+        }
+        package "redis" {
+          [Redis Client]
+        }
+      }
+      package "websocket" {
+        [Socket.IO Server]
+      }
+    }
+    
+    package "presentation" {
+      package "controllers" {
+        [Auth Controller]
+        [Message Controller]
+        [Contact Controller]
+      }
+      package "routes" {
+        [Auth Routes]
+        [Message Routes]
+        [Contact Routes]
+      }
+      package "middleware" {
+        [Auth Middleware]
+        [Error Middleware]
+        [Validation Middleware]
+      }
+      package "validators" {
+        [Auth Validator]
+        [Message Validator]
+      }
+    }
+  }
+  
+  package "config" {
+    [App Config]
+    [Database Config]
+    [Security Config]
+  }
+}
+
+' 依赖关系
+[Login Use Case] --> [User Entity]
+[Login Use Case] --> [User Repository Port]
+[Login Use Case] --> [JWT Service Port]
+[Prisma User Repository] ..|> [User Repository Port]
+[Prisma User Repository] --> [Prisma Client]
+[JWT Service] ..|> [JWT Service Port]
+[Auth Controller] --> [Login Use Case]
+[Auth Routes] --> [Auth Controller]
+[Auth Middleware] --> [JWT Service]
+
+[Send Message Use Case] --> [Message Entity]
+[Send Message Use Case] --> [Message Repository Port]
+[Send Message Use Case] --> [WebSocket Service Port]
+[Prisma Message Repository] ..|> [Message Repository Port]
+[WebSocket Server Service] ..|> [WebSocket Service Port]
+[Message Controller] --> [Send Message Use Case]
+
+note right of domain
+  实体层
+  最内层
+  不依赖任何外部包
+end note
+
+note right of application
+  用例层
+  依赖实体层
+  定义端口（接口）
+end note
+
+note right of infrastructure
+  基础设施层
+  实现端口
+  依赖用例层和实体层
+end note
+
+@enduml
+

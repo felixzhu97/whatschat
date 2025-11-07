@@ -1,0 +1,89 @@
+@startuml Clean Architecture Layers
+!theme plain
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+title 整洁架构分层图
+
+package "框架和驱动层\n(Frameworks & Drivers)" as FrameworkLayer {
+  [React/Next.js] as React
+  [Express] as Express
+  [Prisma] as Prisma
+  [Redis] as Redis
+  [WebSocket] as WebSocket
+  [WebRTC] as WebRTC
+}
+
+package "接口适配器层\n(Interface Adapters)" as AdapterLayer {
+  package "展示层" as Presentation {
+    [Controllers] as Controllers
+    [Routes] as Routes
+    [Hooks] as Hooks
+    [Stores] as Stores
+  }
+  
+  package "适配器" as Adapters {
+    [Repository Adapters] as RepoAdapters
+    [Service Adapters] as ServiceAdapters
+    [Mappers] as Mappers
+  }
+}
+
+package "用例层\n(Use Cases)" as UseCaseLayer {
+  [Login Use Case] as LoginUC
+  [Send Message Use Case] as SendMsgUC
+  [Start Call Use Case] as StartCallUC
+  [Create Group Use Case] as CreateGroupUC
+}
+
+package "实体层\n(Entities)" as EntityLayer {
+  [User Entity] as User
+  [Message Entity] as Message
+  [Contact Entity] as Contact
+  [Call Entity] as Call
+  [Group Entity] as Group
+}
+
+' 依赖关系（从外向内）
+FrameworkLayer --> AdapterLayer : 依赖
+AdapterLayer --> UseCaseLayer : 依赖
+UseCaseLayer --> EntityLayer : 依赖
+
+' 具体依赖
+React --> Hooks
+Hooks --> LoginUC
+LoginUC --> User
+
+Express --> Controllers
+Controllers --> LoginUC
+LoginUC --> User
+
+Prisma --> RepoAdapters
+RepoAdapters --> LoginUC
+
+note right of EntityLayer
+  最内层
+  不依赖任何外部层
+  包含核心业务规则
+end note
+
+note right of UseCaseLayer
+  业务用例
+  协调实体和仓储
+  不依赖框架
+end note
+
+note right of AdapterLayer
+  实现接口
+  数据转换
+  连接用例和框架
+end note
+
+note right of FrameworkLayer
+  最外层
+  技术细节
+  可以随时替换
+end note
+
+@enduml
+

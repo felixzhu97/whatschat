@@ -1,0 +1,114 @@
+@startuml Clean Architecture Sequence Diagram
+!theme plain
+skinparam sequenceMessageAlign center
+
+title 整洁架构时序图示例（用户登录流程）
+
+actor User as user
+participant "Login Form\n(UI Layer)" as ui
+participant "useAuth Hook\n(Presentation)" as hook
+participant "Auth Store\n(Presentation)" as store
+participant "Login Use Case\n(Application)" as usecase
+participant "API User Repository\n(Infrastructure)" as repo
+participant "HTTP Auth Service\n(Infrastructure)" as authService
+participant "API Client\n(Framework)" as apiClient
+database "Backend API" as api
+entity "User Entity\n(Domain)" as userEntity
+
+user -> ui: 输入邮箱和密码
+user -> ui: 点击登录按钮
+
+ui -> hook: login(email, password)
+
+activate hook
+hook -> store: setLoading(true)
+
+hook -> usecase: execute(LoginDto)
+
+activate usecase
+note right of usecase
+  业务逻辑层
+  验证输入
+  协调仓储和服务
+end note
+
+usecase -> usecase: validateInput(dto)
+
+usecase -> repo: findByEmail(email)
+
+activate repo
+repo -> apiClient: GET /api/users?email=xxx
+
+activate apiClient
+apiClient -> api: HTTP Request
+api -> apiClient: User Data (DTO)
+deactivate apiClient
+
+repo -> repo: UserMapper.toDomain(dto)
+repo -> userEntity: new User(...)
+
+activate userEntity
+note right of userEntity
+  实体层
+  业务对象
+  包含验证逻辑
+end note
+userEntity -> userEntity: validate()
+deactivate userEntity
+
+repo --> usecase: User Entity
+deactivate repo
+
+usecase -> authService: verifyPassword(password, hash)
+
+activate authService
+authService -> apiClient: POST /api/auth/verify
+apiClient -> api: HTTP Request
+api -> apiClient: Verification Result
+deactivate apiClient
+authService --> usecase: true/false
+deactivate authService
+
+alt 密码正确
+  usecase -> authService: generateTokens(user)
+  activate authService
+  authService -> apiClient: POST /api/auth/tokens
+  apiClient -> api: HTTP Request
+  api -> apiClient: Tokens
+  deactivate apiClient
+  authService --> usecase: { accessToken, refreshToken }
+  deactivate authService
+  
+  usecase --> hook: { user, tokens }
+  deactivate usecase
+  
+  hook -> store: setUser(user)
+  hook -> store: setLoading(false)
+  hook -> hook: localStorage.setItem('token', ...)
+  
+  hook --> ui: 登录成功
+  deactivate hook
+  
+  ui -> user: 跳转到主页面
+else 密码错误
+  usecase --> hook: throw Error("Invalid credentials")
+  deactivate usecase
+  
+  hook -> store: setError("Invalid credentials")
+  hook -> store: setLoading(false)
+  hook --> ui: 显示错误信息
+  deactivate hook
+  
+  ui -> user: 显示错误提示
+end
+
+note over user, userEntity
+  **依赖方向**
+  
+  UI → Presentation → Use Case → Entity
+  依赖只能从外向内
+  内层不依赖外层
+end note
+
+@enduml
+
