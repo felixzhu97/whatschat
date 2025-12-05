@@ -1,8 +1,9 @@
-import { prisma } from "../database/client";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 export interface CreateMessageData {
   content: string;
-  type: "TEXT" | "IMAGE" | "VIDEO" | "AUDIO" | "FILE";
+  type: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
   senderId: string;
   chatId: string;
   metadata?: any;
@@ -14,19 +15,22 @@ export interface GetMessagesOptions {
   search?: string;
 }
 
-export class MessageService {
+@Injectable()
+export class MessagesService {
+  constructor(private readonly prisma: PrismaService) {}
+
   async createMessage(data: CreateMessageData) {
-    // Check if chat exists
-    const chat = await prisma.chat.findUnique({
+    // 检查聊天是否存在
+    const chat = await this.prisma.chat.findUnique({
       where: { id: data.chatId },
     });
 
     if (!chat) {
-      throw new Error("聊天不存在");
+      throw new NotFoundException('聊天不存在');
     }
 
-    // Create message
-    const message = await prisma.message.create({
+    // 创建消息
+    const message = await this.prisma.message.create({
       data: {
         chatId: data.chatId,
         senderId: data.senderId,
@@ -45,8 +49,8 @@ export class MessageService {
       },
     });
 
-    // Update chat's last message
-    await prisma.chat.update({
+    // 更新聊天的最后消息时间
+    await this.prisma.chat.update({
       where: { id: data.chatId },
       data: {
         updatedAt: new Date(),
@@ -65,11 +69,11 @@ export class MessageService {
     if (search) {
       where.content = {
         contains: search,
-        mode: "insensitive",
+        mode: 'insensitive',
       };
     }
 
-    return await prisma.message.findMany({
+    return await this.prisma.message.findMany({
       where,
       include: {
         sender: {
@@ -80,13 +84,16 @@ export class MessageService {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
     });
   }
 
-  async updateMessage(messageId: string, data: Partial<CreateMessageData>) {
+  async updateMessage(
+    messageId: string,
+    data: Partial<CreateMessageData>,
+  ) {
     const updateData: any = {
       updatedAt: new Date(),
     };
@@ -96,7 +103,7 @@ export class MessageService {
     if (data.type !== undefined) {
       updateData.type = data.type as any;
     }
-    return await prisma.message.update({
+    return await this.prisma.message.update({
       where: { id: messageId },
       data: updateData,
       include: {
@@ -112,21 +119,9 @@ export class MessageService {
   }
 
   async deleteMessage(messageId: string) {
-    return await prisma.message.delete({
+    return await this.prisma.message.delete({
       where: { id: messageId },
     });
   }
-
-  async markAsRead(chatId: string, userId: string) {
-    await prisma.message.findMany({
-      where: {
-        chatId,
-        senderId: { not: userId },
-        // Message 模型无 readAt 字段，如需已读状态请使用 MessageRead 表
-      },
-    });
-
-    // Mark messages as read (simplified implementation)
-    return true;
-  }
 }
+

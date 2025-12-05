@@ -151,36 +151,74 @@ export const config = {
 
 // 验证必需的配置
 export const validateConfig = (): void => {
-  const requiredConfigs = [
-    {
-      key: "JWT_SECRET",
-      value: config.jwt.secret,
-      validator: (val: string) => val.length >= 32,
-      message: "JWT_SECRET must be at least 32 characters long",
-    },
-    {
-      key: "DATABASE_URL",
-      value: config.database.url,
-      validator: (val: string) => val.startsWith("postgresql://"),
-      message: "DATABASE_URL must be a valid PostgreSQL connection string",
-    },
-    {
-      key: "REDIS_URL",
-      value: config.redis.url,
-      validator: (val: string) => val.startsWith("redis://"),
-      message: "REDIS_URL must be a valid Redis connection string",
-    },
-  ];
+  const nodeEnv = config.server.nodeEnv;
+  const isProduction = nodeEnv === "production";
 
-  const invalidConfigs = requiredConfigs.filter(
-    ({ value, validator }) => !value || !validator(value)
-  );
+  // 在生产环境中进行严格验证
+  if (isProduction) {
+    const requiredConfigs = [
+      {
+        key: "JWT_SECRET",
+        value: config.jwt.secret,
+        validator: (val: string) => val && val.length >= 32,
+        message: "JWT_SECRET must be at least 32 characters long",
+      },
+      {
+        key: "DATABASE_URL",
+        value: config.database.url,
+        validator: (val: string) => val && val.startsWith("postgresql://"),
+        message: "DATABASE_URL must be a valid PostgreSQL connection string",
+      },
+      {
+        key: "REDIS_URL",
+        value: config.redis.url,
+        validator: (val: string) =>
+          val && (val.startsWith("redis://") || val.startsWith("rediss://")),
+        message: "REDIS_URL must be a valid Redis connection string",
+      },
+    ];
 
-  if (invalidConfigs.length > 0) {
-    const errorMessages = invalidConfigs.map(
-      ({ key, message }) => `${key}: ${message}`
+    const invalidConfigs = requiredConfigs.filter(
+      ({ value, validator }) => !value || !validator(value)
     );
-    throw new Error(`配置验证失败:\n${errorMessages.join("\n")}`);
+
+    if (invalidConfigs.length > 0) {
+      const errorMessages = invalidConfigs.map(
+        ({ key, message }) => `${key}: ${message}`
+      );
+      throw new Error(`配置验证失败:\n${errorMessages.join("\n")}`);
+    }
+  } else {
+    // 开发环境：只显示警告，不抛出错误
+    const warnings: string[] = [];
+
+    if (
+      !process.env["JWT_SECRET"] ||
+      config.jwt.secret === "your-super-secret-jwt-key-here" ||
+      config.jwt.secret.length < 32
+    ) {
+      warnings.push(
+        "警告: JWT_SECRET 长度不足32个字符，生产环境请设置至少32个字符的强密钥"
+      );
+    }
+
+    if (
+      !process.env["DATABASE_URL"] ||
+      config.database.url.includes("username:password")
+    ) {
+      warnings.push("警告: 使用默认DATABASE_URL，请设置正确的数据库连接");
+    }
+
+    if (
+      !process.env["REDIS_URL"] ||
+      config.redis.url === "redis://localhost:6379"
+    ) {
+      warnings.push("警告: 使用默认REDIS_URL，请设置正确的Redis连接");
+    }
+
+    if (warnings.length > 0) {
+      console.warn("配置警告:\n" + warnings.join("\n"));
+    }
   }
 };
 

@@ -1,0 +1,16 @@
+version: "3.8"
+
+# 开发环境覆盖配置
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: whatschat
+      POSTGRES_PASSWORD: whatschat123
+      POSTGRES_DB: whatschat
+
+  redis:
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes

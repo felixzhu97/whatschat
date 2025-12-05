@@ -1,0 +1,1225 @@
+{
+  "info": {
+    "_postman_id": "whatschat-api-collection",
+    "name": "WhatsChat API",
+    "description": "WhatsChat 聊天应用 API 文档",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "whatschat-api"
+  },
+  "item": [
+    {
+      "name": "健康检查",
+      "item": [
+        {
+          "name": "基础健康检查",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "检查服务器基本运行状态"
+          },
+          "response": []
+        },
+        {
+          "name": "详细健康检查",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "检查服务器及依赖服务（数据库、Redis）的运行状态"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "认证",
+      "item": [
+        {
+          "name": "用户注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test123456\",\n  \"phone\": \"13800138000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "注册新用户。用户名长度3-20字符，只能包含字母、数字和下划线。密码至少6位，必须包含大小写字母和数字。"
+          },
+          "response": []
+        },
+        {
+          "name": "用户登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "用户登录，返回 JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "刷新 Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh-token"]
+            },
+            "description": "使用 refresh token 获取新的 access token"
+          },
+          "response": []
+        },
+        {
+          "name": "退出登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "退出登录，需要认证"
+          },
+          "response": []
+        },
+        {
+          "name": "获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "me"]
+            },
+            "description": "获取当前登录用户的详细信息，需要认证"
+          },
+          "response": []
+        },
+        {
+          "name": "更新用户资料",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newusername\",\n  \"status\": \"在线\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "profile"]
+            },
+            "description": "更新用户资料，需要认证。用户名长度3-20字符，状态信息不超过100字符。"
+          },
+          "response": []
+        },
+        {
+          "name": "修改密码",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPass123\",\n  \"newPassword\": \"NewPass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "change-password"]
+            },
+            "description": "修改用户密码，需要认证。新密码至少6位，必须包含大小写字母和数字。"
+          },
+          "response": []
+        },
+        {
+          "name": "忘记密码",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "forgot-password"]
+            },
+            "description": "发送密码重置邮件"
+          },
+          "response": []
+        },
+        {
+          "name": "重置密码",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"newPassword\": \"NewPass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "reset-password"]
+            },
+            "description": "使用重置令牌设置新密码。新密码至少6位，必须包含大小写字母和数字。"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "用户",
+      "item": [
+        {
+          "name": "获取用户列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users?page=1&limit=20&search=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "页码，从1开始"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "每页数量，1-100之间"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "搜索关键词",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "获取用户列表，支持分页和搜索"
+          },
+          "response": []
+        },
+        {
+          "name": "获取用户详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "根据用户ID获取用户详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "更新用户信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newusername\",\n  \"status\": \"在线\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "更新指定用户的信息"
+          },
+          "response": []
+        },
+        {
+          "name": "删除用户",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "删除指定用户"
+          },
+          "response": []
+        },
+        {
+          "name": "阻止用户",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id/block",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id", "block"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "阻止指定用户"
+          },
+          "response": []
+        },
+        {
+          "name": "取消阻止用户",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/:id/block",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ":id", "block"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "取消阻止指定用户"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "聊天",
+      "item": [
+        {
+          "name": "获取聊天列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats"]
+            },
+            "description": "获取当前用户的聊天列表"
+          },
+          "response": []
+        },
+        {
+          "name": "创建聊天",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"user_id_here\",\n  \"type\": \"private\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats"]
+            },
+            "description": "创建新的聊天会话"
+          },
+          "response": []
+        },
+        {
+          "name": "获取聊天详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "获取指定聊天的详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "更新聊天信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"聊天名称\",\n  \"description\": \"聊天描述\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "更新聊天信息"
+          },
+          "response": []
+        },
+        {
+          "name": "删除聊天",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "删除指定聊天"
+          },
+          "response": []
+        },
+        {
+          "name": "归档聊天",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats/:id/archive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats", ":id", "archive"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "归档指定聊天"
+          },
+          "response": []
+        },
+        {
+          "name": "静音聊天",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chats/:id/mute",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chats", ":id", "mute"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "静音指定聊天"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "消息",
+      "item": [
+        {
+          "name": "获取聊天消息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages/:chatId?page=1&limit=20&search=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "messages", ":chatId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "页码，从1开始"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "每页数量"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "搜索关键词",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "chatId",
+                  "value": "chat_id_here"
+                }
+              ]
+            },
+            "description": "获取指定聊天的消息列表，支持分页和搜索，需要认证"
+          },
+          "response": []
+        },
+        {
+          "name": "发送消息",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"这是一条消息\",\n  \"type\": \"text\",\n  \"chatId\": \"chat_id_here\",\n  \"metadata\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "messages"]
+            },
+            "description": "发送新消息。消息类型支持：text, image, video, audio, file。需要认证"
+          },
+          "response": []
+        },
+        {
+          "name": "更新消息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"更新后的消息内容\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages/:messageId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "messages", ":messageId"],
+              "variable": [
+                {
+                  "key": "messageId",
+                  "value": "message_id_here"
+                }
+              ]
+            },
+            "description": "更新指定消息，需要认证"
+          },
+          "response": []
+        },
+        {
+          "name": "删除消息",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages/:messageId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "messages", ":messageId"],
+              "variable": [
+                {
+                  "key": "messageId",
+                  "value": "message_id_here"
+                }
+              ]
+            },
+            "description": "删除指定消息，需要认证"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "群组",
+      "item": [
+        {
+          "name": "获取群组列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups"]
+            },
+            "description": "获取当前用户所在的群组列表"
+          },
+          "response": []
+        },
+        {
+          "name": "创建群组",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"群组名称\",\n  \"description\": \"群组描述\",\n  \"participantIds\": [\"user_id_1\", \"user_id_2\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups"]
+            },
+            "description": "创建新群组"
+          },
+          "response": []
+        },
+        {
+          "name": "获取群组详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                }
+              ]
+            },
+            "description": "获取指定群组的详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "更新群组信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"新群组名称\",\n  \"description\": \"新群组描述\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                }
+              ]
+            },
+            "description": "更新群组信息"
+          },
+          "response": []
+        },
+        {
+          "name": "删除群组",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                }
+              ]
+            },
+            "description": "删除指定群组"
+          },
+          "response": []
+        },
+        {
+          "name": "添加群组成员",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user_id_here\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id/participants",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups", ":id", "participants"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                }
+              ]
+            },
+            "description": "向群组添加新成员"
+          },
+          "response": []
+        },
+        {
+          "name": "移除群组成员",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id/participants/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "groups", ":id", "participants", ":userId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                },
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "从群组中移除指定成员"
+          },
+          "response": []
+        },
+        {
+          "name": "更改成员角色",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/groups/:id/participants/:userId/role",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "groups",
+                ":id",
+                "participants",
+                ":userId",
+                "role"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "group_id_here"
+                },
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "更改群组成员角色（如：admin, member等）"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "通话",
+      "item": [
+        {
+          "name": "获取通话记录",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls"]
+            },
+            "description": "获取当前用户的通话记录列表"
+          },
+          "response": []
+        },
+        {
+          "name": "发起通话",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"user_id_here\",\n  \"type\": \"voice\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls"]
+            },
+            "description": "发起新的通话（语音或视频）"
+          },
+          "response": []
+        },
+        {
+          "name": "获取通话详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "call_id_here"
+                }
+              ]
+            },
+            "description": "获取指定通话的详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "接听通话",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls/:id/answer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls", ":id", "answer"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "call_id_here"
+                }
+              ]
+            },
+            "description": "接听指定通话"
+          },
+          "response": []
+        },
+        {
+          "name": "拒绝通话",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls/:id/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls", ":id", "reject"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "call_id_here"
+                }
+              ]
+            },
+            "description": "拒绝指定通话"
+          },
+          "response": []
+        },
+        {
+          "name": "结束通话",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/calls/:id/end",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "calls", ":id", "end"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "call_id_here"
+                }
+              ]
+            },
+            "description": "结束指定通话"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "状态",
+      "item": [
+        {
+          "name": "获取状态列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "status"]
+            },
+            "description": "获取用户状态列表（类似 WhatsApp 状态功能）"
+          },
+          "response": []
+        },
+        {
+          "name": "发布状态",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"状态内容\",\n  \"type\": \"text\",\n  \"mediaUrl\": \"https://example.com/image.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "status"]
+            },
+            "description": "发布新状态"
+          },
+          "response": []
+        },
+        {
+          "name": "获取状态详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/status/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "status", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "status_id_here"
+                }
+              ]
+            },
+            "description": "获取指定状态的详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "删除状态",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/status/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "status", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "status_id_here"
+                }
+              ]
+            },
+            "description": "删除指定状态"
+          },
+          "response": []
+        },
+        {
+          "name": "标记状态为已查看",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/status/:id/view",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "status", ":id", "view"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "status_id_here"
+                }
+              ]
+            },
+            "description": "标记指定状态为已查看"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

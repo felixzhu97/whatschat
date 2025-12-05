@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  # PostgreSQL 数据库服务
+  postgres:
+    image: postgres:15-alpine
+    container_name: whatschat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-whatschat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-whatschat123}
+      POSTGRES_DB: ${POSTGRES_DB:-whatschat}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - whatschat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-whatschat}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: whatschat-redis
+    restart: unless-stopped
+    command: >
+      sh -c "if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --appendonly yes --requirepass $$REDIS_PASSWORD
+      else
+        redis-server --appendonly yes
+      fi"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - whatschat-network
+    healthcheck:
+      test: >
+        sh -c "if [ -n \"$$REDIS_PASSWORD\" ]; then
+          redis-cli -a $$REDIS_PASSWORD ping
+        else
+          redis-cli ping
+        fi"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  whatschat-network:
+    driver: bridge

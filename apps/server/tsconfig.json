@@ -37,7 +37,10 @@
       "@/routes/*": ["routes/*"],
       "@/services/*": ["services/*"],
       "@/utils/*": ["utils/*"],
-      "@/types/*": ["types/*"]
+      "@/types/*": ["types/*"],
+      "@/domain/*": ["domain/*"],
+      "@/application/*": ["application/*"],
+      "@/infrastructure/*": ["infrastructure/*"]
     }
   },
   "include": ["src/**/*"],
