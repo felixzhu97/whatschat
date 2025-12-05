@@ -8,13 +8,13 @@
 
 #### C4 架构图
 
-- [`architecture/c4-diagrams/01-system-context.puml`](./architecture/c4-diagrams/01-system-context.puml) - 系统上下文图 (Level 1)
-- [`architecture/c4-diagrams/02-container-diagram.puml`](./architecture/c4-diagrams/02-container-diagram.puml) - 容器图 (Level 2)
-- [`architecture/c4-diagrams/03-component-diagram.puml`](./architecture/c4-diagrams/03-component-diagram.puml) - Web应用组件图 (Level 3)
-- [`architecture/c4-diagrams/03-mobile-component-diagram.puml`](./architecture/c4-diagrams/03-mobile-component-diagram.puml) - 移动应用组件图 (Level 3)
-- [`architecture/c4-diagrams/04-code-diagram.puml`](./architecture/c4-diagrams/04-code-diagram.puml) - 代码结构图 (Level 4)
-- [`architecture/c4-diagrams/05-architecture-overview.puml`](./architecture/c4-diagrams/05-architecture-overview.puml) - 系统架构概览
-- [`architecture/c4-diagrams/06-deployment-diagram.puml`](./architecture/c4-diagrams/06-deployment-diagram.puml) - 部署架构图
+- [`architecture/c4-system-context.puml`](./architecture/c4-system-context.puml) - 系统上下文图 (Level 1)
+- [`architecture/c4-container.puml`](./architecture/c4-container.puml) - 容器图 (Level 2)
+- [`architecture/c4-web-components.puml`](./architecture/c4-web-components.puml) - Web应用组件图 (Level 3)
+- [`architecture/c4-mobile-components.puml`](./architecture/c4-mobile-components.puml) - 移动应用组件图 (Level 3)
+- [`architecture/c4-code.puml`](./architecture/c4-code.puml) - 代码结构图 (Level 4)
+- [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - 系统架构概览
+- [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - 部署架构图
 
 #### 时序图
 
@@ -387,9 +387,9 @@ export function WhatsAppMain() {
 
 ### 架构设计
 
-- [`architecture/c4-diagrams/05-architecture-overview.puml`](./architecture/c4-diagrams/05-architecture-overview.puml) - 整体技术架构
+- [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - 整体技术架构
 - [`architecture/database/database-design.md`](./architecture/database/database-design.md) - 数据库设计和ER图
-- [`architecture/c4-diagrams/06-deployment-diagram.puml`](./architecture/c4-diagrams/06-deployment-diagram.puml) - 生产环境部署
+- [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - 生产环境部署
 - [`architecture/sequence-diagrams/README.md`](./architecture/sequence-diagrams/README.md) - 业务流程时序图
 
 ### 运维部署
@@ -425,7 +425,7 @@ export function WhatsAppMain() {
 plantuml docs/*.puml
 
 # 生成特定架构图
-plantuml docs/01-system-context.puml
+plantuml docs/architecture/c4-system-context.puml
 
 # 生成SVG格式
 plantuml -tsvg docs/*.puml

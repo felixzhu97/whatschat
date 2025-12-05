@@ -236,11 +236,11 @@ pnpm check-types
 
 查看 `docs/` 文件夹中的 C4 架构图：
 
-- [系统上下文图](docs/01-system-context.puml)
-- [容器图](docs/02-container-diagram.puml)
-- [组件图](docs/03-component-diagram.puml)
-- [代码图](docs/04-code-diagram.puml)
-- [架构概览图](docs/05-architecture-overview.puml)
+- [系统上下文图](docs/architecture/c4-system-context.puml)
+- [容器图](docs/architecture/c4-container.puml)
+- [组件图](docs/architecture/c4-web-components.puml)
+- [代码图](docs/architecture/c4-code.puml)
+- [架构概览图](docs/architecture/architecture-overview.puml)
 
 ## 🚀 部署
 
