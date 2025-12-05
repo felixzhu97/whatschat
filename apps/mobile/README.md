@@ -47,12 +47,12 @@
 ### 📦 核心依赖
 
 - **Flutter**: 跨平台移动应用开发框架
-- **Provider**: 状态管理
-- **Dio**: 网络请求
-- **Sqflite**: 本地数据库
-- **Shared Preferences**: 本地存储
-- **Cached Network Image**: 图片缓存
-- **Adaptive Theme**: 主题管理
+- **Provider** (^6.0.3): 状态管理
+- **Cached Network Image** (^3.2.0): 图片缓存和加载
+- **Adaptive Theme** (^3.4.1): 主题管理（支持深色/浅色模式）
+- **Font Awesome Flutter** (^10.1.0): 图标库
+- **Timeago** (^3.2.2): 时间格式化（如"2小时前"）
+- **Flutter Lints** (^2.0.0): 代码规范和静态分析
 
 ### 📁 项目结构
 
@@ -94,8 +94,9 @@ lib/
 
 - Flutter SDK >= 3.0.0
 - Dart SDK >= 2.17.0
-- Android Studio / VS Code
-- iOS 模拟器 / Android 模拟器
+- Android Studio / VS Code / Android Studio
+- iOS 模拟器 / Android 模拟器（用于测试）
+- CocoaPods（iOS 开发，macOS 系统）
 
 ### 安装步骤
 
@@ -226,8 +227,14 @@ ChatInputField(
 
 如果你有任何问题或建议，欢迎联系我们：
 
-- Email: your-email@example.com
+- Email: z1434866867@gmail.com
 - GitHub Issues: [在这里提交问题](https://github.com/your-username/whatschat/issues)
+
+## 🔗 相关链接
+
+- [项目根目录 README](../../README.md)
+- [服务器文档](../../docs/server/README.md)
+- [架构文档](../../docs/README.md)
 
 ---
 

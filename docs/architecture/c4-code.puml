@@ -124,37 +124,124 @@ Container_Boundary(mobileApp, "移动应用代码结构 (Flutter 3.x)") {
     }
 }
 
-Container_Boundary(serverApp, "服务器代码结构 (Node.js)") {
+Container_Boundary(serverApp, "服务器代码结构 (NestJS - 整洁架构)") {
     
-    Boundary(serverCore, "核心文件 (src/)") {
-        Component(serverIndex, "index.ts", "Node.js Entry", "服务器入口文件")
-        Component(serverApp, "app.ts", "Express App", "Express应用配置")
+    Boundary(presentation, "表现层 (presentation/)") {
+        Boundary(controllers, "控制器 (Controllers)") {
+            Component(authController, "auth.controller.ts", "NestJS Controller", "认证控制器，处理注册、登录、令牌刷新")
+            Component(usersController, "users.controller.ts", "NestJS Controller", "用户管理控制器")
+            Component(messagesController, "messages.controller.ts", "NestJS Controller", "消息管理控制器")
+            Component(chatsController, "chats.controller.ts", "NestJS Controller", "聊天管理控制器")
+            Component(groupsController, "groups.controller.ts", "NestJS Controller", "群组管理控制器")
+            Component(callsController, "calls.controller.ts", "NestJS Controller", "通话管理控制器")
+            Component(statusController, "status.controller.ts", "NestJS Controller", "状态管理控制器")
+            Component(healthController, "health.controller.ts", "NestJS Controller", "健康检查控制器")
+        }
+        
+        Boundary(gateways, "网关 (Gateways)") {
+            Component(chatGateway, "chat.gateway.ts", "NestJS Gateway", "WebSocket网关，处理实时消息、通话信令、状态更新")
+        }
+        
+        Boundary(guards, "守卫 (Guards)") {
+            Component(jwtAuthGuard, "jwt-auth.guard.ts", "NestJS Guard", "JWT认证守卫")
+            Component(jwtStrategy, "jwt.strategy.ts", "Passport Strategy", "JWT策略")
+        }
+        
+        Boundary(filters, "过滤器 (Filters)") {
+            Component(allExceptionsFilter, "all-exceptions.filter.ts", "NestJS Filter", "全局异常过滤器")
+            Component(httpExceptionFilter, "http-exception.filter.ts", "NestJS Filter", "HTTP异常过滤器")
+            Component(validationExceptionFilter, "validation-exception.filter.ts", "NestJS Filter", "验证异常过滤器")
+        }
+        
+        Boundary(interceptors, "拦截器 (Interceptors)") {
+            Component(loggingInterceptor, "logging.interceptor.ts", "NestJS Interceptor", "日志拦截器")
+            Component(transformInterceptor, "transform.interceptor.ts", "NestJS Interceptor", "响应转换拦截器")
+        }
+        
+        Boundary(modules, "模块 (Modules)") {
+            Component(appModule, "app.module.ts", "NestJS Module", "应用根模块，注册所有功能模块")
+            Component(authModule, "auth.module.ts", "NestJS Module", "认证模块")
+            Component(usersModule, "users.module.ts", "NestJS Module", "用户模块")
+            Component(messagesModule, "messages.module.ts", "NestJS Module", "消息模块")
+            Component(chatsModule, "chats.module.ts", "NestJS Module", "聊天模块")
+            Component(groupsModule, "groups.module.ts", "NestJS Module", "群组模块")
+            Component(callsModule, "calls.module.ts", "NestJS Module", "通话模块")
+            Component(statusModule, "status.module.ts", "NestJS Module", "状态模块")
+            Component(websocketModule, "websocket.module.ts", "NestJS Module", "WebSocket模块")
+            Component(healthModule, "health.module.ts", "NestJS Module", "健康检查模块")
+        }
+        
+        Boundary(decorators, "装饰器 (Decorators)") {
+            Component(currentUserDecorator, "current-user.decorator.ts", "NestJS Decorator", "当前用户装饰器")
+            Component(publicDecorator, "public.decorator.ts", "NestJS Decorator", "公开路由装饰器")
+        }
     }
     
-    Boundary(config, "配置层 (src/config/)") {
-        Component(configIndex, "index.ts", "Configuration", "应用配置管理")
+    Boundary(application, "应用层 (application/)") {
+        Boundary(services, "应用服务 (Services)") {
+            Component(authService, "auth.service.ts", "Application Service", "认证服务，处理注册、登录、令牌生成")
+            Component(usersService, "users.service.ts", "Application Service", "用户服务，处理用户业务逻辑")
+            Component(messagesService, "messages.service.ts", "Application Service", "消息服务，处理消息业务逻辑")
+            Component(chatsService, "chats.service.ts", "Application Service", "聊天服务，处理聊天业务逻辑")
+            Component(groupsService, "groups.service.ts", "Application Service", "群组服务，处理群组业务逻辑")
+            Component(callsService, "calls.service.ts", "Application Service", "通话服务，处理通话业务逻辑")
+            Component(statusService, "status.service.ts", "Application Service", "状态服务，处理状态业务逻辑")
+        }
+        
+        Boundary(dto, "数据传输对象 (DTOs)") {
+            Component(authDto, "auth.dto.ts", "NestJS DTO", "认证相关DTO")
+            Component(userDto, "user.dto.ts", "NestJS DTO", "用户相关DTO")
+            Component(messageDto, "message.dto.ts", "NestJS DTO", "消息相关DTO")
+        }
     }
     
-    Boundary(controllers, "控制器层 (src/controllers/)") {
-        Component(authController, "auth.ts", "Express Controller", "认证控制器")
+    Boundary(domain, "领域层 (domain/)") {
+        Boundary(entities, "实体 (Entities)") {
+            Component(userEntity, "user.entity.ts", "Domain Entity", "用户领域实体")
+            Component(messageEntity, "message.entity.ts", "Domain Entity", "消息领域实体")
+            Component(chatEntity, "chat.entity.ts", "Domain Entity", "聊天领域实体")
+            Component(groupEntity, "group.entity.ts", "Domain Entity", "群组领域实体")
+        }
+        
+        Boundary(interfaces, "接口 (Interfaces)") {
+            Boundary(repositoryInterfaces, "仓储接口 (Repositories)") {
+                Component(userRepositoryInterface, "user.repository.interface.ts", "Domain Interface", "用户仓储接口")
+                Component(messageRepositoryInterface, "message.repository.interface.ts", "Domain Interface", "消息仓储接口")
+                Component(chatRepositoryInterface, "chat.repository.interface.ts", "Domain Interface", "聊天仓储接口")
+            }
+            
+            Boundary(serviceInterfaces, "服务接口 (Services)") {
+                Component(authServiceInterface, "auth.service.interface.ts", "Domain Interface", "认证服务接口")
+                Component(socketServiceInterface, "socket.service.interface.ts", "Domain Interface", "Socket服务接口")
+            }
+        }
     }
     
-    Boundary(middleware, "中间件层 (src/middleware/)") {
-        Component(authMiddleware, "auth.ts", "Express Middleware", "认证中间件")
-        Component(errorMiddleware, "error.ts", "Express Middleware", "错误处理中间件")
-        Component(rateLimitMiddleware, "rate-limit.ts", "Express Middleware", "速率限制中间件")
-        Component(validationMiddleware, "validation.ts", "Express Middleware", "数据验证中间件")
+    Boundary(infrastructure, "基础设施层 (infrastructure/)") {
+        Boundary(database, "数据库 (Database)") {
+            Component(prismaService, "prisma.service.ts", "NestJS Service", "Prisma数据库服务，PostgreSQL ORM")
+            Component(redisService, "redis.service.ts", "NestJS Service", "Redis缓存服务")
+            Component(databaseModule, "database.module.ts", "NestJS Module", "数据库模块")
+        }
+        
+        Boundary(config, "配置 (Config)") {
+            Component(configService, "config.service.ts", "NestJS Service", "配置服务，环境变量和配置管理")
+        }
+        
+        Boundary(adapters, "适配器 (Adapters)") {
+            Boundary(repositoryAdapters, "仓储适配器 (Repositories)") {
+                Component(userRepositoryAdapter, "user.repository.adapter.ts", "Repository Adapter", "用户仓储适配器，实现领域接口")
+            }
+        }
     }
     
-    Boundary(services, "服务层 (src/services/)") {
-        Component(socketManager, "socket-manager.ts", "Socket.io Service", "Socket连接管理")
-        Component(socketService, "socket.ts", "Socket.io Service", "Socket事件处理")
+    Boundary(shared, "共享层 (shared/)") {
+        Component(logger, "utils/logger.ts", "Utility", "日志工具")
+        Component(validation, "utils/validation.ts", "Utility", "验证工具")
     }
     
-    Boundary(database, "数据库层 (src/database/)") {
-        Component(dbClient, "client.ts", "Prisma Client", "数据库客户端")
-        Component(redisClient, "redis.ts", "Redis Client", "Redis缓存客户端")
-        Component(dbSeed, "seed.ts", "Database Seed", "数据库种子数据")
+    Boundary(main, "应用入口") {
+        Component(mainTs, "main.ts", "NestJS Bootstrap", "应用启动入口，配置中间件、拦截器、过滤器")
     }
     
     Boundary(prisma, "数据库模式 (prisma/)") {
@@ -241,18 +328,80 @@ Rel(modelsIndex, chatModel, "导出聊天模型")
 Rel(modelsIndex, messageModel, "导出消息模型")
 Rel(screens, appTheme, "使用应用主题")
 
-' 服务器应用关系
-Rel(serverIndex, serverApp, "创建Express应用")
-Rel(serverIndex, socketManager, "初始化Socket管理器")
-Rel(serverApp, authController, "使用认证控制器")
-Rel(serverApp, authMiddleware, "使用认证中间件")
-Rel(serverApp, errorMiddleware, "使用错误中间件")
-Rel(serverApp, rateLimitMiddleware, "使用速率限制")
-Rel(serverApp, validationMiddleware, "使用验证中间件")
-Rel(socketManager, socketService, "处理Socket事件")
-Rel(authController, dbClient, "数据库操作")
-Rel(socketService, redisClient, "缓存操作")
-Rel(dbClient, prismaSchema, "使用数据库模式")
-Rel(serverApp, configIndex, "使用配置")
+' 服务器应用关系 - 整洁架构分层依赖
+' 表现层 -> 应用层
+Rel(authController, authService, "调用认证服务")
+Rel(usersController, usersService, "调用用户服务")
+Rel(messagesController, messagesService, "调用消息服务")
+Rel(chatsController, chatsService, "调用聊天服务")
+Rel(groupsController, groupsService, "调用群组服务")
+Rel(callsController, callsService, "调用通话服务")
+Rel(statusController, statusService, "调用状态服务")
+Rel(chatGateway, messagesService, "调用消息服务")
+Rel(chatGateway, statusService, "调用状态服务")
+
+' 应用层 -> 领域层
+Rel(authService, authServiceInterface, "实现认证服务接口")
+Rel(authService, userRepositoryInterface, "使用用户仓储接口")
+Rel(messagesService, messageRepositoryInterface, "使用消息仓储接口")
+Rel(chatsService, chatRepositoryInterface, "使用聊天仓储接口")
+Rel(usersService, userRepositoryInterface, "使用用户仓储接口")
+
+' 应用层 -> 基础设施层
+Rel(authService, prismaService, "使用Prisma服务")
+Rel(messagesService, prismaService, "使用Prisma服务")
+Rel(chatsService, prismaService, "使用Prisma服务")
+Rel(chatGateway, prismaService, "使用Prisma服务")
+Rel(chatGateway, redisService, "使用Redis服务")
+
+' 基础设施层 -> 领域层
+Rel(userRepositoryAdapter, userRepositoryInterface, "实现用户仓储接口")
+Rel(userRepositoryAdapter, prismaService, "使用Prisma服务")
+
+' 表现层内部关系
+Rel(appModule, authModule, "导入认证模块")
+Rel(appModule, usersModule, "导入用户模块")
+Rel(appModule, messagesModule, "导入消息模块")
+Rel(appModule, chatsModule, "导入聊天模块")
+Rel(appModule, groupsModule, "导入群组模块")
+Rel(appModule, callsModule, "导入通话模块")
+Rel(appModule, statusModule, "导入状态模块")
+Rel(appModule, websocketModule, "导入WebSocket模块")
+Rel(appModule, healthModule, "导入健康检查模块")
+Rel(authModule, authController, "注册认证控制器")
+Rel(authModule, authService, "注册认证服务")
+Rel(messagesModule, messagesController, "注册消息控制器")
+Rel(messagesModule, messagesService, "注册消息服务")
+Rel(websocketModule, chatGateway, "注册WebSocket网关")
+Rel(authController, jwtAuthGuard, "使用JWT守卫")
+Rel(jwtAuthGuard, jwtStrategy, "使用JWT策略")
+Rel(appModule, allExceptionsFilter, "注册全局异常过滤器")
+Rel(appModule, loggingInterceptor, "注册日志拦截器")
+Rel(appModule, transformInterceptor, "注册响应转换拦截器")
+
+' 应用层内部关系
+Rel(authService, authDto, "使用认证DTO")
+Rel(messagesService, messageDto, "使用消息DTO")
+Rel(usersService, userDto, "使用用户DTO")
+
+' 领域层内部关系
+Rel(authService, userEntity, "使用用户实体")
+Rel(messagesService, messageEntity, "使用消息实体")
+Rel(chatsService, chatEntity, "使用聊天实体")
+Rel(groupsService, groupEntity, "使用群组实体")
+
+' 基础设施层内部关系
+Rel(prismaService, prismaSchema, "使用数据库模式")
+Rel(configService, prismaService, "提供配置")
+Rel(configService, redisService, "提供配置")
+Rel(databaseModule, prismaService, "注册Prisma服务")
+Rel(databaseModule, redisService, "注册Redis服务")
+
+' 应用启动关系
+Rel(mainTs, appModule, "启动应用模块")
+Rel(mainTs, allExceptionsFilter, "注册全局过滤器")
+Rel(mainTs, loggingInterceptor, "注册全局拦截器")
+Rel(mainTs, transformInterceptor, "注册全局拦截器")
+Rel(mainTs, configService, "加载配置")
 
 @enduml 

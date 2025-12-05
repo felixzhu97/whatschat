@@ -7,7 +7,7 @@ Person(user, "用户", "使用WhatsChat进行即时通讯、语音视频通话�
 Person(contact, "联系人", "与用户进行聊天交流的其他用户")
 Person(admin, "系统管理员", "管理系统配置和用户权限")
 
-System(whatsChat, "WhatsChat系统", "基于Next.js、Flutter和Node.js的现代化即时通讯平台，提供跨平台实时聊天、音视频通话、文件共享、群聊等功能")
+System(whatsChat, "WhatsChat系统", "基于Next.js、Flutter和NestJS的现代化即时通讯平台，提供跨平台实时聊天、音视频通话、文件共享、群聊等功能")
 
 System_Ext(webrtcService, "WebRTC信令服务", "提供P2P音视频通话信令和媒体中继服务")
 System_Ext(stunTurnServer, "STUN/TURN服务器", "NAT穿透和媒体中继，确保通话连接稳定")

@@ -9,7 +9,7 @@ Person(admin, "系统管理员", "管理系统配置")
 System_Boundary(whatsChat, "WhatsChat系统") {
     Container(webApp, "Web应用", "Next.js 15.2.4, React 19, TypeScript", "提供现代化Web界面的即时通讯应用，使用App Router和Radix UI组件")
     Container(mobileApp, "移动应用", "Flutter 3.x, Dart", "提供原生移动端体验的即时通讯应用，支持iOS和Android平台")
-    Container(server, "服务器应用", "Node.js 18+, Express, Socket.io", "处理消息路由、用户认证、实时通信和业务逻辑，支持WebSocket连接")
+    Container(server, "服务器应用", "Node.js 18+, NestJS, Socket.io", "基于NestJS框架的RESTful API和WebSocket服务，处理消息路由、用户认证、实时通信和业务逻辑，采用整洁架构分层设计")
     Container(apiGateway, "API网关", "Nginx/Cloudflare", "请求路由、负载均衡、SSL终端、静态资源缓存")
     
     ContainerDb(database, "主数据库", "PostgreSQL + Prisma ORM", "存储用户信息、聊天记录、群组信息、通话记录等结构化数据")

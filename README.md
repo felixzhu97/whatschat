@@ -14,10 +14,11 @@
 
 ## 🛠️ 技术栈
 
-**前端**: Next.js 15, TypeScript, Tailwind CSS, Radix UI  
-**后端**: Node.js, Express, Prisma, PostgreSQL, Redis  
-**认证**: JWT, bcrypt  
-**通信**: WebSocket, WebRTC  
+**前端**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
+**后端**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
+**认证**: JWT, Passport, bcrypt  
+**通信**: WebSocket (Socket.IO), WebRTC  
+**测试**: Vitest, React Testing Library  
 **工具**: Turborepo, PNPM, ESLint, Prettier
 
 ## 📁 项目结构
@@ -26,11 +27,27 @@
 whatschat/
 ├── apps/
 │   ├── web/              # Next.js Web 应用
+│   │   ├── app/          # Next.js App Router 页面
+│   │   ├── components/   # React 组件
+│   │   ├── hooks/        # 自定义 Hooks
+│   │   ├── lib/          # 工具函数和 API 客户端
+│   │   └── stores/       # Zustand 状态管理
 │   ├── mobile/           # Flutter 移动应用
-│   └── server/           # Node.js 服务器应用
+│   │   ├── lib/
+│   │   │   ├── screens/  # 页面组件
+│   │   │   ├── widgets/  # UI 组件
+│   │   │   ├── models/  # 数据模型
+│   │   │   └── services/# 服务层
+│   └── server/           # NestJS 服务器应用（整洁架构）
+│       └── src/
+│           ├── domain/      # 领域层（实体、接口）
+│           ├── application/ # 应用层（服务、DTO）
+│           ├── infrastructure/ # 基础设施层（数据库、外部服务）
+│           ├── presentation/ # 表现层（控制器、网关）
+│           └── shared/     # 共享工具
 ├── docs/                 # 文档和架构图
-├── .kiro/               # Kiro AI 助手配置
-└── turbo.json           # Turborepo 配置
+├── turbo.json           # Turborepo 配置
+└── package.json         # 工作区配置
 ```
 
 ## 🔧 快速开始
@@ -64,27 +81,51 @@ cd apps/server
 cp .env.example .env
 ```
 
-编辑 `apps/server/.env` 文件：
+编辑 `apps/server/.env` 文件（参考 `env.example`）：
 
 ```env
+# 服务器配置
+NODE_ENV=development
+PORT=3001
+HOST=localhost
+
 # 数据库配置
 DATABASE_URL="postgresql://username:password@localhost:5432/whatschat?schema=public"
 
 # Redis配置
-REDIS_URL="redis://localhost:6379"
+REDIS_URL=redis://localhost:6379
+REDIS_PASSWORD=
 
-# JWT密钥（生产环境请使用强密钥）
-JWT_SECRET="your-super-secret-jwt-key-here"
-JWT_REFRESH_SECRET="your-super-secret-refresh-key-here"
+# JWT配置（至少32个字符，生产环境请使用强密钥）
+JWT_SECRET=your-super-secret-jwt-key-here-change-in-production-min-32-chars
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-here-change-in-production-min-32-chars
+JWT_REFRESH_EXPIRES_IN=30d
 
-# 服务器配置
-PORT=3001
-HOST=localhost
-NODE_ENV=development
+# 安全配置
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 
-# CORS配置
-CORS_ORIGIN="http://localhost:3000"
+# 文件存储配置 (AWS S3) - 可选
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=whatschat-files
+
+# 邮件服务配置 - 可选
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-email-password
+SMTP_FROM=noreply@whatschat.com
+
+# 日志配置
+LOG_LEVEL=info
+LOG_FILE_PATH=logs/app.log
 ```
+
+更多配置项请参考 `apps/server/env.example` 文件。
 
 #### 前端配置
 
@@ -99,6 +140,28 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
 ### 4. 数据库设置
+
+#### 使用 Docker（推荐）
+
+```bash
+cd apps/server
+
+# 启动数据库服务（PostgreSQL + Redis）
+./docker-start.sh dev
+
+# 生成 Prisma 客户端
+pnpm db:generate
+
+# 运行数据库迁移
+pnpm migrate
+
+# 填充测试数据
+pnpm db:seed
+```
+
+#### 手动设置
+
+如果已有 PostgreSQL 和 Redis 服务：
 
 ```bash
 cd apps/server
@@ -137,26 +200,30 @@ pnpm dev
 ### 6. 访问应用
 
 - **前端应用**: http://localhost:3000
-- **后端API**: http://localhost:3001
-- **API健康检查**: http://localhost:3001/health
+- **后端API**: http://localhost:3001/api/v1
+- **API文档 (Swagger)**: http://localhost:3001/api/docs（开发环境）
+- **健康检查**: http://localhost:3001/api/v1/health
 
-## 🧪 测试认证系统
+## 🧪 测试
 
-运行自动化测试脚本：
+### 运行测试
 
 ```bash
-node test-auth.js
+# 运行所有测试
+pnpm test
+
+# 监听模式运行测试
+pnpm test:watch
+
+# 生成测试覆盖率报告
+cd apps/server && pnpm test:coverage
+cd apps/web && pnpm test:coverage
 ```
 
-该脚本会测试：
+### 测试框架
 
-- 服务器连接
-- 用户注册
-- 用户登录
-- 获取用户信息
-- 令牌刷新
-- 用户登出
-- 前端页面访问
+- **后端**: Vitest + Supertest
+- **前端**: Vitest + React Testing Library
 
 ## 👤 测试账户
 
@@ -187,17 +254,21 @@ node test-auth.js
 
 ### API 端点
 
+所有 API 端点前缀为 `/api/v1`：
+
 ```
-POST /api/auth/register      # 用户注册
-POST /api/auth/login         # 用户登录
-POST /api/auth/logout        # 用户登出
-GET  /api/auth/me           # 获取当前用户
-PUT  /api/auth/profile      # 更新用户资料
-PUT  /api/auth/change-password  # 修改密码
-POST /api/auth/refresh-token    # 刷新令牌
-POST /api/auth/forgot-password  # 忘记密码
-POST /api/auth/reset-password   # 重置密码
+POST /api/v1/auth/register      # 用户注册
+POST /api/v1/auth/login         # 用户登录
+POST /api/v1/auth/logout        # 用户登出
+GET  /api/v1/auth/me           # 获取当前用户
+PUT  /api/v1/auth/profile      # 更新用户资料
+PUT  /api/v1/auth/change-password  # 修改密码
+POST /api/v1/auth/refresh-token    # 刷新令牌
+POST /api/v1/auth/forgot-password  # 忘记密码
+POST /api/v1/auth/reset-password   # 重置密码
 ```
+
+**API 文档**: 开发环境下访问 http://localhost:3001/api/docs 查看完整的 Swagger API 文档。
 
 ## 🛠️ 开发工具
 
@@ -247,13 +318,23 @@ pnpm check-types
 ### Docker 部署
 
 ```bash
-# 构建镜像
-docker build -t whatschat-server ./apps/server
-docker build -t whatschat-web ./apps/web
+cd apps/server
 
-# 运行容器
-docker-compose up -d
+# 使用 docker-compose 启动所有服务（开发环境）
+./docker-start.sh dev
+
+# 使用 docker-compose 启动所有服务（生产环境）
+./docker-start.sh prod
+
+# 停止服务
+./docker-stop.sh
+
+# 或者直接使用 docker-compose
+docker-compose -f docker-compose.dev.yml up -d  # 开发环境
+docker-compose -f docker-compose.prod.yml up -d # 生产环境
 ```
+
+更多 Docker 部署信息请查看 [服务器 Docker 文档](docs/server/DOCKER.md)。
 
 ### 生产环境注意事项
 
@@ -290,19 +371,44 @@ docker-compose up -d
 
 ## 📚 开发指南
 
-### 添加新的 API 端点
+### 后端开发（NestJS 整洁架构）
 
-1. 在 `apps/server/src/routes/` 中定义路由
-2. 在 `apps/server/src/controllers/` 中实现控制器
-3. 在 `apps/server/src/middleware/` 中添加中间件（如需要）
-4. 更新 `apps/web/lib/api.ts` 中的 API 客户端
+项目采用整洁架构（Clean Architecture）设计，分为以下层次：
 
-### 添加新的前端页面
+1. **领域层 (domain/)**: 实体和接口定义
+   - `entities/`: 领域实体
+   - `interfaces/`: 仓库和服务接口
 
-1. 在 `apps/web/app/` 中创建页面
+2. **应用层 (application/)**: 业务逻辑
+   - `services/`: 应用服务
+   - `dto/`: 数据传输对象
+
+3. **基础设施层 (infrastructure/)**: 外部依赖实现
+   - `database/`: 数据库服务（Prisma、Redis）
+   - `adapters/`: 适配器实现
+
+4. **表现层 (presentation/)**: API 接口
+   - `controllers/`: REST API 控制器
+   - `websocket/`: WebSocket 网关
+   - `filters/`: 异常过滤器
+   - `interceptors/`: 拦截器
+
+#### 添加新的 API 端点
+
+1. 在 `domain/entities/` 中定义实体（如需要）
+2. 在 `application/services/` 中实现业务逻辑
+3. 在 `application/dto/` 中定义 DTO
+4. 在 `presentation/` 中创建控制器和模块
+5. 在 `infrastructure/adapters/` 中实现仓库适配器（如需要）
+6. 更新 `apps/web/lib/api.ts` 中的 API 客户端
+
+### 前端开发
+
+1. 在 `apps/web/app/` 中创建页面（Next.js App Router）
 2. 在 `apps/web/components/` 中创建组件
-3. 在 `apps/web/hooks/` 中添加自定义 hooks（如需要）
-4. 更新路由和导航
+3. 在 `apps/web/hooks/` 中添加自定义 hooks
+4. 在 `apps/web/stores/` 中添加状态管理（Zustand）
+5. 更新路由和导航
 
 ## 👥 贡献
 

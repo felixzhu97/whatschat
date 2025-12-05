@@ -1,0 +1,219 @@
+@startuml
+!include lib/C4_Context.puml
+
+title WhatsChat 动态图 - 系统运行时交互流程
+
+' 参与者定义
+Person(user, "用户", "使用WhatsChat进行即时通讯")
+Person(contact, "联系人", "接收消息的其他用户")
+
+' 系统组件
+System_Boundary(whatsChat, "WhatsChat系统") {
+    Container(webApp, "Web应用", "Next.js 15", "前端Web界面")
+    Container(mobileApp, "移动应用", "Flutter 3.x", "移动端应用")
+    Container(server, "服务器应用", "NestJS", "后端API和WebSocket服务")
+    ContainerDb(database, "主数据库", "PostgreSQL", "数据持久化")
+    ContainerDb(redisCache, "缓存数据库", "Redis", "会话和缓存")
+}
+
+' ============================================
+' 场景1: 用户注册和登录流程
+' ============================================
+== 场景1: 用户注册流程 ==
+
+user -> webApp: 1. 提交注册信息
+activate webApp
+webApp -> server: 2. POST /api/v1/auth/register
+activate server
+server -> server: 3. AuthController接收请求
+server -> server: 4. AuthService.register()
+server -> database: 5. 检查用户是否已存在
+activate database
+database --> server: 6. 返回查询结果
+deactivate database
+server -> server: 7. 哈希密码
+server -> database: 8. 创建用户记录
+activate database
+database --> server: 9. 返回新用户
+deactivate database
+server -> server: 10. 生成JWT令牌
+server --> webApp: 11. 返回用户信息和令牌
+deactivate server
+webApp -> webApp: 12. 存储令牌到本地存储
+webApp --> user: 13. 显示注册成功，跳转到主界面
+deactivate webApp
+
+== 场景2: 用户登录流程 ==
+
+user -> webApp: 1. 提交登录信息
+activate webApp
+webApp -> server: 2. POST /api/v1/auth/login
+activate server
+server -> server: 3. AuthController接收请求
+server -> server: 4. AuthService.login()
+server -> database: 5. 查询用户信息
+activate database
+database --> server: 6. 返回用户数据
+deactivate database
+server -> server: 7. 验证密码
+server -> server: 8. 生成JWT令牌
+server --> webApp: 9. 返回用户信息和令牌
+deactivate server
+webApp -> webApp: 10. 存储令牌
+webApp -> server: 11. 建立WebSocket连接
+activate server
+server -> server: 12. ChatGateway验证JWT
+server -> database: 13. 更新用户在线状态
+activate database
+database --> server: 14. 确认更新
+deactivate database
+server -> redisCache: 15. 缓存在线用户信息
+activate redisCache
+redisCache --> server: 16. 确认缓存
+deactivate redisCache
+server --> webApp: 17. WebSocket连接成功
+deactivate server
+webApp --> user: 18. 显示主界面，连接就绪
+deactivate webApp
+
+' ============================================
+' 场景3: 实时消息发送流程
+' ============================================
+== 场景3: 实时消息发送流程 ==
+
+user -> webApp: 1. 输入消息并发送
+activate webApp
+webApp -> server: 2. WebSocket: message:send
+activate server
+server -> server: 3. ChatGateway.handleMessage()
+server -> database: 4. 验证用户权限
+activate database
+database --> server: 5. 返回验证结果
+deactivate database
+server -> database: 6. 创建消息记录
+activate database
+database --> server: 7. 返回消息数据
+deactivate database
+server -> database: 8. 获取聊天参与者列表
+activate database
+database --> server: 9. 返回参与者列表
+deactivate database
+server -> redisCache: 10. 查询在线用户
+activate redisCache
+redisCache --> server: 11. 返回在线用户Socket ID
+deactivate redisCache
+server -> server: 12. 向所有在线参与者发送消息
+server --> webApp: 13. WebSocket: message:received
+deactivate server
+webApp -> webApp: 14. 更新消息列表
+webApp --> user: 15. 显示新消息
+deactivate webApp
+
+note right of server
+  如果联系人在线，通过WebSocket实时推送
+  如果联系人离线，消息已保存到数据库
+  下次登录时通过API获取历史消息
+end note
+
+' ============================================
+' 场景4: 音视频通话建立流程
+' ============================================
+== 场景4: 音视频通话建立流程 ==
+
+user -> webApp: 1. 发起音视频通话
+activate webApp
+webApp -> server: 2. WebSocket: call:incoming
+activate server
+server -> redisCache: 3. 查询目标用户在线状态
+activate redisCache
+redisCache --> server: 4. 返回Socket ID
+deactivate redisCache
+server -> server: 5. ChatGateway转发通话请求
+server --> contact: 6. WebSocket: call:incoming (如果在线)
+deactivate server
+activate contact
+contact -> contact: 7. 显示来电界面
+contact -> contact: 8. 用户选择接听/拒绝
+contact -> server: 9. WebSocket: call:answer 或 call:reject
+activate server
+alt 用户接听
+    server -> server: 10. ChatGateway.handleCallAnswer()
+    server --> user: 11. WebSocket: call:answer
+    deactivate server
+    activate user
+    user -> user: 12. 建立WebRTC连接
+    user -> server: 13. WebSocket: call:offer
+    activate server
+    server -> server: 14. ChatGateway转发offer
+    server --> contact: 15. WebSocket: call:offer
+    deactivate server
+    contact -> contact: 16. 处理WebRTC offer
+    contact -> server: 17. WebSocket: call:webrtc-answer
+    activate server
+    server -> server: 18. ChatGateway转发answer
+    server --> user: 19. WebSocket: call:webrtc-answer
+    deactivate server
+    user -> user: 20. 建立P2P连接
+    user <-> contact: 21. WebRTC媒体流传输
+    note right of user
+      WebRTC直接P2P连接
+      服务器仅处理信令
+    end note
+else 用户拒绝
+    server -> server: 22. ChatGateway.handleCallReject()
+    server --> user: 23. WebSocket: call:reject
+    deactivate server
+end
+deactivate contact
+deactivate user
+webApp --> user: 24. 通话结束或拒绝
+deactivate webApp
+
+' ============================================
+' 场景5: 消息已读状态同步
+' ============================================
+== 场景5: 消息已读状态同步 ==
+
+user -> webApp: 1. 查看聊天消息
+activate webApp
+webApp -> server: 2. WebSocket: message:read
+activate server
+server -> server: 3. ChatGateway.handleMessageRead()
+server -> database: 4. 创建/更新已读记录
+activate database
+database --> server: 5. 确认更新
+deactivate database
+server -> server: 6. 向聊天室其他成员广播
+server --> contact: 7. WebSocket: message:read
+deactivate server
+activate contact
+contact -> contact: 8. 更新消息已读状态
+deactivate contact
+webApp --> user: 9. 显示已读状态
+deactivate webApp
+
+' ============================================
+' 场景6: 状态更新流程
+' ============================================
+== 场景6: 状态更新流程 ==
+
+user -> webApp: 1. 创建新状态
+activate webApp
+webApp -> server: 2. WebSocket: status:create
+activate server
+server -> server: 3. ChatGateway.handleStatusCreate()
+server -> database: 4. 创建状态记录
+activate database
+database --> server: 5. 返回状态数据
+deactivate database
+server -> server: 6. 广播状态更新
+server --> contact: 7. WebSocket: status:create
+deactivate server
+activate contact
+contact -> contact: 8. 更新状态列表
+deactivate contact
+webApp --> user: 9. 显示新状态
+deactivate webApp
+
+@enduml
+

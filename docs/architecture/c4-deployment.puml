@@ -26,14 +26,14 @@ Deployment_Node(k8sCluster, "Kubernetes集群", "容器化生产环境") {
     }
     
     Deployment_Node(apiTier, "API服务层", "后端服务") {
-        Container(apiServerPod, "API服务Pod", "Node.js 18+ Express", "RESTful API服务")
-        Container(apiServerReplica, "API服务副本", "Node.js 18+ Express", "API服务水平扩展")
-        Container(websocketPod, "WebSocket服务Pod", "Socket.io", "实时通信服务")
-        Container(websocketReplica, "WebSocket副本", "Socket.io", "实时通信扩展")
+        Container(apiServerPod, "API服务Pod", "Node.js 18+ NestJS", "RESTful API服务，基于NestJS框架")
+        Container(apiServerReplica, "API服务副本", "Node.js 18+ NestJS", "API服务水平扩展")
+        Container(websocketPod, "WebSocket服务Pod", "NestJS + Socket.io", "实时通信服务，集成在NestJS中")
+        Container(websocketReplica, "WebSocket副本", "NestJS + Socket.io", "实时通信扩展")
     }
     
     Deployment_Node(cacheTier, "缓存服务层", "内存数据库") {
-        ContainerDb(redisCluster, "Redis集群", "Redis + ioredis", "会话缓存和消息队列")
+        ContainerDb(redisCluster, "Redis集群", "Redis + ioredis", "会话缓存和消息队列，通过NestJS RedisService访问")
         ContainerDb(redisSentinel, "Redis哨兵", "Redis Sentinel", "高可用监控和故障转移")
     }
     
@@ -45,7 +45,7 @@ Deployment_Node(k8sCluster, "Kubernetes集群", "容器化生产环境") {
 
 Deployment_Node(database, "数据库层", "持久化存储") {
     Deployment_Node(primaryDB, "主数据库", "PostgreSQL主库") {
-        ContainerDb(postgresqlMaster, "PostgreSQL主库", "PostgreSQL + Prisma", "用户、消息、通话等核心数据")
+        ContainerDb(postgresqlMaster, "PostgreSQL主库", "PostgreSQL + Prisma ORM", "用户、消息、通话等核心数据，通过NestJS PrismaService访问")
     }
     
     Deployment_Node(replicaDB, "只读副本", "PostgreSQL从库") {
