@@ -1,7 +1,18 @@
 import bcrypt from "bcryptjs";
-import prisma, { prisma as prismaNamed } from "./client";
-import config from "@/config";
-import logger from "@/utils/logger";
+import { PrismaClient } from "@prisma/client";
+import { ConfigService } from "../infrastructure/config/config.service";
+import logger from "../utils/logger";
+
+// 创建独立的Prisma客户端实例用于seed脚本
+const prisma = new PrismaClient({
+  log:
+    process.env["NODE_ENV"] === "development"
+      ? ["query", "info", "warn", "error"]
+      : ["error"],
+});
+
+// 加载配置
+const config = ConfigService.loadConfig();
 
 export async function main() {
   logger.info("开始数据库种子...");
@@ -250,5 +261,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prismaNamed.$disconnect();
+    await prisma.$disconnect();
   });

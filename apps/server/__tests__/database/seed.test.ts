@@ -78,16 +78,18 @@ vi.mock("@/database/client", () => ({
 }));
 
 // Mock config
-vi.mock("@/config", () => ({
-  default: {
-    server: {
-      isDevelopment: true,
-    },
-    security: {
-      bcrypt: {
-        saltRounds: 10,
+vi.mock("../src/infrastructure/config/config.service", () => ({
+  ConfigService: {
+    loadConfig: vi.fn(() => ({
+      server: {
+        isDevelopment: true,
       },
-    },
+      security: {
+        bcrypt: {
+          saltRounds: 10,
+        },
+      },
+    })),
   },
 }));
 
