@@ -46,6 +46,13 @@
 - [`development/testing/testing-guide.md`](./development/testing/testing-guide.md) - 测试指南
 - [`development/contributing/contributing-guide.md`](./development/contributing/contributing-guide.md) - 贡献指南
 
+### 🖥️ 服务器文档
+
+- [`server/README.md`](./server/README.md) - 服务器主要文档（快速开始、环境配置、API说明）
+- [`server/MIGRATION.md`](./server/MIGRATION.md) - Express到NestJS迁移说明
+- [`server/DOCKER.md`](./server/DOCKER.md) - Docker环境服务部署指南
+- [`server/testing.md`](./server/testing.md) - 测试文档
+
 ### 🚀 部署运维
 
 - [`operations/deployment/deployment-guide.md`](./operations/deployment/deployment-guide.md) - 部署指南
@@ -336,6 +343,13 @@ apps/web/
 - [`development/api/api-documentation.md`](./development/api/api-documentation.md) - 详细的API接口说明
 - [`development/testing/testing-guide.md`](./development/testing/testing-guide.md) - 单元测试、集成测试、E2E测试
 - [`development/contributing/contributing-guide.md`](./development/contributing/contributing-guide.md) - 代码贡献流程和规范
+
+### 服务器文档
+
+- [`server/README.md`](./server/README.md) - 服务器快速开始和API文档
+- [`server/DOCKER.md`](./server/DOCKER.md) - Docker部署指南
+- [`server/MIGRATION.md`](./server/MIGRATION.md) - Express到NestJS迁移说明
+- [`server/testing.md`](./server/testing.md) - 服务器测试指南
 
 #### 代码重构最佳实践
 

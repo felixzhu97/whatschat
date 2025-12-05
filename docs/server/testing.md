@@ -1,11 +1,12 @@
 # Testing Setup for WhatsChat Server
 
-This directory contains the test suite for the WhatsChat server application built with Node.js, Express, TypeScript, and Prisma.
+This directory contains the test suite for the WhatsChat server application built with Node.js, NestJS, TypeScript, and Prisma.
 
 ## Testing Stack
 
 - **Vitest**: Fast and modern testing framework
-- **Supertest**: HTTP assertion library for testing Express applications
+- **@nestjs/testing**: NestJS testing utilities
+- **Supertest**: HTTP assertion library for testing HTTP endpoints
 - **Prisma Mock**: Mocked database operations
 - **Node.js Environment**: Server-side testing environment
 
@@ -13,15 +14,15 @@ This directory contains the test suite for the WhatsChat server application buil
 
 ```
 __tests__/
-├── controllers/           # Tests for Express controllers
+├── controllers/           # Tests for NestJS controllers
 ├── services/             # Tests for business logic services
-├── middleware/           # Tests for Express middleware
-├── routes/              # Tests for API routes
+├── middleware/           # Tests for NestJS guards, interceptors, and filters
+├── routes/              # Tests for API routes (NestJS controllers)
 ├── utils/               # Tests for utility functions
 │   ├── validation-simple.test.ts
 │   └── test-helpers.ts
 ├── basic.test.ts        # Basic functionality tests
-└── README.md           # This file
+└── testing.md          # This file (located in docs/server/)
 ```
 
 ## Running Tests
@@ -52,11 +53,13 @@ pnpm test:watch
 ## Test Categories
 
 ### 1. Basic Tests (`basic.test.ts`)
+
 - Framework functionality
 - Global test utilities
 - Async operations
 
 ### 2. Validation Tests (`utils/validation-simple.test.ts`)
+
 - Email validation
 - Password strength validation
 - Phone number validation
@@ -64,24 +67,29 @@ pnpm test:watch
 - File type and size validation
 
 ### 3. Service Tests (`services/message-simple.test.ts`)
+
 - Message creation and retrieval
 - Pagination and search
 - Message updates and deletion
 - Database interactions
 
-### 4. Controller Tests (planned)
-- Authentication endpoints
+### 4. Controller Tests
+
+- Authentication endpoints (NestJS AuthController)
 - Request/response handling
 - Error handling
 - Input validation
 
-### 5. Middleware Tests (planned)
-- Authentication middleware
-- Error handling middleware
-- Request validation
+### 5. Guard/Interceptor/Filter Tests
 
-### 6. Route Tests (planned)
-- API endpoint testing
+- Authentication guards (JwtAuthGuard)
+- Error handling filters
+- Validation pipes
+- Rate limiting guards
+
+### 6. Route Tests
+
+- API endpoint testing (NestJS controllers)
 - Integration testing
 - HTTP status codes
 
@@ -90,63 +98,101 @@ pnpm test:watch
 ### Service Testing
 
 Services are tested for:
+
 - **Business Logic**: Core functionality implementation
 - **Database Operations**: Prisma client interactions
 - **Error Handling**: Proper error throwing and handling
 - **Data Validation**: Input validation and sanitization
 
-Example:
+Example (NestJS Service Testing):
+
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MessageService } from '../../src/services/message'
+import { describe, it, expect, beforeEach } from "vitest";
+import { Test, TestingModule } from "@nestjs/testing";
+import { MessagesService } from "../../src/application/services/messages.service";
+import { PrismaService } from "../../src/infrastructure/database/prisma.service";
 
-// Mock database client
-vi.mock('../../src/database/client', () => ({
-  prisma: {
-    message: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      // ... other methods
-    },
-  },
-}))
+describe("MessagesService", () => {
+  let service: MessagesService;
+  let prisma: PrismaService;
 
-describe('MessageService', () => {
-  let messageService: MessageService
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        MessagesService,
+        {
+          provide: PrismaService,
+          useValue: {
+            message: {
+              create: vi.fn(),
+              findMany: vi.fn(),
+              // ... other methods
+            },
+          },
+        },
+      ],
+    }).compile();
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    messageService = new MessageService()
-  })
+    service = module.get<MessagesService>(MessagesService);
+    prisma = module.get<PrismaService>(PrismaService);
+  });
 
-  it('should create a message successfully', async () => {
+  it("should create a message successfully", async () => {
     // Test implementation
-  })
-})
+  });
+});
 ```
 
 ### Controller Testing
 
-Controllers are tested for:
+Controllers are tested using NestJS testing utilities:
+
 - **HTTP Handling**: Request/response processing
-- **Authentication**: Protected route access
-- **Validation**: Input validation and error responses
+- **Authentication**: Protected route access (JwtAuthGuard)
+- **Validation**: Input validation and error responses (ValidationPipe)
 - **Status Codes**: Proper HTTP status code responses
 
-### Middleware Testing
+Example:
 
-Middleware is tested for:
-- **Authentication**: Token validation and user extraction
+```typescript
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import request from "supertest";
+import { AppModule } from "../../src/app.module";
+
+describe("UsersController", () => {
+  let app: INestApplication;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it("should get users list", () => {
+    return request(app.getHttpServer()).get("/api/v1/users").expect(200);
+  });
+});
+```
+
+### Guard/Interceptor/Filter Testing
+
+NestJS guards, interceptors, and filters are tested for:
+
+- **Authentication**: Token validation and user extraction (JwtAuthGuard)
 - **Authorization**: Permission checking
-- **Error Handling**: Proper error response formatting
-- **Request Processing**: Request modification and validation
+- **Error Handling**: Proper error response formatting (Exception Filters)
+- **Request Processing**: Request modification and validation (Interceptors)
 
 ## Mock Patterns
 
 ### Database Mocking
 
 ```typescript
-vi.mock('../../src/database/client', () => ({
+vi.mock("../../src/database/client", () => ({
   prisma: {
     user: {
       create: vi.fn(),
@@ -157,26 +203,26 @@ vi.mock('../../src/database/client', () => ({
     },
     // ... other models
   },
-}))
+}));
 ```
 
 ### External Service Mocking
 
 ```typescript
-vi.mock('redis', () => ({
+vi.mock("redis", () => ({
   createClient: vi.fn(() => ({
     connect: vi.fn(),
     get: vi.fn(),
     set: vi.fn(),
     // ... other methods
   })),
-}))
+}));
 
-vi.mock('nodemailer', () => ({
+vi.mock("nodemailer", () => ({
   createTransporter: vi.fn(() => ({
     sendMail: vi.fn(),
   })),
-}))
+}));
 ```
 
 ## Test Utilities
@@ -214,54 +260,54 @@ REDIS_URL="redis://localhost:6379/1"
 
 ```typescript
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.clearAllMocks();
   // Reset any global state
-})
+});
 ```
 
 ### 2. Descriptive Test Names
 
 ```typescript
-it('should create a text message successfully', async () => {
+it("should create a text message successfully", async () => {
   // Test implementation
-})
+});
 
-it('should throw error if chat does not exist', async () => {
+it("should throw error if chat does not exist", async () => {
   // Test implementation
-})
+});
 ```
 
 ### 3. Mock External Dependencies
 
 ```typescript
 // Mock at the module level
-vi.mock('../../src/database/client')
+vi.mock("../../src/database/client");
 
 // Use mocked functions in tests
-const mockPrisma = await import('../../src/database/client')
+const mockPrisma = await import("../../src/database/client");
 ```
 
 ### 4. Test Error Scenarios
 
 ```typescript
-it('should handle database errors gracefully', async () => {
-  mockPrisma.user.findUnique.mockRejectedValue(new Error('Database error'))
-  
-  await expect(service.getUser('id')).rejects.toThrow('Database error')
-})
+it("should handle database errors gracefully", async () => {
+  mockPrisma.user.findUnique.mockRejectedValue(new Error("Database error"));
+
+  await expect(service.getUser("id")).rejects.toThrow("Database error");
+});
 ```
 
 ### 5. Use Proper Assertions
 
 ```typescript
 // Test return values
-expect(result).toEqual(expectedValue)
+expect(result).toEqual(expectedValue);
 
 // Test function calls
-expect(mockFunction).toHaveBeenCalledWith(expectedArgs)
+expect(mockFunction).toHaveBeenCalledWith(expectedArgs);
 
 // Test error throwing
-await expect(asyncFunction()).rejects.toThrow('Expected error')
+await expect(asyncFunction()).rejects.toThrow("Expected error");
 ```
 
 ## Coverage Goals
@@ -274,6 +320,7 @@ await expect(asyncFunction()).rejects.toThrow('Expected error')
 ## Continuous Integration
 
 Tests run automatically on:
+
 - Pull requests
 - Pushes to main branch
 - Before deployments
