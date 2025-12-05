@@ -30,7 +30,7 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
-      "@/utils/*": ["utils/*"],
+      "@/shared/*": ["shared/*"],
       "@/types/*": ["types/*"],
       "@/domain/*": ["domain/*"],
       "@/application/*": ["application/*"],

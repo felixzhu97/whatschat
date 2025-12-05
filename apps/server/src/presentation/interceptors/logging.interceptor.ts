@@ -3,10 +3,10 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import logger from '../../utils/logger';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
+import logger from "@/shared/utils/logger";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -22,18 +22,15 @@ export class LoggingInterceptor implements NestInterceptor {
           const { statusCode } = response;
           const delay = Date.now() - now;
 
-          logger.info(
-            `${method} ${url} ${statusCode} - ${ip} - ${delay}ms`,
-          );
+          logger.info(`${method} ${url} ${statusCode} - ${ip} - ${delay}ms`);
         },
         error: (error) => {
           const delay = Date.now() - now;
           logger.error(
-            `${method} ${url} - ${ip} - ${delay}ms - Error: ${error.message}`,
+            `${method} ${url} - ${ip} - ${delay}ms - Error: ${error.message}`
           );
         },
-      }),
+      })
     );
   }
 }
-

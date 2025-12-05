@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { ConfigService } from "../infrastructure/config/config.service";
-import logger from "../utils/logger";
+import logger from "@/shared/utils/logger";
 
 // 创建独立的Prisma客户端实例用于seed脚本
 const prisma = new PrismaClient({
