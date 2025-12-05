@@ -14,7 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { MessagesService } from '../../application/services/messages.service';
+import { MessagesService } from '@/application/services/messages.service';
 
 @ApiTags('消息')
 @Controller('messages')

@@ -11,11 +11,11 @@ import {
   RegisterData,
   LoginData,
   AuthTokens,
-} from "../../domain/interfaces/services/auth.service.interface";
-import { IUserRepository } from "../../domain/interfaces/repositories/user.repository.interface";
-import { User } from "../../domain/entities/user.entity";
-import { ConfigService } from "../../infrastructure/config/config.service";
-import { PrismaService } from "../../infrastructure/database/prisma.service";
+} from "@/domain/interfaces/services/auth.service.interface";
+import { IUserRepository } from "@/domain/interfaces/repositories/user.repository.interface";
+import { User } from "@/domain/entities/user.entity";
+import { ConfigService } from "@/infrastructure/config/config.service";
+import { PrismaService } from "@/infrastructure/database/prisma.service";
 
 @Injectable()
 export class AuthService implements IAuthService {

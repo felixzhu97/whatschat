@@ -1,0 +1,211 @@
+import { IStorageAdapter } from "../../../domain/interfaces/adapters/storage.interface";
+
+export class StorageAdapter implements IStorageAdapter {
+  private static readonly PREFIX = "whatsapp_";
+  private static db: IDBDatabase | null = null;
+  private static dbName = "WhatsAppDB";
+  private static dbVersion = 1;
+
+  static async initDB(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        this.db = request.result;
+        resolve();
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+
+        if (!db.objectStoreNames.contains("contacts")) {
+          db.createObjectStore("contacts", { keyPath: "id" });
+        }
+
+        if (!db.objectStoreNames.contains("messages")) {
+          db.createObjectStore("messages", { keyPath: "id" });
+        }
+
+        if (!db.objectStoreNames.contains("calls")) {
+          db.createObjectStore("calls", { keyPath: "id" });
+        }
+
+        if (!db.objectStoreNames.contains("settings")) {
+          db.createObjectStore("settings", { keyPath: "key" });
+        }
+      };
+    });
+  }
+
+  save(key: string, data: any): void {
+    try {
+      const serializedData = JSON.stringify(data);
+      localStorage.setItem(StorageAdapter.PREFIX + key, serializedData);
+    } catch (error) {
+      console.error("Failed to save to localStorage:", error);
+    }
+  }
+
+  load<T>(key: string, defaultValue: T): T {
+    try {
+      const item = localStorage.getItem(StorageAdapter.PREFIX + key);
+      if (item === null) return defaultValue;
+      return JSON.parse(item);
+    } catch (error) {
+      console.error("Failed to load from localStorage:", error);
+      return defaultValue;
+    }
+  }
+
+  remove(key: string): void {
+    try {
+      localStorage.removeItem(StorageAdapter.PREFIX + key);
+    } catch (error) {
+      console.error("Failed to remove from localStorage:", error);
+    }
+  }
+
+  clear(): void {
+    try {
+      const keys = Object.keys(localStorage).filter((key) =>
+        key.startsWith(StorageAdapter.PREFIX)
+      );
+      keys.forEach((key) => localStorage.removeItem(key));
+    } catch (error) {
+      console.error("Failed to clear localStorage:", error);
+    }
+  }
+
+  async saveToIndexedDB(storeName: string, data: any): Promise<void> {
+    if (!StorageAdapter.db) await StorageAdapter.initDB();
+
+    return new Promise((resolve, reject) => {
+      const transaction = StorageAdapter.db!.transaction(
+        [storeName],
+        "readwrite"
+      );
+      const store = transaction.objectStore(storeName);
+      const request = store.put(data);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  }
+
+  async loadFromIndexedDB<T>(
+    storeName: string,
+    key: string
+  ): Promise<T | null> {
+    if (!StorageAdapter.db) await StorageAdapter.initDB();
+
+    return new Promise((resolve, reject) => {
+      const transaction = StorageAdapter.db!.transaction(
+        [storeName],
+        "readonly"
+      );
+      const store = transaction.objectStore(storeName);
+      const request = store.get(key);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result || null);
+    });
+  }
+
+  async removeFromIndexedDB(storeName: string, key: string): Promise<void> {
+    if (!StorageAdapter.db) await StorageAdapter.initDB();
+
+    return new Promise((resolve, reject) => {
+      const transaction = StorageAdapter.db!.transaction(
+        [storeName],
+        "readwrite"
+      );
+      const store = transaction.objectStore(storeName);
+      const request = store.delete(key);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  }
+
+  getStorageUsage(): { localStorage: number; indexedDB: number } {
+    let localStorageSize = 0;
+    try {
+      for (const key in localStorage) {
+        if (key.startsWith(StorageAdapter.PREFIX)) {
+          localStorageSize += localStorage[key].length;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to calculate localStorage usage:", error);
+    }
+
+    return {
+      localStorage: localStorageSize,
+      indexedDB: 0,
+    };
+  }
+
+  exportData(): string {
+    const data: { [key: string]: any } = {};
+
+    try {
+      for (const key in localStorage) {
+        if (key.startsWith(StorageAdapter.PREFIX)) {
+          const cleanKey = key.replace(StorageAdapter.PREFIX, "");
+          data[cleanKey] = JSON.parse(localStorage[key]);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to export data:", error);
+    }
+
+    return JSON.stringify(data, null, 2);
+  }
+
+  importData(jsonData: string): boolean {
+    try {
+      const data = JSON.parse(jsonData);
+
+      for (const key in data) {
+        this.save(key, data[key]);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to import data:", error);
+      return false;
+    }
+  }
+
+  async backup(): Promise<Blob> {
+    const data = this.exportData();
+    return new Blob([data], { type: "application/json" });
+  }
+
+  async restore(file: File): Promise<boolean> {
+    try {
+      const text = await file.text();
+      return this.importData(text);
+    } catch (error) {
+      console.error("Failed to restore data:", error);
+      return false;
+    }
+  }
+}
+
+// 初始化存储管理器
+if (typeof window !== "undefined") {
+  StorageAdapter.initDB().catch(console.error);
+}
+
+// 创建单例实例
+let storageInstance: StorageAdapter | null = null;
+
+export const getStorageAdapter = (): IStorageAdapter => {
+  if (!storageInstance) {
+    storageInstance = new StorageAdapter();
+  }
+  return storageInstance;
+};
+

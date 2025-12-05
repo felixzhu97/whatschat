@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { AddFriendDialog } from '@/components/add-friend-dialog'
+import { AddFriendDialog } from '@/src/presentation/components/add-friend-dialog'
 
 // Mock the UI components
 vi.mock('@/components/ui/button', () => ({
@@ -74,25 +74,25 @@ describe('AddFriendDialog', () => {
   describe('Basic Rendering', () => {
     it('should render when isOpen is true', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('添加好友')).toBeInTheDocument()
     })
 
     it('should not render when isOpen is false', () => {
       render(<AddFriendDialog {...mockProps} isOpen={false} />)
-      
+
       expect(screen.queryByText('添加好友')).not.toBeInTheDocument()
     })
 
     it('should render search input', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByPlaceholderText('输入手机号或用户名')).toBeInTheDocument()
     })
 
     it('should render message textarea', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByPlaceholderText('输入验证消息')).toBeInTheDocument()
     })
   })
@@ -101,7 +101,7 @@ describe('AddFriendDialog', () => {
     it('should call onClose when close button is clicked', async () => {
       const user = userEvent.setup()
       render(<AddFriendDialog {...mockProps} />)
-      
+
       const closeButton = screen.getByTestId('x-icon').closest('button')
       if (closeButton) {
         await user.click(closeButton)
@@ -112,21 +112,21 @@ describe('AddFriendDialog', () => {
     it('should update search input value', async () => {
       const user = userEvent.setup()
       render(<AddFriendDialog {...mockProps} />)
-      
+
       const searchInput = screen.getByPlaceholderText('输入手机号或用户名')
       await user.type(searchInput, 'test user')
-      
+
       expect(searchInput).toHaveValue('test user')
     })
 
     it('should update message textarea value', async () => {
       const user = userEvent.setup()
       render(<AddFriendDialog {...mockProps} />)
-      
+
       const messageTextarea = screen.getByPlaceholderText('输入验证消息')
       await user.clear(messageTextarea)
       await user.type(messageTextarea, 'Hello, friend!')
-      
+
       expect(messageTextarea).toHaveValue('Hello, friend!')
     })
   })
@@ -134,7 +134,7 @@ describe('AddFriendDialog', () => {
   describe('Tab Navigation', () => {
     it('should render all tab triggers', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByTestId('tab-search')).toBeInTheDocument()
       expect(screen.getByTestId('tab-nearby')).toBeInTheDocument()
       expect(screen.getByTestId('tab-recent')).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('AddFriendDialog', () => {
 
     it('should render tab content areas', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByTestId('tab-content-search')).toBeInTheDocument()
       expect(screen.getByTestId('tab-content-nearby')).toBeInTheDocument()
       expect(screen.getByTestId('tab-content-recent')).toBeInTheDocument()
@@ -154,7 +154,7 @@ describe('AddFriendDialog', () => {
   describe('Mock Data Display', () => {
     it('should show nearby users', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('张三')).toBeInTheDocument()
       expect(screen.getByText('李四')).toBeInTheDocument()
       expect(screen.getByText('距离 50米')).toBeInTheDocument()
@@ -163,7 +163,7 @@ describe('AddFriendDialog', () => {
 
     it('should show recent contacts', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('赵五')).toBeInTheDocument()
       expect(screen.getByText('钱六')).toBeInTheDocument()
       expect(screen.getByText('最后联系：2天前')).toBeInTheDocument()
@@ -172,7 +172,7 @@ describe('AddFriendDialog', () => {
 
     it('should show QR code section', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('我的二维码')).toBeInTheDocument()
       expect(screen.getByText('扫描二维码')).toBeInTheDocument()
     })
@@ -181,23 +181,23 @@ describe('AddFriendDialog', () => {
   describe('Form Elements', () => {
     it('should have proper labels', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('搜索用户')).toBeInTheDocument()
       expect(screen.getByText('添加好友消息')).toBeInTheDocument()
     })
 
     it('should show character count', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByText('10/100')).toBeInTheDocument()
     })
 
     it('should have proper input attributes', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       const searchInput = screen.getByPlaceholderText('输入手机号或用户名')
       const messageTextarea = screen.getByPlaceholderText('输入验证消息')
-      
+
       expect(searchInput).toHaveAttribute('id', 'search')
       expect(messageTextarea).toHaveAttribute('id', 'message')
       expect(messageTextarea).toHaveAttribute('maxLength', '100')
@@ -207,7 +207,7 @@ describe('AddFriendDialog', () => {
   describe('Icons', () => {
     it('should render all required icons', () => {
       render(<AddFriendDialog {...mockProps} />)
-      
+
       expect(screen.getByTestId('x-icon')).toBeInTheDocument()
       expect(screen.getAllByTestId('search-icon')).toHaveLength(2) // Tab and content
       expect(screen.getAllByTestId('user-plus-icon')).toHaveLength(4) // All add buttons

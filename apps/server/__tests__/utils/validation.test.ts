@@ -6,7 +6,7 @@ import {
   sanitizeInput,
   validateFileType,
   validateFileSize,
-} from '../../src/utils/validation'
+} from '../../src/shared/utils/validation'
 
 describe('Validation Utils - Simple', () => {
   describe('validateEmail', () => {

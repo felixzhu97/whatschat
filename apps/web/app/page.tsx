@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../hooks/use-auth"
-import { WhatsAppMain } from "../components/whatsapp-main"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/presentation/hooks";
+import { WhatsAppMain } from "@/src/presentation/components/whatsapp-main";
 
 export default function HomePage() {
-  const { isAuthenticated, isLoading } = useAuth()
-  const router = useRouter()
-  const [mounted, setMounted] = useState(false)
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mounted && !isLoading && !isAuthenticated) {
-      router.push("/login")
+      router.push("/login");
     }
-  }, [mounted, isLoading, isAuthenticated, router])
+  }, [mounted, isLoading, isAuthenticated, router]);
 
   if (!mounted || isLoading) {
     return (
@@ -28,12 +28,12 @@ export default function HomePage() {
           <p className="text-gray-600">加载中...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
-  return <WhatsAppMain />
+  return <WhatsAppMain />;
 }

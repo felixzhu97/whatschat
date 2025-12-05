@@ -5,18 +5,21 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Input } from "@/src/presentation/components/ui/input";
+import { Label } from "@/src/presentation/components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "../../hooks/use-auth";
+} from "@/src/presentation/components/ui/card";
+import {
+  Alert,
+  AlertDescription,
+} from "@/src/presentation/components/ui/alert";
+import { useAuth } from "../../src/presentation/hooks/use-auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("admin@whatschat.com");

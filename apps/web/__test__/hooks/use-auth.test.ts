@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/src/presentation/hooks/use-auth";
 
 // Mock fetch
 global.fetch = vi.fn();

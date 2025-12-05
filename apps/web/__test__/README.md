@@ -109,7 +109,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock useAuth hook
-vi.mock('@/hooks/use-auth', () => ({
+vi.mock('@/src/presentation/hooks/use-auth', () => ({
   useAuth: () => ({
     user: mockUser,
     login: vi.fn(),

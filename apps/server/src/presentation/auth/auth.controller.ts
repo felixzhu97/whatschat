@@ -9,7 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthService } from '../../application/services/auth.service';
+import { AuthService } from '@/application/services/auth.service';
 import {
   RegisterDto,
   LoginDto,
@@ -18,7 +18,7 @@ import {
   ChangePasswordDto,
   ForgotPasswordDto,
   ResetPasswordDto,
-} from '../../application/dto/auth.dto';
+} from '@/application/dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import { Public } from './public.decorator';

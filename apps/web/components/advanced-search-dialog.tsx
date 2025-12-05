@@ -1,35 +1,55 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, Search, X } from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import type { Contact } from "../types"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon, Search, X } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/shared/utils/utils";
+import type { Contact } from "../types";
 
 interface AdvancedSearchDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  contacts: Contact[]
-  onSearch: (filters: SearchFilters) => void
+  isOpen: boolean;
+  onClose: () => void;
+  contacts: Contact[];
+  onSearch: (filters: SearchFilters) => void;
 }
 
 interface SearchFilters {
-  query: string
-  contact: string
-  messageType: string
-  dateFrom: Date | undefined
-  dateTo: Date | undefined
-  hasMedia: boolean
+  query: string;
+  contact: string;
+  messageType: string;
+  dateFrom: Date | undefined;
+  dateTo: Date | undefined;
+  hasMedia: boolean;
 }
 
-export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch }: AdvancedSearchDialogProps) {
+export function AdvancedSearchDialog({
+  isOpen,
+  onClose,
+  contacts = [],
+  onSearch,
+}: AdvancedSearchDialogProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
     contact: "all", // Updated default value
@@ -37,15 +57,15 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
     dateFrom: undefined,
     dateTo: undefined,
     hasMedia: false,
-  })
+  });
 
   // Ensure contacts is always an array
-  const safeContacts = Array.isArray(contacts) ? contacts : []
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
 
   const handleSearch = () => {
-    onSearch(filters)
-    onClose()
-  }
+    onSearch(filters);
+    onClose();
+  };
 
   const handleReset = () => {
     setFilters({
@@ -55,8 +75,8 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
       dateFrom: undefined,
       dateTo: undefined,
       hasMedia: false,
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -76,14 +96,21 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
               id="query"
               placeholder="输入要搜索的内容..."
               value={filters.query}
-              onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, query: e.target.value })
+              }
             />
           </div>
 
           {/* Contact Filter */}
           <div className="space-y-2">
             <Label>联系人</Label>
-            <Select value={filters.contact} onValueChange={(value) => setFilters({ ...filters, contact: value })}>
+            <Select
+              value={filters.contact}
+              onValueChange={(value) =>
+                setFilters({ ...filters, contact: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="选择联系人" />
               </SelectTrigger>
@@ -103,7 +130,9 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
             <Label>消息类型</Label>
             <Select
               value={filters.messageType}
-              onValueChange={(value) => setFilters({ ...filters, messageType: value })}
+              onValueChange={(value) =>
+                setFilters({ ...filters, messageType: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="选择消息类型" />
@@ -129,18 +158,22 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !filters.dateFrom && "text-muted-foreground",
+                      !filters.dateFrom && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateFrom ? format(filters.dateFrom, "PPP") : "选择日期"}
+                    {filters.dateFrom
+                      ? format(filters.dateFrom, "PPP")
+                      : "选择日期"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={filters.dateFrom}
-                    onSelect={(date) => setFilters({ ...filters, dateFrom: date })}
+                    onSelect={(date) =>
+                      setFilters({ ...filters, dateFrom: date })
+                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -155,18 +188,22 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !filters.dateTo && "text-muted-foreground",
+                      !filters.dateTo && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateTo ? format(filters.dateTo, "PPP") : "选择日期"}
+                    {filters.dateTo
+                      ? format(filters.dateTo, "PPP")
+                      : "选择日期"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={filters.dateTo}
-                    onSelect={(date) => setFilters({ ...filters, dateTo: date })}
+                    onSelect={(date) =>
+                      setFilters({ ...filters, dateTo: date })
+                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -193,5 +230,5 @@ export function AdvancedSearchDialog({ isOpen, onClose, contacts = [], onSearch 
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

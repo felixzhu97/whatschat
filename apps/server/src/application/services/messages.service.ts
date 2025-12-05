@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 
 export interface CreateMessageData {
   content: string;

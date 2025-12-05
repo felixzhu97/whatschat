@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import logger, { requestLogger, errorLogger } from "../../src/utils/logger";
+import logger, { requestLogger, errorLogger } from "../../src/shared/utils/logger";
 
 // Mock winston
 vi.mock("winston", () => ({

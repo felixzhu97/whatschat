@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { MessageBubble } from "@/components/message-bubble";
+import { MessageBubble } from "@/src/presentation/components/message-bubble";
 
 // Mock Lucide React icons
 vi.mock("lucide-react", () => ({
