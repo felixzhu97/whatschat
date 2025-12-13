@@ -1,0 +1,416 @@
+@startuml Wardley_Map
+
+!theme plain
+
+skinparam linetype ortho
+
+skinparam packageStyle rectangle
+
+title WhatsChat 即时通讯平台 - 沃德利地图 (Wardley Map)
+
+' ============================================
+' 价值网络和组件演化阶段
+' ============================================
+'
+' Y轴（从上到下）：价值网络 - 从用户需求到基础设施
+' X轴（从左到右）：演化阶段 - Genesis → Custom Built → Product → Commodity
+'
+
+package "用户需求层 (User Needs)" #E3F2FD {
+  class UserNeeds {
+    + 即时通讯需求
+    + 音视频通话需求
+    + 文件共享需求
+    --
+    实时消息传递
+    语音视频通话
+    多媒体文件分享
+    群组聊天
+    消息搜索
+  }
+}
+
+package "应用层 (Application)" #BBDEFB {
+  class WebApplication {
+    + Web 应用
+    --
+    Next.js 15 + React 19
+    响应式界面
+    实时消息显示
+    音视频通话界面
+    文件上传下载
+  }
+  
+  class MobileApplication {
+    + 移动应用
+    --
+    Flutter 跨平台
+    原生体验
+    推送通知
+    离线消息
+    媒体播放
+  }
+}
+
+package "平台层 (Platform)" #90CAF9 {
+  class MessageService {
+    + 消息处理服务
+    --
+    实时消息路由
+    消息持久化
+    消息状态管理
+    消息推送
+  }
+  
+  class AuthService {
+    + 认证授权服务
+    --
+    JWT 令牌管理
+    Passport 策略
+    用户会话管理
+    权限控制
+  }
+  
+  class CallService {
+    + 通话管理服务
+    --
+    WebRTC 信令
+    通话状态管理
+    媒体协商
+    通话记录
+  }
+  
+  class FileService {
+    + 文件管理服务
+    --
+    文件上传下载
+    文件存储管理
+    文件预览
+    文件权限控制
+  }
+  
+  class SearchService {
+    + 搜索服务
+    --
+    全文检索
+    消息历史搜索
+    联系人搜索
+    智能推荐
+  }
+  
+  class NotificationService {
+    + 推送通知服务
+    --
+    FCM/APNs 集成
+    消息推送
+    离线通知
+    推送统计
+  }
+}
+
+package "基础设施层 (Infrastructure)" #64B5F6 {
+  class DatabaseService {
+    + 数据库服务
+    --
+    PostgreSQL 主数据库
+    数据持久化
+    数据备份恢复
+    读写分离
+  }
+  
+  class CacheService {
+    + 缓存服务
+    --
+    Redis 缓存
+    会话缓存
+    消息队列
+    实时状态
+  }
+  
+  class StorageService {
+    + 存储服务
+    --
+    S3/MinIO 对象存储
+    文件存储
+    媒体文件管理
+    CDN 集成
+  }
+  
+  class SearchEngine {
+    + 搜索引擎
+    --
+    Elasticsearch
+    全文索引
+    搜索优化
+    数据同步
+  }
+  
+  class WebSocketService {
+    + WebSocket 服务
+    --
+    Socket.io
+    实时通信
+    连接管理
+    消息广播
+  }
+  
+  class WebRTCService {
+    + WebRTC 服务
+    --
+    P2P 通信
+    STUN/TURN 服务器
+    媒体流处理
+    NAT 穿透
+  }
+  
+  class CDNService {
+    + CDN 服务
+    --
+    静态资源加速
+    全球分发
+    缓存策略
+    负载均衡
+  }
+  
+  class ContainerService {
+    + 容器服务
+    --
+    Docker 容器化
+    Kubernetes 编排
+    自动扩缩容
+    服务发现
+  }
+}
+
+' ============================================
+' 演化阶段标注
+' ============================================
+
+package "Genesis (创新)" #FFF9C4 {
+  class AIAssistant {
+    + AI 智能助手
+    --
+    智能消息推荐
+    自动回复建议
+    内容理解
+    情感分析
+  }
+  
+  class SmartSearch {
+    + 智能搜索
+    --
+    语义搜索
+    上下文理解
+    智能排序
+    个性化推荐
+  }
+  
+  class AdvancedWebRTC {
+    + 高级 WebRTC
+    --
+    低延迟优化
+    自适应码率
+    网络质量检测
+    智能路由
+  }
+  
+  note right of AIAssistant
+    Genesis 阶段
+    创新技术，高差异化
+  end note
+  
+  note right of SmartSearch
+    Genesis 阶段
+    新兴搜索技术
+  end note
+  
+  note right of AdvancedWebRTC
+    Genesis 阶段
+    优化的音视频技术
+  end note
+}
+
+package "Custom Built (定制构建)" #FFE0B2 {
+  note right of MessageService
+    定制构建阶段
+    平台核心差异化能力
+    实时消息处理逻辑
+  end note
+  
+  note right of CallService
+    定制构建阶段
+    WebRTC 信令服务
+    通话业务逻辑
+  end note
+  
+  note right of FileService
+    定制构建阶段
+    文件管理业务逻辑
+    权限控制机制
+  end note
+}
+
+package "Product (产品化)" #C8E6C9 {
+  note right of WebApplication
+    产品化阶段
+    标准化前端框架
+  end note
+  
+  note right of MobileApplication
+    产品化阶段
+    标准化移动框架
+  end note
+  
+  note right of AuthService
+    产品化阶段
+    标准化认证方案
+  end note
+  
+  note right of NotificationService
+    产品化阶段
+    标准化推送服务
+  end note
+  
+  note right of SearchEngine
+    产品化阶段
+    标准化搜索引擎
+  end note
+  
+  note right of WebSocketService
+    产品化阶段
+    标准化 WebSocket 库
+  end note
+}
+
+package "Commodity (商品化)" #E1BEE7 {
+  note right of DatabaseService
+    商品化阶段
+    标准化数据库服务
+  end note
+  
+  note right of CacheService
+    商品化阶段
+    标准化缓存服务
+  end note
+  
+  note right of StorageService
+    商品化阶段
+    标准化对象存储
+  end note
+  
+  note right of CDNService
+    商品化阶段
+    标准化 CDN 服务
+  end note
+  
+  note right of ContainerService
+    商品化阶段
+    标准化容器服务
+  end note
+}
+
+' ============================================
+' 价值网络依赖关系
+' ============================================
+
+UserNeeds --> WebApplication : 使用
+UserNeeds --> MobileApplication : 使用
+
+WebApplication --> MessageService : 依赖
+WebApplication --> AuthService : 依赖
+WebApplication --> CallService : 依赖
+WebApplication --> FileService : 依赖
+WebApplication --> SearchService : 依赖
+
+MobileApplication --> MessageService : 依赖
+MobileApplication --> AuthService : 依赖
+MobileApplication --> CallService : 依赖
+MobileApplication --> FileService : 依赖
+MobileApplication --> NotificationService : 依赖
+
+MessageService --> DatabaseService : 需要
+MessageService --> CacheService : 需要
+MessageService --> WebSocketService : 需要
+
+AuthService --> DatabaseService : 需要
+AuthService --> CacheService : 需要
+
+CallService --> WebRTCService : 需要
+CallService --> DatabaseService : 需要
+
+FileService --> StorageService : 需要
+FileService --> CDNService : 需要
+
+SearchService --> SearchEngine : 需要
+SearchEngine --> DatabaseService : 需要
+
+NotificationService --> WebSocketService : 需要
+
+StorageService --> CDNService : 使用
+
+ContainerService --> DatabaseService : 托管
+ContainerService --> CacheService : 托管
+ContainerService --> StorageService : 托管
+
+' ============================================
+' 演化路径说明
+' ============================================
+
+note top of AIAssistant
+  **Genesis (创新阶段)**
+  
+  新兴技术和服务：
+  - AI 智能助手：利用 AI 技术提供智能消息推荐和自动回复
+  - 智能搜索：语义搜索和上下文理解
+  - 高级 WebRTC：低延迟优化和自适应码率
+  - 这些功能处于创新阶段，具有高差异化和不确定性
+end note
+
+note top of MessageService
+  **Custom Built (定制构建阶段)**
+  
+  平台核心能力：
+  - 消息处理服务：平台的核心差异化功能，实时消息路由和状态管理
+  - 通话管理服务：WebRTC 信令和业务逻辑
+  - 文件管理服务：定制化的文件处理和权限控制
+  - 这些功能需要持续投入和优化
+end note
+
+note top of WebApplication
+  **Product (产品化阶段)**
+  
+  标准化产品：
+  - Web 应用：基于 Next.js 和 React 的标准化前端
+  - 移动应用：基于 Flutter 的跨平台解决方案
+  - 认证服务：标准化的 JWT 和 Passport 认证
+  - 推送通知：标准化的 FCM/APNs 集成
+  - 这些功能已经产品化，可以稳定提供
+end note
+
+note top of DatabaseService
+  **Commodity (商品化阶段)**
+  
+  基础设施服务：
+  - 数据库、缓存、存储、CDN、容器等服务
+  - 这些是标准化的云服务
+  - 可以轻松替换和采购
+  - 成本优化的重要方向
+end note
+
+' ============================================
+' 图例说明
+' ============================================
+
+legend right
+  |<#FFF9C4> Genesis | 创新阶段 - 新兴技术，高不确定性 |
+  |<#FFE0B2> Custom Built | 定制构建阶段 - 核心差异化能力 |
+  |<#C8E6C9> Product | 产品化阶段 - 标准化产品 |
+  |<#E1BEE7> Commodity | 商品化阶段 - 标准化服务 |
+  |
+  |<#E3F2FD> 用户需求层 | 最终用户的需求和价值 |
+  |<#BBDEFB> 应用层 | 面向用户的应用功能 |
+  |<#90CAF9> 平台层 | 平台核心能力 |
+  |<#64B5F6> 基础设施层 | 底层支撑服务 |
+endlegend
+
+@enduml
