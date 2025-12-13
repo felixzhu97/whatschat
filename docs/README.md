@@ -20,6 +20,10 @@
 
 - [`wardley-map/wardley-map.puml`](./wardley-map/wardley-map.puml) - 沃德利地图 (Wardley Map) - 展示系统组件在价值链和演化轴上的战略位置
 
+#### 用户旅程地图
+
+- [`user-journey-map/user-journey-map.puml`](./user-journey-map/user-journey-map.puml) - 用户旅程地图 (User Journey Map) - 展示用户从注册到使用产品的完整旅程，包括各阶段的用户行为、触点、情感体验、痛点和改进机会
+
 #### 时序图
 
 - [`architecture/sequence-diagrams/README.md`](./architecture/sequence-diagrams/README.md) - 时序图索引
