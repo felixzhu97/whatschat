@@ -1,0 +1,131 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+
+title WhatsChat 服务发现与注册图
+
+package "Kubernetes集群" {
+  
+  package "控制平面" {
+    component [API Server] as APIServer
+    component [etcd] as Etcd
+    component [CoreDNS] as CoreDNS
+  }
+  
+  package "API服务部署" {
+    component [API Pod 1] as APIPod1
+    component [API Pod 2] as APIPod2
+    component [API Pod N] as APIPodN
+  }
+  
+  package "WebSocket服务部署" {
+    component [WS Pod 1] as WSPod1
+    component [WS Pod 2] as WSPod2
+    component [WS Pod N] as WSPodN
+  }
+  
+  component [API Service] as APIService
+  component [WebSocket Service] as WSService
+  
+  component [Endpoint Controller] as EndpointController
+  component [Service Controller] as ServiceController
+}
+
+package "客户端" {
+  component [Web Client] as Client
+  component [Mobile Client] as MobileClient
+}
+
+package "外部访问" {
+  component [Ingress Controller] as Ingress
+  component [Load Balancer] as LB
+}
+
+' 服务注册流程
+APIPod1 --> APIServer : 1. 注册到Kubernetes
+APIPod2 --> APIServer : 1. 注册到Kubernetes
+APIPodN --> APIServer : 1. 注册到Kubernetes
+WSPod1 --> APIServer : 1. 注册到Kubernetes
+WSPod2 --> APIServer : 1. 注册到Kubernetes
+WSPodN --> APIServer : 1. 注册到Kubernetes
+
+APIServer --> Etcd : 2. 存储Pod信息
+Etcd --> APIServer : 3. 持久化存储
+
+' Endpoint管理
+APIServer --> EndpointController : 4. Pod状态变化
+EndpointController --> APIService : 5. 更新Endpoints
+EndpointController --> WSService : 5. 更新Endpoints
+
+' Service发现
+APIService --> CoreDNS : 6. DNS记录 (api-service.whatschat.svc.cluster.local)
+WSService --> CoreDNS : 6. DNS记录 (ws-service.whatschat.svc.cluster.local)
+
+' 客户端发现服务
+Client --> Ingress : 7. 外部访问
+Ingress --> APIService : 8. 服务发现
+APIService --> APIPod1 : 9. 负载均衡
+APIService --> APIPod2 : 9. 负载均衡
+APIService --> APIPodN : 9. 负载均衡
+
+Client --> WSService : 10. WebSocket连接
+WSService --> WSPod1 : 11. 负载均衡
+WSService --> WSPod2 : 11. 负载均衡
+
+' 内部服务发现
+APIPod1 --> CoreDNS : 12. 查询WS服务地址
+CoreDNS --> APIPod1 : 13. 返回ws-service.svc.cluster.local
+APIPod1 --> WSService : 14. 服务调用
+
+' Load Balancer
+MobileClient --> LB : 15. 外部访问
+LB --> APIService : 16. 转发请求
+
+note right of APIServer
+  **Kubernetes API Server**
+  - 服务注册中心
+  - 存储所有资源状态
+  - 提供服务发现API
+end note
+
+note right of Etcd
+  **etcd**
+  - 分布式键值存储
+  - 存储集群状态
+  - 服务配置信息
+end note
+
+note right of CoreDNS
+  **CoreDNS**
+  - Kubernetes DNS服务
+  - 服务名解析
+  - 格式: <service>.<namespace>.svc.cluster.local
+end note
+
+note right of APIService
+  **API Service**
+  - 虚拟IP (ClusterIP)
+  - 负载均衡到后端Pods
+  - 通过Endpoints维护Pod列表
+end note
+
+note right of EndpointController
+  **Endpoint Controller**
+  - 监控Pod状态
+  - 自动更新Service的Endpoints
+  - 健康检查
+end note
+
+note bottom
+  **服务发现流程**
+  
+  1. **服务注册**: Pod启动时向API Server注册
+  2. **状态存储**: API Server将信息存储到etcd
+  3. **Endpoint更新**: Endpoint Controller监控Pod状态并更新Endpoints
+  4. **DNS注册**: CoreDNS创建服务DNS记录
+  5. **服务发现**: 客户端通过DNS或Service名称访问服务
+  6. **负载均衡**: Service将请求负载均衡到后端Pods
+end note
+
+@enduml
+

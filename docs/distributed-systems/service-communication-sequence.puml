@@ -1,0 +1,168 @@
+@startuml
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+title WhatsChat 服务间通信时序图
+
+' 场景1: 用户登录
+partition "场景1: 用户登录流程" {
+  actor 客户端 as Client1
+  participant "API网关" as Gateway1
+  participant "负载均衡" as LB1
+  participant "API服务" as API1
+  database "PostgreSQL" as DB1
+  database "Redis" as Redis1
+  
+  Client1 -> Gateway1: 1. POST /api/v1/auth/login
+  Gateway1 -> Gateway1: 2. 验证请求格式
+  Gateway1 -> LB1: 3. 转发请求
+  LB1 -> API1: 4. 负载均衡到API实例
+  API1 -> API1: 5. 验证用户凭证
+  API1 -> DB1: 6. 查询用户信息
+  DB1 --> API1: 7. 返回用户数据
+  API1 -> API1: 8. 验证密码
+  API1 -> API1: 9. 生成JWT令牌
+  API1 -> Redis1: 10. 存储会话信息
+  Redis1 --> API1: 11. 存储成功
+  API1 --> LB1: 12. 返回令牌和用户信息
+  LB1 --> Gateway1: 13. 响应
+  Gateway1 --> Client1: 14. 返回登录结果
+}
+
+' 场景2: 发送消息
+partition "场景2: 发送消息流程" {
+  actor 用户A as UserA
+  participant "API网关" as Gateway2
+  participant "API服务" as API2
+  participant "Redis Pub/Sub" as PubSub2
+  participant "WebSocket服务" as WS2
+  actor 用户B as UserB
+  database "PostgreSQL" as DB2
+  database "Redis" as Redis2
+  
+  UserA -> Gateway2: 1. POST /api/v1/messages
+  Gateway2 -> API2: 2. 转发请求
+  API2 -> API2: 3. 验证JWT令牌
+  API2 -> API2: 4. 验证消息权限
+  API2 -> DB2: 5. 开始事务
+  API2 -> DB2: 6. 插入消息记录
+  DB2 --> API2: 7. 返回消息ID
+  API2 -> Redis2: 8. 缓存消息
+  Redis2 --> API2: 9. 缓存成功
+  API2 -> DB2: 10. 提交事务
+  DB2 --> API2: 11. 提交成功
+  API2 -> PubSub2: 12. PUBLISH message:new
+  API2 --> Gateway2: 13. 返回发送成功
+  Gateway2 --> UserA: 14. 返回成功响应
+  
+  PubSub2 -> WS2: 15. 推送消息事件
+  WS2 -> WS2: 16. 查找在线用户
+  WS2 -> UserB: 17. WebSocket推送消息
+  UserB --> WS2: 18. 确认接收
+  WS2 -> DB2: 19. 更新消息状态(已送达)
+}
+
+' 场景3: 创建群组
+partition "场景3: 创建群组流程" {
+  actor 用户 as User3
+  participant "API服务" as API3
+  participant "群组服务" as GroupService
+  participant "消息服务" as MessageService
+  participant "通知服务" as NotifyService
+  database "PostgreSQL" as DB3
+  database "Redis Pub/Sub" as PubSub3
+  participant "WebSocket服务" as WS3
+  
+  User3 -> API3: 1. POST /api/v1/groups
+  API3 -> GroupService: 2. 创建群组
+  GroupService -> DB3: 3. 插入群组记录
+  DB3 --> GroupService: 4. 返回群组ID
+  GroupService -> MessageService: 5. 创建欢迎消息
+  MessageService -> DB3: 6. 插入消息记录
+  DB3 --> MessageService: 7. 返回成功
+  MessageService --> GroupService: 8. 创建成功
+  GroupService -> NotifyService: 9. 发送群组通知
+  NotifyService -> PubSub3: 10. PUBLISH group:created
+  GroupService --> API3: 11. 返回群组信息
+  API3 --> User3: 12. 返回创建成功
+  
+  PubSub3 -> WS3: 13. 推送群组创建事件
+  WS3 -> User3: 14. 实时通知
+}
+
+' 场景4: 实时消息推送(跨实例)
+partition "场景4: 跨实例实时推送" {
+  actor 用户A as UserA4
+  participant "API实例1" as API4_1
+  participant "Redis Pub/Sub" as PubSub4
+  participant "WebSocket实例1" as WS4_1
+  participant "WebSocket实例2" as WS4_2
+  actor "用户B\n(连接WS实例1)" as UserB4_1
+  actor "用户C\n(连接WS实例2)" as UserC4_2
+  database "PostgreSQL" as DB4
+  
+  UserA4 -> API4_1: 1. 发送群组消息
+  API4_1 -> DB4: 2. 保存消息
+  API4_1 -> PubSub4: 3. PUBLISH message:new\n{groupId, messageId}
+  
+  PubSub4 -> WS4_1: 4. 推送消息事件
+  PubSub4 -> WS4_2: 5. 推送消息事件
+  
+  WS4_1 -> WS4_1: 6. 查找群组成员(在线)
+  WS4_1 -> UserB4_1: 7. 推送消息
+  WS4_1 -> UserC4_2: 8. 推送消息(如果连接在此实例)
+  
+  WS4_2 -> WS4_2: 9. 查找群组成员(在线)
+  WS4_2 -> UserC4_2: 10. 推送消息
+}
+
+' 场景5: 查询历史消息(缓存策略)
+partition "场景5: 查询历史消息(缓存策略)" {
+  actor 客户端 as Client5
+  participant "API服务" as API5
+  database "Redis" as Redis5
+  database "PostgreSQL从库" as DBSlave5
+  
+  Client5 -> API5: 1. GET /api/v1/messages?chatId=xxx
+  API5 -> Redis5: 2. 查询缓存 key=messages:chatId:xxx
+  alt 缓存命中
+    Redis5 --> API5: 3. 返回缓存数据
+    API5 --> Client5: 4. 返回消息列表
+  else 缓存未命中
+    Redis5 --> API5: 3. 缓存不存在
+    API5 -> DBSlave5: 4. 从数据库查询
+    DBSlave5 --> API5: 5. 返回消息数据
+    API5 -> Redis5: 6. 缓存查询结果 TTL=300s
+    Redis5 --> API5: 7. 缓存成功
+    API5 --> Client5: 8. 返回消息列表
+  end
+}
+
+note right of PubSub2
+  **Redis Pub/Sub**
+  - 跨服务实例消息同步
+  - 实时事件推送
+  - 解耦服务间依赖
+end note
+
+note right of WS2
+  **WebSocket服务**
+  - 维护用户连接映射
+  - 实时消息推送
+  - 在线状态管理
+end note
+
+note bottom
+  **服务通信模式说明**
+  
+  1. **同步调用**: API服务直接调用数据库，等待响应
+  2. **异步消息**: 通过Redis Pub/Sub实现服务间异步通信
+  3. **缓存策略**: 读操作先查缓存，未命中再查数据库
+  4. **负载均衡**: 请求通过负载均衡分发到多个服务实例
+  5. **读写分离**: 写操作在主库，读操作在从库
+  6. **跨实例通信**: WebSocket实例通过Pub/Sub实现消息同步
+end note
+
+@enduml
+

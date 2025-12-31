@@ -1,0 +1,166 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title WhatsChat 分布式系统架构图
+
+package "客户端层" {
+  component [Web客户端] as WebClient
+  component [移动客户端] as MobileClient
+}
+
+package "接入层" {
+  component [API网关] as APIGateway
+  component [负载均衡器] as LoadBalancer
+}
+
+package "应用服务层" {
+  package "API服务集群" {
+    component [API服务实例1] as API1
+    component [API服务实例2] as API2
+    component [API服务实例N] as APIN
+  }
+  
+  package "WebSocket服务集群" {
+    component [WebSocket实例1] as WS1
+    component [WebSocket实例2] as WS2
+    component [WebSocket实例N] as WSN
+  }
+}
+
+package "数据存储层" {
+  package "关系数据库" {
+    database [PostgreSQL主库] as PGMaster
+    database [PostgreSQL从库] as PGSlave1
+    database [PostgreSQL从库] as PGSlave2
+  }
+  
+  package "缓存层" {
+    database [Redis主节点] as RedisMaster
+    database [Redis从节点] as RedisSlave1
+    database [Redis从节点] as RedisSlave2
+  }
+  
+  database [对象存储] as ObjectStorage
+}
+
+package "消息中间件" {
+  component [Redis Pub/Sub] as RedisPubSub
+}
+
+package "外部服务" {
+  component [推送服务] as PushService
+  component [邮件服务] as EmailService
+  component [STUN/TURN服务] as StunTurn
+}
+
+' 客户端到接入层
+WebClient --> APIGateway : HTTPS
+MobileClient --> APIGateway : HTTPS
+
+' 接入层到应用服务
+APIGateway --> LoadBalancer : HTTP
+LoadBalancer --> API1 : HTTP
+LoadBalancer --> API2 : HTTP
+LoadBalancer --> APIN : HTTP
+
+' WebSocket连接
+WebClient --> WS1 : WebSocket
+WebClient --> WS2 : WebSocket
+MobileClient --> WS1 : WebSocket
+MobileClient --> WS2 : WebSocket
+
+' API服务到数据存储
+API1 --> PGMaster : 写操作 (Prisma ORM)
+API1 --> PGSlave1 : 读操作
+API2 --> PGMaster : 写操作
+API2 --> PGSlave2 : 读操作
+APIN --> PGMaster : 写操作
+
+' API服务到缓存
+API1 --> RedisMaster : 读写
+API2 --> RedisMaster : 读写
+APIN --> RedisMaster : 读写
+
+' API服务到对象存储
+API1 --> ObjectStorage : 文件操作
+API2 --> ObjectStorage : 文件操作
+
+' WebSocket服务到Redis
+WS1 --> RedisPubSub : 订阅/发布
+WS2 --> RedisPubSub : 订阅/发布
+WSN --> RedisPubSub : 订阅/发布
+
+' API服务到WebSocket服务（通过Redis）
+API1 ..> RedisPubSub : 发布消息事件
+RedisPubSub ..> WS1 : 推送消息
+RedisPubSub ..> WS2 : 推送消息
+
+' 数据库主从复制
+PGMaster --> PGSlave1 : 流复制
+PGMaster --> PGSlave2 : 流复制
+
+' Redis主从复制
+RedisMaster --> RedisSlave1 : 复制
+RedisMaster --> RedisSlave2 : 复制
+
+' API服务到外部服务
+API1 --> PushService : 推送通知
+API1 --> EmailService : 发送邮件
+WS1 --> StunTurn : WebRTC信令
+
+note right of APIGateway
+  **API网关**
+  - 路由转发
+  - 限流熔断
+  - 认证鉴权
+  - SSL终端
+end note
+
+note right of LoadBalancer
+  **负载均衡**
+  - 轮询/加权
+  - 健康检查
+  - 会话保持
+end note
+
+note right of API1
+  **API服务 (NestJS)**
+  - RESTful API
+  - 业务逻辑处理
+  - 认证授权
+  - 数据验证
+end note
+
+note right of WS1
+  **WebSocket服务**
+  - 实时消息推送
+  - 在线状态管理
+  - Socket.io
+end note
+
+note right of PGMaster
+  **PostgreSQL主库**
+  - 写操作
+  - 事务处理
+  - 数据一致性
+end note
+
+note right of RedisMaster
+  **Redis集群**
+  - 会话缓存
+  - 消息队列
+  - Pub/Sub
+  - 分布式锁
+end note
+
+note right of RedisPubSub
+  **Redis Pub/Sub**
+  - 跨实例消息推送
+  - 事件发布订阅
+  - 服务间解耦
+end note
+
+@enduml
+

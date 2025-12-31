@@ -1,0 +1,150 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title WhatsChat 负载均衡与容错图
+
+package "客户端层" {
+  component [客户端1] as Client1
+  component [客户端2] as Client2
+  component [客户端N] as ClientN
+}
+
+package "负载均衡层" {
+  component [Ingress控制器] as Ingress
+  component [Load Balancer] as LB
+  component [健康检查服务] as HealthCheck
+}
+
+package "API服务集群" {
+  component [API实例1\n健康] as API1_Healthy
+  component [API实例2\n健康] as API2_Healthy
+  component [API实例3\n故障] as API3_Fault
+  component [API实例4\n恢复中] as API4_Recovering
+}
+
+package "WebSocket服务集群" {
+  component [WS实例1] as WS1
+  component [WS实例2] as WS2
+  component [WS实例3] as WS3
+}
+
+package "监控系统" {
+  component [Prometheus] as Prometheus
+  component [告警服务] as AlertService
+  component [自动扩缩容] as AutoScaler
+}
+
+package "故障恢复" {
+  component [熔断器] as CircuitBreaker
+  component [降级服务] as DegradeService
+  component [重试机制] as Retry
+}
+
+' 正常流量
+Client1 --> Ingress : 请求1
+Client2 --> Ingress : 请求2
+ClientN --> Ingress : 请求N
+
+Ingress --> LB : 转发请求
+LB --> API1_Healthy : 负载均衡
+LB --> API2_Healthy : 负载均衡
+LB --> API3_Fault : 检测到故障
+LB --> API4_Recovering : 恢复中，少量流量
+
+' 健康检查
+HealthCheck --> API1_Healthy : 健康检查 ✓
+HealthCheck --> API2_Healthy : 健康检查 ✓
+HealthCheck --> API3_Fault : 健康检查 ✗
+HealthCheck --> API4_Recovering : 健康检查 ⚠
+
+HealthCheck --> LB : 更新服务状态
+HealthCheck --> Prometheus : 上报指标
+
+' 故障检测与处理
+API3_Fault --> CircuitBreaker : 触发熔断
+CircuitBreaker --> LB : 标记实例不可用
+LB ..> API3_Fault : 停止转发流量
+
+' 故障恢复流程
+API4_Recovering --> HealthCheck : 开始恢复
+HealthCheck --> LB : 状态更新(恢复中)
+LB --> API4_Recovering : 逐步增加流量
+API4_Recovering --> HealthCheck : 完全恢复
+HealthCheck --> LB : 状态更新(健康)
+LB --> API4_Recovering : 正常流量
+
+' 监控与告警
+Prometheus --> AlertService : 异常指标
+AlertService --> AutoScaler : 触发扩缩容
+AutoScaler --> API1_Healthy : 扩容/缩容
+
+' 降级策略
+alt API服务过载
+  LB --> DegradeService : 触发降级
+  DegradeService --> Client1 : 返回简化响应
+else 数据库连接失败
+  API1_Healthy --> DegradeService : 使用缓存数据
+  DegradeService --> Client1 : 返回缓存响应
+end
+
+' 重试机制
+Client1 --> Retry : 请求失败
+Retry --> API1_Healthy : 重试请求1
+Retry --> API2_Healthy : 重试请求2
+Retry --> API1_Healthy : 重试请求N (指数退避)
+
+note right of LB
+  **负载均衡策略**
+  - 轮询 (Round Robin)
+  - 加权轮询 (Weighted Round Robin)
+  - 最少连接 (Least Connections)
+  - IP哈希 (IP Hash) - 会话保持
+end note
+
+note right of HealthCheck
+  **健康检查机制**
+  - HTTP健康检查: /health
+  - 检查间隔: 10秒
+  - 超时时间: 3秒
+  - 失败阈值: 连续3次失败判定为不健康
+  - 恢复阈值: 连续2次成功判定为健康
+end note
+
+note right of CircuitBreaker
+  **熔断器状态**
+  1. **Closed**: 正常状态，请求正常通过
+  2. **Open**: 熔断状态，请求直接拒绝
+  3. **Half-Open**: 半开状态，允许少量请求测试
+  
+  **触发条件**:
+  - 错误率 > 50%
+  - 连续失败 > 10次
+  - 响应时间 > 5秒
+end note
+
+note right of AutoScaler
+  **自动扩缩容规则**
+  - CPU使用率 > 70%: 扩容
+  - CPU使用率 < 30%: 缩容
+  - 最小实例数: 2
+  - 最大实例数: 10
+  - 扩容速度: +2实例/次
+  - 缩容速度: -1实例/次
+end note
+
+note bottom
+  **容错机制说明**
+  
+  1. **故障检测**: 健康检查服务持续监控所有实例
+  2. **故障隔离**: 熔断器快速隔离故障实例
+  3. **流量切换**: 负载均衡器自动切换流量到健康实例
+  4. **自动恢复**: 故障实例恢复后逐步重新接入流量
+  5. **降级保护**: 服务过载时提供降级服务
+  6. **重试机制**: 请求失败时自动重试，使用指数退避
+  7. **监控告警**: Prometheus监控指标，异常时触发告警和自动扩缩容
+end note
+
+@enduml
+

@@ -1,0 +1,140 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title WhatsChat 消息队列架构图
+
+package "生产者 (Producers)" {
+  component [API服务实例1] as Producer1
+  component [API服务实例2] as Producer2
+  component [API服务实例N] as ProducerN
+}
+
+package "Redis Pub/Sub" {
+  database [Redis主节点] as RedisMaster
+  database [Redis从节点] as RedisSlave
+}
+
+package "消息主题 (Topics/Channels)" {
+  component [message:new] as TopicNew
+  component [message:updated] as TopicUpdated
+  component [message:deleted] as TopicDeleted
+  component [user:online] as TopicOnline
+  component [user:offline] as TopicOffline
+  component [group:created] as TopicGroupCreated
+  component [call:incoming] as TopicCall
+}
+
+package "消费者 (Consumers)" {
+  component [WebSocket实例1] as Consumer1
+  component [WebSocket实例2] as Consumer2
+  component [WebSocket实例N] as ConsumerN
+  component [通知服务] as NotificationService
+  component [离线消息服务] as OfflineService
+}
+
+package "消息存储" {
+  database [PostgreSQL] as DB
+  database [离线消息队列] as OfflineQueue
+}
+
+' 生产者发布消息
+Producer1 --> RedisMaster : 1. PUBLISH message:new
+Producer1 --> RedisMaster : 2. PUBLISH user:online
+Producer2 --> RedisMaster : 3. PUBLISH message:updated
+ProducerN --> RedisMaster : 4. PUBLISH group:created
+
+' Redis主从复制
+RedisMaster --> RedisSlave : 主从复制
+
+' 消息路由到主题
+RedisMaster --> TopicNew : 路由消息
+RedisMaster --> TopicUpdated : 路由消息
+RedisMaster --> TopicOnline : 路由消息
+RedisMaster --> TopicGroupCreated : 路由消息
+
+' 消费者订阅主题
+Consumer1 --> RedisMaster : 5. SUBSCRIBE message:new
+Consumer1 --> RedisMaster : 6. SUBSCRIBE user:online
+Consumer1 --> RedisMaster : 7. SUBSCRIBE user:offline
+Consumer2 --> RedisMaster : 8. SUBSCRIBE message:new
+Consumer2 --> RedisMaster : 9. SUBSCRIBE message:updated
+ConsumerN --> RedisMaster : 10. SUBSCRIBE message:new
+ConsumerN --> RedisMaster : 11. SUBSCRIBE call:incoming
+
+NotificationService --> RedisMaster : 12. SUBSCRIBE message:new
+NotificationService --> RedisMaster : 13. SUBSCRIBE group:created
+OfflineService --> RedisMaster : 14. SUBSCRIBE message:new
+
+' 消息推送给消费者
+TopicNew --> Consumer1 : 推送消息
+TopicNew --> Consumer2 : 推送消息
+TopicNew --> ConsumerN : 推送消息
+TopicOnline --> Consumer1 : 推送在线状态
+
+TopicNew --> NotificationService : 推送消息
+TopicGroupCreated --> NotificationService : 推送群组通知
+TopicNew --> OfflineService : 推送消息
+
+' 消费者处理消息
+Consumer1 --> DB : 更新消息状态
+Consumer2 --> DB : 更新消息状态
+NotificationService --> DB : 记录通知
+OfflineService --> OfflineQueue : 存储离线消息
+
+partition "消息流程示例" {
+  note as N1
+    **新消息发布流程**
+    1. API服务收到新消息
+    2. 写入PostgreSQL
+    3. PUBLISH到message:new主题
+    4. 所有订阅的WebSocket实例接收
+    5. 推送给在线用户
+    6. 离线用户消息存储到离线队列
+  end note
+}
+
+partition "离线消息处理" {
+  OfflineQueue --> Consumer1 : 用户上线时拉取
+  OfflineQueue --> Consumer2 : 用户上线时拉取
+}
+
+note right of RedisMaster
+  **Redis Pub/Sub特性**
+  - 发布订阅模式
+  - 支持多主题
+  - 支持多订阅者
+  - 实时消息推送
+  - 无消息持久化(需要额外存储)
+end note
+
+note right of Consumer1
+  **WebSocket消费者**
+  - 订阅消息主题
+  - 接收实时消息
+  - 推送给在线客户端
+  - 跨实例消息同步
+end note
+
+note right of OfflineService
+  **离线消息处理**
+  - 订阅所有消息主题
+  - 检测用户在线状态
+  - 离线消息存储到队列
+  - 用户上线时批量推送
+end note
+
+note bottom
+  **消息队列使用场景**
+  
+  1. **实时消息推送**: 新消息通过Pub/Sub推送给所有WebSocket实例
+  2. **在线状态同步**: 用户上下线状态跨实例同步
+  3. **事件通知**: 群组创建、消息更新等事件通知
+  4. **离线消息队列**: 离线用户消息存储，上线后推送
+  5. **服务解耦**: API服务和WebSocket服务通过消息队列解耦
+  6. **水平扩展**: 多个WebSocket实例通过订阅共享消息
+end note
+
+@enduml
+
