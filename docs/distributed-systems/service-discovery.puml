@@ -1,32 +1,33 @@
 @startuml
 !theme plain
 skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title WhatsChat 服务发现与注册图
 
 package "Kubernetes集群" {
-  
+
   package "控制平面" {
     component [API Server] as APIServer
     component [etcd] as Etcd
     component [CoreDNS] as CoreDNS
   }
-  
+
   package "API服务部署" {
     component [API Pod 1] as APIPod1
     component [API Pod 2] as APIPod2
     component [API Pod N] as APIPodN
   }
-  
+
   package "WebSocket服务部署" {
     component [WS Pod 1] as WSPod1
     component [WS Pod 2] as WSPod2
     component [WS Pod N] as WSPodN
   }
-  
+
   component [API Service] as APIService
   component [WebSocket Service] as WSService
-  
+
   component [Endpoint Controller] as EndpointController
   component [Service Controller] as ServiceController
 }
@@ -118,7 +119,7 @@ end note
 
 note bottom
   **服务发现流程**
-  
+
   1. **服务注册**: Pod启动时向API Server注册
   2. **状态存储**: API Server将信息存储到etcd
   3. **Endpoint更新**: Endpoint Controller监控Pod状态并更新Endpoints

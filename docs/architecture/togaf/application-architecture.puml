@@ -1,0 +1,162 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF 应用架构图 - WhatsChat 即时通讯系统
+
+package "客户端应用 (Client Applications)" {
+  component [Web应用] as WebApp #LightBlue
+  note right of WebApp
+    技术栈:
+    - Next.js 15
+    - React 19
+    - TypeScript
+    - Tailwind CSS
+    - Zustand状态管理
+  end note
+  
+  component [移动应用] as MobileApp #LightGreen
+  note right of MobileApp
+    技术栈:
+    - Flutter
+    - Dart
+    - Provider状态管理
+  end note
+}
+
+package "API网关层 (API Gateway)" {
+  component [REST API网关] as RestGateway
+  component [WebSocket网关] as WsGateway
+  component [WebRTC信令] as WebRTCGateway
+}
+
+package "应用服务层 (Application Services)" {
+  component [认证服务] as AuthService
+  component [用户服务] as UserService
+  component [消息服务] as MessageService
+  component [聊天服务] as ChatService
+  component [通话服务] as CallService
+  component [群组服务] as GroupService
+  component [状态服务] as StatusService
+  component [文件服务] as FileService
+  component [通知服务] as NotificationService
+}
+
+package "业务逻辑层 (Business Logic)" {
+  component [消息处理逻辑] as MessageLogic
+  component [实时通信逻辑] as RealtimeLogic
+  component [权限控制逻辑] as AuthzLogic
+  component [业务规则引擎] as BusinessRules
+}
+
+package "数据访问层 (Data Access)" {
+  component [数据仓库] as DataRepository
+  component [缓存服务] as CacheService
+}
+
+package "基础设施服务 (Infrastructure Services)" {
+  database [PostgreSQL] as PostgreSQL
+  database [Redis] as Redis
+  component [文件存储] as FileStorage
+  component [搜索服务] as SearchService
+}
+
+' 客户端到网关的连接
+WebApp --> RestGateway : HTTP/REST
+WebApp --> WsGateway : WebSocket
+WebApp --> WebRTCGateway : WebRTC信令
+MobileApp --> RestGateway : HTTP/REST
+MobileApp --> WsGateway : WebSocket
+MobileApp --> WebRTCGateway : WebRTC信令
+
+' 网关到服务的连接
+RestGateway --> AuthService : 路由
+RestGateway --> UserService : 路由
+RestGateway --> MessageService : 路由
+RestGateway --> ChatService : 路由
+RestGateway --> CallService : 路由
+RestGateway --> GroupService : 路由
+RestGateway --> StatusService : 路由
+RestGateway --> FileService : 路由
+
+WsGateway --> MessageService : 实时消息
+WsGateway --> ChatService : 聊天事件
+WsGateway --> NotificationService : 推送通知
+
+WebRTCGateway --> CallService : 信令处理
+
+' 服务之间的交互
+AuthService --> AuthzLogic : 使用
+UserService --> AuthzLogic : 使用
+MessageService --> MessageLogic : 使用
+ChatService --> MessageLogic : 使用
+CallService --> RealtimeLogic : 使用
+GroupService --> BusinessRules : 使用
+StatusService --> BusinessRules : 使用
+
+' 服务到数据层的连接
+AuthService --> DataRepository : 数据访问
+UserService --> DataRepository : 数据访问
+MessageService --> DataRepository : 数据访问
+ChatService --> DataRepository : 数据访问
+CallService --> DataRepository : 数据访问
+GroupService --> DataRepository : 数据访问
+StatusService --> DataRepository : 数据访问
+FileService --> DataRepository : 数据访问
+NotificationService --> DataRepository : 数据访问
+
+MessageService --> CacheService : 缓存访问
+ChatService --> CacheService : 缓存访问
+UserService --> CacheService : 缓存访问
+
+' 数据层到基础设施的连接
+DataRepository --> PostgreSQL : 持久化存储
+CacheService --> Redis : 缓存存储
+FileService --> FileStorage : 文件存储
+MessageService --> SearchService : 全文搜索
+
+rectangle "应用交互模式" {
+  note as N1
+    **REST API交互**
+    - 用户认证和授权
+    - 用户资料管理
+    - 聊天列表和详情
+    - 群组管理
+    - 文件上传下载
+    - 状态管理
+  end note
+  
+  note as N2
+    **WebSocket实时交互**
+    - 实时消息推送
+    - 在线状态同步
+    - 打字状态提示
+    - 消息已读状态
+    - 系统通知
+  end note
+  
+  note as N3
+    **WebRTC P2P交互**
+    - 语音通话
+    - 视频通话
+    - 点对点数据传输
+  end note
+}
+
+note bottom
+  **应用架构说明**
+  
+  WhatsChat采用分层架构设计，包括：
+  
+  1. **客户端应用层**: Web应用（Next.js）和移动应用（Flutter），提供用户界面
+  2. **API网关层**: REST API网关、WebSocket网关和WebRTC信令网关，统一入口
+  3. **应用服务层**: 细粒度的业务服务，包括认证、用户、消息、聊天、通话等
+  4. **业务逻辑层**: 核心业务逻辑和规则处理
+  5. **数据访问层**: 数据仓库和缓存服务，抽象数据访问
+  6. **基础设施层**: PostgreSQL、Redis、文件存储、搜索服务等
+  
+  应用之间通过REST、WebSocket和WebRTC三种协议进行交互，实现同步和异步通信。
+end note
+
+@enduml

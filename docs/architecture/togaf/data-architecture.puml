@@ -1,0 +1,181 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF 数据架构图 - WhatsChat 即时通讯系统
+
+package "数据实体层 (Data Entities)" {
+  component [User\n用户] as User
+  component [Chat\n聊天] as Chat
+  component [Message\n消息] as Message
+  component [Group\n群组] as Group
+  component [Call\n通话] as Call
+  component [Status\n状态] as Status
+  component [Contact\n联系人] as Contact
+  component [Notification\n通知] as Notification
+  component [FileUpload\n文件上传] as FileUpload
+}
+
+package "关联实体 (Association Entities)" {
+  component [ChatParticipant\n聊天参与者] as ChatParticipant
+  component [GroupParticipant\n群组参与者] as GroupParticipant
+  component [CallParticipant\n通话参与者] as CallParticipant
+  component [MessageRead\n消息已读] as MessageRead
+  component [MessageReaction\n消息反应] as MessageReaction
+  component [StatusView\n状态查看] as StatusView
+}
+
+package "数据存储 (Data Storage)" {
+  database [PostgreSQL\n主数据库] as PostgreSQL #LightBlue
+  database [Redis\n缓存和会话] as Redis #LightCoral
+  component [文件存储\nMinIO/S3] as FileStorage #LightGreen
+}
+
+' 核心实体关系
+User --> Message : 发送
+User --> ChatParticipant : 参与
+User --> GroupParticipant : 参与
+User --> Group : 创建
+User --> Call : 发起
+User --> CallParticipant : 参与
+User --> Status : 发布
+User --> StatusView : 查看
+User --> Contact : 拥有
+User --> Notification : 接收
+User --> FileUpload : 上传
+
+Chat --> Message : 包含
+Chat --> ChatParticipant : 参与者
+Chat --> Call : 关联
+
+Message --> MessageRead : 已读记录
+Message --> MessageReaction : 反应
+Message --> Message : 回复
+
+Group --> GroupParticipant : 成员
+
+Call --> CallParticipant : 参与者
+
+Status --> StatusView : 查看记录
+
+' 数据存储关系
+User --> PostgreSQL : 存储
+Chat --> PostgreSQL : 存储
+Message --> PostgreSQL : 存储
+Group --> PostgreSQL : 存储
+Call --> PostgreSQL : 存储
+Status --> PostgreSQL : 存储
+Contact --> PostgreSQL : 存储
+Notification --> PostgreSQL : 存储
+FileUpload --> PostgreSQL : 存储
+ChatParticipant --> PostgreSQL : 存储
+GroupParticipant --> PostgreSQL : 存储
+CallParticipant --> PostgreSQL : 存储
+MessageRead --> PostgreSQL : 存储
+MessageReaction --> PostgreSQL : 存储
+StatusView --> PostgreSQL : 存储
+
+User --> Redis : 会话缓存
+Chat --> Redis : 在线状态缓存
+Message --> Redis : 消息队列
+
+FileUpload --> FileStorage : 文件存储
+
+rectangle "数据实体说明" {
+  note as N1
+    **核心实体 (Core Entities)**
+    - User: 用户信息、认证信息、状态
+    - Chat: 聊天会话、私聊/群聊
+    - Message: 消息内容、类型、状态
+    - Group: 群组信息、设置
+    - Call: 通话记录、状态
+    - Status: 用户状态动态
+    - Contact: 联系人信息
+    - Notification: 系统通知
+    - FileUpload: 文件上传记录
+  end note
+  
+  note as N2
+    **关联实体 (Association Entities)**
+    - ChatParticipant: 聊天参与者关系
+    - GroupParticipant: 群组成员关系
+    - CallParticipant: 通话参与者关系
+    - MessageRead: 消息已读状态
+    - MessageReaction: 消息反应（点赞等）
+    - StatusView: 状态查看记录
+  end note
+}
+
+rectangle "数据流说明" {
+  note as N3
+    **写数据流**
+    1. 客户端请求 -> 应用服务层
+    2. 业务逻辑处理 -> 数据访问层
+    3. 数据验证和转换
+    4. 写入PostgreSQL（主数据）
+    5. 更新Redis缓存（热点数据）
+    6. 返回结果给客户端
+  end note
+  
+  note as N4
+    **读数据流**
+    1. 客户端请求 -> 应用服务层
+    2. 查询Redis缓存
+    3. 缓存未命中 -> 查询PostgreSQL
+    4. 结果写入Redis缓存
+    5. 返回数据给客户端
+  end note
+  
+  note as N5
+    **实时数据流**
+    1. 数据变更事件触发
+    2. 写入PostgreSQL
+    3. 发布到Redis Pub/Sub
+    4. WebSocket服务订阅
+    5. 推送给在线客户端
+  end note
+}
+
+note right of PostgreSQL
+  **PostgreSQL主数据库**
+  - 持久化存储
+  - ACID事务支持
+  - 关系型数据管理
+  - 全文搜索支持
+  - 外键约束维护
+end note
+
+note right of Redis
+  **Redis缓存和会话存储**
+  - 用户会话管理
+  - 在线状态缓存
+  - 消息队列(Pub/Sub)
+  - 实时数据缓存
+  - 热点数据缓存
+end note
+
+note right of FileStorage
+  **文件存储服务**
+  - 图片/视频存储
+  - 文件上传下载
+  - CDN加速支持
+  - 缩略图生成
+  - 文件版本控制
+end note
+
+note bottom
+  **数据架构说明**
+  
+  WhatsChat数据架构采用关系型数据库（PostgreSQL）作为主存储，Redis作为缓存和消息队列：
+  
+  1. **核心实体**: User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload
+  2. **关联实体**: ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView
+  3. **数据关系**: 一对一、一对多、多对多关系，通过外键和关联表维护
+  4. **数据存储**: PostgreSQL存储持久化数据，Redis存储缓存和会话，文件存储服务存储媒体文件
+  5. **数据流**: 写数据流、读数据流和实时数据流三种模式，确保数据一致性和实时性
+  
+  数据模型设计遵循规范化原则，保证数据完整性和一致性。
+end note
+
+@enduml

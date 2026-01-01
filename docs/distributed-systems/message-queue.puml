@@ -83,22 +83,19 @@ Consumer2 --> DB : 更新消息状态
 NotificationService --> DB : 记录通知
 OfflineService --> OfflineQueue : 存储离线消息
 
-partition "消息流程示例" {
-  note as N1
-    **新消息发布流程**
-    1. API服务收到新消息
-    2. 写入PostgreSQL
-    3. PUBLISH到message:new主题
-    4. 所有订阅的WebSocket实例接收
-    5. 推送给在线用户
-    6. 离线用户消息存储到离线队列
-  end note
-}
+note as N1
+  **消息流程示例 - 新消息发布流程**
+  1. API服务收到新消息
+  2. 写入PostgreSQL
+  3. PUBLISH到message:new主题
+  4. 所有订阅的WebSocket实例接收
+  5. 推送给在线用户
+  6. 离线用户消息存储到离线队列
+end note
 
-partition "离线消息处理" {
-  OfflineQueue --> Consumer1 : 用户上线时拉取
-  OfflineQueue --> Consumer2 : 用户上线时拉取
-}
+' 离线消息处理
+OfflineQueue --> Consumer1 : 用户上线时拉取
+OfflineQueue --> Consumer2 : 用户上线时拉取
 
 note right of RedisMaster
   **Redis Pub/Sub特性**
@@ -127,7 +124,7 @@ end note
 
 note bottom
   **消息队列使用场景**
-  
+
   1. **实时消息推送**: 新消息通过Pub/Sub推送给所有WebSocket实例
   2. **在线状态同步**: 用户上下线状态跨实例同步
   3. **事件通知**: 群组创建、消息更新等事件通知

@@ -7,7 +7,7 @@ title WhatsChat 分布式事务处理图
 
 ' Saga模式示例 - 群组创建
 partition "场景1: 群组创建 (Saga模式)" {
-  actor 客户端 as Client
+  participant "客户端" as Client
   participant "API服务" as API
   participant "消息服务" as MessageService
   participant "群组服务" as GroupService
@@ -43,7 +43,7 @@ partition "场景1: 群组创建 (Saga模式)" {
 
 ' 两阶段提交示例 - 消息发送
 partition "场景2: 消息发送 (两阶段提交简化版)" {
-  actor 客户端 as Client2
+  participant "客户端" as Client2
   participant "API服务" as API2
   participant "消息服务" as MessageService2
   participant "推送服务" as PushService2
@@ -83,12 +83,12 @@ partition "场景2: 消息发送 (两阶段提交简化版)" {
 
 ' 最终一致性示例 - 消息推送
 partition "场景3: 最终一致性 (消息推送)" {
-  actor 用户A as UserA
+  participant "用户A" as UserA
   participant "API服务" as API3
   participant "消息存储" as Storage
   participant "Redis Pub/Sub" as PubSub
   participant "WebSocket服务" as WS
-  actor 用户B as UserB
+  participant "用户B" as UserB
   
   UserA -> API3: 1. 发送消息给用户B
   API3 -> Storage: 2. 持久化消息

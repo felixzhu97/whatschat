@@ -7,7 +7,7 @@ title WhatsChat 服务间通信时序图
 
 ' 场景1: 用户登录
 partition "场景1: 用户登录流程" {
-  actor 客户端 as Client1
+  participant "客户端" as Client1
   participant "API网关" as Gateway1
   participant "负载均衡" as LB1
   participant "API服务" as API1
@@ -32,12 +32,12 @@ partition "场景1: 用户登录流程" {
 
 ' 场景2: 发送消息
 partition "场景2: 发送消息流程" {
-  actor 用户A as UserA
+  participant "用户A" as UserA
   participant "API网关" as Gateway2
   participant "API服务" as API2
   participant "Redis Pub/Sub" as PubSub2
   participant "WebSocket服务" as WS2
-  actor 用户B as UserB
+  participant "用户B" as UserB
   database "PostgreSQL" as DB2
   database "Redis" as Redis2
   

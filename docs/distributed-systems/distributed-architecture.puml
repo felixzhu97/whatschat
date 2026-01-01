@@ -21,7 +21,7 @@ package "应用服务层" {
     component [API服务实例2] as API2
     component [API服务实例N] as APIN
   }
-  
+
   package "WebSocket服务集群" {
     component [WebSocket实例1] as WS1
     component [WebSocket实例2] as WS2
@@ -35,13 +35,13 @@ package "数据存储层" {
     database [PostgreSQL从库] as PGSlave1
     database [PostgreSQL从库] as PGSlave2
   }
-  
+
   package "缓存层" {
     database [Redis主节点] as RedisMaster
     database [Redis从节点] as RedisSlave1
     database [Redis从节点] as RedisSlave2
   }
-  
+
   database [对象存储] as ObjectStorage
 }
 

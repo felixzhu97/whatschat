@@ -80,14 +80,13 @@ Prometheus --> AlertService : 异常指标
 AlertService --> AutoScaler : 触发扩缩容
 AutoScaler --> API1_Healthy : 扩容/缩容
 
-' 降级策略
-alt API服务过载
-  LB --> DegradeService : 触发降级
-  DegradeService --> Client1 : 返回简化响应
-else 数据库连接失败
-  API1_Healthy --> DegradeService : 使用缓存数据
-  DegradeService --> Client1 : 返回缓存响应
-end
+' 降级策略 - API服务过载
+LB --> DegradeService : 触发降级(API过载)
+DegradeService --> Client1 : 返回简化响应
+
+' 降级策略 - 数据库连接失败
+API1_Healthy --> DegradeService : 使用缓存数据
+DegradeService --> Client1 : 返回缓存响应
 
 ' 重试机制
 Client1 --> Retry : 请求失败
@@ -117,7 +116,7 @@ note right of CircuitBreaker
   1. **Closed**: 正常状态，请求正常通过
   2. **Open**: 熔断状态，请求直接拒绝
   3. **Half-Open**: 半开状态，允许少量请求测试
-  
+
   **触发条件**:
   - 错误率 > 50%
   - 连续失败 > 10次
@@ -136,7 +135,7 @@ end note
 
 note bottom
   **容错机制说明**
-  
+
   1. **故障检测**: 健康检查服务持续监控所有实例
   2. **故障隔离**: 熔断器快速隔离故障实例
   3. **流量切换**: 负载均衡器自动切换流量到健康实例

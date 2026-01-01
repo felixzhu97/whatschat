@@ -1,0 +1,118 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF 业务架构图 - WhatsChat 即时通讯系统
+
+package "业务角色 (Business Actors)" {
+  component [终端用户] as EndUser
+  component [系统管理员] as Admin
+}
+
+package "业务能力 (Business Capabilities)" {
+  component [用户管理] as UserMgmt
+  component [即时通讯] as Messaging
+  component [语音视频通话] as VoiceVideo
+  component [文件共享] as FileShare
+  component [群组管理] as GroupMgmt
+  component [状态分享] as StatusShare
+  component [联系人管理] as ContactMgmt
+  component [通知管理] as NotificationMgmt
+}
+
+package "业务流程 (Business Processes)" {
+  component [用户注册登录流程] as AuthProcess
+  component [发送消息流程] as SendMessageProcess
+  component [发起通话流程] as CallProcess
+  component [创建群组流程] as CreateGroupProcess
+  component [状态分享流程] as StatusProcess
+  component [文件上传流程] as UploadProcess
+  component [联系人添加流程] as ContactProcess
+}
+
+package "业务价值 (Business Value)" {
+  component [实时沟通] as RealTimeComm
+  component [高效协作] as Collaboration
+  component [用户体验] as UserExperience
+  component [数据安全] as DataSecurity
+}
+
+' 业务角色与业务能力的关系
+EndUser --> UserMgmt : 使用
+EndUser --> Messaging : 使用
+EndUser --> VoiceVideo : 使用
+EndUser --> FileShare : 使用
+EndUser --> GroupMgmt : 使用
+EndUser --> StatusShare : 使用
+EndUser --> ContactMgmt : 使用
+Admin --> UserMgmt : 管理
+Admin --> NotificationMgmt : 管理
+
+' 业务流程与业务能力的关系
+AuthProcess --> UserMgmt : 支持
+SendMessageProcess --> Messaging : 支持
+CallProcess --> VoiceVideo : 支持
+CreateGroupProcess --> GroupMgmt : 支持
+StatusProcess --> StatusShare : 支持
+UploadProcess --> FileShare : 支持
+ContactProcess --> ContactMgmt : 支持
+
+' 业务流程与业务价值的关系
+AuthProcess --> UserExperience : 提升
+SendMessageProcess --> RealTimeComm : 实现
+CallProcess --> RealTimeComm : 实现
+CreateGroupProcess --> Collaboration : 支持
+StatusProcess --> UserExperience : 提升
+UploadProcess --> Collaboration : 支持
+ContactProcess --> UserExperience : 提升
+Messaging --> DataSecurity : 保障
+VoiceVideo --> DataSecurity : 保障
+
+rectangle "核心业务流程详细说明" {
+  note as N1
+    **用户注册登录流程**
+    1. 用户注册（用户名、邮箱、手机号、密码）
+    2. 用户登录（邮箱/密码认证）
+    3. JWT令牌生成和管理
+    4. 令牌刷新机制
+    5. 用户登出
+  end note
+  
+  note as N2
+    **发送消息流程**
+    1. 选择聊天对象或群组
+    2. 输入/选择消息内容（文本、图片、视频、语音、文件）
+    3. 消息发送
+    4. 实时推送接收方
+    5. 消息状态更新（已发送、已送达、已读）
+  end note
+  
+  note as N3
+    **发起通话流程**
+    1. 选择通话对象
+    2. 发起语音/视频通话请求
+    3. WebRTC连接建立
+    4. 通话进行
+    5. 通话结束和记录
+  end note
+}
+
+note bottom
+  **业务架构说明**
+  
+  WhatsChat作为即时通讯平台，核心业务能力包括：
+  
+  1. **用户管理**: 用户注册、登录、资料管理、权限控制
+  2. **即时通讯**: 文本、图片、视频、语音、文件等多种消息类型
+  3. **语音视频通话**: 基于WebRTC的高质量实时通话
+  4. **文件共享**: 支持多种文件类型的上传、下载和预览
+  5. **群组管理**: 创建群组、成员管理、群组设置
+  6. **状态分享**: 用户状态（在线/离线）和状态动态分享
+  7. **联系人管理**: 添加、删除、搜索、分组联系人
+  8. **通知管理**: 消息通知、系统通知、推送通知
+  
+  业务价值体现在实时沟通、高效协作、用户体验和数据安全等方面。
+end note
+
+@enduml

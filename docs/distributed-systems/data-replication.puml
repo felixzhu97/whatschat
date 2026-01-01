@@ -1,7 +1,6 @@
 @startuml
 !theme plain
 skinparam componentStyle rectangle
-skinparam linetype ortho
 
 title WhatsChat 数据复制与分片图
 
@@ -15,12 +14,12 @@ package "PostgreSQL主从复制" {
     component [WAL日志] as WAL
     component [主库数据] as MasterData
   }
-  
+
   database [PostgreSQL从库1\n(读操作)] as Slave1 {
     component [复制进程] as Replication1
     component [从库数据] as SlaveData1
   }
-  
+
   database [PostgreSQL从库2\n(读操作)] as Slave2 {
     component [复制进程] as Replication2
     component [从库数据] as SlaveData2
@@ -68,49 +67,44 @@ Monitor --> Slave1 : 13. 健康检查
 Monitor --> Slave2 : 14. 健康检查
 Monitor --> Failover : 15. 故障检测
 
-' 故障切换流程
-alt 主库故障
-  Failover --> Monitor : 16. 检测到主库故障
-  Monitor --> Promote : 17. 触发主从切换
-  Promote --> Slave1 : 18. 提升从库1为主库
-  Promote --> API : 19. 更新连接配置
-  API --> Slave1 : 20. 切换到新主库
-else 从库故障
-  Failover --> Monitor : 16. 检测到从库故障
-  Monitor --> ReadOnlyService : 17. 从负载均衡中移除
-  ReadOnlyService --> Slave1 : 18. 所有读请求路由到从库1
-end
+' 故障切换流程 - 主库故障
+Failover --> Monitor : 16. 检测到主库故障
+Monitor --> Promote : 17. 触发主从切换
+Promote --> Slave1 : 18. 提升从库1为主库
+Promote --> API : 19. 更新连接配置
+API --> Slave1 : 20. 切换到新主库
 
-partition "数据同步细节" {
-  note as N1
-    **流复制机制**
-    - WAL日志实时传输
-    - 异步复制 (性能优先)
-    - 同步复制 (一致性优先，可选)
-    - 复制延迟监控
-    - 自动重连机制
-  end note
-}
+' 故障切换流程 - 从库故障
+Failover --> Monitor : 21. 检测到从库故障
+Monitor --> ReadOnlyService : 22. 从负载均衡中移除
+ReadOnlyService --> Slave1 : 23. 所有读请求路由到从库1
 
-partition "读写分离策略" {
-  note as N2
-    **读写分离规则**
-    
-    **写操作 (主库)**:
-    - INSERT
-    - UPDATE
-    - DELETE
-    - CREATE TABLE
-    - ALTER TABLE
-    - 事务操作
-    
-    **读操作 (从库)**:
-    - SELECT查询
-    - 统计查询
-    - 报表生成
-    - 数据分析
-  end note
-}
+note as N1
+  **数据同步细节 - 流复制机制**
+  - WAL日志实时传输
+  - 异步复制 (性能优先)
+  - 同步复制 (一致性优先，可选)
+  - 复制延迟监控
+  - 自动重连机制
+end note
+
+note as N2
+  **读写分离策略**
+
+  **写操作 (主库)**:
+  - INSERT
+  - UPDATE
+  - DELETE
+  - CREATE TABLE
+  - ALTER TABLE
+  - 事务操作
+
+  **读操作 (从库)**:
+  - SELECT查询
+  - 统计查询
+  - 报表生成
+  - 数据分析
+end note
 
 note right of MasterDB
   **主库特性**
@@ -141,7 +135,7 @@ end note
 
 note bottom
   **数据复制架构说明**
-  
+
   1. **主从复制**: PostgreSQL流复制，WAL日志实时传输
   2. **读写分离**: 写操作在主库，读操作在从库负载均衡
   3. **高可用**: 主库故障时自动切换从库为主库
