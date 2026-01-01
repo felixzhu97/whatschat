@@ -33,7 +33,7 @@ whatschat/
 │   │   ├── hooks/        # 自定义 Hooks
 │   │   ├── lib/          # 工具函数和 API 客户端
 │   │   └── stores/       # Zustand 状态管理
-│   ├── react-native-app/ # React Native 移动应用
+│   ├── mobile/ # React Native 移动应用
 │   │   ├── src/
 │   │   │   ├── domain/      # 领域层（实体、接口）
 │   │   │   ├── application/ # 应用层（服务、DTO）
