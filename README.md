@@ -14,7 +14,8 @@
 
 ## 🛠️ 技术栈
 
-**前端**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
+**前端 Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
+**前端 Mobile**: React Native, Expo, TypeScript, Zustand  
 **后端**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **认证**: JWT, Passport, bcrypt  
 **通信**: WebSocket (Socket.IO), WebRTC  
@@ -32,12 +33,13 @@ whatschat/
 │   │   ├── hooks/        # 自定义 Hooks
 │   │   ├── lib/          # 工具函数和 API 客户端
 │   │   └── stores/       # Zustand 状态管理
-│   ├── mobile/           # Flutter 移动应用
-│   │   ├── lib/
-│   │   │   ├── screens/  # 页面组件
-│   │   │   ├── widgets/  # UI 组件
-│   │   │   ├── models/  # 数据模型
-│   │   │   └── services/# 服务层
+│   ├── react-native-app/ # React Native 移动应用
+│   │   ├── src/
+│   │   │   ├── domain/      # 领域层（实体、接口）
+│   │   │   ├── application/ # 应用层（服务、DTO）
+│   │   │   ├── infrastructure/ # 基础设施层（适配器、存储）
+│   │   │   └── presentation/ # 表现层（组件、屏幕、导航、状态管理）
+│   │   └── app/          # Expo Router 页面
 │   └── server/           # NestJS 服务器应用（整洁架构）
 │       └── src/
 │           ├── domain/      # 领域层（实体、接口）

@@ -1,0 +1,12 @@
+@startuml
+!include ../lib/C4_Component.puml
+
+title 核心代码结构
+
+Component(joke_service, "JokeService", "TypeScript", "src/services/JokeService.ts")
+Component(history_service, "HistoryService", "TypeScript", "src/services/HistoryService.ts")
+Component(ui_components, "UI组件", "React Native", "src/components/")
+
+Rel(ui_components, joke_service, "调用生成接口")
+Rel(ui_components, history_service, "读写历史记录")
+@enduml

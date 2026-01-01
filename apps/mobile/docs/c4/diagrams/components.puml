@@ -1,0 +1,16 @@
+@startuml
+!include ../lib/C4_Component.puml
+
+title 核心组件图
+
+
+
+Container_Boundary(app_container, "移动应用") {
+    Component(joke_service, "JokeService", "TypeScript", "笑话生成服务")
+    Component(history_service, "HistoryService", "TypeScript", "历史记录管理")
+    Component(ui_components, "UI组件", "React Native", "用户界面")
+}
+
+Rel(ui_components, joke_service, "调用")
+Rel(ui_components, history_service, "读写")
+@enduml

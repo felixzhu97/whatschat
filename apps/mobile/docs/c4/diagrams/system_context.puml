@@ -1,0 +1,12 @@
+@startuml
+!include ../lib/C4_Context.puml
+
+title React Native应用系统上下文
+
+Person(user, "移动用户", "使用笑话生成功能")
+System(joke_app, "笑话生成App", "React Native应用")
+System_Ext(joke_api, "笑话API", "外部API服务")
+
+Rel(user, joke_app, "使用")
+Rel(joke_app, joke_api, "获取笑话数据")
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+!include ../lib/C4_Container.puml
+
+title React Native应用容器图
+
+
+
+System_Boundary(app_boundary, "笑话生成App") {
+    Container(mobile_app, "移动应用", "React Native", "跨平台移动应用")
+    ContainerDb(async_storage, "本地存储", "AsyncStorage", "存储用户历史记录")
+}
+
+Rel(mobile_app, async_storage, "读写", "本地存储")
+@enduml
