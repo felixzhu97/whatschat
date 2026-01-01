@@ -39,22 +39,18 @@ partition "数据层" {
 ' 用户认证数据流
 partition "场景1: 用户登录" {
   :客户端发送登录请求;
-  -> API网关;
-  -> 负载均衡;
-  -> API服务;
+  :请求到达API网关;
+  :负载均衡转发;
+  :API服务接收请求;
   if (Redis中是否有会话?) then (是)
     :从Redis读取会话;
     :返回登录状态;
   else (否)
     :验证用户名密码;
-    -> PostgreSQL;
-    :查询用户信息;
-    <- PostgreSQL;
+    :查询PostgreSQL用户信息;
     if (验证成功?) then (是)
       :生成JWT令牌;
       :存储会话到Redis;
-      -> Redis缓存;
-      <- Redis缓存;
       :返回令牌给客户端;
     else (否)
       :返回错误;
@@ -65,76 +61,50 @@ partition "场景1: 用户登录" {
 ' 消息发送数据流
 partition "场景2: 发送消息" {
   :客户端发送消息;
-  -> API网关;
-  -> 负载均衡;
-  -> API服务;
+  :请求到达API网关;
+  :负载均衡转发;
+  :API服务接收请求;
   :验证用户权限;
   :创建消息记录;
-  -> PostgreSQL主库;
-  :写入消息数据;
-  <- PostgreSQL主库;
+  :写入PostgreSQL主库;
   :缓存消息到Redis;
-  -> Redis缓存;
-  :发布消息事件;
-  -> Redis Pub/Sub;
-  <- Redis Pub/Sub;
+  :发布消息事件到Redis Pub/Sub;
   :WebSocket推送消息;
   :返回发送成功;
-  <- API服务;
-  <- 负载均衡;
-  <- API网关;
-  <- 客户端;
 }
 
 ' 文件上传数据流
 partition "场景3: 文件上传" {
   :客户端上传文件;
-  -> API网关;
-  -> 负载均衡;
-  -> API服务;
+  :请求到达API网关;
+  :负载均衡转发;
+  :API服务接收请求;
   :验证文件类型和大小;
   :上传到对象存储;
-  -> 对象存储;
   :获取文件URL;
-  <- 对象存储;
-  :保存文件元数据;
-  -> PostgreSQL主库;
-  :记录文件信息;
-  <- PostgreSQL主库;
+  :保存文件元数据到PostgreSQL主库;
   :返回文件URL;
-  <- API服务;
-  <- 客户端;
 }
 
 ' 消息查询数据流
 partition "场景4: 查询消息" {
   :客户端请求历史消息;
-  -> API网关;
-  -> 负载均衡;
-  -> API服务;
+  :请求到达API网关;
+  :负载均衡转发;
+  :API服务接收请求;
   if (Redis中有缓存?) then (是)
-    :从Redis读取;
-    -> Redis缓存;
-    <- Redis缓存;
+    :从Redis读取缓存;
   else (否)
-    :从数据库查询;
-    -> PostgreSQL从库;
-    :查询消息记录;
-    <- PostgreSQL从库;
+    :从PostgreSQL从库查询消息记录;
     :缓存到Redis;
-    -> Redis缓存;
-    <- Redis缓存;
   endif
   :返回消息列表;
-  <- API服务;
-  <- 客户端;
 }
 
 ' 实时消息推送数据流
 partition "场景5: 实时消息推送" {
   :API服务收到新消息;
-  :发布消息事件;
-  -> Redis Pub/Sub;
+  :发布消息事件到Redis Pub/Sub;
   note right
     **事件主题**
     - message:new
@@ -143,15 +113,13 @@ partition "场景5: 实时消息推送" {
     - user:offline
   end note
   :WebSocket服务订阅事件;
-  <- Redis Pub/Sub;
   :推送给在线用户;
-  -> 客户端;
   :客户端接收消息;
 }
 
 stop
 
-note top
+note right
   **数据流说明**
   
   1. **认证流程**: 客户端 -> API网关 -> API服务 -> PostgreSQL/Redis

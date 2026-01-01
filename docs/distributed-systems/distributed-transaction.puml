@@ -6,7 +6,7 @@ skinparam roundcorner 10
 title WhatsChat 分布式事务处理图
 
 ' Saga模式示例 - 群组创建
-partition "场景1: 群组创建 (Saga模式)" {
+group 场景1: 群组创建 (Saga模式)
   participant "客户端" as Client
   participant "API服务" as API
   participant "消息服务" as MessageService
@@ -14,13 +14,13 @@ partition "场景1: 群组创建 (Saga模式)" {
   participant "通知服务" as NotificationService
   database "PostgreSQL" as DB
   database "Redis" as Redis
-  
+
   Client -> API: 1. 创建群组请求
   API -> GroupService: 2. 创建群组
   GroupService -> DB: 3. 开始事务
   GroupService -> DB: 4. 插入群组记录
   DB --> GroupService: 5. 返回群组ID
-  
+
   GroupService -> MessageService: 6. 创建初始消息
   MessageService -> DB: 7. 插入消息记录
   alt 消息创建成功
@@ -39,29 +39,29 @@ partition "场景1: 群组创建 (Saga模式)" {
     GroupService --> API: 14. 创建失败
     API --> Client: 15. 返回错误
   end
-}
+end
 
 ' 两阶段提交示例 - 消息发送
-partition "场景2: 消息发送 (两阶段提交简化版)" {
+group 场景2: 消息发送 (两阶段提交简化版)
   participant "客户端" as Client2
   participant "API服务" as API2
   participant "消息服务" as MessageService2
   participant "推送服务" as PushService2
   database "PostgreSQL" as DB2
   database "Redis队列" as Queue
-  
+
   Client2 -> API2: 1. 发送消息
   API2 -> MessageService2: 2. 准备阶段(Prepare)
-  
+
   MessageService2 -> DB2: 3. 开始事务
   MessageService2 -> DB2: 4. 插入消息(未提交)
   DB2 --> MessageService2: 5. 预提交成功
-  
+
   MessageService2 -> Queue: 6. 准备推送任务(未提交)
   Queue --> MessageService2: 7. 准备成功
-  
+
   MessageService2 -> API2: 8. 准备完成
-  
+
   alt 所有服务准备就绪
     API2 -> MessageService2: 9. 提交阶段(Commit)
     MessageService2 -> DB2: 10. 提交事务
@@ -79,23 +79,23 @@ partition "场景2: 消息发送 (两阶段提交简化版)" {
     MessageService2 --> API2: 13. 回滚成功
     API2 --> Client2: 14. 消息发送失败
   end
-}
+end
 
 ' 最终一致性示例 - 消息推送
-partition "场景3: 最终一致性 (消息推送)" {
+group "场景3: 最终一致性 (消息推送)"
   participant "用户A" as UserA
   participant "API服务" as API3
   participant "消息存储" as Storage
   participant "Redis Pub/Sub" as PubSub
   participant "WebSocket服务" as WS
   participant "用户B" as UserB
-  
+
   UserA -> API3: 1. 发送消息给用户B
   API3 -> Storage: 2. 持久化消息
   Storage --> API3: 3. 存储成功
   API3 -> PubSub: 4. 发布消息事件
   API3 --> UserA: 5. 返回发送成功
-  
+
   PubSub -> WS: 6. 通知消息事件
   alt 用户B在线
     WS -> UserB: 7. 实时推送消息
@@ -109,19 +109,19 @@ partition "场景3: 最终一致性 (消息推送)" {
     Storage --> API3: 10. 返回消息列表
     API3 --> UserB: 11. 返回消息
   end
-}
+end
 
-note top
+note right of Client
   **分布式事务模式说明**
-  
+
   **1. Saga模式**: 适用于长事务，通过补偿操作实现一致性
   - 优点: 性能好，不需要锁定资源
   - 缺点: 需要实现补偿逻辑
-  
+
   **2. 两阶段提交(2PC)**: 适用于需要强一致性的场景
   - 优点: 保证强一致性
   - 缺点: 性能较差，存在单点故障风险
-  
+
   **3. 最终一致性**: 适用于可容忍短暂不一致的场景
   - 优点: 性能最好，可用性高
   - 缺点: 存在短暂的数据不一致窗口
