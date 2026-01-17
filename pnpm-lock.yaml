@@ -847,6 +847,28 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
+  packages/i18n-core:
+    dependencies:
+      '@formatjs/intl':
+        specifier: ^2.10.0
+        version: 2.10.15(typescript@5.8.2)
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      '@vitest/coverage-v8':
+        specifier: ^2.1.8
+        version: 2.1.9(vitest@2.1.9(@types/node@22.15.3)(jsdom@25.0.1)(lightningcss@1.30.2)(terser@5.44.1))
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.15.3)(jsdom@25.0.1)(lightningcss@1.30.2)(terser@5.44.1)
+
   packages/performance-utils:
     devDependencies:
       '@types/node':
@@ -874,6 +896,139 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.15.3
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-media:
+    dependencies:
+      zustand:
+        specifier: ^5.0.6
+        version: 5.0.6(@types/react@19.1.17)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-processing:
+    dependencies:
+      zustand:
+        specifier: ^5.0.6
+        version: 5.0.6(@types/react@19.1.17)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-react-native:
+    dependencies:
+      '@whatschat/sdk-communication':
+        specifier: workspace:*
+        version: link:../sdk-communication
+      '@whatschat/sdk-media':
+        specifier: workspace:*
+        version: link:../sdk-media
+      '@whatschat/sdk-processing':
+        specifier: workspace:*
+        version: link:../sdk-processing
+      '@whatschat/sdk-recording':
+        specifier: workspace:*
+        version: link:../sdk-recording
+      '@whatschat/sdk-storage':
+        specifier: workspace:*
+        version: link:../sdk-storage
+      react-native:
+        specifier: '>=0.72.0'
+        version: 0.81.5(@babel/core@7.28.0)(@react-native-community/cli@18.0.1(typescript@5.8.2))(@types/react@19.1.17)(react@19.1.0)
+      react-native-sqlite-storage:
+        specifier: '*'
+        version: 6.0.1(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@18.0.1(typescript@5.8.2))(@types/react@19.1.17)(react@19.1.0))
+      react-native-webrtc:
+        specifier: '*'
+        version: 124.0.7(react-native@0.81.5(@babel/core@7.28.0)(@react-native-community/cli@18.0.1(typescript@5.8.2))(@types/react@19.1.17)(react@19.1.0))
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      '@types/react-native':
+        specifier: ^0.73.0
+        version: 0.73.0(@babel/core@7.28.0)(@react-native-community/cli@18.0.1(typescript@5.8.2))(@types/react@19.1.17)(react@19.1.0)
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-recording:
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-storage:
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/sdk-web:
+    dependencies:
+      '@whatschat/sdk-communication':
+        specifier: workspace:*
+        version: link:../sdk-communication
+      '@whatschat/sdk-media':
+        specifier: workspace:*
+        version: link:../sdk-media
+      '@whatschat/sdk-processing':
+        specifier: workspace:*
+        version: link:../sdk-processing
+      '@whatschat/sdk-recording':
+        specifier: workspace:*
+        version: link:../sdk-recording
+      '@whatschat/sdk-storage':
+        specifier: workspace:*
+        version: link:../sdk-storage
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
+      idb:
+        specifier: ^8.0.0
+        version: 8.0.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.15.3
+      '@types/webrtc':
+        specifier: ^0.0.34
+        version: 0.0.34
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.0)
@@ -2311,6 +2466,35 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@formatjs/ecma402-abstract@2.2.4':
+    resolution: {integrity: sha512-lFyiQDVvSbQOpU+WFd//ILolGj4UgA/qXrKeZxdV14uKiAUiPAtX6XAn7WBCRi7Mx6I7EybM9E5yYn4BIpZWYg==}
+
+  '@formatjs/fast-memoize@2.2.3':
+    resolution: {integrity: sha512-3jeJ+HyOfu8osl3GNSL4vVHUuWFXR03Iz9jjgI7RwjG6ysu/Ymdr0JRCPHfF5yGbTE6JCrd63EpvX1/WybYRbA==}
+
+  '@formatjs/icu-messageformat-parser@2.9.4':
+    resolution: {integrity: sha512-Tbvp5a9IWuxUcpWNIW6GlMQYEc4rwNHR259uUFoKWNN1jM9obf9Ul0e+7r7MvFOBNcN+13K7NuKCKqQiAn1QEg==}
+
+  '@formatjs/icu-skeleton-parser@1.8.8':
+    resolution: {integrity: sha512-vHwK3piXwamFcx5YQdCdJxUQ1WdTl6ANclt5xba5zLGDv5Bsur7qz8AD7BevaKxITwpgDeU0u8My3AIibW9ywA==}
+
+  '@formatjs/intl-displaynames@6.8.5':
+    resolution: {integrity: sha512-85b+GdAKCsleS6cqVxf/Aw/uBd+20EM0wDpgaxzHo3RIR3bxF4xCJqH/Grbzx8CXurTgDDZHPdPdwJC+May41w==}
+
+  '@formatjs/intl-listformat@7.7.5':
+    resolution: {integrity: sha512-Wzes10SMNeYgnxYiKsda4rnHP3Q3II4XT2tZyOgnH5fWuHDtIkceuWlRQNsvrI3uiwP4hLqp2XdQTCsfkhXulg==}
+
+  '@formatjs/intl-localematcher@0.5.8':
+    resolution: {integrity: sha512-I+WDNWWJFZie+jkfkiK5Mp4hEDyRSEvmyfYadflOno/mmKJKcB17fEpEH0oJu/OWhhCJ8kJBDz2YMd/6cDl7Mg==}
+
+  '@formatjs/intl@2.10.15':
+    resolution: {integrity: sha512-i6+xVqT+6KCz7nBfk4ybMXmbKO36tKvbMKtgFz9KV+8idYFyFbfwKooYk8kGjyA5+T5f1kEPQM5IDLXucTAQ9g==}
+    peerDependencies:
+      typescript: ^4.7 || 5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -6954,6 +7138,9 @@ packages:
   internmap@2.0.3:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
+
+  intl-messageformat@10.7.7:
+    resolution: {integrity: sha512-F134jIoeYMro/3I0h08D0Yt4N9o9pjddU/4IIxMMURqbAtI2wu70X8hvG1V48W49zXHXv3RKSF/po+0fDfsGjA==}
 
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
@@ -12483,6 +12670,55 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@formatjs/ecma402-abstract@2.2.4':
+    dependencies:
+      '@formatjs/fast-memoize': 2.2.3
+      '@formatjs/intl-localematcher': 0.5.8
+      tslib: 2.8.1
+
+  '@formatjs/fast-memoize@2.2.3':
+    dependencies:
+      tslib: 2.8.1
+
+  '@formatjs/icu-messageformat-parser@2.9.4':
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      '@formatjs/icu-skeleton-parser': 1.8.8
+      tslib: 2.8.1
+
+  '@formatjs/icu-skeleton-parser@1.8.8':
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      tslib: 2.8.1
+
+  '@formatjs/intl-displaynames@6.8.5':
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      '@formatjs/intl-localematcher': 0.5.8
+      tslib: 2.8.1
+
+  '@formatjs/intl-listformat@7.7.5':
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      '@formatjs/intl-localematcher': 0.5.8
+      tslib: 2.8.1
+
+  '@formatjs/intl-localematcher@0.5.8':
+    dependencies:
+      tslib: 2.8.1
+
+  '@formatjs/intl@2.10.15(typescript@5.8.2)':
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      '@formatjs/fast-memoize': 2.2.3
+      '@formatjs/icu-messageformat-parser': 2.9.4
+      '@formatjs/intl-displaynames': 6.8.5
+      '@formatjs/intl-listformat': 7.7.5
+      intl-messageformat: 10.7.7
+      tslib: 2.8.1
+    optionalDependencies:
+      typescript: 5.8.2
 
   '@hapi/hoek@9.3.0': {}
 
@@ -18180,6 +18416,13 @@ snapshots:
       side-channel: 1.1.0
 
   internmap@2.0.3: {}
+
+  intl-messageformat@10.7.7:
+    dependencies:
+      '@formatjs/ecma402-abstract': 2.2.4
+      '@formatjs/fast-memoize': 2.2.3
+      '@formatjs/icu-messageformat-parser': 2.9.4
+      tslib: 2.8.1
 
   invariant@2.2.4:
     dependencies:
