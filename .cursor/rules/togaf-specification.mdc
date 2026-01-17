@@ -1,0 +1,271 @@
+# TOGAF 规范
+
+## 核心概念
+
+TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框架，包含：
+
+1. **ADM** (Architecture Development Method) - 架构开发方法
+2. **四大架构域** - 业务、应用、数据、技术架构
+3. **架构内容框架** - 架构产物的标准结构
+4. **架构能力框架** - 企业架构治理能力
+
+## 四大架构域
+
+### Business Architecture（业务架构）
+
+**定义**：描述组织的业务流程、组织结构、业务能力和业务价值流
+
+**在本项目中**：
+
+- 设备管理、实时监控、数据分析、告警管理、系统设置
+- 业务流程：设备上线、数据采集、告警处理、数据分析
+
+**文档位置**：`docs/togaf/business-architecture.puml`
+
+### Application Architecture（应用架构）
+
+**定义**：描述应用系统的结构、应用组件、接口和交互关系
+
+**在本项目中**：
+
+- 前端应用层：Web 应用、仪表盘、设备管理界面、数据分析界面、3D 可视化
+- UI 组件库：`@iot/ui`、`@iot/charts`、`@iot/utils`、`@iot/three-utils`
+- 业务组件：IoT 仪表盘、设备面板、图表面板
+- 应用服务层：设备服务、数据服务、告警服务、用户服务
+
+**文档位置**：`docs/togaf/application-architecture.puml`
+
+**代码位置**：
+
+- `apps/web/components/` - 业务组件
+- `packages/ui/` - UI 组件库
+- `packages/charts/` - 图表组件库
+- `packages/three-utils/` - 3D 工具库
+
+### Data Architecture（数据架构）
+
+**定义**：描述数据的结构、数据流、数据存储和数据管理
+
+**在本项目中**：
+
+- 数据源层：IoT 设备、传感器数据、设备状态、网络流量
+- 数据采集层：数据采集服务、实时数据流、批量数据
+- 数据处理层：数据转换、数据聚合、数据验证
+- 数据存储层：实时数据缓存、时序数据库、设备元数据、配置数据
+- 数据展示层：实时图表、历史报表、设备仪表盘、热力图
+
+**文档位置**：`docs/togaf/data-architecture.puml`
+
+**代码位置**：
+
+- `packages/compute/src/signal/` - 信号处理
+- `packages/compute/src/stats/` - 数据统计
+- `packages/charts/` - 数据可视化
+
+### Technology Architecture（技术架构）
+
+**定义**：描述技术平台、基础设施、技术标准和部署架构
+
+**在本项目中**：
+
+- 表示层：浏览器、Next.js 应用、Tailwind CSS
+- 应用层：Monorepo 结构、TypeScript、pnpm Workspaces
+- 框架层：React Three Fiber、Three.js、ECharts、Radix UI
+- 构建工具层：Next.js Build、PostCSS、TypeScript Compiler
+- 运行时层：Node.js、Vercel Runtime
+- 部署层：Vercel Platform、CDN、Edge Functions
+
+**文档位置**：`docs/togaf/technology-architecture.puml`
+
+## ADM 核心流程
+
+ADM 是 TOGAF 的架构开发方法，包含 9 个阶段（核心简化版）：
+
+### 阶段 A：架构愿景 (Architecture Vision)
+
+- 定义架构范围、目标、利益相关者
+- 识别业务驱动因素和业务需求
+
+### 阶段 B：业务架构 (Business Architecture)
+
+- 建立业务架构基线
+- 开发业务架构目标
+- 识别业务架构差距
+
+### 阶段 C：信息系统架构 (Information Systems Architecture)
+
+- 数据架构（阶段 C1）：数据实体、数据关系、数据流
+- 应用架构（阶段 C2）：应用组件、应用接口、应用交互
+
+### 阶段 D：技术架构 (Technology Architecture)
+
+- 定义技术平台
+- 识别技术标准和规范
+- 制定技术架构蓝图
+
+### 阶段 E：机会和解决方案 (Opportunities and Solutions)
+
+- 识别架构实施机会
+- 制定实施路线图
+- 评估风险和依赖
+
+### 阶段 F：迁移规划 (Migration Planning)
+
+- 制定详细的迁移计划
+- 定义过渡架构
+- 制定实施时间表
+
+### 阶段 G：实施治理 (Implementation Governance)
+
+- 监督架构实施
+- 确保实施符合架构标准
+- 管理架构变更请求
+
+### 阶段 H：架构变更管理 (Architecture Change Management)
+
+- 管理架构变更
+- 维护架构连续性
+- 评估架构演进需求
+
+### 需求管理 (Requirements Management)
+
+- 贯穿所有阶段的持续活动
+- 管理架构需求的变更和追溯
+
+## 架构原则
+
+### 1. 业务原则
+
+- **原则至上**：业务需求驱动架构决策
+- **信息资产**：数据是企业资产，需要统一管理
+- **技术无关性**：业务架构独立于技术实现
+
+### 2. 应用原则
+
+- **组件化**：应用以组件形式构建，便于重用和维护
+- **接口标准化**：组件间通过标准化接口交互
+- **服务导向**：采用服务导向的架构设计
+
+### 3. 数据原则
+
+- **数据共享**：数据在应用间共享，避免重复
+- **数据安全**：数据访问受控，确保安全性
+- **数据质量**：数据必须准确、完整、及时
+
+### 4. 技术原则
+
+- **技术标准化**：采用行业标准技术，减少技术债务
+- **平台化**：构建可重用的技术平台
+- **可扩展性**：技术架构支持业务增长和扩展
+
+## 架构产物
+
+### 架构基线 (Baseline Architecture)
+
+- 描述当前架构状态
+- 作为对比参考点
+
+### 目标架构 (Target Architecture)
+
+- 描述期望的架构状态
+- 满足业务和技术目标
+
+### 差距分析 (Gap Analysis)
+
+- 识别基线和目标架构间的差距
+- 定义填补差距的解决方案
+
+### 过渡架构 (Transition Architecture)
+
+- 定义从基线到目标的中间状态
+- 支持分阶段实施
+
+## 项目映射
+
+### 架构文档
+
+```
+docs/togaf/
+├── overview.puml              # 总体架构概览
+├── business-architecture.puml # 业务架构图
+├── application-architecture.puml # 应用架构图
+├── data-architecture.puml     # 数据架构图
+└── technology-architecture.puml # 技术架构图
+```
+
+### 代码结构映射
+
+**业务架构** → 业务需求和能力定义
+
+**应用架构** →
+
+- `apps/web/components/` - 业务组件层
+- `packages/ui/` - UI 组件库层
+- `packages/charts/` - 图表组件库层
+- `packages/three-utils/` - 3D 工具库层
+
+**数据架构** →
+
+- `packages/compute/src/` - 数据处理层
+- `packages/charts/src/` - 数据可视化层
+
+**技术架构** →
+
+- `package.json` - 技术栈依赖
+- `tsconfig.json` - TypeScript 配置
+- `next.config.mjs` - Next.js 配置
+- `vercel.json` - 部署配置
+
+## 架构治理规则
+
+### 架构评审
+
+- 新功能开发前进行架构影响分析
+- 重大变更需要架构评审
+- 确保架构文档与代码同步更新
+
+### 依赖管理
+
+```
+业务架构 → 应用架构 → 数据架构 → 技术架构
+```
+
+- 上层架构依赖下层架构
+- 下层架构变更需评估上层影响
+- 禁止反向依赖
+
+### 文档维护
+
+- 架构变更时同步更新架构图
+- 保持架构文档与代码实现一致
+- 定期审查架构对齐情况
+
+## 检查清单
+
+### 新功能开发
+
+- [ ] 明确功能所属的架构域
+- [ ] 评估对现有架构的影响
+- [ ] 确保符合架构原则
+- [ ] 更新相关架构文档
+
+### 架构变更
+
+- [ ] 识别受影响的架构域
+- [ ] 进行差距分析
+- [ ] 定义过渡方案
+- [ ] 更新架构图和文档
+- [ ] 通知相关利益相关者
+
+### 架构对齐
+
+- [ ] 代码实现符合架构设计
+- [ ] 架构文档反映实际状态
+- [ ] 遵循架构依赖规则
+- [ ] 符合架构原则要求
+
+## 参考资源
+
+- [TOGAF 官方文档](https://www.opengroup.org/togaf)
+- [项目 TOGAF 架构图](../docs/togaf/README.md)
+- [架构概览图](../docs/togaf/overview.puml)

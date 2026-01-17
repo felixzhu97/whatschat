@@ -1,0 +1,75 @@
+import { EventEmitter } from "@whatschat/av-sdk-core";
+import {
+  IMediaManager,
+  MediaStreamConfig,
+  MediaDeviceInfo,
+} from "@whatschat/av-sdk-core";
+
+export class MediaManager extends EventEmitter implements IMediaManager {
+  private localStream: MediaStream | null = null;
+
+  async getUserMedia(config: MediaStreamConfig): Promise<MediaStream> {
+    const stream = await navigator.mediaDevices.getUserMedia(config);
+    this.localStream = stream;
+    return stream;
+  }
+
+  stopMediaStream(stream: MediaStream): void {
+    stream.getTracks().forEach((track) => track.stop());
+    if (this.localStream === stream) {
+      this.localStream = null;
+    }
+  }
+
+  async getDevices(): Promise<MediaDeviceInfo[]> {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.map((device) => ({
+      deviceId: device.deviceId,
+      kind: device.kind,
+      label: device.label,
+      groupId: device.groupId,
+    }));
+  }
+
+  async switchAudioInput(deviceId: string): Promise<void> {
+    // TODO: Implement audio device switching
+    this.emit("device-changed");
+  }
+
+  async switchVideoInput(deviceId: string): Promise<void> {
+    // TODO: Implement video device switching
+    this.emit("device-changed");
+  }
+
+  toggleMute(): boolean {
+    if (!this.localStream) {
+      return false;
+    }
+    const audioTrack = this.localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      const muted = !audioTrack.enabled;
+      this.emit("mute-changed", muted);
+      return muted;
+    }
+    return false;
+  }
+
+  toggleVideo(): boolean {
+    if (!this.localStream) {
+      return false;
+    }
+    const videoTrack = this.localStream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      const enabled = videoTrack.enabled;
+      this.emit("video-changed", enabled);
+      return enabled;
+    }
+    return false;
+  }
+
+  getLocalStream(): MediaStream | null {
+    return this.localStream;
+  }
+}

@@ -1,0 +1,225 @@
+---
+alwaysApply: false
+---
+
+# BDD 测试规范
+
+## 核心原则
+
+1. **可读性优先**：测试即文档，测试代码应该清晰表达业务意图
+2. **单一职责**：每个测试用例只验证一个行为
+3. **Given-When-Then**：使用行为描述组织测试结构
+4. **工具统一**：使用 `@iot/test-utils` 提供的测试工具
+
+## 文件命名与组织
+
+- 测试文件：`*.test.ts` 或 `*.test.tsx`
+- 位置：放在 `src/__tests__/` 目录下，保持与被测文件相同的目录结构
+- 示例：
+  - 源文件：`src/services/device-service.ts`
+  - 测试文件：`src/__tests__/services/device-service.test.ts`
+- 如果源文件在根目录：`src/utils.ts` → `src/__tests__/utils.test.ts`
+
+## 测试结构
+
+### 基本结构（Vitest）
+
+```typescript
+import { describe, it, expect, beforeEach } from "vitest";
+import { createMockFunction, deviceFactory } from "@iot/test-utils";
+
+describe("功能模块名", () => {
+  describe("具体功能/场景", () => {
+    // Given: 准备阶段
+    beforeEach(() => {
+      // 初始化测试数据
+    });
+
+    // When-Then: 测试用例
+    it("应该满足某个条件时执行某个行为", () => {
+      // Arrange (Given)
+      const input = deviceFactory();
+
+      // Act (When)
+      const result = functionToTest(input);
+
+      // Assert (Then)
+      expect(result).toBeDefined();
+    });
+  });
+});
+```
+
+## Mock/Stub 使用
+
+### Mock 函数
+
+```typescript
+import { createMockFunction, createAsyncMockFunction } from "@iot/test-utils";
+
+// 同步函数Mock
+const mockFn = createMockFunction<(id: string) => Device>();
+mockFn.mockReturnValue(deviceFactory());
+
+// 异步函数Mock
+const mockAsyncFn = createAsyncMockFunction<(id: string) => Promise<Device>>();
+mockAsyncFn.mockResolvedValue(deviceFactory());
+```
+
+### Mock 对象
+
+```typescript
+import { createMockObject, spyOnMethod } from "@iot/test-utils";
+
+const mockApi = createMockObject<ApiClient>({
+  get: createMockFunction(),
+  post: createAsyncMockFunction(),
+});
+
+// 或者Spy现有对象
+const spy = spyOnMethod(apiClient, "getDevice");
+```
+
+## 测试数据生成
+
+### 使用工厂函数
+
+```typescript
+import { deviceFactory, createFactory, createMany } from "@iot/test-utils";
+
+// 单个数据
+const device = deviceFactory();
+
+// 自定义数据
+const customDevice = deviceFactory({
+  name: "Custom Device",
+  status: "offline",
+});
+
+// 批量生成
+const devices = createMany(deviceFactory, 5);
+
+// 自定义工厂
+const customFactory = createFactory(() => ({
+  id: "test-id",
+  value: 42,
+}));
+```
+
+## 断言规范
+
+### 基础断言
+
+```typescript
+import { expect } from "vitest";
+import {
+  expectArrayToContainEqual,
+  expectObjectToContain,
+  expectToBeInRange,
+} from "@iot/test-utils";
+
+// 数组包含
+expectArrayToContainEqual(items, expectedItem);
+
+// 对象包含属性
+expectObjectToContain(actual, { key: "value" });
+
+// 数值范围
+expectToBeInRange(value, 0, 100);
+```
+
+## React 组件测试
+
+### 渲染组件
+
+```typescript
+import { renderWithProviders } from "@iot/test-utils";
+import { render, screen } from "@testing-library/react";
+
+describe("ComponentName", () => {
+  it("应该正确渲染", () => {
+    // Given
+    const props = {
+      /* ... */
+    };
+
+    // When
+    const { container } = renderWithProviders(<Component {...props} />, {
+      providers: [ThemeProvider], // 可选
+    });
+
+    // Then
+    expect(screen.getByText("Expected Text")).toBeInTheDocument();
+  });
+});
+```
+
+## 异步测试
+
+### 等待和超时
+
+```typescript
+import { waitFor, delay, timeout, retry } from "@iot/test-utils";
+
+// 等待条件满足
+await waitFor(
+  () => {
+    expect(element).toBeInTheDocument();
+  },
+  { timeout: 5000 }
+);
+
+// 延迟
+await delay(1000);
+
+// 带超时的Promise
+const result = await timeout(fetchData(), 5000, "Timeout error");
+
+// 重试
+const result = await retry(() => fetchData(), {
+  maxAttempts: 3,
+  delay: 1000,
+});
+```
+
+## 测试组织
+
+### 描述层级
+
+```typescript
+describe("DeviceService", () => {
+  describe("getDevice()", () => {
+    describe("当设备存在时", () => {
+      it("应该返回设备数据", () => {
+        /* ... */
+      });
+      it("应该包含所有必需字段", () => {
+        /* ... */
+      });
+    });
+
+    describe("当设备不存在时", () => {
+      it("应该抛出 NotFoundError", () => {
+        /* ... */
+      });
+    });
+  });
+});
+```
+
+### 测试命名
+
+- 使用中文或英文描述，保持一致性
+- 格式：`应该/When [条件] Then [结果]`
+- 示例：
+  - ✅ `应该返回正确的设备数据`
+  - ✅ `应该在设备不存在时抛出错误`
+  - ❌ `test device service`
+
+## 最佳实践
+
+1. **AAA 模式**：Arrange (Given) → Act (When) → Assert (Then)
+2. **测试隔离**：使用 `beforeEach` 清理状态，避免测试间影响
+3. **避免测试实现细节**：测试行为而非实现
+4. **保持测试简单**：复杂逻辑应提取为工具函数
+5. **使用描述性变量名**：`const expectedDevice = deviceFactory()` 优于 `const d = deviceFactory()`
