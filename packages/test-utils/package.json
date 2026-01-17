@@ -1,0 +1,57 @@
+{
+  "name": "@whatschat/test-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "单元测试工具包 - 提供通用的测试工具函数，支持 Vitest 和 Jest",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "vitest": "*",
+    "jest": "*",
+    "react": "*",
+    "@testing-library/react": "*"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    },
+    "jest": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "@testing-library/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "keywords": [
+    "testing",
+    "test-utils",
+    "vitest",
+    "jest",
+    "mocks",
+    "factories"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT"
+}
