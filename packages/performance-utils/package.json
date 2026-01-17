@@ -1,0 +1,75 @@
+{
+  "name": "@whatschat/performance-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "性能优化工具包 - 提供常用的性能优化工具函数，支持内存优化、渲染优化、网络优化等",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./memory": {
+      "import": "./dist/memory/index.mjs",
+      "require": "./dist/memory/index.js",
+      "types": "./dist/memory/index.d.ts"
+    },
+    "./render": {
+      "import": "./dist/render/index.mjs",
+      "require": "./dist/render/index.js",
+      "types": "./dist/render/index.d.ts"
+    },
+    "./network": {
+      "import": "./dist/network/index.mjs",
+      "require": "./dist/network/index.js",
+      "types": "./dist/network/index.d.ts"
+    },
+    "./bundle": {
+      "import": "./dist/bundle/index.mjs",
+      "require": "./dist/bundle/index.js",
+      "types": "./dist/bundle/index.d.ts"
+    },
+    "./monitoring": {
+      "import": "./dist/monitoring/index.mjs",
+      "require": "./dist/monitoring/index.js",
+      "types": "./dist/monitoring/index.d.ts"
+    },
+    "./resource": {
+      "import": "./dist/resource/index.mjs",
+      "require": "./dist/resource/index.js",
+      "types": "./dist/resource/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@vitest/coverage-v8": "^2.1.8",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2",
+    "vitest": "^2.1.8"
+  },
+  "keywords": [
+    "performance",
+    "optimization",
+    "utils",
+    "memory",
+    "render",
+    "network",
+    "bundle",
+    "monitoring",
+    "resource"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT"
+}

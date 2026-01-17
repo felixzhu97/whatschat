@@ -44,17 +44,17 @@ describe('Async Retry Utilities', () => {
           throw new Error('Persistent failure');
         };
 
-        // Act (When)
-        const promise = retry(fn, { maxAttempts: 3, delay: 100, delayBeforeRetry: true }).catch((err) => {
-          // Catch error to avoid unhandled rejection
-          throw err;
-        });
+        // Act & Assert (When & Then)
+        // Ensure we await the rejection within test context
+        const promise = retry(fn, { maxAttempts: 3, delay: 100, delayBeforeRetry: true });
+        const resultPromise = promise.catch(err => err);
         
         // Advance timers to allow all retries to complete
         await vi.advanceTimersByTimeAsync(350); // Enough for 2 retries (2 * 100ms delay) + processing
 
-        // Assert (Then)
-        await expect(promise).rejects.toThrow('Persistent failure');
+        const error = await resultPromise;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe('Persistent failure');
         expect(attemptCount).toBe(3);
       });
 

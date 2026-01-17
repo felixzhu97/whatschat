@@ -64,16 +64,18 @@ describe('Async Wait Utilities', () => {
       it('should throw timeout error when condition never met', async () => {
         // Arrange (Given)
         const condition = () => false;
-        const waitPromise = waitFor(condition, { timeout: 1000, interval: 100 }).catch((err) => {
-          // Catch error to avoid unhandled rejection
-          throw err;
-        });
+        const waitPromise = waitFor(condition, { timeout: 1000, interval: 100 });
 
-        // Act (When) - Advance past timeout
+        // Act & Assert (When & Then)
+        // Ensure we await the rejection within test context
+        const resultPromise = waitPromise.catch(err => err);
+        
+        // Advance past timeout
         await vi.advanceTimersByTimeAsync(1100); // Slightly more than timeout
-
-        // Assert (Then)
-        await expect(waitPromise).rejects.toThrow(/Condition not met within/);
+        
+        const error = await resultPromise;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toMatch(/Condition not met within/);
       });
 
       it('should check condition at specified intervals', async () => {
@@ -135,16 +137,18 @@ describe('Async Wait Utilities', () => {
       it('should throw timeout error when condition never returns value', async () => {
         // Arrange (Given)
         const condition = () => null;
-        const waitPromise = waitForValue(condition, { timeout: 1000, interval: 100 }).catch((err) => {
-          // Catch error to avoid unhandled rejection
-          throw err;
-        });
+        const waitPromise = waitForValue(condition, { timeout: 1000, interval: 100 });
 
-        // Act (When) - Advance past timeout
+        // Act & Assert (When & Then)
+        // Ensure we await the rejection within test context
+        const resultPromise = waitPromise.catch(err => err);
+        
+        // Advance past timeout
         await vi.advanceTimersByTimeAsync(1100);
-
-        // Assert (Then)
-        await expect(waitPromise).rejects.toThrow(/Condition not met within/);
+        
+        const error = await resultPromise;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toMatch(/Condition not met within/);
       });
 
       it('should work with undefined values', async () => {

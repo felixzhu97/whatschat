@@ -1,0 +1,42 @@
+{
+  "name": "@whatschat/sdk-processing",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./codec": {
+      "import": "./dist/codec/index.mjs",
+      "require": "./dist/codec/index.js",
+      "types": "./dist/codec/index.d.ts"
+    },
+    "./filter": {
+      "import": "./dist/filter/index.mjs",
+      "require": "./dist/filter/index.js",
+      "types": "./dist/filter/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/codec/index.ts src/filter/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/codec/index.ts src/filter/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

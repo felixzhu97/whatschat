@@ -9,7 +9,7 @@ alwaysApply: false
 1. **可读性优先**：测试即文档，测试代码应该清晰表达业务意图
 2. **单一职责**：每个测试用例只验证一个行为
 3. **Given-When-Then**：使用行为描述组织测试结构
-4. **工具统一**：使用 `@iot/test-utils` 提供的测试工具
+4. **工具统一**：使用 `@whatschat/test-utils` 提供的测试工具
 
 ## 文件命名与组织
 
@@ -26,7 +26,7 @@ alwaysApply: false
 
 ```typescript
 import { describe, it, expect, beforeEach } from "vitest";
-import { createMockFunction, deviceFactory } from "@iot/test-utils";
+import { createMockFunction, deviceFactory } from "@whatschat/test-utils";
 
 describe("FeatureModule", () => {
   describe("specific feature/scenario", () => {
@@ -55,7 +55,10 @@ describe("FeatureModule", () => {
 ### Mock 函数
 
 ```typescript
-import { createMockFunction, createAsyncMockFunction } from "@iot/test-utils";
+import {
+  createMockFunction,
+  createAsyncMockFunction,
+} from "@whatschat/test-utils";
 
 // 同步函数Mock
 const mockFn = createMockFunction<(id: string) => Device>();
@@ -69,7 +72,7 @@ mockAsyncFn.mockResolvedValue(deviceFactory());
 ### Mock 对象
 
 ```typescript
-import { createMockObject, spyOnMethod } from "@iot/test-utils";
+import { createMockObject, spyOnMethod } from "@whatschat/test-utils";
 
 const mockApi = createMockObject<ApiClient>({
   get: createMockFunction(),
@@ -85,7 +88,11 @@ const spy = spyOnMethod(apiClient, "getDevice");
 ### 使用工厂函数
 
 ```typescript
-import { deviceFactory, createFactory, createMany } from "@iot/test-utils";
+import {
+  deviceFactory,
+  createFactory,
+  createMany,
+} from "@whatschat/test-utils";
 
 // 单个数据
 const device = deviceFactory();
@@ -116,7 +123,7 @@ import {
   expectArrayToContainEqual,
   expectObjectToContain,
   expectToBeInRange,
-} from "@iot/test-utils";
+} from "@whatschat/test-utils";
 
 // 数组包含
 expectArrayToContainEqual(items, expectedItem);
@@ -133,7 +140,7 @@ expectToBeInRange(value, 0, 100);
 ### 渲染组件
 
 ```typescript
-import { renderWithProviders } from "@iot/test-utils";
+import { renderWithProviders } from "@whatschat/test-utils";
 import { render, screen } from "@testing-library/react";
 
 describe("ComponentName", () => {
@@ -159,7 +166,7 @@ describe("ComponentName", () => {
 ### 等待和超时
 
 ```typescript
-import { waitFor, delay, timeout, retry } from "@iot/test-utils";
+import { waitFor, delay, timeout, retry } from "@whatschat/test-utils";
 
 // 等待条件满足
 await waitFor(

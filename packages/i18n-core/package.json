@@ -1,0 +1,54 @@
+{
+  "name": "@whatschat/i18n-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "国际化核心包 - 提供框架无关的国际化功能，基于 @formatjs/intl",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@formatjs/intl": "^2.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@vitest/coverage-v8": "^2.1.8",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "i18n",
+    "internationalization",
+    "localization",
+    "formatjs",
+    "icu",
+    "messages",
+    "locale"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT"
+}

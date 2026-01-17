@@ -1,0 +1,43 @@
+{
+  "name": "@whatschat/analytics-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "线上行为分析工具核心包 - 提供通用接口、类型和工具函数",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "analytics",
+    "tracking",
+    "events",
+    "performance",
+    "session",
+    "error-tracking"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT"
+}

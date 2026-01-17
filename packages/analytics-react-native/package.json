@@ -1,0 +1,45 @@
+{
+  "name": "@whatschat/analytics-react-native",
+  "version": "0.1.0",
+  "private": true,
+  "description": "线上行为分析工具 React Native 平台包 - 提供 React Native 平台的行为分析功能",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@whatschat/analytics-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.72.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "analytics",
+    "tracking",
+    "react-native",
+    "mobile",
+    "events",
+    "performance",
+    "session"
+  ],
+  "author": "felix zhu <z1434866867@gmail.com>",
+  "license": "MIT"
+}
