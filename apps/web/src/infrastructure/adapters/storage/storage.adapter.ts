@@ -7,6 +7,9 @@ export class StorageAdapter implements IStorageAdapter {
   private static dbVersion = 1;
 
   static async initDB(): Promise<void> {
+    if (typeof window === "undefined") {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
@@ -39,6 +42,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   save(key: string, data: any): void {
+    if (typeof window === "undefined") return;
     try {
       const serializedData = JSON.stringify(data);
       localStorage.setItem(StorageAdapter.PREFIX + key, serializedData);
@@ -48,6 +52,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   load<T>(key: string, defaultValue: T): T {
+    if (typeof window === "undefined") return defaultValue;
     try {
       const item = localStorage.getItem(StorageAdapter.PREFIX + key);
       if (item === null) return defaultValue;
@@ -59,6 +64,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   remove(key: string): void {
+    if (typeof window === "undefined") return;
     try {
       localStorage.removeItem(StorageAdapter.PREFIX + key);
     } catch (error) {
@@ -67,6 +73,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   clear(): void {
+    if (typeof window === "undefined") return;
     try {
       const keys = Object.keys(localStorage).filter((key) =>
         key.startsWith(StorageAdapter.PREFIX)
@@ -78,6 +85,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   async saveToIndexedDB(storeName: string, data: any): Promise<void> {
+    if (typeof window === "undefined") return Promise.resolve();
     if (!StorageAdapter.db) await StorageAdapter.initDB();
 
     return new Promise((resolve, reject) => {
@@ -97,6 +105,7 @@ export class StorageAdapter implements IStorageAdapter {
     storeName: string,
     key: string
   ): Promise<T | null> {
+    if (typeof window === "undefined") return Promise.resolve(null);
     if (!StorageAdapter.db) await StorageAdapter.initDB();
 
     return new Promise((resolve, reject) => {
@@ -113,6 +122,7 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   async removeFromIndexedDB(storeName: string, key: string): Promise<void> {
+    if (typeof window === "undefined") return Promise.resolve();
     if (!StorageAdapter.db) await StorageAdapter.initDB();
 
     return new Promise((resolve, reject) => {
@@ -129,6 +139,9 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   getStorageUsage(): { localStorage: number; indexedDB: number } {
+    if (typeof window === "undefined") {
+      return { localStorage: 0, indexedDB: 0 };
+    }
     let localStorageSize = 0;
     try {
       for (const key in localStorage) {
@@ -147,6 +160,9 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   exportData(): string {
+    if (typeof window === "undefined") {
+      return JSON.stringify({}, null, 2);
+    }
     const data: { [key: string]: any } = {};
 
     try {
@@ -179,6 +195,9 @@ export class StorageAdapter implements IStorageAdapter {
   }
 
   async backup(): Promise<Blob> {
+    if (typeof window === "undefined") {
+      return new Blob([JSON.stringify({}, null, 2)], { type: "application/json" });
+    }
     const data = this.exportData();
     return new Blob([data], { type: "application/json" });
   }

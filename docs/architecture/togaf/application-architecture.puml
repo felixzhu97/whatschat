@@ -19,9 +19,10 @@ package "客户端应用 (Client Applications)" {
   component [移动应用] as MobileApp #LightGreen
   note right of MobileApp
     技术栈:
-    - Flutter
-    - Dart
-    - Provider状态管理
+    - React Native
+    - Expo
+    - TypeScript
+    - Zustand状态管理
   end note
 }
 
@@ -149,7 +150,7 @@ note bottom
   
   WhatsChat采用分层架构设计，包括：
   
-  1. **客户端应用层**: Web应用（Next.js）和移动应用（Flutter），提供用户界面
+  1. **客户端应用层**: Web应用（Next.js）和移动应用（React Native/Expo），提供用户界面
   2. **API网关层**: REST API网关、WebSocket网关和WebRTC信令网关，统一入口
   3. **应用服务层**: 细粒度的业务服务，包括认证、用户、消息、聊天、通话等
   4. **业务逻辑层**: 核心业务逻辑和规则处理

@@ -20,11 +20,12 @@ package "客户端技术栈 (Client Technology Stack)" {
   }
   
   package "移动技术" {
-    component [Flutter] as Flutter
-    component [Dart] as Dart
-    component [Provider] as Provider
-    component [WebSocket Plugin] as MobileWs
-    component [WebRTC Plugin] as MobileRTC
+    component [React Native] as ReactNative
+    component [Expo] as Expo
+    component [TypeScript] as MobileTS
+    component [Zustand] as MobileZustand
+    component [WebSocket Client] as MobileWs
+    component [WebRTC Client] as MobileRTC
   }
 }
 
@@ -146,10 +147,10 @@ package "部署基础设施 (Deployment Infrastructure)" {
 WebBrowser --> NextJS : HTTP/HTTPS
 WebBrowser --> SocketIO : WebSocket
 WebBrowser --> WebRTCSignal : WebRTC信令
-MobileDevice --> Flutter : 原生应用
-Flutter --> RestAPI : HTTP/HTTPS
-Flutter --> MobileWs : WebSocket
-Flutter --> MobileRTC : WebRTC
+MobileDevice --> ReactNative : 原生应用
+ReactNative --> RestAPI : HTTP/HTTPS
+ReactNative --> MobileWs : WebSocket
+ReactNative --> MobileRTC : WebRTC
 
 NextJS --> React : 框架
 NextJS --> TypeScript : 语言
@@ -158,10 +159,11 @@ NextJS --> Zustand : 状态管理
 NextJS --> WsClient : 实时通信
 NextJS --> WebRTCClient : 音视频
 
-Flutter --> Dart : 语言
-Flutter --> Provider : 状态管理
-Flutter --> MobileWs : 实时通信
-Flutter --> MobileRTC : 音视频
+ReactNative --> Expo : 框架
+ReactNative --> MobileTS : 语言
+ReactNative --> MobileZustand : 状态管理
+ReactNative --> MobileWs : 实时通信
+ReactNative --> MobileRTC : 音视频
 
 ' 服务器内部连接
 NestJS --> Express : 基于
@@ -202,9 +204,9 @@ rectangle "技术栈说明" {
   note as N1
     **前端技术栈**
     - Web: Next.js + React + TypeScript
-    - 移动: Flutter + Dart
-    - 状态管理: Zustand (Web) / Provider (Mobile)
-    - UI框架: Tailwind CSS (Web) / Material Design (Mobile)
+    - 移动: React Native + Expo + TypeScript
+    - 状态管理: Zustand (Web & Mobile)
+    - UI框架: Tailwind CSS (Web) / React Native UI (Mobile)
     - 实时通信: WebSocket + WebRTC
   end note
   
@@ -234,7 +236,7 @@ note bottom
   
   WhatsChat技术架构采用现代化的技术栈：
   
-  1. **客户端**: Web应用使用Next.js + React，移动应用使用Flutter，实现跨平台支持
+  1. **客户端**: Web应用使用Next.js + React，移动应用使用React Native + Expo，实现跨平台支持
   2. **服务器**: NestJS框架提供模块化和可扩展的后端服务
   3. **数据层**: PostgreSQL作为主数据库，Redis用于缓存和消息队列
   4. **通信协议**: REST API用于同步通信，WebSocket用于实时通信，WebRTC用于音视频通话
