@@ -28,15 +28,15 @@ alwaysApply: false
 import { describe, it, expect, beforeEach } from "vitest";
 import { createMockFunction, deviceFactory } from "@iot/test-utils";
 
-describe("功能模块名", () => {
-  describe("具体功能/场景", () => {
+describe("FeatureModule", () => {
+  describe("specific feature/scenario", () => {
     // Given: 准备阶段
     beforeEach(() => {
       // 初始化测试数据
     });
 
     // When-Then: 测试用例
-    it("应该满足某个条件时执行某个行为", () => {
+    it("should perform some behavior when condition is met", () => {
       // Arrange (Given)
       const input = deviceFactory();
 
@@ -137,7 +137,7 @@ import { renderWithProviders } from "@iot/test-utils";
 import { render, screen } from "@testing-library/react";
 
 describe("ComponentName", () => {
-  it("应该正确渲染", () => {
+  it("should render correctly", () => {
     // Given
     const props = {
       /* ... */
@@ -189,17 +189,17 @@ const result = await retry(() => fetchData(), {
 ```typescript
 describe("DeviceService", () => {
   describe("getDevice()", () => {
-    describe("当设备存在时", () => {
-      it("应该返回设备数据", () => {
+    describe("when device exists", () => {
+      it("should return device data", () => {
         /* ... */
       });
-      it("应该包含所有必需字段", () => {
+      it("should include all required fields", () => {
         /* ... */
       });
     });
 
-    describe("当设备不存在时", () => {
-      it("应该抛出 NotFoundError", () => {
+    describe("when device does not exist", () => {
+      it("should throw NotFoundError", () => {
         /* ... */
       });
     });
@@ -209,12 +209,21 @@ describe("DeviceService", () => {
 
 ### 测试命名
 
-- 使用中文或英文描述，保持一致性
-- 格式：`应该/When [条件] Then [结果]`
+#### describe 和 it 使用规范
+
+- **`describe` 和 `it` 必须使用英文**：保持代码可读性和国际化标准
+- **`describe` 命名规范**：
+  - 使用类名、函数名或功能模块名（英文）
+  - 示例：`DeviceService`、`getDevice()`、`when device exists`
+- **`it` 命名规范**：
+  - 使用英文描述测试行为，遵循 "should [行为描述]" 格式
+  - 示例：`should return device data`、`should throw NotFoundError when device not found`
+- 格式：`should [行为描述] [when 条件]`
 - 示例：
-  - ✅ `应该返回正确的设备数据`
-  - ✅ `应该在设备不存在时抛出错误`
-  - ❌ `test device service`
+  - ✅ `describe("DeviceService", () => { it("should return device data", ...) })`
+  - ✅ `describe("getDevice()", () => { it("should throw NotFoundError when device not found", ...) })`
+  - ❌ `describe("设备服务", () => { it("应该返回设备数据", ...) })`
+  - ❌ `describe("功能模块名", () => { it("应该满足某个条件时执行某个行为", ...) })`
 
 ## 最佳实践
 
