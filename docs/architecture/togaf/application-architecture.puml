@@ -152,12 +152,14 @@ note bottom
   
   1. **客户端应用层**: Web应用（Next.js）和移动应用（React Native/Expo），提供用户界面
   2. **API网关层**: REST API网关、WebSocket网关和WebRTC信令网关，统一入口
-  3. **应用服务层**: 细粒度的业务服务，包括认证、用户、消息、聊天、通话等
+  3. **应用服务层**: 细粒度的业务服务，包括认证、用户、消息、聊天、通话、群组、状态、文件、通知等
   4. **业务逻辑层**: 核心业务逻辑和规则处理
   5. **数据访问层**: 数据仓库和缓存服务，抽象数据访问
   6. **基础设施层**: PostgreSQL、Redis、文件存储、搜索服务等
   
   应用之间通过REST、WebSocket和WebRTC三种协议进行交互，实现同步和异步通信。
+  
+  **说明**: FileService、NotificationService 部分通过 Messages、WebSocket 等现有模块实现；未来可拆分为独立模块。
 end note
 
 @enduml

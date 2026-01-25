@@ -17,10 +17,10 @@ TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框�
 
 **在本项目中**：
 
-- 设备管理、实时监控、数据分析、告警管理、系统设置
-- 业务流程：设备上线、数据采集、告警处理、数据分析
+- 用户管理、即时通讯、语音视频通话、文件共享、群组管理、联系人管理、通知管理、状态分享
+- 业务流程：用户注册登录、发送消息、发起通话、创建群组、状态分享、文件上传、联系人添加
 
-**文档位置**：`docs/togaf/business-architecture.puml`
+**文档位置**：`docs/architecture/togaf/business-architecture.puml`
 
 ### Application Architecture（应用架构）
 
@@ -28,19 +28,20 @@ TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框�
 
 **在本项目中**：
 
-- 前端应用层：Web 应用、仪表盘、设备管理界面、数据分析界面、3D 可视化
-- UI 组件库：`@iot/ui`、`@iot/charts`、`@iot/utils`、`@iot/three-utils`
-- 业务组件：IoT 仪表盘、设备面板、图表面板
-- 应用服务层：设备服务、数据服务、告警服务、用户服务
+- 客户端应用层：Web 应用（Next.js 15、React 19）、移动应用（React Native、Expo）
+- API 网关层：REST API 网关、WebSocket 网关、WebRTC 信令
+- 应用服务层：认证服务、用户服务、消息服务、聊天服务、通话服务、群组服务、状态服务、文件服务、通知服务
+- 业务逻辑层：消息处理逻辑、实时通信逻辑、权限控制逻辑、业务规则引擎
+- 数据访问层：数据仓库、缓存服务
+- 基础设施服务：PostgreSQL、Redis、文件存储、搜索服务
 
-**文档位置**：`docs/togaf/application-architecture.puml`
+**文档位置**：`docs/architecture/togaf/application-architecture.puml`
 
 **代码位置**：
 
-- `apps/web/components/` - 业务组件
-- `packages/ui/` - UI 组件库
-- `packages/charts/` - 图表组件库
-- `packages/three-utils/` - 3D 工具库
+- `apps/web/` - Web 应用（含 app、domain、application、infrastructure、presentation）
+- `apps/mobile/` - 移动应用（同上分层结构）
+- `apps/server/` - 后端服务（含 domain、application、infrastructure、presentation）
 
 ### Data Architecture（数据架构）
 
@@ -48,19 +49,17 @@ TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框�
 
 **在本项目中**：
 
-- 数据源层：IoT 设备、传感器数据、设备状态、网络流量
-- 数据采集层：数据采集服务、实时数据流、批量数据
-- 数据处理层：数据转换、数据聚合、数据验证
-- 数据存储层：实时数据缓存、时序数据库、设备元数据、配置数据
-- 数据展示层：实时图表、历史报表、设备仪表盘、热力图
+- 数据实体层：User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload
+- 关联实体：ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView、UserSettings、BlockedUser
+- 数据存储：PostgreSQL 主数据库、Redis 缓存和会话、MinIO/S3 文件存储
+- 数据流：写数据流、读数据流、实时数据流（Redis Pub/Sub + WebSocket）
 
-**文档位置**：`docs/togaf/data-architecture.puml`
+**文档位置**：`docs/architecture/togaf/data-architecture.puml`
 
 **代码位置**：
 
-- `packages/compute/src/signal/` - 信号处理
-- `packages/compute/src/stats/` - 数据统计
-- `packages/charts/` - 数据可视化
+- `apps/server/prisma/` - Schema 定义、迁移文件
+- `apps/server/src/` - 数据访问与缓存逻辑（infrastructure、application 层）
 
 ### Technology Architecture（技术架构）
 
@@ -68,14 +67,15 @@ TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框�
 
 **在本项目中**：
 
-- 表示层：浏览器、Next.js 应用、Tailwind CSS
-- 应用层：Monorepo 结构、TypeScript、pnpm Workspaces
-- 框架层：React Three Fiber、Three.js、ECharts、Radix UI
-- 构建工具层：Next.js Build、PostCSS、TypeScript Compiler
-- 运行时层：Node.js、Vercel Runtime
-- 部署层：Vercel Platform、CDN、Edge Functions
+- 客户端技术栈：Web（Next.js 15、React 19、TypeScript、Tailwind CSS、Zustand、WebSocket、WebRTC）、移动（React Native、Expo、TypeScript、Zustand）
+- 应用服务器：NestJS 10、Express、Node.js、REST API、Socket.IO、WebRTC 信令、JWT、Passport、bcrypt、Helmet、CORS
+- 数据持久化：PostgreSQL 13+、Prisma ORM、Redis 6+
+- 文件存储：MinIO/S3、Sharp（图像处理）
+- 搜索服务：Elasticsearch（全文搜索，可选）
+- 消息队列：Redis Pub/Sub、Bull Queue
+- 部署：Docker、Docker Compose、Nginx、负载均衡
 
-**文档位置**：`docs/togaf/technology-architecture.puml`
+**文档位置**：`docs/architecture/togaf/technology-architecture.puml`
 
 ## ADM 核心流程
 
@@ -184,8 +184,8 @@ ADM 是 TOGAF 的架构开发方法，包含 9 个阶段（核心简化版）：
 
 ### 架构文档
 
-```
-docs/togaf/
+```text
+docs/architecture/togaf/
 ├── overview.puml              # 总体架构概览
 ├── business-architecture.puml # 业务架构图
 ├── application-architecture.puml # 应用架构图
@@ -199,22 +199,19 @@ docs/togaf/
 
 **应用架构** →
 
-- `apps/web/components/` - 业务组件层
-- `packages/ui/` - UI 组件库层
-- `packages/charts/` - 图表组件库层
-- `packages/three-utils/` - 3D 工具库层
+- `apps/web/` - Web 应用（app、domain、application、infrastructure、presentation）
+- `apps/mobile/` - 移动应用（同上分层结构）
+- `apps/server/` - 后端服务（domain、application、infrastructure、presentation）
 
 **数据架构** →
 
-- `packages/compute/src/` - 数据处理层
-- `packages/charts/src/` - 数据可视化层
+- `apps/server/prisma/` - Schema、migrations
+- `apps/server/src/` - 数据访问与缓存逻辑
 
 **技术架构** →
 
-- `package.json` - 技术栈依赖
-- `tsconfig.json` - TypeScript 配置
-- `next.config.mjs` - Next.js 配置
-- `vercel.json` - 部署配置
+- 各 app 的 `package.json`、`tsconfig.json`
+- 根目录 `turbo.json`、`pnpm-workspace.yaml`
 
 ## 架构治理规则
 
@@ -226,7 +223,7 @@ docs/togaf/
 
 ### 依赖管理
 
-```
+```text
 业务架构 → 应用架构 → 数据架构 → 技术架构
 ```
 
@@ -267,5 +264,5 @@ docs/togaf/
 ## 参考资源
 
 - [TOGAF 官方文档](https://www.opengroup.org/togaf)
-- [项目 TOGAF 架构图](../docs/togaf/README.md)
-- [架构概览图](../docs/togaf/overview.puml)
+- [项目 TOGAF 架构图](../../docs/architecture/togaf/README.md)
+- [架构概览图](../../docs/architecture/togaf/overview.puml)

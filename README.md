@@ -1,439 +1,507 @@
 # WhatsChat
 
-一个现代化的即时通讯应用，基于 React 和 TypeScript 构建，支持实时聊天、语音视频通话、文件共享等功能。
+A modern instant messaging application built with React and TypeScript, supporting real-time chat, voice/video calls, file sharing, and more.
 
-## ✨ 功能特性
+## ✨ Features
 
-- 🔥 **实时聊天** - 支持文本、表情、语音消息
-- 📞 **语音视频通话** - 基于 WebRTC 的高质量通话
-- 📎 **文件共享** - 支持图片、文档等文件类型
-- 👥 **联系人管理** - 添加、删除、搜索联系人
-- 🔍 **消息搜索** - 全文搜索聊天记录
-- 📱 **响应式设计** - 支持桌面和移动设备
-- 🔐 **完整认证系统** - 注册、登录、JWT令牌管理
+- 🔥 **Real-time Chat** - Support for text, emoji, and voice messages
+- 📞 **Voice/Video Calls** - High-quality calls based on WebRTC
+- 📎 **File Sharing** - Support for images, documents, and other file types
+- 👥 **Contact Management** - Add, delete, and search contacts
+- 🔍 **Message Search** - Full-text search of chat history
+- 📱 **Responsive Design** - Support for desktop and mobile devices
+- 🔐 **Complete Authentication System** - Registration, login, JWT token management
 
-## 🛠️ 技术栈
+## 🛠️ Tech Stack
 
-**前端 Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
-**前端 Mobile**: React Native, Expo, TypeScript, Zustand  
-**后端**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
-**认证**: JWT, Passport, bcrypt  
-**通信**: WebSocket (Socket.IO), WebRTC  
-**测试**: Vitest, React Testing Library  
-**工具**: Turborepo, PNPM, ESLint, Prettier
+**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
+**Frontend Mobile**: React Native, Expo, TypeScript, Zustand  
+**Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
+**Authentication**: JWT, Passport, bcrypt  
+**Communication**: WebSocket (Socket.IO), WebRTC  
+**Testing**: Vitest, React Testing Library  
+**Tools**: Turborepo, PNPM, ESLint, Prettier  
+**Monorepo**: Shared packages for analytics, AV SDK, i18n, performance monitoring, and more
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 whatschat/
 ├── apps/
-│   ├── web/              # Next.js Web 应用
-│   │   ├── app/          # Next.js App Router 页面
-│   │   ├── components/   # React 组件
-│   │   ├── hooks/        # 自定义 Hooks
-│   │   ├── lib/          # 工具函数和 API 客户端
-│   │   └── stores/       # Zustand 状态管理
-│   ├── mobile/ # React Native 移动应用
+│   ├── web/              # Next.js Web Application
+│   │   ├── app/          # Next.js App Router pages
 │   │   ├── src/
-│   │   │   ├── domain/      # 领域层（实体、接口）
-│   │   │   ├── application/ # 应用层（服务、DTO）
-│   │   │   ├── infrastructure/ # 基础设施层（适配器、存储）
-│   │   │   └── presentation/ # 表现层（组件、屏幕、导航、状态管理）
-│   │   └── app/          # Expo Router 页面
-│   └── server/           # NestJS 服务器应用（整洁架构）
+│   │   │   ├── domain/      # Domain layer (entities, interfaces)
+│   │   │   ├── application/ # Application layer (services, DTOs)
+│   │   │   ├── infrastructure/ # Infrastructure layer (adapters, storage)
+│   │   │   └── presentation/ # Presentation layer (components, hooks, styles)
+│   │   └── public/       # Static assets
+│   ├── mobile/           # React Native mobile application
+│   │   ├── src/
+│   │   │   ├── domain/      # Domain layer (entities, interfaces)
+│   │   │   ├── application/ # Application layer (services, DTOs)
+│   │   │   ├── infrastructure/ # Infrastructure layer (adapters, storage)
+│   │   │   └── presentation/ # Presentation layer (components, screens, navigation, state management)
+│   │   └── app/          # Expo Router pages
+│   └── server/           # NestJS server application (Clean Architecture)
 │       └── src/
-│           ├── domain/      # 领域层（实体、接口）
-│           ├── application/ # 应用层（服务、DTO）
-│           ├── infrastructure/ # 基础设施层（数据库、外部服务）
-│           ├── presentation/ # 表现层（控制器、网关）
-│           └── shared/     # 共享工具
-├── docs/                 # 文档和架构图
-├── turbo.json           # Turborepo 配置
-└── package.json         # 工作区配置
+│           ├── domain/      # Domain layer (entities, interfaces)
+│           ├── application/ # Application layer (services, DTOs)
+│           ├── infrastructure/ # Infrastructure layer (database, external services)
+│           ├── presentation/ # Presentation layer (controllers, gateways)
+│           └── shared/     # Shared utilities
+├── packages/             # Shared packages (monorepo)
+│   ├── analytics-core/   # Analytics core library
+│   ├── analytics-web/   # Web analytics implementation
+│   ├── analytics-react-native/ # React Native analytics
+│   ├── av-sdk-core/      # Audio/Video SDK core
+│   ├── av-sdk-web/       # Web AV SDK implementation
+│   ├── av-sdk-react-native/ # React Native AV SDK
+│   ├── av-sdk-codec/     # Codec management
+│   ├── av-sdk-filter/    # Video filter effects
+│   ├── av-sdk-database/  # AV SDK database adapter
+│   ├── aws-integration/  # AWS services integration
+│   ├── i18n-core/        # Internationalization core
+│   ├── performance-utils/ # Performance monitoring utilities
+│   ├── sdk-communication/ # Communication SDK
+│   ├── sdk-media/        # Media SDK
+│   ├── sdk-processing/   # Media processing SDK
+│   ├── sdk-recording/    # Recording SDK
+│   ├── sdk-storage/      # Storage SDK
+│   ├── sdk-web/          # Web SDK
+│   ├── sdk-react-native/ # React Native SDK
+│   └── test-utils/       # Testing utilities
+├── docs/                 # Documentation and architecture diagrams
+│   ├── api/              # API documentation
+│   ├── architecture/     # Architecture diagrams (TOGAF, distributed systems)
+│   ├── distributed-systems/ # Distributed systems diagrams
+│   ├── user-journey-map/ # User journey and persona maps
+│   └── wardley-map/      # Wardley maps
+├── turbo.json           # Turborepo configuration
+└── package.json         # Workspace configuration
 ```
 
-## 🔧 快速开始
+## 🔧 Quick Start
 
-### 环境要求
+### Requirements
 
 - Node.js >= 18.0.0
 - PNPM >= 9.0.0
 - PostgreSQL >= 13
 - Redis >= 6.0
 
-### 1. 克隆项目
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/whatschat.git
 cd whatschat
 ```
 
-### 2. 安装依赖
+### 2. Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 3. 环境配置
+### 3. Environment Configuration
 
-#### 后端配置
+#### Backend Configuration
 
 ```bash
 cd apps/server
 cp .env.example .env
 ```
 
-编辑 `apps/server/.env` 文件（参考 `env.example`）：
+Edit the `apps/server/.env` file (refer to `env.example`):
 
 ```env
-# 服务器配置
+# Server Configuration
 NODE_ENV=development
 PORT=3001
 HOST=localhost
 
-# 数据库配置
+# Database Configuration
 DATABASE_URL="postgresql://username:password@localhost:5432/whatschat?schema=public"
 
-# Redis配置
+# Redis Configuration
 REDIS_URL=redis://localhost:6379
 REDIS_PASSWORD=
 
-# JWT配置（至少32个字符，生产环境请使用强密钥）
+# JWT Configuration (minimum 32 characters, use strong keys in production)
 JWT_SECRET=your-super-secret-jwt-key-here-change-in-production-min-32-chars
 JWT_EXPIRES_IN=7d
 JWT_REFRESH_SECRET=your-super-secret-refresh-key-here-change-in-production-min-32-chars
 JWT_REFRESH_EXPIRES_IN=30d
 
-# 安全配置
+# Security Configuration
 CORS_ORIGIN=http://localhost:3000,http://localhost:3001
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 
-# 文件存储配置 (AWS S3) - 可选
+# File Storage Configuration (AWS S3) - Optional
 AWS_ACCESS_KEY_ID=your-aws-access-key
 AWS_SECRET_ACCESS_KEY=your-aws-secret-key
 AWS_REGION=us-east-1
 AWS_S3_BUCKET=whatschat-files
 
-# 邮件服务配置 - 可选
+# Email Service Configuration - Optional
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-email-password
 SMTP_FROM=noreply@whatschat.com
 
-# 日志配置
+# Logging Configuration
 LOG_LEVEL=info
 LOG_FILE_PATH=logs/app.log
 ```
 
-更多配置项请参考 `apps/server/env.example` 文件。
+For more configuration options, refer to the `apps/server/env.example` file.
 
-#### 前端配置
+#### Frontend Configuration
 
 ```bash
 cd apps/web
 ```
 
-创建 `.env.local` 文件：
+Create a `.env.local` file:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
-### 4. 数据库设置
+### 4. Database Setup
 
-#### 使用 Docker（推荐）
+#### Using Docker (Recommended)
 
 ```bash
 cd apps/server
 
-# 启动数据库服务（PostgreSQL + Redis）
+# Start database services (PostgreSQL + Redis)
 ./docker-start.sh dev
 
-# 生成 Prisma 客户端
+# Generate Prisma client
 pnpm db:generate
 
-# 运行数据库迁移
+# Run database migrations
 pnpm migrate
 
-# 填充测试数据
+# Seed test data
 pnpm db:seed
 ```
 
-#### 手动设置
+#### Manual Setup
 
-如果已有 PostgreSQL 和 Redis 服务：
+If you already have PostgreSQL and Redis services:
 
 ```bash
 cd apps/server
 
-# 生成 Prisma 客户端
+# Generate Prisma client
 pnpm db:generate
 
-# 运行数据库迁移
+# Run database migrations
 pnpm migrate
 
-# 填充测试数据
+# Seed test data
 pnpm db:seed
 ```
 
-### 5. 启动应用
+### 5. Start the Application
 
-#### 方式一：分别启动（推荐用于开发）
+#### Method 1: Start Separately (Recommended for Development)
 
 ```bash
-# 启动后端服务器（终端1）
+# Start backend server (Terminal 1)
 cd apps/server
 pnpm dev
 
-# 启动前端应用（终端2）
+# Start frontend application (Terminal 2)
 cd apps/web
 pnpm dev
 ```
 
-#### 方式二：同时启动所有服务
+#### Method 2: Start All Services Together
 
 ```bash
-# 在项目根目录
+# In the project root directory
 pnpm dev
 ```
 
-### 6. 访问应用
+### 6. Access the Application
 
-- **前端应用**: http://localhost:3000
-- **后端API**: http://localhost:3001/api/v1
-- **API文档 (Swagger)**: http://localhost:3001/api/docs（开发环境）
-- **健康检查**: http://localhost:3001/api/v1/health
+- **Frontend Application**: http://localhost:3000
+- **Backend API**: http://localhost:3001/api/v1
+- **API Documentation (Swagger)**: http://localhost:3001/api/docs (development environment)
+- **Health Check**: http://localhost:3001/api/v1/health
 
-## 🧪 测试
+## 🧪 Testing
 
-### 运行测试
+### Running Tests
 
 ```bash
-# 运行所有测试
+# Run all tests
 pnpm test
 
-# 监听模式运行测试
+# Run tests in watch mode
 pnpm test:watch
 
-# 生成测试覆盖率报告
+# Generate test coverage reports
 cd apps/server && pnpm test:coverage
 cd apps/web && pnpm test:coverage
 ```
 
-### 测试框架
+### Testing Frameworks
 
-- **后端**: Vitest + Supertest
-- **前端**: Vitest + React Testing Library
+- **Backend**: Vitest + Supertest
+- **Frontend**: Vitest + React Testing Library
 
-## 👤 测试账户
+## 👤 Test Accounts
 
-数据库种子会创建以下测试账户：
+The database seed will create the following test accounts:
 
-- **管理员**: admin@whatschat.com / 123456
+- **Admin**: admin@whatschat.com / 123456
 - **Alice**: alice@example.com / 123456
 - **Bob**: bob@example.com / 123456
 - **Charlie**: charlie@example.com / 123456
 
-## 🔐 认证功能
+## 🔐 Authentication Features
 
-### 已实现功能
+### Implemented Features
 
-- ✅ 用户注册（用户名、邮箱、手机号、密码）
-- ✅ 用户登录（邮箱/密码）
-- ✅ JWT 访问令牌和刷新令牌
-- ✅ 自动令牌刷新
-- ✅ 用户登出
-- ✅ 获取当前用户信息
-- ✅ 更新用户资料
-- ✅ 修改密码
-- ✅ 忘记密码（基础实现）
-- ✅ 密码重置（基础实现）
-- ✅ 前端认证状态管理
-- ✅ 路由保护
-- ✅ 表单验证
+- ✅ User registration (username, email, phone number, password)
+- ✅ User login (email/password)
+- ✅ JWT access tokens and refresh tokens
+- ✅ Automatic token refresh
+- ✅ User logout
+- ✅ Get current user information
+- ✅ Update user profile
+- ✅ Change password
+- ✅ Forgot password (basic implementation)
+- ✅ Password reset (basic implementation)
+- ✅ Frontend authentication state management
+- ✅ Route protection
+- ✅ Form validation
 
-### API 端点
+### API Endpoints
 
-所有 API 端点前缀为 `/api/v1`：
+All API endpoints are prefixed with `/api/v1`:
 
 ```
-POST /api/v1/auth/register      # 用户注册
-POST /api/v1/auth/login         # 用户登录
-POST /api/v1/auth/logout        # 用户登出
-GET  /api/v1/auth/me           # 获取当前用户
-PUT  /api/v1/auth/profile      # 更新用户资料
-PUT  /api/v1/auth/change-password  # 修改密码
-POST /api/v1/auth/refresh-token    # 刷新令牌
-POST /api/v1/auth/forgot-password  # 忘记密码
-POST /api/v1/auth/reset-password   # 重置密码
+POST /api/v1/auth/register      # User registration
+POST /api/v1/auth/login         # User login
+POST /api/v1/auth/logout        # User logout
+GET  /api/v1/auth/me           # Get current user
+PUT  /api/v1/auth/profile      # Update user profile
+PUT  /api/v1/auth/change-password  # Change password
+POST /api/v1/auth/refresh-token    # Refresh token
+POST /api/v1/auth/forgot-password  # Forgot password
+POST /api/v1/auth/reset-password   # Reset password
 ```
 
-**API 文档**: 开发环境下访问 http://localhost:3001/api/docs 查看完整的 Swagger API 文档。
+**API Documentation**: Visit http://localhost:3001/api/docs in the development environment to view the complete Swagger API documentation.
 
-## 🛠️ 开发工具
+## 🛠️ Development Tools
 
-### 数据库管理
+### Database Management
 
 ```bash
 cd apps/server
 
-# 打开 Prisma Studio
+# Open Prisma Studio
 pnpm db:studio
 
-# 重置数据库
+# Reset database
 pnpm db:reset
 
-# 推送 schema 变更
+# Push schema changes
 pnpm db:push
 ```
 
-### 代码质量
+### Code Quality
 
 ```bash
-# 代码检查
+# Code linting
 pnpm lint
 
-# 自动修复
+# Auto-fix issues
 pnpm lint:fix
 
-# 格式化代码
+# Format code
 pnpm format
 
-# 类型检查
+# Type checking
 pnpm check-types
 ```
 
-## 🏗️ 架构设计
+## 🏗️ Architecture Design
 
-查看 `docs/` 文件夹中的 C4 架构图：
+View architecture diagrams and documentation in the `docs/` folder:
 
-- [系统上下文图](docs/architecture/c4-system-context.puml)
-- [容器图](docs/architecture/c4-container.puml)
-- [组件图](docs/architecture/c4-web-components.puml)
-- [代码图](docs/architecture/c4-code.puml)
-- [架构概览图](docs/architecture/architecture-overview.puml)
+### TOGAF Architecture Diagrams
 
-## 🚀 部署
+- [TOGAF Overview](docs/architecture/togaf/overview.puml)
+- [Business Architecture](docs/architecture/togaf/business-architecture.puml)
+- [Application Architecture](docs/architecture/togaf/application-architecture.puml)
+- [Data Architecture](docs/architecture/togaf/data-architecture.puml)
+- [Technology Architecture](docs/architecture/togaf/technology-architecture.puml)
 
-### Docker 部署
+### Distributed Systems Diagrams
+
+- [Distributed Architecture](docs/distributed-systems/distributed-architecture.puml)
+- [Data Flow](docs/distributed-systems/data-flow.puml)
+- [Service Communication](docs/distributed-systems/service-communication-sequence.puml)
+- [Message Queue](docs/distributed-systems/message-queue.puml)
+
+### Other Diagrams
+
+- [User Journey Map](docs/user-journey-map/user-journey-map.puml)
+- [Wardley Map](docs/wardley-map/wardley-map.puml)
+
+For more details, see the [Documentation README](docs/README.md).
+
+## 🚀 Deployment
+
+### Docker Deployment
 
 ```bash
 cd apps/server
 
-# 使用 docker-compose 启动所有服务（开发环境）
+# Start all services with docker-compose (development environment)
 ./docker-start.sh dev
 
-# 使用 docker-compose 启动所有服务（生产环境）
+# Start all services with docker-compose (production environment)
 ./docker-start.sh prod
 
-# 停止服务
+# Stop services
 ./docker-stop.sh
 
-# 或者直接使用 docker-compose
-docker-compose -f docker-compose.dev.yml up -d  # 开发环境
-docker-compose -f docker-compose.prod.yml up -d # 生产环境
+# Or use docker-compose directly
+docker-compose -f docker-compose.dev.yml up -d  # Development environment
+docker-compose -f docker-compose.prod.yml up -d # Production environment
 ```
 
-更多 Docker 部署信息请查看 [服务器 Docker 文档](docs/server/DOCKER.md)。
+For more Docker deployment information, see the [Documentation README](docs/README.md) for available documentation.
 
-### 生产环境注意事项
+### Production Environment Considerations
 
-1. 使用强密钥替换 JWT_SECRET
-2. 配置 HTTPS
-3. 设置适当的 CORS 策略
-4. 配置数据库连接池
-5. 设置 Redis 持久化
-6. 配置日志轮转
-7. 设置监控和告警
+1. Replace JWT_SECRET with a strong key
+2. Configure HTTPS
+3. Set appropriate CORS policies
+4. Configure database connection pooling
+5. Set up Redis persistence
+6. Configure log rotation
+7. Set up monitoring and alerts
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **数据库连接失败**
-   - 检查 PostgreSQL 是否运行
-   - 验证 DATABASE_URL 配置
-   - 确保数据库已创建
+1. **Database Connection Failed**
+   - Check if PostgreSQL is running
+   - Verify DATABASE_URL configuration
+   - Ensure the database has been created
 
-2. **Redis 连接失败**
-   - 检查 Redis 是否运行
-   - 验证 REDIS_URL 配置
+2. **Redis Connection Failed**
+   - Check if Redis is running
+   - Verify REDIS_URL configuration
 
-3. **前端无法连接后端**
-   - 检查后端服务器是否运行在 3001 端口
-   - 验证 NEXT_PUBLIC_API_URL 配置
-   - 检查 CORS 配置
+3. **Frontend Cannot Connect to Backend**
+   - Check if the backend server is running on port 3001
+   - Verify NEXT_PUBLIC_API_URL configuration
+   - Check CORS configuration
 
-4. **认证失败**
-   - 检查 JWT_SECRET 配置
-   - 验证令牌是否过期
-   - 检查用户是否存在
+4. **Authentication Failed**
+   - Check JWT_SECRET configuration
+   - Verify if the token has expired
+   - Check if the user exists
 
-## 📚 开发指南
+## 📚 Development Guide
 
-### 后端开发（NestJS 整洁架构）
+### Backend Development (NestJS Clean Architecture)
 
-项目采用整洁架构（Clean Architecture）设计，分为以下层次：
+The project uses Clean Architecture design, divided into the following layers:
 
-1. **领域层 (domain/)**: 实体和接口定义
-   - `entities/`: 领域实体
-   - `interfaces/`: 仓库和服务接口
+1. **Domain Layer (domain/)**: Entity and interface definitions
+   - `entities/`: Domain entities
+   - `interfaces/`: Repository and service interfaces
 
-2. **应用层 (application/)**: 业务逻辑
-   - `services/`: 应用服务
-   - `dto/`: 数据传输对象
+2. **Application Layer (application/)**: Business logic
+   - `services/`: Application services
+   - `dto/`: Data Transfer Objects
 
-3. **基础设施层 (infrastructure/)**: 外部依赖实现
-   - `database/`: 数据库服务（Prisma、Redis）
-   - `adapters/`: 适配器实现
+3. **Infrastructure Layer (infrastructure/)**: External dependency implementations
+   - `database/`: Database services (Prisma, Redis)
+   - `adapters/`: Adapter implementations
 
-4. **表现层 (presentation/)**: API 接口
-   - `controllers/`: REST API 控制器
-   - `websocket/`: WebSocket 网关
-   - `filters/`: 异常过滤器
-   - `interceptors/`: 拦截器
+4. **Presentation Layer (presentation/)**: API interfaces
+   - `controllers/`: REST API controllers
+   - `websocket/`: WebSocket gateways
+   - `filters/`: Exception filters
+   - `interceptors/`: Interceptors
 
-#### 添加新的 API 端点
+#### Adding New API Endpoints
 
-1. 在 `domain/entities/` 中定义实体（如需要）
-2. 在 `application/services/` 中实现业务逻辑
-3. 在 `application/dto/` 中定义 DTO
-4. 在 `presentation/` 中创建控制器和模块
-5. 在 `infrastructure/adapters/` 中实现仓库适配器（如需要）
-6. 更新 `apps/web/lib/api.ts` 中的 API 客户端
+1. Define entities in `domain/entities/` (if needed)
+2. Implement business logic in `application/services/`
+3. Define DTOs in `application/dto/`
+4. Create controllers and modules in `presentation/`
+5. Implement repository adapters in `infrastructure/adapters/` (if needed)
+6. Update the API client adapters in `apps/web/src/infrastructure/adapters/api/` if needed
 
-### 前端开发
+### Frontend Development
 
-1. 在 `apps/web/app/` 中创建页面（Next.js App Router）
-2. 在 `apps/web/components/` 中创建组件
-3. 在 `apps/web/hooks/` 中添加自定义 hooks
-4. 在 `apps/web/stores/` 中添加状态管理（Zustand）
-5. 更新路由和导航
+1. Create pages in `apps/web/app/` (Next.js App Router)
+2. Create components in `apps/web/src/presentation/components/`
+3. Add custom hooks in `apps/web/src/presentation/hooks/`
+4. Add state management (Zustand) in `apps/web/src/infrastructure/stores/`
+5. Update routes and navigation
 
-## 👥 贡献
+### Shared Packages Development
 
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
+The project uses a monorepo structure with shared packages in the `packages/` directory:
 
-## 📄 许可证
+- **Analytics Packages**: `analytics-core`, `analytics-web`, `analytics-react-native` - Event tracking and analytics
+- **AV SDK Packages**: `av-sdk-core`, `av-sdk-web`, `av-sdk-react-native` - Audio/Video SDK for calls
+- **SDK Packages**: `sdk-communication`, `sdk-media`, `sdk-processing`, `sdk-recording`, `sdk-storage` - Core SDK functionality
+- **Utilities**: `i18n-core`, `performance-utils`, `test-utils` - Shared utilities
+- **AWS Integration**: `aws-integration` - AWS services integration
 
-本项目使用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+To work with shared packages:
 
-## 👥 作者
+```bash
+# Build all packages
+pnpm build
 
-- **Felix Zhu** - _初始开发_ - [felix zhu](mailto:z1434866867@gmail.com)
+# Build specific package
+cd packages/analytics-core && pnpm build
 
-## 🙏 致谢
+# Run tests for a package
+cd packages/i18n-core && pnpm test
+```
 
-感谢所有为这个项目做出贡献的开发者。
+## 👥 Contributing
+
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 👥 Authors
+
+- **Felix Zhu** - _Initial Development_ - [felix zhu](mailto:z1434866867@gmail.com)
+
+## 🙏 Acknowledgments
+
+Thanks to all developers who have contributed to this project.
 
 ---
 
 <p align="center">
-  <strong>WhatsChat - 连接世界，沟通无界</strong>
+  <strong>WhatsChat - Connect the World, Communication Without Boundaries</strong>
 </p>

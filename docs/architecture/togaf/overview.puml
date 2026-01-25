@@ -1,0 +1,69 @@
+@startuml togaf-overview
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF 架构概览 - WhatsChat 即时通讯系统
+
+package "业务架构 (Business Architecture)" as BA {
+  component [业务角色] as Actors
+  component [业务能力] as Capabilities
+  component [业务流程] as Processes
+  component [业务价值] as Value
+  note right of BA
+    **business-architecture.puml**
+    用户管理、即时通讯、语音视频通话、
+    文件共享、群组管理、联系人、通知
+  end note
+}
+
+package "应用架构 (Application Architecture)" as AA {
+  component [客户端应用] as Clients
+  component [API网关] as Gateways
+  component [应用服务] as Services
+  component [数据访问] as DataAccess
+  note right of AA
+    **application-architecture.puml**
+    Web/Mobile、REST/WebSocket/WebRTC、
+    NestJS 服务、PostgreSQL/Redis
+  end note
+}
+
+package "数据架构 (Data Architecture)" as DA {
+  component [数据实体] as Entities
+  component [关联实体] as Associations
+  component [数据存储] as Storage
+  note right of DA
+    **data-architecture.puml**
+    User/Chat/Message/Group/Call/Status、
+    Contact/Notification/FileUpload、
+    PostgreSQL、Redis、S3
+  end note
+}
+
+package "技术架构 (Technology Architecture)" as TA {
+  component [客户端技术栈] as ClientTech
+  component [服务端技术栈] as ServerTech
+  component [数据持久化] as Persistence
+  component [部署基础设施] as Deploy
+  note right of TA
+    **technology-architecture.puml**
+    Next.js、React Native、NestJS、
+    Prisma、JWT、Docker
+  end note
+}
+
+BA -down-> AA : 驱动
+AA -down-> DA : 依赖
+DA -down-> TA : 支撑
+
+note bottom
+  **TOGAF 四大架构域**
+  业务架构定义 WhatsChat 的业务能力与流程；
+  应用架构实现 Web/Mobile 与后端服务；
+  数据架构描述实体、存储与数据流；
+  技术架构规定技术栈与部署。
+  详见各域对应 .puml 图。
+end note
+
+@enduml

@@ -24,6 +24,8 @@ package "关联实体 (Association Entities)" {
   component [MessageRead\n消息已读] as MessageRead
   component [MessageReaction\n消息反应] as MessageReaction
   component [StatusView\n状态查看] as StatusView
+  component [UserSettings\n用户设置] as UserSettings
+  component [BlockedUser\n黑名单] as BlockedUser
 }
 
 package "数据存储 (Data Storage)" {
@@ -44,6 +46,8 @@ User --> StatusView : 查看
 User --> Contact : 拥有
 User --> Notification : 接收
 User --> FileUpload : 上传
+User --> UserSettings : 拥有
+User --> BlockedUser : 屏蔽/被屏蔽
 
 Chat --> Message : 包含
 Chat --> ChatParticipant : 参与者
@@ -75,6 +79,8 @@ CallParticipant --> PostgreSQL : 存储
 MessageRead --> PostgreSQL : 存储
 MessageReaction --> PostgreSQL : 存储
 StatusView --> PostgreSQL : 存储
+UserSettings --> PostgreSQL : 存储
+BlockedUser --> PostgreSQL : 存储
 
 User --> Redis : 会话缓存
 Chat --> Redis : 在线状态缓存
@@ -104,6 +110,8 @@ rectangle "数据实体说明" {
     - MessageRead: 消息已读状态
     - MessageReaction: 消息反应（点赞等）
     - StatusView: 状态查看记录
+    - UserSettings: 用户设置（主题、语言、通知、隐私、聊天偏好）
+    - BlockedUser: 黑名单（用户屏蔽关系）
   end note
 }
 
@@ -170,7 +178,7 @@ note bottom
   WhatsChat数据架构采用关系型数据库（PostgreSQL）作为主存储，Redis作为缓存和消息队列：
   
   1. **核心实体**: User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload
-  2. **关联实体**: ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView
+  2. **关联实体**: ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView、UserSettings、BlockedUser
   3. **数据关系**: 一对一、一对多、多对多关系，通过外键和关联表维护
   4. **数据存储**: PostgreSQL存储持久化数据，Redis存储缓存和会话，文件存储服务存储媒体文件
   5. **数据流**: 写数据流、读数据流和实时数据流三种模式，确保数据一致性和实时性

@@ -16,6 +16,16 @@
 - [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - 系统架构概览
 - [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - 部署架构图
 
+#### TOGAF 企业架构
+
+- [`architecture/togaf/overview.puml`](./architecture/togaf/overview.puml) - TOGAF 架构概览
+- [`architecture/togaf/business-architecture.puml`](./architecture/togaf/business-architecture.puml) - 业务架构图
+- [`architecture/togaf/application-architecture.puml`](./architecture/togaf/application-architecture.puml) - 应用架构图
+- [`architecture/togaf/data-architecture.puml`](./architecture/togaf/data-architecture.puml) - 数据架构图
+- [`architecture/togaf/technology-architecture.puml`](./architecture/togaf/technology-architecture.puml) - 技术架构图
+
+详见 [TOGAF 目录说明](./architecture/togaf/README.md)。
+
 #### 沃德利地图
 
 - [`wardley-map/wardley-map.puml`](./wardley-map/wardley-map.puml) - 沃德利地图 (Wardley Map) - 展示系统组件在价值链和演化轴上的战略位置
