@@ -254,7 +254,7 @@ export class ConfigService {
           windowMs: parseInt(
             process.env["RATE_LIMIT_WINDOW_MS"] || "900000",
             10
-          ), // 15分钟
+          ), // 15 minutes
           max: parseInt(process.env["RATE_LIMIT_MAX_REQUESTS"] || "100", 10),
         },
         bcrypt: {
@@ -272,7 +272,7 @@ export class ConfigService {
       business: {
         maxGroupParticipants: 256,
         maxMessageLength: 4096,
-        maxStatusDuration: 24 * 60 * 60 * 1000, // 24小时
+        maxStatusDuration: 24 * 60 * 60 * 1000, // 24 hours
         maxFileSize: 50 * 1024 * 1024, // 50MB
         messageRetentionDays: 365,
         statusRetentionHours: 24,
@@ -287,7 +287,7 @@ export class ConfigService {
     const nodeEnv = process.env["NODE_ENV"] || "development";
     const isProduction = nodeEnv === "production";
 
-    // 在生产环境中进行严格验证
+    // Strict validation in production environment
     if (isProduction) {
       const requiredConfigs = [
         {
@@ -319,35 +319,35 @@ export class ConfigService {
         const errorMessages = invalidConfigs.map(
           ({ key, message }) => `${key}: ${message}`
         );
-        throw new Error(`配置验证失败:\n${errorMessages.join("\n")}`);
+        throw new Error(`Configuration validation failed:\n${errorMessages.join("\n")}`);
       }
     } else {
-      // 开发环境：只检查是否设置了环境变量，不验证格式
+      // Development environment: only check if environment variables are set, don't validate format
       const warnings: string[] = [];
 
       if (
         !process.env["JWT_SECRET"] ||
         config.jwt?.secret === "your-super-secret-jwt-key-here"
       ) {
-        warnings.push("警告: 使用默认JWT_SECRET，生产环境请设置强密钥");
+        warnings.push("Warning: Using default JWT_SECRET, please set a strong key for production");
       }
 
       if (
         !process.env["DATABASE_URL"] ||
         config.database?.url?.includes("username:password")
       ) {
-        warnings.push("警告: 使用默认DATABASE_URL，请设置正确的数据库连接");
+        warnings.push("Warning: Using default DATABASE_URL, please set correct database connection");
       }
 
       if (
         !process.env["REDIS_URL"] ||
         config.redis?.url === "redis://localhost:6379"
       ) {
-        warnings.push("警告: 使用默认REDIS_URL，请设置正确的Redis连接");
+        warnings.push("Warning: Using default REDIS_URL, please set correct Redis connection");
       }
 
       if (warnings.length > 0) {
-        console.warn("配置警告:\n" + warnings.join("\n"));
+        console.warn("Configuration warnings:\n" + warnings.join("\n"));
       }
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "whatschat-server",
   "version": "1.0.0",
-  "description": "WhatsChat服务器应用 - 处理消息路由、用户认证、实时通信和业务逻辑",
+  "description": "WhatsChat server application - handles message routing, user authentication, real-time communication and business logic",
   "main": "dist/main.js",
   "scripts": {
     "dev": "nest start --watch",

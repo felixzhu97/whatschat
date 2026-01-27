@@ -155,7 +155,7 @@ export class ChimeGateway implements OnGatewayConnection, OnGatewayDisconnect {
         attendee,
       });
 
-      // 通知其他参会者
+      // Notify other attendees
       socket.to(`meeting:${data.meetingId}`).emit('chime:attendee-joined', {
         attendee,
         userId: socket.userId,

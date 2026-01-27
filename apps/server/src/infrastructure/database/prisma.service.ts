@@ -29,14 +29,14 @@ export class PrismaService
         throw error;
       } else {
         logger.warn(
-          "⚠️  Database connection failed (开发模式，应用将继续启动):"
+          "⚠️  Database connection failed (Development mode, application will continue to start):"
         );
-        logger.warn(`   请确保PostgreSQL服务正在运行`);
+        logger.warn(`   Please ensure PostgreSQL service is running`);
         logger.warn(
-          `   连接字符串: ${process.env["DATABASE_URL"] || "未设置"}`
+          `   Connection string: ${process.env["DATABASE_URL"] || "Not set"}`
         );
-        // 在开发环境中不抛出错误，允许应用启动
-        // 但会在实际使用数据库时失败
+        // In development environment, don't throw error, allow application to start
+        // But will fail when actually using the database
       }
     }
   }

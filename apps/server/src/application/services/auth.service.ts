@@ -29,16 +29,16 @@ export class AuthService implements IAuthService {
   async register(
     data: RegisterData
   ): Promise<{ user: User; tokens: AuthTokens }> {
-    // 检查用户是否已存在
+    // Check if user already exists
     const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
-      throw new ConflictException("用户已存在");
+      throw new ConflictException("User already exists");
     }
 
-    // 哈希密码
+    // Hash password
     const hashedPassword = await this.hashPassword(data.password);
 
-    // 创建用户
+    // Create user
     const user = await this.prisma.user.create({
       data: {
         username: data.username || data.email,
@@ -61,7 +61,7 @@ export class AuthService implements IAuthService {
       updatedAt: user.updatedAt,
     });
 
-    // 生成令牌
+    // Generate tokens
     const tokens = await this.generateTokens(
       user.id,
       user.email,
@@ -72,22 +72,22 @@ export class AuthService implements IAuthService {
   }
 
   async login(data: LoginData): Promise<{ user: User; tokens: AuthTokens }> {
-    // 查找用户（需要密码，所以直接使用Prisma）
+    // Find user (need password, so use Prisma directly)
     const user = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
 
     if (!user) {
-      throw new UnauthorizedException("邮箱或密码错误");
+      throw new UnauthorizedException("Invalid email or password");
     }
 
-    // 验证密码
+    // Verify password
     const isPasswordValid = await this.comparePassword(
       data.password,
       user.password
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException("邮箱或密码错误");
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     const domainUser = User.create({
@@ -103,7 +103,7 @@ export class AuthService implements IAuthService {
       updatedAt: user.updatedAt,
     });
 
-    // 生成令牌
+    // Generate tokens
     const tokens = await this.generateTokens(
       user.id,
       user.email,
@@ -122,12 +122,12 @@ export class AuthService implements IAuthService {
 
       const user = await this.userRepository.findById(decoded.userId);
       if (!user) {
-        throw new UnauthorizedException("Refresh token无效");
+        throw new UnauthorizedException("Invalid refresh token");
       }
 
       return await this.generateTokens(user.id, user.email, user.username);
     } catch (error) {
-      throw new UnauthorizedException("Refresh token无效");
+      throw new UnauthorizedException("Invalid refresh token");
     }
   }
 
@@ -142,7 +142,7 @@ export class AuthService implements IAuthService {
 
       const user = await this.userRepository.findById(decoded.userId);
       if (!user) {
-        throw new UnauthorizedException("用户不存在");
+        throw new UnauthorizedException("User does not exist");
       }
 
       return {
@@ -151,7 +151,7 @@ export class AuthService implements IAuthService {
         username: user.username,
       };
     } catch (error) {
-      throw new UnauthorizedException("令牌无效");
+      throw new UnauthorizedException("Invalid token");
     }
   }
 
@@ -186,7 +186,7 @@ export class AuthService implements IAuthService {
       }),
     ]);
 
-    // 计算过期时间（秒）
+    // Calculate expiration time (seconds)
     const expiresIn = this.parseExpiresIn(config.jwt.expiresIn);
 
     return {
@@ -198,7 +198,7 @@ export class AuthService implements IAuthService {
 
   private parseExpiresIn(expiresIn: string): number {
     const match = expiresIn.match(/^(\d+)([smhd])$/);
-    if (!match || !match[1]) return 7 * 24 * 60 * 60; // 默认7天
+    if (!match || !match[1]) return 7 * 24 * 60 * 60; // Default 7 days
 
     const value = parseInt(match[1], 10);
     const unit = match[2];

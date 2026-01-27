@@ -19,7 +19,7 @@ interface AuthenticatedSocket extends Socket {
   user?: any;
 }
 
-// 在线用户管理
+// Online user management
 const onlineUsers = new Map<string, string>(); // userId -> socketId
 
 @WebSocketGateway({
@@ -82,37 +82,37 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.userId = user.id;
       socket.user = user;
 
-      // 添加到在线用户列表
+      // Add to online users list
       onlineUsers.set(user.id, socket.id);
 
-      // 更新用户在线状态
+      // Update user online status
       await this.prisma.user.update({
         where: { id: user.id },
         data: { isOnline: true },
       });
 
-      // 加入用户房间
+      // Join user room
       socket.join(`user:${user.id}`);
 
-      // 通知其他用户该用户上线
+      // Notify other users that this user is online
       socket.broadcast.emit("user:online", { userId: user.id });
 
-      // 发送连接确认
+      // Send connection confirmation
       socket.emit("user:connect", { userId: user.id });
 
-      logger.info(`用户连接: ${user.username} (${user.id})`);
+      logger.info(`User connected: ${user.username} (${user.id})`);
     } catch (error) {
-      logger.error(`Socket认证失败: ${error}`);
+      logger.error(`Socket authentication failed: ${error}`);
       socket.disconnect();
     }
   }
 
   async handleDisconnect(socket: AuthenticatedSocket) {
     if (socket.userId) {
-      // 从在线用户列表移除
+      // Remove from online users list
       onlineUsers.delete(socket.userId);
 
-      // 更新用户在线状态
+      // Update user online status
       await this.prisma.user.update({
         where: { id: socket.userId },
         data: {
@@ -121,10 +121,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // 通知其他用户该用户下线
+      // Notify other users that this user is offline
       socket.broadcast.emit("user:offline", { userId: socket.userId });
 
-      logger.info(`用户断开连接: ${socket.user?.username} (${socket.userId})`);
+      logger.info(`User disconnected: ${socket.user?.username} (${socket.userId})`);
     }
   }
 
@@ -144,11 +144,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const { chatId, content, type, mediaUrl, replyToMessageId } = data;
 
       if (!socket.userId) {
-        socket.emit("error", { message: "未认证" });
+        socket.emit("error", { message: "Unauthorized" });
         return;
       }
 
-      // 验证用户是否为聊天参与者
+      // Verify user is a chat participant
       const participant = await this.prisma.chatParticipant.findUnique({
         where: {
           chatId_userId: {
@@ -159,11 +159,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       if (!participant) {
-        socket.emit("error", { message: "无权发送消息到此聊天" });
+        socket.emit("error", { message: "No permission to send messages to this chat" });
         return;
       }
 
-      // 创建消息
+      // Create message
       const message = await this.prisma.message.create({
         data: {
           chatId,
@@ -184,15 +184,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // 获取聊天参与者
+      // Get chat participants
       const participants = await this.prisma.chatParticipant.findMany({
         where: { chatId },
         select: { userId: true },
       });
 
-      // 发送消息给所有参与者
+      // Send message to all participants
       if (this.useApiGateway && this.apiGatewayWebSocketService) {
-        // 使用 API Gateway WebSocket 发送消息
+        // Use API Gateway WebSocket to send message
         const userIds = participants
           .map((p) => p.userId)
           .filter((userId) => userId !== socket.userId);
@@ -204,7 +204,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           });
         }
       } else {
-        // 使用 Socket.IO 发送消息
+        // Use Socket.IO to send message
         participants.forEach(({ userId }: { userId: string }) => {
           const participantSocketId = onlineUsers.get(userId);
           if (participantSocketId && participantSocketId !== socket.id) {
@@ -213,13 +213,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
       }
 
-      // 确认消息发送成功
+      // Confirm message sent successfully
       socket.emit("message:sent", message);
 
-      logger.info(`消息发送: ${socket.userId} -> ${chatId}`);
+      logger.info(`Message sent: ${socket.userId} -> ${chatId}`);
     } catch (error) {
-      logger.error(`消息发送错误: ${error}`);
-      socket.emit("error", { message: "消息发送失败" });
+      logger.error(`Message send error: ${error}`);
+      socket.emit("error", { message: "Failed to send message" });
     }
   }
 
@@ -235,7 +235,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // 标记消息为已读
+      // Mark message as read
       await this.prisma.messageRead.upsert({
         where: {
           messageId_userId: {
@@ -250,10 +250,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // 通知其他参与者消息已读
+      // Notify other participants that message is read
       if (this.useApiGateway && this.apiGatewayWebSocketService) {
-        // 使用 API Gateway WebSocket 发送消息
-        // 注意：这里需要获取聊天参与者，简化处理使用 Socket.IO
+        // Use API Gateway WebSocket to send message
+        // Note: Need to get chat participants here, simplified to use Socket.IO
         socket.to(`chat:${chatId}`).emit("message:read", {
           messageId,
           userId: socket.userId,
@@ -265,7 +265,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
       }
     } catch (error) {
-      logger.error(`消息已读错误: ${error}`);
+      logger.error(`Message read error: ${error}`);
     }
   }
 
@@ -294,7 +294,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // 添加或更新反应
+      // Add or update reaction
       const reaction = await this.prisma.messageReaction.upsert({
         where: {
           messageId_userId_emoji: {
@@ -311,13 +311,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // 通知其他用户
+      // Notify other users
       socket.broadcast.emit("message:reaction", {
         messageId,
         reaction,
       });
     } catch (error) {
-      logger.error(`消息反应错误: ${error}`);
+      logger.error(`Message reaction error: ${error}`);
     }
   }
 
@@ -329,14 +329,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { targetUserId } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
         type: "call:incoming",
         ...data,
         initiatorId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const targetSocketId = onlineUsers.get(targetUserId);
       if (targetSocketId) {
         this.server.to(targetSocketId).emit("call:incoming", {
@@ -355,14 +355,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, initiatorId } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
         type: "call:answer",
         callId,
         userId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const initiatorSocketId = onlineUsers.get(initiatorId);
       if (initiatorSocketId) {
         this.server.to(initiatorSocketId).emit("call:answer", {
@@ -381,14 +381,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, initiatorId } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
         type: "call:reject",
         callId,
         userId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const initiatorSocketId = onlineUsers.get(initiatorId);
       if (initiatorSocketId) {
         this.server.to(initiatorSocketId).emit("call:reject", {
@@ -407,7 +407,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, participants } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       const otherParticipants = participants.filter(
         (userId) => userId !== socket.userId
       );
@@ -422,7 +422,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       }
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       participants.forEach((userId: string) => {
         const participantSocketId = onlineUsers.get(userId);
         if (participantSocketId && participantSocketId !== socket.id) {
@@ -444,7 +444,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, targetUserId, candidate } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
         type: "call:ice-candidate",
         callId,
@@ -452,7 +452,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const targetSocketId = onlineUsers.get(targetUserId);
       if (targetSocketId) {
         this.server.to(targetSocketId).emit("call:ice-candidate", {
@@ -472,7 +472,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, targetUserId, offer } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
         type: "call:offer",
         callId,
@@ -480,7 +480,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const targetSocketId = onlineUsers.get(targetUserId);
       if (targetSocketId) {
         this.server.to(targetSocketId).emit("call:offer", {
@@ -500,7 +500,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { callId, targetUserId, answer } = data;
 
     if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // 使用 API Gateway WebSocket 发送消息
+      // Use API Gateway WebSocket to send message
       await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
         type: "call:webrtc-answer",
         callId,
@@ -508,7 +508,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userId: socket.userId,
       });
     } else {
-      // 使用 Socket.IO 发送消息
+      // Use Socket.IO to send message
       const targetSocketId = onlineUsers.get(targetUserId);
       if (targetSocketId) {
         this.server.to(targetSocketId).emit("call:webrtc-answer", {
@@ -538,15 +538,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // 创建状态
+      // Create status
       const status = await this.prisma.status.create({
         data: {
           userId: socket.userId,
-          content: content || "", // content 是必需字段
+          content: content || "", // content is required field
           type: type as any,
           ...(mediaUrl && { mediaUrl }),
           ...(duration && { duration }),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时后过期
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expires after 24 hours
         },
         include: {
           user: {
@@ -561,7 +561,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       socket.broadcast.emit("status:create", status);
     } catch (error) {
-      logger.error(`状态创建错误: ${error}`);
+      logger.error(`Status creation error: ${error}`);
     }
   }
 
@@ -587,7 +587,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         status,
       });
     } catch (error) {
-      logger.error(`用户状态更新错误: ${error}`);
+      logger.error(`User status update error: ${error}`);
     }
   }
 }

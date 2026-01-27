@@ -17,25 +17,25 @@ import { StatusModule } from './presentation/status/status.module';
 
 @Module({
   imports: [
-    // 配置模块
+    // Configuration module
     ConfigModule.forRoot({
       isGlobal: true,
       load: [ConfigService.loadConfig],
       validate: (config) => ConfigService.validateConfig(config),
     }),
-    // 速率限制模块
+    // Rate limiting module
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 1分钟
-        limit: 100, // 100次请求
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests
       },
     ]),
-    // 数据库模块
+    // Database module
     DatabaseModule,
-    // AWS 服务模块
+    // AWS service modules
     ChimeModule,
     ApiGatewayWebSocketModule,
-    // 业务模块
+    // Business modules
     AuthModule,
     HealthModule,
     WebSocketModule,
