@@ -44,3 +44,5 @@ export * from './services/sqs';
 export * from './services/lambda';
 export * from './services/cognito';
 export * from './services/cloudwatch';
+export * from './services/apigateway';
+export * from './services/chime';

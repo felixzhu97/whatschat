@@ -1,6 +1,7 @@
 import {
   CloudWatchClient as AWSCloudWatchClient,
   PutMetricDataCommand,
+  StandardUnit,
 } from '@aws-sdk/client-cloudwatch';
 import {
   CloudWatchLogsClient,
@@ -60,7 +61,7 @@ export class CloudWatchClient {
           {
             MetricName: options.metricName,
             Value: options.value,
-            Unit: options.unit,
+            Unit: options.unit as StandardUnit | undefined,
             Dimensions: dimensions,
             Timestamp: options.timestamp,
           },

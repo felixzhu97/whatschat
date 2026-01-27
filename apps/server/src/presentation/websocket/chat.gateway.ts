@@ -11,6 +11,7 @@ import { Server, Socket } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "../../infrastructure/config/config.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { ApiGatewayWebSocketService } from "../../infrastructure/services/apigateway/apigateway-websocket.service";
 import logger from "@/shared/utils/logger";
 
 interface AuthenticatedSocket extends Socket {
@@ -32,10 +33,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
+  private readonly config: ReturnType<typeof ConfigService.loadConfig>;
+  private useApiGateway: boolean;
+
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService
-  ) {}
+    private readonly prisma: PrismaService,
+    private readonly apiGatewayWebSocketService?: ApiGatewayWebSocketService
+  ) {
+    this.config = ConfigService.loadConfig();
+    this.useApiGateway =
+      this.config.apigateway.websocket.enabled &&
+      this.apiGatewayWebSocketService?.isAvailable() === true;
+  }
 
   async handleConnection(socket: AuthenticatedSocket) {
     try {
@@ -181,12 +191,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       // 发送消息给所有参与者
-      participants.forEach(({ userId }: { userId: string }) => {
-        const participantSocketId = onlineUsers.get(userId);
-        if (participantSocketId && participantSocketId !== socket.id) {
-          this.server.to(participantSocketId).emit("message:received", message);
+      if (this.useApiGateway && this.apiGatewayWebSocketService) {
+        // 使用 API Gateway WebSocket 发送消息
+        const userIds = participants
+          .map((p) => p.userId)
+          .filter((userId) => userId !== socket.userId);
+        
+        if (userIds.length > 0) {
+          await this.apiGatewayWebSocketService.broadcastToUsers(userIds, {
+            type: "message:received",
+            data: message,
+          });
         }
-      });
+      } else {
+        // 使用 Socket.IO 发送消息
+        participants.forEach(({ userId }: { userId: string }) => {
+          const participantSocketId = onlineUsers.get(userId);
+          if (participantSocketId && participantSocketId !== socket.id) {
+            this.server.to(participantSocketId).emit("message:received", message);
+          }
+        });
+      }
 
       // 确认消息发送成功
       socket.emit("message:sent", message);
@@ -226,10 +251,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       // 通知其他参与者消息已读
-      socket.to(`chat:${chatId}`).emit("message:read", {
-        messageId,
-        userId: socket.userId,
-      });
+      if (this.useApiGateway && this.apiGatewayWebSocketService) {
+        // 使用 API Gateway WebSocket 发送消息
+        // 注意：这里需要获取聊天参与者，简化处理使用 Socket.IO
+        socket.to(`chat:${chatId}`).emit("message:read", {
+          messageId,
+          userId: socket.userId,
+        });
+      } else {
+        socket.to(`chat:${chatId}`).emit("message:read", {
+          messageId,
+          userId: socket.userId,
+        });
+      }
     } catch (error) {
       logger.error(`消息已读错误: ${error}`);
     }
@@ -288,120 +322,201 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("call:incoming")
-  handleCallIncoming(
+  async handleCallIncoming(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { targetUserId: string }
   ) {
     const { targetUserId } = data;
-    const targetSocketId = onlineUsers.get(targetUserId);
 
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit("call:incoming", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
+        type: "call:incoming",
         ...data,
         initiatorId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        this.server.to(targetSocketId).emit("call:incoming", {
+          ...data,
+          initiatorId: socket.userId,
+        });
+      }
     }
   }
 
   @SubscribeMessage("call:answer")
-  handleCallAnswer(
+  async handleCallAnswer(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { callId: string; initiatorId: string }
   ) {
     const { callId, initiatorId } = data;
-    const initiatorSocketId = onlineUsers.get(initiatorId);
 
-    if (initiatorSocketId) {
-      this.server.to(initiatorSocketId).emit("call:answer", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
+        type: "call:answer",
         callId,
         userId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const initiatorSocketId = onlineUsers.get(initiatorId);
+      if (initiatorSocketId) {
+        this.server.to(initiatorSocketId).emit("call:answer", {
+          callId,
+          userId: socket.userId,
+        });
+      }
     }
   }
 
   @SubscribeMessage("call:reject")
-  handleCallReject(
+  async handleCallReject(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { callId: string; initiatorId: string }
   ) {
     const { callId, initiatorId } = data;
-    const initiatorSocketId = onlineUsers.get(initiatorId);
 
-    if (initiatorSocketId) {
-      this.server.to(initiatorSocketId).emit("call:reject", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
+        type: "call:reject",
         callId,
         userId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const initiatorSocketId = onlineUsers.get(initiatorId);
+      if (initiatorSocketId) {
+        this.server.to(initiatorSocketId).emit("call:reject", {
+          callId,
+          userId: socket.userId,
+        });
+      }
     }
   }
 
   @SubscribeMessage("call:end")
-  handleCallEnd(
+  async handleCallEnd(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { callId: string; participants: string[] }
   ) {
     const { callId, participants } = data;
 
-    participants.forEach((userId: string) => {
-      const participantSocketId = onlineUsers.get(userId);
-      if (participantSocketId && participantSocketId !== socket.id) {
-        this.server.to(participantSocketId).emit("call:end", {
-          callId,
-          userId: socket.userId,
-        });
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      const otherParticipants = participants.filter(
+        (userId) => userId !== socket.userId
+      );
+      if (otherParticipants.length > 0) {
+        await this.apiGatewayWebSocketService.broadcastToUsers(
+          otherParticipants,
+          {
+            type: "call:end",
+            callId,
+            userId: socket.userId,
+          }
+        );
       }
-    });
+    } else {
+      // 使用 Socket.IO 发送消息
+      participants.forEach((userId: string) => {
+        const participantSocketId = onlineUsers.get(userId);
+        if (participantSocketId && participantSocketId !== socket.id) {
+          this.server.to(participantSocketId).emit("call:end", {
+            callId,
+            userId: socket.userId,
+          });
+        }
+      });
+    }
   }
 
   @SubscribeMessage("call:ice-candidate")
-  handleIceCandidate(
+  async handleIceCandidate(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody()
     data: { callId: string; targetUserId: string; candidate: any }
   ) {
     const { callId, targetUserId, candidate } = data;
-    const targetSocketId = onlineUsers.get(targetUserId);
 
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit("call:ice-candidate", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
+        type: "call:ice-candidate",
         callId,
         candidate,
         userId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        this.server.to(targetSocketId).emit("call:ice-candidate", {
+          callId,
+          candidate,
+          userId: socket.userId,
+        });
+      }
     }
   }
 
   @SubscribeMessage("call:offer")
-  handleCallOffer(
+  async handleCallOffer(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { callId: string; targetUserId: string; offer: any }
   ) {
     const { callId, targetUserId, offer } = data;
-    const targetSocketId = onlineUsers.get(targetUserId);
 
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit("call:offer", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
+        type: "call:offer",
         callId,
         offer,
         userId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        this.server.to(targetSocketId).emit("call:offer", {
+          callId,
+          offer,
+          userId: socket.userId,
+        });
+      }
     }
   }
 
   @SubscribeMessage("call:webrtc-answer")
-  handleWebRTCAnswer(
+  async handleWebRTCAnswer(
     @ConnectedSocket() socket: AuthenticatedSocket,
     @MessageBody() data: { callId: string; targetUserId: string; answer: any }
   ) {
     const { callId, targetUserId, answer } = data;
-    const targetSocketId = onlineUsers.get(targetUserId);
 
-    if (targetSocketId) {
-      this.server.to(targetSocketId).emit("call:webrtc-answer", {
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      // 使用 API Gateway WebSocket 发送消息
+      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
+        type: "call:webrtc-answer",
         callId,
         answer,
         userId: socket.userId,
       });
+    } else {
+      // 使用 Socket.IO 发送消息
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        this.server.to(targetSocketId).emit("call:webrtc-answer", {
+          callId,
+          answer,
+          userId: socket.userId,
+        });
+      }
     }
   }
 

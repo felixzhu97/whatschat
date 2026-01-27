@@ -1,4 +1,4 @@
-import { SQSClient as AWSSQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, GetQueueAttributesCommand } from '@aws-sdk/client-sqs';
+import { SQSClient as AWSSQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, GetQueueAttributesCommand, QueueAttributeName } from '@aws-sdk/client-sqs';
 import type { AWSConfig } from '../../types';
 import type { SQSSendMessageOptions, SQSReceiveMessageOptions } from '../../types';
 import { mergeAWSConfig, validateAWSConfig } from '../../config/aws-config';
@@ -64,8 +64,8 @@ export class SQSClient {
         MaxNumberOfMessages: options.maxNumberOfMessages || 1,
         WaitTimeSeconds: options.waitTimeSeconds,
         VisibilityTimeout: options.visibilityTimeout,
-        MessageAttributeNames: ['All'],
-        AttributeNames: ['All'],
+        MessageAttributeNames: ['All'] as any,
+        AttributeNames: ['All'] as QueueAttributeName[],
       });
 
       const result = await withRetry(() => this.client.send(command));
@@ -113,7 +113,7 @@ export class SQSClient {
     try {
       const command = new GetQueueAttributesCommand({
         QueueUrl: queueUrl,
-        AttributeNames: attributeNames || ['All'],
+        AttributeNames: (attributeNames || ['All']) as QueueAttributeName[],
       });
 
       const result = await withRetry(() => this.client.send(command));

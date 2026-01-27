@@ -63,6 +63,17 @@ export interface AppConfig {
     turnUsername?: string;
     turnCredential?: string;
   };
+  chime: {
+    enabled: boolean;
+    region?: string;
+    mediaRegion?: string;
+  };
+  apigateway: {
+    websocket: {
+      enabled: boolean;
+      endpoint?: string;
+    };
+  };
   logging: {
     level: string;
     filePath: string;
@@ -212,6 +223,19 @@ export class ConfigService {
         ...(process.env["WEBRTC_TURN_CREDENTIAL"] && {
           turnCredential: process.env["WEBRTC_TURN_CREDENTIAL"],
         }),
+      },
+      chime: {
+        enabled: process.env["AWS_CHIME_ENABLED"] === "true",
+        region: process.env["AWS_CHIME_REGION"] || process.env["AWS_REGION"] || "us-east-1",
+        mediaRegion: process.env["AWS_CHIME_MEDIA_REGION"] || process.env["AWS_REGION"] || "us-east-1",
+      },
+      apigateway: {
+        websocket: {
+          enabled: process.env["AWS_API_GATEWAY_WEBSOCKET_ENABLED"] === "true",
+          ...(process.env["AWS_API_GATEWAY_WEBSOCKET_ENDPOINT"] && {
+            endpoint: process.env["AWS_API_GATEWAY_WEBSOCKET_ENDPOINT"],
+          }),
+        },
       },
       logging: {
         level: process.env["LOG_LEVEL"] || "info",

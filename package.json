@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --concurrency=23",
+    "dev": "turbo run dev --filter=whatschat-web --filter=whatschat-server --concurrency=23",
+    "setup": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",

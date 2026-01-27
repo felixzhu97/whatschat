@@ -5,7 +5,7 @@ A modern instant messaging application built with React and TypeScript, supporti
 ## ✨ Features
 
 - 🔥 **Real-time Chat** - Support for text, emoji, and voice messages
-- 📞 **Voice/Video Calls** - High-quality calls based on WebRTC
+- 📞 **Voice/Video Calls** - High-quality calls based on WebRTC and AWS Chime SDK
 - 📎 **File Sharing** - Support for images, documents, and other file types
 - 👥 **Contact Management** - Add, delete, and search contacts
 - 🔍 **Message Search** - Full-text search of chat history
@@ -18,7 +18,8 @@ A modern instant messaging application built with React and TypeScript, supporti
 **Frontend Mobile**: React Native, Expo, TypeScript, Zustand  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
-**Communication**: WebSocket (Socket.IO), WebRTC  
+**Communication**: WebSocket (Socket.IO, AWS API Gateway WebSocket), WebRTC (Native, AWS Chime SDK)  
+**AWS Services**: API Gateway WebSocket, Chime SDK, S3, SES, SNS, SQS, Lambda, Cognito, CloudWatch  
 **Testing**: Vitest, React Testing Library  
 **Tools**: Turborepo, PNPM, ESLint, Prettier  
 **Monorepo**: Shared packages for analytics, AV SDK, i18n, performance monitoring, and more
@@ -103,7 +104,26 @@ cd whatschat
 pnpm install
 ```
 
-### 3. Environment Configuration
+### 3. Setup Development Environment
+
+After installing dependencies, you need to build the AWS integration package and generate Prisma client:
+
+```bash
+pnpm setup
+```
+
+Or manually:
+```bash
+# Build AWS integration package
+pnpm --filter @whatschat/aws-integration build
+
+# Generate Prisma client
+cd apps/server
+pnpm db:generate
+cd ../..
+```
+
+### 4. Environment Configuration
 
 #### Backend Configuration
 
@@ -151,12 +171,39 @@ SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-email-password
 SMTP_FROM=noreply@whatschat.com
 
+# AWS Chime SDK Configuration (Optional)
+AWS_CHIME_ENABLED=false
+AWS_CHIME_REGION=us-east-1
+AWS_CHIME_MEDIA_REGION=us-east-1
+
+# AWS API Gateway WebSocket Configuration (Optional)
+AWS_API_GATEWAY_WEBSOCKET_ENABLED=false
+AWS_API_GATEWAY_WEBSOCKET_ENDPOINT=https://your-api-id.execute-api.us-east-1.amazonaws.com/production
+
 # Logging Configuration
 LOG_LEVEL=info
 LOG_FILE_PATH=logs/app.log
 ```
 
 For more configuration options, refer to the `apps/server/env.example` file.
+
+### AWS Integration
+
+For detailed AWS integration setup instructions, see [AWS Integration Guide](docs/aws-integration.md).
+
+**Quick Setup:**
+
+1. **Enable Chime SDK** (for video calls):
+   ```env
+   AWS_CHIME_ENABLED=true
+   AWS_CHIME_REGION=us-east-1
+   ```
+
+2. **Enable API Gateway WebSocket** (for scalable WebSocket):
+   ```env
+   AWS_API_GATEWAY_WEBSOCKET_ENABLED=true
+   AWS_API_GATEWAY_WEBSOCKET_ENDPOINT=https://your-api-id.execute-api.us-east-1.amazonaws.com/production
+   ```
 
 #### Frontend Configuration
 
@@ -168,9 +215,16 @@ Create a `.env.local` file:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+
+# WebSocket Configuration (Optional)
+NEXT_PUBLIC_WEBSOCKET_MODE=socketio  # Options: socketio, apigateway, simulated
+NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT=https://your-api-id.execute-api.us-east-1.amazonaws.com/production
+
+# WebRTC Configuration (Optional)
+NEXT_PUBLIC_WEBRTC_MODE=native  # Options: native, chime, simulated
 ```
 
-### 4. Database Setup
+### 5. Database Setup
 
 #### Using Docker (Recommended)
 
@@ -207,7 +261,7 @@ pnpm migrate
 pnpm db:seed
 ```
 
-### 5. Start the Application
+### 6. Start the Application
 
 #### Method 1: Start Separately (Recommended for Development)
 
@@ -357,6 +411,10 @@ View architecture diagrams and documentation in the `docs/` folder:
 
 - [User Journey Map](docs/user-journey-map/user-journey-map.puml)
 - [Wardley Map](docs/wardley-map/wardley-map.puml)
+
+### AWS Integration
+
+- [AWS Integration Guide](docs/aws-integration.md) - Complete guide for setting up AWS API Gateway WebSocket and Chime SDK
 
 For more details, see the [Documentation README](docs/README.md).
 

@@ -8,9 +8,9 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
@@ -28,6 +28,8 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.0.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.0.0",
     "@aws-sdk/client-cloudwatch": "^3.0.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.0.0",
+    "@aws-sdk/client-chime-sdk-meetings": "^3.0.0",
     "@aws-sdk/s3-request-presigner": "^3.0.0",
     "@aws-sdk/types": "^3.0.0",
     "@aws-sdk/smithy-client": "^3.0.0"

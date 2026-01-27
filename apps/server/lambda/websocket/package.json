@@ -1,0 +1,20 @@
+{
+  "name": "whatschat-websocket-lambda",
+  "version": "1.0.0",
+  "description": "Lambda functions for AWS API Gateway WebSocket handling",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "zip -r function.zip . -x '*.git*' '*.ts' 'node_modules/*' '*.json' '!package.json'"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

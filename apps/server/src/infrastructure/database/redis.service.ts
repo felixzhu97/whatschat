@@ -137,4 +137,32 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
+
+  // Redis Set 操作方法
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    try {
+      return await this.client.sadd(key, ...members);
+    } catch (error) {
+      logger.error(`Redis SADD错误: ${error}`);
+      throw error;
+    }
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    try {
+      return await this.client.smembers(key);
+    } catch (error) {
+      logger.error(`Redis SMEMBERS错误: ${error}`);
+      throw error;
+    }
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    try {
+      return await this.client.srem(key, ...members);
+    } catch (error) {
+      logger.error(`Redis SREM错误: ${error}`);
+      throw error;
+    }
+  }
 }

@@ -39,6 +39,7 @@ model User {
   blockedUsers     BlockedUser[] @relation("BlockedByUser")
   blockedByUsers   BlockedUser[] @relation("BlockedUser")
   fileUploads      FileUpload[]
+  meetingAttendees MeetingAttendee[]
 
   @@map("users")
 }
@@ -195,8 +196,47 @@ model Call {
   initiator    User             @relation("CallInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
   chat         Chat?            @relation(fields: [chatId], references: [id], onDelete: SetNull)
   participants CallParticipant[]
+  meeting      Meeting?
 
   @@map("calls")
+}
+
+// Chime 会议模型
+model Meeting {
+  id              String   @id @default(cuid())
+  callId          String   @unique
+  chimeMeetingId  String   @unique
+  chimeMeetingArn String?
+  externalMeetingId String?
+  mediaRegion     String?
+  mediaPlacement  Json?
+  createdAt       DateTime @default(now())
+  endedAt         DateTime?
+
+  // 关系
+  call            Call             @relation(fields: [callId], references: [id], onDelete: Cascade)
+  attendees       MeetingAttendee[]
+
+  @@map("meetings")
+}
+
+// Chime 会议参会者模型
+model MeetingAttendee {
+  id              String   @id @default(cuid())
+  meetingId       String
+  userId          String
+  chimeAttendeeId String   @unique
+  chimeAttendeeArn String?
+  joinToken       String?
+  joinedAt        DateTime @default(now())
+  leftAt          DateTime?
+
+  // 关系
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+  @@map("meeting_attendees")
 }
 
 // 通话参与者模型
