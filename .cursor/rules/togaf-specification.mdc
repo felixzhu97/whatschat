@@ -1,268 +1,280 @@
-# TOGAF 规范
+# TOGAF Specification
 
-## 核心概念
+## Core Concepts
 
-TOGAF (The Open Group Architecture Framework) 是企业架构开发的标准框架，包含：
+TOGAF (The Open Group Architecture Framework) is a standard framework for enterprise
+architecture development. It consists of:
 
-1. **ADM** (Architecture Development Method) - 架构开发方法
-2. **四大架构域** - 业务、应用、数据、技术架构
-3. **架构内容框架** - 架构产物的标准结构
-4. **架构能力框架** - 企业架构治理能力
+1. **ADM** (Architecture Development Method) – the method for developing architectures
+2. **Four architecture domains** – Business, Application, Data, Technology
+3. **Architecture content framework** – standard structure for architecture deliverables
+4. **Architecture capability framework** – capabilities for governing enterprise architecture
 
-## 四大架构域
+## Four Architecture Domains
 
-### Business Architecture（业务架构）
+### Business Architecture
 
-**定义**：描述组织的业务流程、组织结构、业务能力和业务价值流
+**Definition** – describes business processes, organization structure, business capabilities,
+and value streams.
 
-**在本项目中**：
+**In this project**:
 
-- 用户管理、即时通讯、语音视频通话、文件共享、群组管理、联系人管理、通知管理、状态分享
-- 业务流程：用户注册登录、发送消息、发起通话、创建群组、状态分享、文件上传、联系人添加
+- Capabilities: user management, instant messaging, voice & video calls, file sharing,
+  group management, contact management, notification management, status sharing
+- Processes: user registration/login, send message, start call, create group,
+  share status, upload file, add contact
 
-**文档位置**：`docs/architecture/togaf/business-architecture.puml`
+**Diagram** – `docs/architecture/togaf/business-architecture.puml`
 
-### Application Architecture（应用架构）
+### Application Architecture
 
-**定义**：描述应用系统的结构、应用组件、接口和交互关系
+**Definition** – describes the structure of application systems, components, interfaces,
+and their interactions.
 
-**在本项目中**：
+**In this project**:
 
-- 客户端应用层：Web 应用（Next.js 15、React 19）、移动应用（React Native、Expo）
-- API 网关层：REST API 网关、WebSocket 网关、WebRTC 信令
-- 应用服务层：认证服务、用户服务、消息服务、聊天服务、通话服务、群组服务、状态服务、文件服务、通知服务
-- 业务逻辑层：消息处理逻辑、实时通信逻辑、权限控制逻辑、业务规则引擎
-- 数据访问层：数据仓库、缓存服务
-- 基础设施服务：PostgreSQL、Redis、文件存储、搜索服务
+- Client applications layer: Web app (Next.js 15, React 19), mobile app (React Native, Expo)
+- API gateway layer: REST API gateway, WebSocket gateway, WebRTC signaling
+- Application services layer: auth, user, message, chat, call, group, status, file,
+  and notification services
+- Business logic layer: message handling, realtime communication, authorization,
+  business rules engine
+- Data access layer: data repository, cache service
+- Infrastructure services: PostgreSQL, Redis, file storage, search service
 
-**文档位置**：`docs/architecture/togaf/application-architecture.puml`
+**Diagram** – `docs/architecture/togaf/application-architecture.puml`
 
-**代码位置**：
+**Code mapping**:
 
-- `apps/web/` - Web 应用（含 app、domain、application、infrastructure、presentation）
-- `apps/mobile/` - 移动应用（同上分层结构）
-- `apps/server/` - 后端服务（含 domain、application、infrastructure、presentation）
+- `apps/web/` – Web application (app, domain, application, infrastructure, presentation)
+- `apps/mobile/` – mobile application (same layered structure)
+- `apps/server/` – backend services (domain, application, infrastructure, presentation)
 
-### Data Architecture（数据架构）
+### Data Architecture
 
-**定义**：描述数据的结构、数据流、数据存储和数据管理
+**Definition** – describes data structures, data flows, data storage, and data management.
 
-**在本项目中**：
+**In this project**:
 
-- 数据实体层：User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload
-- 关联实体：ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView、UserSettings、BlockedUser
-- 数据存储：PostgreSQL 主数据库、Redis 缓存和会话、MinIO/S3 文件存储
-- 数据流：写数据流、读数据流、实时数据流（Redis Pub/Sub + WebSocket）
+- Data entities: User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload
+- Association entities: ChatParticipant, GroupParticipant, CallParticipant,
+  MessageRead, MessageReaction, StatusView, UserSettings, BlockedUser
+- Data storage: PostgreSQL primary database, Redis cache & session store,
+  MinIO/S3 file storage
+- Data flows: write flows, read flows, realtime flows (Redis Pub/Sub + WebSocket)
 
-**文档位置**：`docs/architecture/togaf/data-architecture.puml`
+**Diagram** – `docs/architecture/togaf/data-architecture.puml`
 
-**代码位置**：
+**Code mapping**:
 
-- `apps/server/prisma/` - Schema 定义、迁移文件
-- `apps/server/src/` - 数据访问与缓存逻辑（infrastructure、application 层）
+- `apps/server/prisma/` – schema definitions and migrations
+- `apps/server/src/` – data access and caching logic (infrastructure, application layers)
 
-### Technology Architecture（技术架构）
+### Technology Architecture
 
-**定义**：描述技术平台、基础设施、技术标准和部署架构
+**Definition** – describes technology platforms, infrastructure, technology standards,
+and deployment architecture.
 
-**在本项目中**：
+**In this project**:
 
-- 客户端技术栈：Web（Next.js 15、React 19、TypeScript、Tailwind CSS、Zustand、WebSocket、WebRTC）、移动（React Native、Expo、TypeScript、Zustand）
-- 应用服务器：NestJS 10、Express、Node.js、REST API、Socket.IO、WebRTC 信令、JWT、Passport、bcrypt、Helmet、CORS
-- 数据持久化：PostgreSQL 13+、Prisma ORM、Redis 6+
-- 文件存储：MinIO/S3、Sharp（图像处理）
-- 搜索服务：Elasticsearch（全文搜索，可选）
-- 消息队列：Redis Pub/Sub、Bull Queue
-- 部署：Docker、Docker Compose、Nginx、负载均衡
+- Client stack: Web (Next.js 15, React 19, TypeScript, Tailwind CSS, Zustand, WebSocket, WebRTC),
+  Mobile (React Native, Expo, TypeScript, Zustand)
+- Application server: NestJS 10, Express, Node.js, REST API, Socket.IO, WebRTC signaling,
+  JWT, Passport, bcrypt, Helmet, CORS
+- Data persistence: PostgreSQL 13+, Prisma ORM, Redis 6+
+- File storage: MinIO/S3, Sharp (image processing)
+- Search: Elasticsearch (optional, for full‑text search)
+- Message queue: Redis Pub/Sub, Bull Queue
+- Deployment: Docker, Docker Compose, Nginx, load balancing
 
-**文档位置**：`docs/architecture/togaf/technology-architecture.puml`
+**Diagram** – `docs/architecture/togaf/technology-architecture.puml`
 
-## ADM 核心流程
+## ADM Core Flow
 
-ADM 是 TOGAF 的架构开发方法，包含 9 个阶段（核心简化版）：
+ADM is TOGAF’s architecture development method, with 9 phases (simplified view):
 
-### 阶段 A：架构愿景 (Architecture Vision)
+### Phase A – Architecture Vision
 
-- 定义架构范围、目标、利益相关者
-- 识别业务驱动因素和业务需求
+- Define architecture scope, goals, and stakeholders
+- Identify business drivers and high‑level requirements
 
-### 阶段 B：业务架构 (Business Architecture)
+### Phase B – Business Architecture
 
-- 建立业务架构基线
-- 开发业务架构目标
-- 识别业务架构差距
+- Establish baseline business architecture
+- Develop target business architecture
+- Identify gaps in the business architecture
 
-### 阶段 C：信息系统架构 (Information Systems Architecture)
+### Phase C – Information Systems Architecture
 
-- 数据架构（阶段 C1）：数据实体、数据关系、数据流
-- 应用架构（阶段 C2）：应用组件、应用接口、应用交互
+- Data architecture (C1): data entities, relationships, and flows
+- Application architecture (C2): application components, interfaces, interactions
 
-### 阶段 D：技术架构 (Technology Architecture)
+### Phase D – Technology Architecture
 
-- 定义技术平台
-- 识别技术标准和规范
-- 制定技术架构蓝图
+- Define technology platforms
+- Identify technology standards and guidelines
+- Create the technology architecture blueprint
 
-### 阶段 E：机会和解决方案 (Opportunities and Solutions)
+### Phase E – Opportunities and Solutions
 
-- 识别架构实施机会
-- 制定实施路线图
-- 评估风险和依赖
+- Identify implementation opportunities
+- Develop the implementation roadmap
+- Assess risks and dependencies
 
-### 阶段 F：迁移规划 (Migration Planning)
+### Phase F – Migration Planning
 
-- 制定详细的迁移计划
-- 定义过渡架构
-- 制定实施时间表
+- Create detailed migration plan
+- Define transition architectures
+- Prepare implementation schedule
 
-### 阶段 G：实施治理 (Implementation Governance)
+### Phase G – Implementation Governance
 
-- 监督架构实施
-- 确保实施符合架构标准
-- 管理架构变更请求
+- Oversee architecture implementation
+- Ensure conformance to architecture standards
+- Manage architecture change requests
 
-### 阶段 H：架构变更管理 (Architecture Change Management)
+### Phase H – Architecture Change Management
 
-- 管理架构变更
-- 维护架构连续性
-- 评估架构演进需求
+- Manage architecture changes
+- Maintain architecture continuity
+- Assess needs for architecture evolution
 
-### 需求管理 (Requirements Management)
+### Requirements Management
 
-- 贯穿所有阶段的持续活动
-- 管理架构需求的变更和追溯
+- Continuous activity across all phases
+- Manage requirement changes and traceability
 
-## 架构原则
+## Architecture Principles
 
-### 1. 业务原则
+### 1. Business Principles
 
-- **原则至上**：业务需求驱动架构决策
-- **信息资产**：数据是企业资产，需要统一管理
-- **技术无关性**：业务架构独立于技术实现
+- **Business‑driven** – business needs drive architecture decisions
+- **Information as an asset** – data is an enterprise asset and must be governed
+- **Technology‑agnostic** – business architecture is independent of technology choices
 
-### 2. 应用原则
+### 2. Application Principles
 
-- **组件化**：应用以组件形式构建，便于重用和维护
-- **接口标准化**：组件间通过标准化接口交互
-- **服务导向**：采用服务导向的架构设计
+- **Componentization** – applications are composed of reusable components
+- **Standardized interfaces** – components communicate through standardized interfaces
+- **Service orientation** – adopt service‑oriented architecture where appropriate
 
-### 3. 数据原则
+### 3. Data Principles
 
-- **数据共享**：数据在应用间共享，避免重复
-- **数据安全**：数据访问受控，确保安全性
-- **数据质量**：数据必须准确、完整、及时
+- **Data sharing** – data is shared across applications to avoid duplication
+- **Data security** – data access is controlled and secure
+- **Data quality** – data must be accurate, complete, and timely
 
-### 4. 技术原则
+### 4. Technology Principles
 
-- **技术标准化**：采用行业标准技术，减少技术债务
-- **平台化**：构建可重用的技术平台
-- **可扩展性**：技术架构支持业务增长和扩展
+- **Technology standardization** – use industry standards to reduce technical debt
+- **Platform‑first** – build reusable technical platforms
+- **Scalability** – technology architecture must support business growth
 
-## 架构产物
+## Architecture Artifacts
 
-### 架构基线 (Baseline Architecture)
+### Baseline Architecture
 
-- 描述当前架构状态
-- 作为对比参考点
+- Describes the current state of the architecture
+- Used as a reference point for comparison
 
-### 目标架构 (Target Architecture)
+### Target Architecture
 
-- 描述期望的架构状态
-- 满足业务和技术目标
+- Describes the desired future state
+- Meets business and technology goals
 
-### 差距分析 (Gap Analysis)
+### Gap Analysis
 
-- 识别基线和目标架构间的差距
-- 定义填补差距的解决方案
+- Identifies gaps between baseline and target architectures
+- Defines solutions to close the gaps
 
-### 过渡架构 (Transition Architecture)
+### Transition Architecture
 
-- 定义从基线到目标的中间状态
-- 支持分阶段实施
+- Defines intermediate states between baseline and target
+- Supports phased implementation
 
-## 项目映射
+## Project Mapping
 
-### 架构文档
+### Architecture Documents
 
 ```text
 docs/architecture/togaf/
-├── overview.puml              # 总体架构概览
-├── business-architecture.puml # 业务架构图
-├── application-architecture.puml # 应用架构图
-├── data-architecture.puml     # 数据架构图
-└── technology-architecture.puml # 技术架构图
+├── overview.puml                  # Overall architecture overview
+├── business-architecture.puml     # Business architecture
+├── application-architecture.puml  # Application architecture
+├── data-architecture.puml         # Data architecture
+└── technology-architecture.puml   # Technology architecture
 ```
 
-### 代码结构映射
+### Code Structure Mapping
 
-**业务架构** → 业务需求和能力定义
+**Business architecture** → business requirements and capability definitions
 
-**应用架构** →
+**Application architecture** →
 
-- `apps/web/` - Web 应用（app、domain、application、infrastructure、presentation）
-- `apps/mobile/` - 移动应用（同上分层结构）
-- `apps/server/` - 后端服务（domain、application、infrastructure、presentation）
+- `apps/web/` – Web app (app, domain, application, infrastructure, presentation)
+- `apps/mobile/` – mobile app (same layered structure)
+- `apps/server/` – backend services (domain, application, infrastructure, presentation)
 
-**数据架构** →
+**Data architecture** →
 
-- `apps/server/prisma/` - Schema、migrations
-- `apps/server/src/` - 数据访问与缓存逻辑
+- `apps/server/prisma/` – schema and migrations
+- `apps/server/src/` – data access and caching logic
 
-**技术架构** →
+**Technology architecture** →
 
-- 各 app 的 `package.json`、`tsconfig.json`
-- 根目录 `turbo.json`、`pnpm-workspace.yaml`
+- Each app’s `package.json`, `tsconfig.json`
+- Root `turbo.json`, `pnpm-workspace.yaml`
 
-## 架构治理规则
+## Architecture Governance Rules
 
-### 架构评审
+### Architecture Review
 
-- 新功能开发前进行架构影响分析
-- 重大变更需要架构评审
-- 确保架构文档与代码同步更新
+- Perform architecture impact analysis before new feature development
+- Require architecture review for significant changes
+- Keep architecture documents and code in sync
 
-### 依赖管理
+### Dependency Management
 
 ```text
-业务架构 → 应用架构 → 数据架构 → 技术架构
+Business Architecture → Application Architecture → Data Architecture → Technology Architecture
 ```
 
-- 上层架构依赖下层架构
-- 下层架构变更需评估上层影响
-- 禁止反向依赖
+- Higher‑level architectures depend on lower‑level ones
+- Changes in lower layers must be evaluated for impact on upper layers
+- Reverse dependencies are forbidden
 
-### 文档维护
+### Documentation Maintenance
 
-- 架构变更时同步更新架构图
-- 保持架构文档与代码实现一致
-- 定期审查架构对齐情况
+- Update architecture diagrams when architecture changes
+- Keep architecture documents aligned with implementation
+- Review alignment periodically
 
-## 检查清单
+## Checklists
 
-### 新功能开发
+### New Feature Development
 
-- [ ] 明确功能所属的架构域
-- [ ] 评估对现有架构的影响
-- [ ] 确保符合架构原则
-- [ ] 更新相关架构文档
+- [ ] Identify which architecture domain(s) the feature belongs to
+- [ ] Assess impact on existing architecture
+- [ ] Ensure conformance to architecture principles
+- [ ] Update related architecture documentation
 
-### 架构变更
+### Architecture Change
 
-- [ ] 识别受影响的架构域
-- [ ] 进行差距分析
-- [ ] 定义过渡方案
-- [ ] 更新架构图和文档
-- [ ] 通知相关利益相关者
+- [ ] Identify impacted architecture domains
+- [ ] Perform gap analysis
+- [ ] Define transition approach
+- [ ] Update diagrams and documents
+- [ ] Notify relevant stakeholders
 
-### 架构对齐
+### Architecture Alignment
 
-- [ ] 代码实现符合架构设计
-- [ ] 架构文档反映实际状态
-- [ ] 遵循架构依赖规则
-- [ ] 符合架构原则要求
+- [ ] Implementation matches architecture design
+- [ ] Documentation reflects actual system state
+- [ ] Dependency rules are followed
+- [ ] Architecture principles are satisfied
 
-## 参考资源
+## References
 
-- [TOGAF 官方文档](https://www.opengroup.org/togaf)
-- [项目 TOGAF 架构图](../../docs/architecture/togaf/README.md)
-- [架构概览图](../../docs/architecture/togaf/overview.puml)
+- [TOGAF official documentation](https://www.opengroup.org/togaf)
+- [Project TOGAF diagrams](../../docs/architecture/togaf/README.md)
+- [Architecture overview diagram](../../docs/architecture/togaf/overview.puml)

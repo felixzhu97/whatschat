@@ -3,187 +3,191 @@
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-title TOGAF 数据架构图 - WhatsChat 即时通讯系统
+title TOGAF Data Architecture - WhatsChat Messaging System
 
-package "数据实体层 (Data Entities)" {
-  component [User\n用户] as User
-  component [Chat\n聊天] as Chat
-  component [Message\n消息] as Message
-  component [Group\n群组] as Group
-  component [Call\n通话] as Call
-  component [Status\n状态] as Status
-  component [Contact\n联系人] as Contact
-  component [Notification\n通知] as Notification
-  component [FileUpload\n文件上传] as FileUpload
+package "Data Entities" {
+  component [User] as User
+  component [Chat] as Chat
+  component [Message] as Message
+  component [Group] as Group
+  component [Call] as Call
+  component [Status] as Status
+  component [Contact] as Contact
+  component [Notification] as Notification
+  component [FileUpload] as FileUpload
 }
 
-package "关联实体 (Association Entities)" {
-  component [ChatParticipant\n聊天参与者] as ChatParticipant
-  component [GroupParticipant\n群组参与者] as GroupParticipant
-  component [CallParticipant\n通话参与者] as CallParticipant
-  component [MessageRead\n消息已读] as MessageRead
-  component [MessageReaction\n消息反应] as MessageReaction
-  component [StatusView\n状态查看] as StatusView
-  component [UserSettings\n用户设置] as UserSettings
-  component [BlockedUser\n黑名单] as BlockedUser
+package "Association Entities" {
+  component [ChatParticipant] as ChatParticipant
+  component [GroupParticipant] as GroupParticipant
+  component [CallParticipant] as CallParticipant
+  component [MessageRead] as MessageRead
+  component [MessageReaction] as MessageReaction
+  component [StatusView] as StatusView
+  component [UserSettings] as UserSettings
+  component [BlockedUser] as BlockedUser
 }
 
-package "数据存储 (Data Storage)" {
-  database [PostgreSQL\n主数据库] as PostgreSQL #LightBlue
-  database [Redis\n缓存和会话] as Redis #LightCoral
-  component [文件存储\nMinIO/S3] as FileStorage #LightGreen
+package "Data Storage" {
+  database [PostgreSQL\nPrimary DB] as PostgreSQL #LightBlue
+  database [Redis\nCache & Session] as Redis #LightCoral
+  component [File Storage\nMinIO/S3] as FileStorage #LightGreen
 }
 
-' 核心实体关系
-User --> Message : 发送
-User --> ChatParticipant : 参与
-User --> GroupParticipant : 参与
-User --> Group : 创建
-User --> Call : 发起
-User --> CallParticipant : 参与
-User --> Status : 发布
-User --> StatusView : 查看
-User --> Contact : 拥有
-User --> Notification : 接收
-User --> FileUpload : 上传
-User --> UserSettings : 拥有
-User --> BlockedUser : 屏蔽/被屏蔽
+\' Core entity relationships
+User --> Message : sends
+User --> ChatParticipant : participates in
+User --> GroupParticipant : participates in
+User --> Group : creates
+User --> Call : initiates
+User --> CallParticipant : participates in
+User --> Status : publishes
+User --> StatusView : views
+User --> Contact : owns
+User --> Notification : receives
+User --> FileUpload : uploads
+User --> UserSettings : owns
+User --> BlockedUser : blocks/blocked by
 
-Chat --> Message : 包含
-Chat --> ChatParticipant : 参与者
-Chat --> Call : 关联
+Chat --> Message : contains
+Chat --> ChatParticipant : participants
+Chat --> Call : related call
 
-Message --> MessageRead : 已读记录
-Message --> MessageReaction : 反应
-Message --> Message : 回复
+Message --> MessageRead : read receipts
+Message --> MessageReaction : reactions
+Message --> Message : replies to
 
-Group --> GroupParticipant : 成员
+Group --> GroupParticipant : members
 
-Call --> CallParticipant : 参与者
+Call --> CallParticipant : participants
 
-Status --> StatusView : 查看记录
+Status --> StatusView : view records
 
-' 数据存储关系
-User --> PostgreSQL : 存储
-Chat --> PostgreSQL : 存储
-Message --> PostgreSQL : 存储
-Group --> PostgreSQL : 存储
-Call --> PostgreSQL : 存储
-Status --> PostgreSQL : 存储
-Contact --> PostgreSQL : 存储
-Notification --> PostgreSQL : 存储
-FileUpload --> PostgreSQL : 存储
-ChatParticipant --> PostgreSQL : 存储
-GroupParticipant --> PostgreSQL : 存储
-CallParticipant --> PostgreSQL : 存储
-MessageRead --> PostgreSQL : 存储
-MessageReaction --> PostgreSQL : 存储
-StatusView --> PostgreSQL : 存储
-UserSettings --> PostgreSQL : 存储
-BlockedUser --> PostgreSQL : 存储
+\' Data storage relationships
+User --> PostgreSQL : persisted in
+Chat --> PostgreSQL : persisted in
+Message --> PostgreSQL : persisted in
+Group --> PostgreSQL : persisted in
+Call --> PostgreSQL : persisted in
+Status --> PostgreSQL : persisted in
+Contact --> PostgreSQL : persisted in
+Notification --> PostgreSQL : persisted in
+FileUpload --> PostgreSQL : metadata in
+ChatParticipant --> PostgreSQL : persisted in
+GroupParticipant --> PostgreSQL : persisted in
+CallParticipant --> PostgreSQL : persisted in
+MessageRead --> PostgreSQL : persisted in
+MessageReaction --> PostgreSQL : persisted in
+StatusView --> PostgreSQL : persisted in
+UserSettings --> PostgreSQL : persisted in
+BlockedUser --> PostgreSQL : persisted in
 
-User --> Redis : 会话缓存
-Chat --> Redis : 在线状态缓存
-Message --> Redis : 消息队列
+User --> Redis : session cache
+Chat --> Redis : presence cache
+Message --> Redis : message queue
 
-FileUpload --> FileStorage : 文件存储
+FileUpload --> FileStorage : file stored in
 
-rectangle "数据实体说明" {
+rectangle "Data Entity Notes" {
   note as N1
-    **核心实体 (Core Entities)**
-    - User: 用户信息、认证信息、状态
-    - Chat: 聊天会话、私聊/群聊
-    - Message: 消息内容、类型、状态
-    - Group: 群组信息、设置
-    - Call: 通话记录、状态
-    - Status: 用户状态动态
-    - Contact: 联系人信息
-    - Notification: 系统通知
-    - FileUpload: 文件上传记录
+    **Core entities**
+    - User: identity, profile, auth info, status
+    - Chat: conversation session, direct/group chat
+    - Message: message content, type, status
+    - Group: group info and settings
+    - Call: call records and state
+    - Status: user status posts
+    - Contact: contact entries
+    - Notification: system/user notifications
+    - FileUpload: file upload records
   end note
   
   note as N2
-    **关联实体 (Association Entities)**
-    - ChatParticipant: 聊天参与者关系
-    - GroupParticipant: 群组成员关系
-    - CallParticipant: 通话参与者关系
-    - MessageRead: 消息已读状态
-    - MessageReaction: 消息反应（点赞等）
-    - StatusView: 状态查看记录
-    - UserSettings: 用户设置（主题、语言、通知、隐私、聊天偏好）
-    - BlockedUser: 黑名单（用户屏蔽关系）
+    **Association entities**
+    - ChatParticipant: participants in a chat
+    - GroupParticipant: members in a group
+    - CallParticipant: participants in a call
+    - MessageRead: message read status
+    - MessageReaction: reactions to messages (likes, etc.)
+    - StatusView: views of status posts
+    - UserSettings: user preferences (theme, language, notifications, privacy, chat)
+    - BlockedUser: block relationships between users
   end note
 }
 
-rectangle "数据流说明" {
+rectangle "Data Flow Notes" {
   note as N3
-    **写数据流**
-    1. 客户端请求 -> 应用服务层
-    2. 业务逻辑处理 -> 数据访问层
-    3. 数据验证和转换
-    4. 写入PostgreSQL（主数据）
-    5. 更新Redis缓存（热点数据）
-    6. 返回结果给客户端
+    **Write data flow**
+    1. Client request -> application services
+    2. Business logic -> data access layer
+    3. Data validation & transformation
+    4. Write to PostgreSQL (source of truth)
+    5. Update Redis cache (hot data)
+    6. Return result to client
   end note
   
   note as N4
-    **读数据流**
-    1. 客户端请求 -> 应用服务层
-    2. 查询Redis缓存
-    3. 缓存未命中 -> 查询PostgreSQL
-    4. 结果写入Redis缓存
-    5. 返回数据给客户端
+    **Read data flow**
+    1. Client request -> application services
+    2. Check Redis cache
+    3. Cache miss -> query PostgreSQL
+    4. Write result back to Redis
+    5. Return data to client
   end note
   
   note as N5
-    **实时数据流**
-    1. 数据变更事件触发
-    2. 写入PostgreSQL
-    3. 发布到Redis Pub/Sub
-    4. WebSocket服务订阅
-    5. 推送给在线客户端
+    **Realtime data flow**
+    1. Data‑change event occurs
+    2. Persist changes to PostgreSQL
+    3. Publish event to Redis Pub/Sub
+    4. WebSocket services subscribe & consume
+    5. Push updates to online clients
   end note
 }
 
 note right of PostgreSQL
-  **PostgreSQL主数据库**
-  - 持久化存储
-  - ACID事务支持
-  - 关系型数据管理
-  - 全文搜索支持
-  - 外键约束维护
+  **PostgreSQL primary database**
+  - Persistent storage
+  - ACID transactions
+  - Relational data model
+  - Full‑text search
+  - Foreign‑key constraints
 end note
 
 note right of Redis
-  **Redis缓存和会话存储**
-  - 用户会话管理
-  - 在线状态缓存
-  - 消息队列(Pub/Sub)
-  - 实时数据缓存
-  - 热点数据缓存
+  **Redis cache & session store**
+  - User session management
+  - Online presence cache
+  - Message queue (Pub/Sub)
+  - Realtime data cache
+  - Hot data cache
 end note
 
 note right of FileStorage
-  **文件存储服务**
-  - 图片/视频存储
-  - 文件上传下载
-  - CDN加速支持
-  - 缩略图生成
-  - 文件版本控制
+  **File storage service**
+  - Image/video storage
+  - File upload/download
+  - CDN acceleration
+  - Thumbnail generation
+  - File versioning
 end note
 
 note bottom
-  **数据架构说明**
+  **Data architecture description**
   
-  WhatsChat数据架构采用关系型数据库（PostgreSQL）作为主存储，Redis作为缓存和消息队列：
+  WhatsChat uses PostgreSQL as the primary relational store and Redis for caching and
+  messaging:
   
-  1. **核心实体**: User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload
-  2. **关联实体**: ChatParticipant、GroupParticipant、CallParticipant、MessageRead、MessageReaction、StatusView、UserSettings、BlockedUser
-  3. **数据关系**: 一对一、一对多、多对多关系，通过外键和关联表维护
-  4. **数据存储**: PostgreSQL存储持久化数据，Redis存储缓存和会话，文件存储服务存储媒体文件
-  5. **数据流**: 写数据流、读数据流和实时数据流三种模式，确保数据一致性和实时性
+  1. **Core entities** – User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload
+  2. **Association entities** – ChatParticipant, GroupParticipant, CallParticipant, MessageRead,
+     MessageReaction, StatusView, UserSettings, BlockedUser
+  3. **Relationships** – one‑to‑one, one‑to‑many, and many‑to‑many modeled via foreign keys
+     and junction tables
+  4. **Storage** – PostgreSQL for persistent data, Redis for cache and sessions, object storage
+     for media files
+  5. **Data flows** – write, read, and realtime flows ensure both consistency and low‑latency reads
   
-  数据模型设计遵循规范化原则，保证数据完整性和一致性。
+  The data model follows normalization principles to ensure integrity and consistency.
 end note
 
 @enduml

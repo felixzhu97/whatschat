@@ -83,6 +83,9 @@ export class AuthService implements IAuthService {
     this.storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
     this.storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
     this.apiClient.setToken(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+    }
   }
 
   async login(data: LoginData): Promise<{ success: boolean; error?: string }> {
@@ -97,6 +100,10 @@ export class AuthService implements IAuthService {
         this.storage.save(STORAGE_KEYS.USER, JSON.stringify(user));
         this.storage.save(STORAGE_KEYS.ACCESS_TOKEN, token);
         this.apiClient.setToken(token);
+        // Keep WebSocket adapter compatible: also store raw token for socket handshake
+        if (typeof window !== "undefined") {
+          localStorage.setItem("auth_token", token);
+        }
 
         this.authState = {
           user: User.create(user),
@@ -134,6 +141,9 @@ export class AuthService implements IAuthService {
         this.storage.save(STORAGE_KEYS.USER, JSON.stringify(user));
         this.storage.save(STORAGE_KEYS.ACCESS_TOKEN, token);
         this.apiClient.setToken(token);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("auth_token", token);
+        }
 
         this.authState = {
           user: User.create(user),

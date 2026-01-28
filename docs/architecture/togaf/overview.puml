@@ -3,67 +3,68 @@
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-title TOGAF 架构概览 - WhatsChat 即时通讯系统
+title TOGAF Architecture Overview - WhatsChat Messaging System
 
-package "业务架构 (Business Architecture)" as BA {
-  component [业务角色] as Actors
-  component [业务能力] as Capabilities
-  component [业务流程] as Processes
-  component [业务价值] as Value
+package "Business Architecture" as BA {
+  component [Business Actors] as Actors
+  component [Business Capabilities] as Capabilities
+  component [Business Processes] as Processes
+  component [Business Value] as Value
   note right of BA
     **business-architecture.puml**
-    用户管理、即时通讯、语音视频通话、
-    文件共享、群组管理、联系人、通知
+    User management, instant messaging,
+    voice & video calls, file sharing,
+    groups, contacts, notifications
   end note
 }
 
-package "应用架构 (Application Architecture)" as AA {
-  component [客户端应用] as Clients
-  component [API网关] as Gateways
-  component [应用服务] as Services
-  component [数据访问] as DataAccess
+package "Application Architecture" as AA {
+  component [Client Applications] as Clients
+  component [API Gateways] as Gateways
+  component [Application Services] as Services
+  component [Data Access] as DataAccess
   note right of AA
     **application-architecture.puml**
-    Web/Mobile、REST/WebSocket/WebRTC、
-    NestJS 服务、PostgreSQL/Redis
+    Web/Mobile, REST/WebSocket/WebRTC,
+    NestJS services, PostgreSQL/Redis
   end note
 }
 
-package "数据架构 (Data Architecture)" as DA {
-  component [数据实体] as Entities
-  component [关联实体] as Associations
-  component [数据存储] as Storage
+package "Data Architecture" as DA {
+  component [Data Entities] as Entities
+  component [Association Entities] as Associations
+  component [Data Storage] as Storage
   note right of DA
     **data-architecture.puml**
-    User/Chat/Message/Group/Call/Status、
-    Contact/Notification/FileUpload、
-    PostgreSQL、Redis、S3
+    User/Chat/Message/Group/Call/Status,
+    Contact/Notification/FileUpload,
+    PostgreSQL, Redis, S3
   end note
 }
 
-package "技术架构 (Technology Architecture)" as TA {
-  component [客户端技术栈] as ClientTech
-  component [服务端技术栈] as ServerTech
-  component [数据持久化] as Persistence
-  component [部署基础设施] as Deploy
+package "Technology Architecture" as TA {
+  component [Client Technology Stack] as ClientTech
+  component [Server Technology Stack] as ServerTech
+  component [Data Persistence] as Persistence
+  component [Deployment Infrastructure] as Deploy
   note right of TA
     **technology-architecture.puml**
-    Next.js、React Native、NestJS、
-    Prisma、JWT、Docker
+    Next.js, React Native, NestJS,
+    Prisma, JWT, Docker
   end note
 }
 
-BA -down-> AA : 驱动
-AA -down-> DA : 依赖
-DA -down-> TA : 支撑
+BA -down-> AA : drives
+AA -down-> DA : depends on
+DA -down-> TA : supported by
 
 note bottom
-  **TOGAF 四大架构域**
-  业务架构定义 WhatsChat 的业务能力与流程；
-  应用架构实现 Web/Mobile 与后端服务；
-  数据架构描述实体、存储与数据流；
-  技术架构规定技术栈与部署。
-  详见各域对应 .puml 图。
+  **TOGAF Four Architecture Domains**
+  Business architecture defines WhatsChat business capabilities and processes;
+  application architecture implements Web/Mobile clients and backend services;
+  data architecture describes entities, storage, and data flows;
+  technology architecture defines the technology stack and deployment.
+  See each domain's .puml diagram for details.
 end note
 
 @enduml

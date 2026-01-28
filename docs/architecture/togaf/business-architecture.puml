@@ -3,116 +3,117 @@
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-title TOGAF 业务架构图 - WhatsChat 即时通讯系统
+title TOGAF Business Architecture - WhatsChat Messaging System
 
-package "业务角色 (Business Actors)" {
-  component [终端用户] as EndUser
-  component [系统管理员] as Admin
+package "Business Actors" {
+  component [End User] as EndUser
+  component [System Administrator] as Admin
 }
 
-package "业务能力 (Business Capabilities)" {
-  component [用户管理] as UserMgmt
-  component [即时通讯] as Messaging
-  component [语音视频通话] as VoiceVideo
-  component [文件共享] as FileShare
-  component [群组管理] as GroupMgmt
-  component [状态分享] as StatusShare
-  component [联系人管理] as ContactMgmt
-  component [通知管理] as NotificationMgmt
+package "Business Capabilities" {
+  component [User Management] as UserMgmt
+  component [Instant Messaging] as Messaging
+  component [Voice & Video Calls] as VoiceVideo
+  component [File Sharing] as FileShare
+  component [Group Management] as GroupMgmt
+  component [Status Sharing] as StatusShare
+  component [Contact Management] as ContactMgmt
+  component [Notification Management] as NotificationMgmt
 }
 
-package "业务流程 (Business Processes)" {
-  component [用户注册登录流程] as AuthProcess
-  component [发送消息流程] as SendMessageProcess
-  component [发起通话流程] as CallProcess
-  component [创建群组流程] as CreateGroupProcess
-  component [状态分享流程] as StatusProcess
-  component [文件上传流程] as UploadProcess
-  component [联系人添加流程] as ContactProcess
+package "Business Processes" {
+  component [User Registration & Login] as AuthProcess
+  component [Send Message] as SendMessageProcess
+  component [Start Call] as CallProcess
+  component [Create Group] as CreateGroupProcess
+  component [Share Status] as StatusProcess
+  component [Upload File] as UploadProcess
+  component [Add Contact] as ContactProcess
 }
 
-package "业务价值 (Business Value)" {
-  component [实时沟通] as RealTimeComm
-  component [高效协作] as Collaboration
-  component [用户体验] as UserExperience
-  component [数据安全] as DataSecurity
+package "Business Value" {
+  component [Real‑time Communication] as RealTimeComm
+  component [Efficient Collaboration] as Collaboration
+  component [User Experience] as UserExperience
+  component [Data Security] as DataSecurity
 }
 
-' 业务角色与业务能力的关系
-EndUser --> UserMgmt : 使用
-EndUser --> Messaging : 使用
-EndUser --> VoiceVideo : 使用
-EndUser --> FileShare : 使用
-EndUser --> GroupMgmt : 使用
-EndUser --> StatusShare : 使用
-EndUser --> ContactMgmt : 使用
-Admin --> UserMgmt : 管理
-Admin --> NotificationMgmt : 管理
+\' Relationships between business actors and capabilities
+EndUser --> UserMgmt : uses
+EndUser --> Messaging : uses
+EndUser --> VoiceVideo : uses
+EndUser --> FileShare : uses
+EndUser --> GroupMgmt : uses
+EndUser --> StatusShare : uses
+EndUser --> ContactMgmt : uses
+Admin --> UserMgmt : manages
+Admin --> NotificationMgmt : manages
 
-' 业务流程与业务能力的关系
-AuthProcess --> UserMgmt : 支持
-SendMessageProcess --> Messaging : 支持
-CallProcess --> VoiceVideo : 支持
-CreateGroupProcess --> GroupMgmt : 支持
-StatusProcess --> StatusShare : 支持
-UploadProcess --> FileShare : 支持
-ContactProcess --> ContactMgmt : 支持
+\' Relationships between business processes and capabilities
+AuthProcess --> UserMgmt : supports
+SendMessageProcess --> Messaging : supports
+CallProcess --> VoiceVideo : supports
+CreateGroupProcess --> GroupMgmt : supports
+StatusProcess --> StatusShare : supports
+UploadProcess --> FileShare : supports
+ContactProcess --> ContactMgmt : supports
 
-' 业务流程与业务价值的关系
-AuthProcess --> UserExperience : 提升
-SendMessageProcess --> RealTimeComm : 实现
-CallProcess --> RealTimeComm : 实现
-CreateGroupProcess --> Collaboration : 支持
-StatusProcess --> UserExperience : 提升
-UploadProcess --> Collaboration : 支持
-ContactProcess --> UserExperience : 提升
-Messaging --> DataSecurity : 保障
-VoiceVideo --> DataSecurity : 保障
+\' Relationships between business processes and business value
+AuthProcess --> UserExperience : improves
+SendMessageProcess --> RealTimeComm : enables
+CallProcess --> RealTimeComm : enables
+CreateGroupProcess --> Collaboration : supports
+StatusProcess --> UserExperience : improves
+UploadProcess --> Collaboration : supports
+ContactProcess --> UserExperience : improves
+Messaging --> DataSecurity : secured by
+VoiceVideo --> DataSecurity : secured by
 
-rectangle "核心业务流程详细说明" {
+rectangle "Core Business Process Details" {
   note as N1
-    **用户注册登录流程**
-    1. 用户注册（用户名、邮箱、手机号、密码）
-    2. 用户登录（邮箱/密码认证）
-    3. JWT令牌生成和管理
-    4. 令牌刷新机制
-    5. 用户登出
+    **User registration & login**
+    1. User registration (username, email, phone, password)
+    2. User login (email/password authentication)
+    3. JWT token generation and management
+    4. Token refresh mechanism
+    5. User logout
   end note
   
   note as N2
-    **发送消息流程**
-    1. 选择聊天对象或群组
-    2. 输入/选择消息内容（文本、图片、视频、语音、文件）
-    3. 消息发送
-    4. 实时推送接收方
-    5. 消息状态更新（已发送、已送达、已读）
+    **Send message**
+    1. Select chat target or group
+    2. Enter/select message content (text, image, video, voice, file)
+    3. Send message
+    4. Push in real time to recipients
+    5. Update message status (sent, delivered, read)
   end note
   
   note as N3
-    **发起通话流程**
-    1. 选择通话对象
-    2. 发起语音/视频通话请求
-    3. WebRTC连接建立
-    4. 通话进行
-    5. 通话结束和记录
+    **Start call**
+    1. Select call target
+    2. Initiate voice/video call request
+    3. Establish WebRTC connection
+    4. Maintain call session
+    5. End call and record details
   end note
 }
 
 note bottom
-  **业务架构说明**
+  **Business architecture description**
   
-  WhatsChat作为即时通讯平台，核心业务能力包括：
+  WhatsChat, as a real‑time messaging platform, has the following core business capabilities:
   
-  1. **用户管理**: 用户注册、登录、资料管理、权限控制
-  2. **即时通讯**: 文本、图片、视频、语音、文件等多种消息类型
-  3. **语音视频通话**: 基于WebRTC的高质量实时通话
-  4. **文件共享**: 支持多种文件类型的上传、下载和预览
-  5. **群组管理**: 创建群组、成员管理、群组设置
-  6. **状态分享**: 用户状态（在线/离线）和状态动态分享
-  7. **联系人管理**: 添加、删除、搜索、分组联系人
-  8. **通知管理**: 消息通知、系统通知、推送通知
+  1. **User management** – user registration, login, profile management, access control
+  2. **Instant messaging** – multiple message types: text, image, video, voice, file
+  3. **Voice & video calls** – high‑quality real‑time calls based on WebRTC
+  4. **File sharing** – upload, download, and preview for various file types
+  5. **Group management** – create groups, manage members, configure group settings
+  6. **Status sharing** – online/offline presence and ephemeral status updates
+  7. **Contact management** – add, remove, search, organize contacts
+  8. **Notification management** – message notifications, system notifications, push notifications
   
-  业务价值体现在实时沟通、高效协作、用户体验和数据安全等方面。
+  Business value is delivered through real‑time communication, efficient collaboration,
+  great user experience, and strong data security.
 end note
 
 @enduml

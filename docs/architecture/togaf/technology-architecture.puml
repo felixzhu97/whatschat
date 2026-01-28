@@ -3,13 +3,13 @@
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-title TOGAF 技术架构图 - WhatsChat 即时通讯系统
+title TOGAF Technology Architecture - WhatsChat Messaging System
 
-package "客户端技术栈 (Client Technology Stack)" {
-  component [Web浏览器] as WebBrowser
-  component [移动设备] as MobileDevice
+package "Client Technology Stack" {
+  component [Web Browser] as WebBrowser
+  component [Mobile Device] as MobileDevice
   
-  package "Web技术" {
+  package "Web Technology" {
     component [Next.js 15] as NextJS
     component [React 19] as React
     component [TypeScript] as TypeScript
@@ -19,7 +19,7 @@ package "客户端技术栈 (Client Technology Stack)" {
     component [WebRTC Client] as WebRTCClient
   }
   
-  package "移动技术" {
+  package "Mobile Technology" {
     component [React Native] as ReactNative
     component [Expo] as Expo
     component [TypeScript] as MobileTS
@@ -29,29 +29,29 @@ package "客户端技术栈 (Client Technology Stack)" {
   }
 }
 
-package "应用服务器 (Application Server)" {
+package "Application Server" {
   component [NestJS 10] as NestJS #LightBlue
   note right of NestJS
-    后端框架
-    - 模块化架构
-    - 依赖注入
-    - 中间件支持
-    - 装饰器模式
+    Backend framework
+    - Modular architecture
+    - Dependency injection
+    - Middleware support
+    - Decorator pattern
   end note
   
-  package "核心框架" {
+  package "Core Framework" {
     component [Express] as Express
     component [TypeScript] as ServerTS
     component [Node.js 18+] as NodeJS
   }
   
-  package "通信协议" {
+  package "Communication Protocols" {
     component [REST API] as RestAPI
     component [WebSocket\n(Socket.IO)] as SocketIO
-    component [WebRTC信令] as WebRTCSignal
+    component [WebRTC Signaling] as WebRTCSignal
   }
   
-  package "认证与安全" {
+  package "Authentication & Security" {
     component [JWT] as JWT
     component [Passport] as Passport
     component [bcrypt] as Bcrypt
@@ -60,191 +60,191 @@ package "应用服务器 (Application Server)" {
   }
 }
 
-package "数据持久化层 (Data Persistence)" {
+package "Data Persistence" {
   database [PostgreSQL 13+] as PostgreSQL #LightBlue
   note right of PostgreSQL
-    关系型数据库
-    - ACID事务
-    - 外键约束
-    - 全文搜索
-    - JSON支持
+    Relational database
+    - ACID transactions
+    - Foreign‑key constraints
+    - Full‑text search
+    - JSON support
   end note
   
   component [Prisma ORM] as Prisma
   note right of Prisma
-    数据库ORM
-    - 类型安全
-    - 迁移管理
-    - 查询优化
-    - Schema定义
+    Database ORM
+    - Type‑safe
+    - Migration management
+    - Query optimization
+    - Schema definition
   end note
   
   database [Redis 6+] as Redis #LightCoral
   note right of Redis
-    缓存和消息队列
-    - 内存存储
+    Cache & message broker
+    - In‑memory storage
     - Pub/Sub
-    - 会话存储
-    - 缓存热点数据
+    - Session store
+    - Hot data cache
   end note
 }
 
-package "文件存储服务 (File Storage)" {
+package "File Storage" {
   component [MinIO/S3] as S3 #LightGreen
   note right of S3
-    对象存储
-    - 文件上传下载
-    - CDN加速
-    - 版本控制
+    Object storage
+    - File upload/download
+    - CDN acceleration
+    - Versioning
   end note
   
   component [Sharp] as Sharp
   note right of Sharp
-    图像处理
-    - 缩略图生成
-    - 格式转换
-    - 尺寸调整
+    Image processing
+    - Thumbnail generation
+    - Format conversion
+    - Resizing
   end note
 }
 
-package "搜索服务 (Search Service)" {
+package "Search Service" {
   database [Elasticsearch] as Elasticsearch #LightYellow
   note right of Elasticsearch
-    全文搜索引擎
-    - 消息搜索
-    - 用户搜索
-    - 模糊匹配
+    Full‑text search engine
+    - Message search
+    - User search
+    - Fuzzy matching
   end note
 }
 
-package "消息队列 (Message Queue)" {
+package "Message Queue" {
   component [Redis Pub/Sub] as RedisPubSub
   component [Bull Queue] as BullQueue
 }
 
-package "监控与日志 (Monitoring & Logging)" {
+package "Monitoring & Logging" {
   component [Winston] as Winston
   component [Health Check] as HealthCheck
-  component [日志轮转] as LogRotate
+  component [Log Rotation] as LogRotate
 }
 
-package "部署基础设施 (Deployment Infrastructure)" {
+package "Deployment Infrastructure" {
   component [Docker] as Docker #LightCyan
   note right of Docker
-    容器化部署
-    - 应用容器
-    - 数据库容器
-    - Redis容器
-    - 编排管理
+    Containerized deployment
+    - Application containers
+    - Database containers
+    - Redis containers
+    - Orchestration
   end note
   
   component [Docker Compose] as DockerCompose
   component [Nginx] as Nginx
-  component [负载均衡] as LoadBalancer
+  component [Load Balancer] as LoadBalancer
 }
 
-' 客户端到服务器的连接
+\' Client to server connections
 WebBrowser --> NextJS : HTTP/HTTPS
 WebBrowser --> SocketIO : WebSocket
-WebBrowser --> WebRTCSignal : WebRTC信令
-MobileDevice --> ReactNative : 原生应用
+WebBrowser --> WebRTCSignal : WebRTC signaling
+MobileDevice --> ReactNative : native app
 ReactNative --> RestAPI : HTTP/HTTPS
 ReactNative --> MobileWs : WebSocket
 ReactNative --> MobileRTC : WebRTC
 
 NextJS --> React : 框架
-NextJS --> TypeScript : 语言
-NextJS --> TailwindCSS : 样式
-NextJS --> Zustand : 状态管理
-NextJS --> WsClient : 实时通信
-NextJS --> WebRTCClient : 音视频
+NextJS --> TypeScript : language
+NextJS --> TailwindCSS : styling
+NextJS --> Zustand : state management
+NextJS --> WsClient : realtime transport
+NextJS --> WebRTCClient : audio/video
 
-ReactNative --> Expo : 框架
-ReactNative --> MobileTS : 语言
-ReactNative --> MobileZustand : 状态管理
-ReactNative --> MobileWs : 实时通信
-ReactNative --> MobileRTC : 音视频
+ReactNative --> Expo : framework
+ReactNative --> MobileTS : language
+ReactNative --> MobileZustand : state management
+ReactNative --> MobileWs : realtime transport
+ReactNative --> MobileRTC : audio/video
 
-' 服务器内部连接
-NestJS --> Express : 基于
-NestJS --> ServerTS : 语言
-NestJS --> NodeJS : 运行时
-NestJS --> RestAPI : 提供
-NestJS --> SocketIO : 提供
-NestJS --> WebRTCSignal : 提供
+\' Server‑side connections
+NestJS --> Express : built on
+NestJS --> ServerTS : language
+NestJS --> NodeJS : runtime
+NestJS --> RestAPI : exposes
+NestJS --> SocketIO : exposes
+NestJS --> WebRTCSignal : exposes
 
-NestJS --> JWT : 使用
-NestJS --> Passport : 使用
-NestJS --> Bcrypt : 使用
-NestJS --> Helmet : 使用
-NestJS --> CORS : 使用
+NestJS --> JWT : uses
+NestJS --> Passport : uses
+NestJS --> Bcrypt : uses
+NestJS --> Helmet : uses
+NestJS --> CORS : uses
 
-' 数据层连接
-NestJS --> Prisma : 使用
-Prisma --> PostgreSQL : 连接
-NestJS --> Redis : 连接
-NestJS --> RedisPubSub : 使用
-NestJS --> BullQueue : 使用
+\' Data‑layer connections
+NestJS --> Prisma : uses
+Prisma --> PostgreSQL : connects to
+NestJS --> Redis : connects to
+NestJS --> RedisPubSub : uses
+NestJS --> BullQueue : uses
 
-' 服务连接
-NestJS --> S3 : 文件存储
-NestJS --> Sharp : 图像处理
-NestJS --> Elasticsearch : 搜索
-NestJS --> Winston : 日志
-NestJS --> HealthCheck : 监控
+\' Service connections
+NestJS --> S3 : file storage
+NestJS --> Sharp : image processing
+NestJS --> Elasticsearch : search
+NestJS --> Winston : logging
+NestJS --> HealthCheck : monitoring
 
-' 部署连接
-Docker --> DockerCompose : 编排
-Nginx --> LoadBalancer : 负载均衡
-Nginx --> NestJS : 反向代理
-Docker --> PostgreSQL : 容器化
-Docker --> Redis : 容器化
+\' Deployment connections
+Docker --> DockerCompose : orchestrated by
+Nginx --> LoadBalancer : participates in
+Nginx --> NestJS : reverse proxy
+Docker --> PostgreSQL : containerized
+Docker --> Redis : containerized
 
-rectangle "技术栈说明" {
+rectangle "Tech Stack Summary" {
   note as N1
-    **前端技术栈**
+    **Frontend stack**
     - Web: Next.js + React + TypeScript
-    - 移动: React Native + Expo + TypeScript
-    - 状态管理: Zustand (Web & Mobile)
-    - UI框架: Tailwind CSS (Web) / React Native UI (Mobile)
-    - 实时通信: WebSocket + WebRTC
+    - Mobile: React Native + Expo + TypeScript
+    - State management: Zustand (Web & Mobile)
+    - UI: Tailwind CSS (Web) / React Native UI (Mobile)
+    - Realtime: WebSocket + WebRTC
   end note
   
   note as N2
-    **后端技术栈**
-    - 框架: NestJS (Node.js)
-    - 语言: TypeScript
-    - 数据库: PostgreSQL + Prisma ORM
-    - 缓存: Redis
-    - 认证: JWT + Passport
-    - 通信: Socket.IO + WebRTC
+    **Backend stack**
+    - Framework: NestJS (Node.js)
+    - Language: TypeScript
+    - Database: PostgreSQL + Prisma ORM
+    - Cache: Redis
+    - Auth: JWT + Passport
+    - Realtime: Socket.IO + WebRTC
   end note
   
   note as N3
-    **基础设施**
-    - 容器化: Docker + Docker Compose
-    - 反向代理: Nginx
-    - 负载均衡: Nginx/云服务
-    - 文件存储: MinIO/S3
-    - 搜索: Elasticsearch
-    - 日志: Winston
+    **Infrastructure**
+    - Containerization: Docker + Docker Compose
+    - Reverse proxy: Nginx
+    - Load balancing: Nginx/cloud provider
+    - File storage: MinIO/S3
+    - Search: Elasticsearch
+    - Logging: Winston
   end note
 }
 
 note bottom
-  **技术架构说明**
+  **Technology architecture description**
   
-  WhatsChat技术架构采用现代化的技术栈：
+  WhatsChat adopts a modern technology stack:
   
-  1. **客户端**: Web应用使用Next.js + React，移动应用使用React Native + Expo，实现跨平台支持
-  2. **服务器**: NestJS框架提供模块化和可扩展的后端服务
-  3. **数据层**: PostgreSQL作为主数据库，Redis用于缓存和消息队列
-  4. **通信协议**: REST API用于同步通信，WebSocket用于实时通信，WebRTC用于音视频通话
-  5. **安全**: JWT认证、bcrypt密码加密、Helmet安全头、CORS跨域控制
-  6. **存储**: MinIO/S3对象存储用于文件管理，Elasticsearch用于全文搜索
-  7. **部署**: Docker容器化部署，支持开发、测试和生产环境
+  1. **Clients** – Web app uses Next.js + React; mobile app uses React Native + Expo for cross‑platform support
+  2. **Server** – NestJS framework provides modular, extensible backend services
+  3. **Data layer** – PostgreSQL as the primary database; Redis for caching and message brokering
+  4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video
+  5. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
+  6. **Storage** – MinIO/S3 for file/object storage, Elasticsearch for full‑text search
+  7. **Deployment** – Docker‑based containerization across development, test, and production
   
-  技术选型注重性能、可扩展性、安全性和开发效率。
+  The technology choices emphasize performance, scalability, security, and developer productivity.
 end note
 
 @enduml

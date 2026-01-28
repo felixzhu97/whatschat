@@ -3,163 +3,163 @@
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-title TOGAF 应用架构图 - WhatsChat 即时通讯系统
+title TOGAF Application Architecture - WhatsChat Messaging System
 
-package "客户端应用 (Client Applications)" {
-  component [Web应用] as WebApp #LightBlue
+package "Client Applications" {
+  component [Web App] as WebApp #LightBlue
   note right of WebApp
-    技术栈:
+    Tech stack:
     - Next.js 15
     - React 19
     - TypeScript
     - Tailwind CSS
-    - Zustand状态管理
+    - Zustand state management
   end note
   
-  component [移动应用] as MobileApp #LightGreen
+  component [Mobile App] as MobileApp #LightGreen
   note right of MobileApp
-    技术栈:
+    Tech stack:
     - React Native
     - Expo
     - TypeScript
-    - Zustand状态管理
+    - Zustand state management
   end note
 }
 
-package "API网关层 (API Gateway)" {
-  component [REST API网关] as RestGateway
-  component [WebSocket网关] as WsGateway
-  component [WebRTC信令] as WebRTCGateway
+package "API Gateway Layer" {
+  component [REST API Gateway] as RestGateway
+  component [WebSocket Gateway] as WsGateway
+  component [WebRTC Signaling] as WebRTCGateway
 }
 
-package "应用服务层 (Application Services)" {
-  component [认证服务] as AuthService
-  component [用户服务] as UserService
-  component [消息服务] as MessageService
-  component [聊天服务] as ChatService
-  component [通话服务] as CallService
-  component [群组服务] as GroupService
-  component [状态服务] as StatusService
-  component [文件服务] as FileService
-  component [通知服务] as NotificationService
+package "Application Services Layer" {
+  component [Auth Service] as AuthService
+  component [User Service] as UserService
+  component [Message Service] as MessageService
+  component [Chat Service] as ChatService
+  component [Call Service] as CallService
+  component [Group Service] as GroupService
+  component [Status Service] as StatusService
+  component [File Service] as FileService
+  component [Notification Service] as NotificationService
 }
 
-package "业务逻辑层 (Business Logic)" {
-  component [消息处理逻辑] as MessageLogic
-  component [实时通信逻辑] as RealtimeLogic
-  component [权限控制逻辑] as AuthzLogic
-  component [业务规则引擎] as BusinessRules
+package "Business Logic Layer" {
+  component [Message Handling Logic] as MessageLogic
+  component [Realtime Communication Logic] as RealtimeLogic
+  component [Authorization Logic] as AuthzLogic
+  component [Business Rules Engine] as BusinessRules
 }
 
-package "数据访问层 (Data Access)" {
-  component [数据仓库] as DataRepository
-  component [缓存服务] as CacheService
+package "Data Access Layer" {
+  component [Data Repository] as DataRepository
+  component [Cache Service] as CacheService
 }
 
-package "基础设施服务 (Infrastructure Services)" {
+package "Infrastructure Services" {
   database [PostgreSQL] as PostgreSQL
   database [Redis] as Redis
-  component [文件存储] as FileStorage
-  component [搜索服务] as SearchService
+  component [File Storage] as FileStorage
+  component [Search Service] as SearchService
 }
 
-' 客户端到网关的连接
+/' Client to gateway connections
 WebApp --> RestGateway : HTTP/REST
 WebApp --> WsGateway : WebSocket
-WebApp --> WebRTCGateway : WebRTC信令
+WebApp --> WebRTCGateway : WebRTC signaling
 MobileApp --> RestGateway : HTTP/REST
 MobileApp --> WsGateway : WebSocket
-MobileApp --> WebRTCGateway : WebRTC信令
+MobileApp --> WebRTCGateway : WebRTC signaling
 
-' 网关到服务的连接
-RestGateway --> AuthService : 路由
-RestGateway --> UserService : 路由
-RestGateway --> MessageService : 路由
-RestGateway --> ChatService : 路由
-RestGateway --> CallService : 路由
-RestGateway --> GroupService : 路由
-RestGateway --> StatusService : 路由
-RestGateway --> FileService : 路由
+/' Gateway to service connections
+RestGateway --> AuthService : routes to
+RestGateway --> UserService : routes to
+RestGateway --> MessageService : routes to
+RestGateway --> ChatService : routes to
+RestGateway --> CallService : routes to
+RestGateway --> GroupService : routes to
+RestGateway --> StatusService : routes to
+RestGateway --> FileService : routes to
 
-WsGateway --> MessageService : 实时消息
-WsGateway --> ChatService : 聊天事件
-WsGateway --> NotificationService : 推送通知
+WsGateway --> MessageService : realtime messages
+WsGateway --> ChatService : chat events
+WsGateway --> NotificationService : push notifications
 
-WebRTCGateway --> CallService : 信令处理
+WebRTCGateway --> CallService : signaling
 
-' 服务之间的交互
-AuthService --> AuthzLogic : 使用
-UserService --> AuthzLogic : 使用
-MessageService --> MessageLogic : 使用
-ChatService --> MessageLogic : 使用
-CallService --> RealtimeLogic : 使用
-GroupService --> BusinessRules : 使用
-StatusService --> BusinessRules : 使用
+\' Service to business logic interactions
+AuthService --> AuthzLogic : uses
+UserService --> AuthzLogic : uses
+MessageService --> MessageLogic : uses
+ChatService --> MessageLogic : uses
+CallService --> RealtimeLogic : uses
+GroupService --> BusinessRules : uses
+StatusService --> BusinessRules : uses
 
-' 服务到数据层的连接
-AuthService --> DataRepository : 数据访问
-UserService --> DataRepository : 数据访问
-MessageService --> DataRepository : 数据访问
-ChatService --> DataRepository : 数据访问
-CallService --> DataRepository : 数据访问
-GroupService --> DataRepository : 数据访问
-StatusService --> DataRepository : 数据访问
-FileService --> DataRepository : 数据访问
-NotificationService --> DataRepository : 数据访问
+\' Services to data layer connections
+AuthService --> DataRepository : data access
+UserService --> DataRepository : data access
+MessageService --> DataRepository : data access
+ChatService --> DataRepository : data access
+CallService --> DataRepository : data access
+GroupService --> DataRepository : data access
+StatusService --> DataRepository : data access
+FileService --> DataRepository : data access
+NotificationService --> DataRepository : data access
 
-MessageService --> CacheService : 缓存访问
-ChatService --> CacheService : 缓存访问
-UserService --> CacheService : 缓存访问
+MessageService --> CacheService : cache access
+ChatService --> CacheService : cache access
+UserService --> CacheService : cache access
 
-' 数据层到基础设施的连接
-DataRepository --> PostgreSQL : 持久化存储
-CacheService --> Redis : 缓存存储
-FileService --> FileStorage : 文件存储
-MessageService --> SearchService : 全文搜索
+\' Data layer to infrastructure connections
+DataRepository --> PostgreSQL : persistent storage
+CacheService --> Redis : cache storage
+FileService --> FileStorage : file storage
+MessageService --> SearchService : full‑text search
 
-rectangle "应用交互模式" {
+rectangle "Application Interaction Patterns" {
   note as N1
-    **REST API交互**
-    - 用户认证和授权
-    - 用户资料管理
-    - 聊天列表和详情
-    - 群组管理
-    - 文件上传下载
-    - 状态管理
+    **REST API interactions**
+    - User authentication and authorization
+    - User profile management
+    - Chat list and details
+    - Group management
+    - File upload & download
+    - Status management
   end note
   
   note as N2
-    **WebSocket实时交互**
-    - 实时消息推送
-    - 在线状态同步
-    - 打字状态提示
-    - 消息已读状态
-    - 系统通知
+    **WebSocket realtime interactions**
+    - Realtime message push
+    - Online presence sync
+    - Typing indicators
+    - Message read status
+    - System notifications
   end note
   
   note as N3
-    **WebRTC P2P交互**
-    - 语音通话
-    - 视频通话
-    - 点对点数据传输
+    **WebRTC P2P interactions**
+    - Voice calls
+    - Video calls
+    - Peer‑to‑peer data transfer
   end note
 }
 
 note bottom
-  **应用架构说明**
+  **Application architecture description**
   
-  WhatsChat采用分层架构设计，包括：
+  WhatsChat adopts a layered application architecture:
   
-  1. **客户端应用层**: Web应用（Next.js）和移动应用（React Native/Expo），提供用户界面
-  2. **API网关层**: REST API网关、WebSocket网关和WebRTC信令网关，统一入口
-  3. **应用服务层**: 细粒度的业务服务，包括认证、用户、消息、聊天、通话、群组、状态、文件、通知等
-  4. **业务逻辑层**: 核心业务逻辑和规则处理
-  5. **数据访问层**: 数据仓库和缓存服务，抽象数据访问
-  6. **基础设施层**: PostgreSQL、Redis、文件存储、搜索服务等
+  1. **Client applications layer** – Web app (Next.js) and mobile app (React Native/Expo) providing user interfaces
+  2. **API gateway layer** – REST API gateway, WebSocket gateway, and WebRTC signaling gateway as unified entrypoints
+  3. **Application services layer** – fine‑grained services for auth, users, messages, chats, calls, groups, status, files, and notifications
+  4. **Business logic layer** – core business logic and rules processing
+  5. **Data access layer** – data repository and cache service abstracting data access
+  6. **Infrastructure layer** – PostgreSQL, Redis, file storage, search services, etc.
   
-  应用之间通过REST、WebSocket和WebRTC三种协议进行交互，实现同步和异步通信。
+  Applications communicate via REST, WebSocket, and WebRTC to support both synchronous and asynchronous interactions.
   
-  **说明**: FileService、NotificationService 部分通过 Messages、WebSocket 等现有模块实现；未来可拆分为独立模块。
+  **Note**: `FileService` and `NotificationService` are partially implemented via existing message/WebSocket modules today; they can be split into standalone modules in the future.
 end note
 
 @enduml

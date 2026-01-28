@@ -6,7 +6,7 @@ import logger from '@/shared/utils/logger';
 import type { WebSocketConnection, SendToConnectionOptions } from '@whatschat/aws-integration';
 
 /**
- * API Gateway WebSocket 服务 - 管理 WebSocket 连接和消息
+ * API Gateway WebSocket service - manage WebSocket connections and messages
  */
 @Injectable()
 export class ApiGatewayWebSocketService implements OnModuleInit {
@@ -44,7 +44,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
       logger.info('✅ API Gateway WebSocket Service initialized successfully');
     } catch (error) {
       logger.error('❌ API Gateway WebSocket Service initialization failed:', error);
-      // 在开发环境中不抛出错误，允许应用启动
+      // Do not throw in development so that the app can still start
       if (this.config.server.isProduction) {
         throw error;
       }
@@ -52,14 +52,14 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 检查服务是否可用
+   * Check if the service is available
    */
   isAvailable(): boolean {
     return this.wsClient !== null;
   }
 
   /**
-   * 存储连接信息
+   * Store connection information
    */
   async storeConnection(connectionId: string, userId: string, metadata?: Record<string, unknown>): Promise<void> {
     if (!this.isAvailable()) {
@@ -73,19 +73,19 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
       ...(metadata && { metadata }),
     };
 
-    // 存储连接信息（RedisService.set() 会自动序列化对象）
+    // Store connection info (RedisService.set() will automatically serialize objects)
     await this.redis.set(
       `${this.connectionPrefix}${connectionId}`,
       connection,
       86400 // 24小时过期（秒）
     );
 
-    // 存储用户到连接的映射
+    // Store user-to-connection mapping
     await this.redis.sadd(`${this.userConnectionPrefix}${userId}`, connectionId);
   }
 
   /**
-   * 获取连接信息
+   * Get connection information
    */
   async getConnection(connectionId: string): Promise<WebSocketConnection | null> {
     if (!this.isAvailable()) {
@@ -102,19 +102,19 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 获取用户的所有连接
+   * Get all connections of a user
    */
   async getUserConnections(userId: string): Promise<string[]> {
     const connectionIds = await this.redis.smembers(`${this.userConnectionPrefix}${userId}`);
     
-    // 验证连接是否仍然有效
+    // Validate that connections are still active
     const validConnections: string[] = [];
     for (const connectionId of connectionIds) {
       const connection = await this.getConnection(connectionId);
       if (connection) {
         validConnections.push(connectionId);
       } else {
-        // 清理无效连接
+        // Clean up invalid connections
         await this.redis.srem(`${this.userConnectionPrefix}${userId}`, connectionId);
       }
     }
@@ -123,7 +123,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 删除连接信息
+   * Remove connection information
    */
   async removeConnection(connectionId: string): Promise<void> {
     const connection = await this.getConnection(connectionId);
@@ -136,7 +136,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 发送消息到指定连接
+   * Send a message to a specific connection
    */
   async sendToConnection(options: SendToConnectionOptions): Promise<void> {
     if (!this.isAvailable()) {
@@ -146,7 +146,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
     try {
       await this.wsClient!.sendToConnection(options);
     } catch (error: any) {
-      // 如果连接已断开（410），清理连接信息
+      // If the connection is already closed (410), clean up connection information
       if (error.statusCode === 410 || error.code === 'GoneException') {
         await this.removeConnection(options.connectionId);
       }
@@ -155,7 +155,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 发送 JSON 消息到指定连接
+   * Send a JSON message to a specific connection
    */
   async sendJSONToConnection(connectionId: string, data: Record<string, unknown>): Promise<void> {
     if (!this.isAvailable()) {
@@ -166,7 +166,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 发送消息到用户的所有连接
+   * Send a message to all active connections of a given user
    */
   async sendToUser(userId: string, data: string | Record<string, unknown>): Promise<{
     succeeded: string[];
@@ -181,7 +181,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
     const message = typeof data === 'string' ? data : JSON.stringify(data);
     const results = await this.wsClient!.sendToConnections(connectionIds, message);
 
-    // 清理失败的连接
+    // Clean up failed connections
     for (const failed of results.failed) {
       await this.removeConnection(failed.connectionId);
     }
@@ -190,7 +190,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 广播消息到多个用户
+   * Broadcast a message to multiple users
    */
   async broadcastToUsers(
     userIds: string[],
@@ -213,7 +213,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
     const message = typeof data === 'string' ? data : JSON.stringify(data);
     const results = await this.wsClient!.sendToConnections(allConnectionIds, message);
 
-    // 清理失败的连接
+    // Clean up failed connections
     for (const failed of results.failed) {
       await this.removeConnection(failed.connectionId);
     }
@@ -222,7 +222,7 @@ export class ApiGatewayWebSocketService implements OnModuleInit {
   }
 
   /**
-   * 获取 API Gateway WebSocket 客户端（用于高级操作）
+   * Get the underlying API Gateway WebSocket client (for advanced operations)
    */
   getWebSocketClient(): ApiGatewayWebSocketClient | null {
     return this.wsClient;

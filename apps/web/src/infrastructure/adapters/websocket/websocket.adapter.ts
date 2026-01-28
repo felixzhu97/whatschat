@@ -4,11 +4,23 @@ import {
   IWebSocketAdapter,
   WebSocketMessage,
 } from "../../../domain/interfaces/adapters/websocket.interface";
+import { io, Socket } from "socket.io-client";
 
 type WebSocketMode = "socketio" | "apigateway" | "simulated";
 
+const SOCKET_DEBUG = process.env.NEXT_PUBLIC_SOCKET_DEBUG === "true";
+
+function logSocket(...args: any[]) {
+  if (!SOCKET_DEBUG) return;
+  //统一前缀，方便在控制台过滤
+  console.log("[WS]", ...args);
+}
+
 export class WebSocketAdapter implements IWebSocketAdapter {
+  // Native WebSocket connection (for API Gateway or basic WS)
   private ws: WebSocket | null = null;
+  // Socket.IO connection (for NestJS ChatGateway)
+  private ioSocket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
@@ -25,6 +37,8 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.mode = wsMode;
     this.apiGatewayEndpoint = process.env.NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT || null;
 
+    logSocket("init adapter", { mode: this.mode, apiGatewayEndpoint: this.apiGatewayEndpoint });
+
     if (this.mode === "simulated") {
       this.simulateConnection();
     } else if (this.mode === "apigateway" && this.apiGatewayEndpoint) {
@@ -36,7 +50,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
 
   private simulateConnection() {
     setTimeout(() => {
-      console.log("模拟 WebSocket 连接已建立");
+      logSocket("simulated connection established");
       this.emit("connected", null);
     }, 1000);
 
@@ -49,11 +63,11 @@ export class WebSocketAdapter implements IWebSocketAdapter {
 
   private simulateIncomingMessage() {
     const mockMessages = [
-      "你好！最近怎么样？",
-      "今天天气不错呢",
-      "有空一起吃饭吗？",
-      "工作顺利吗？",
-      "周末有什么计划？",
+      "Hi! How are you recently?",
+      "Nice weather today.",
+      "Do you have time to grab a meal?",
+      "How is work going?",
+      "Any plans for the weekend?",
     ];
 
     const randomMessage =
@@ -65,7 +79,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       data: {
         id: Date.now().toString(),
         text: randomMessage,
-        type: "text",
+          type: "text",
       },
       timestamp: Date.now(),
     };
@@ -82,7 +96,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     }
 
     if (!this.apiGatewayEndpoint) {
-      console.warn("API Gateway WebSocket endpoint not configured, falling back to simulated mode");
+      logSocket("API Gateway WebSocket endpoint not configured, fallback to simulated");
       this.mode = "simulated";
       this.simulateConnection();
       return;
@@ -94,7 +108,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       // Get JWT token from localStorage or auth context
       const token = this.getAuthToken();
       if (!token) {
-        console.warn("No auth token found, falling back to simulated mode");
+        logSocket("no auth token, fallback to simulated");
         this.mode = "simulated";
         this.simulateConnection();
         return;
@@ -102,10 +116,11 @@ export class WebSocketAdapter implements IWebSocketAdapter {
 
       // Connect to API Gateway WebSocket with token
       const wsUrl = `${this.apiGatewayEndpoint}?token=${encodeURIComponent(token)}`;
+      logSocket("connecting to API Gateway WS", { wsUrl });
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log("WebSocket 连接已建立 (API Gateway)");
+        logSocket("API Gateway WS connected");
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         
@@ -122,7 +137,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
           if (typeof event.data === "string") {
             if (event.data.startsWith("{") || event.data.startsWith("[")) {
               const parsed = JSON.parse(event.data);
-              
+
               // Handle API Gateway message format
               if (this.mode === "apigateway" && parsed.type) {
                 message = {
@@ -147,13 +162,16 @@ export class WebSocketAdapter implements IWebSocketAdapter {
               };
             }
           } else {
-            console.log("收到二进制数据:", event.data);
+            logSocket("API Gateway WS received binary data", event.data);
             return;
           }
 
           this.handleMessage(message);
         } catch (error) {
-          console.warn("WebSocket 消息解析失败，使用原始数据:", event.data);
+          logSocket("API Gateway WS parse message failed, using raw data", {
+            error,
+            raw: event.data,
+          });
 
           const fallbackMessage: WebSocketMessage = {
             type: "message",
@@ -171,7 +189,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       };
 
       this.ws.onclose = (event) => {
-        console.log("WebSocket 连接已关闭", event.code, event.reason);
+        logSocket("API Gateway WS closed", { code: event.code, reason: event.reason });
         this.isConnecting = false;
         this.ws = null;
         this.emit("disconnected", null);
@@ -182,12 +200,12 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       };
 
       this.ws.onerror = (error) => {
-        console.error("WebSocket 错误:", error);
+        logSocket("API Gateway WS error", error);
         this.isConnecting = false;
         this.emit("error", error);
       };
     } catch (error) {
-      console.error("WebSocket 连接失败:", error);
+      logSocket("API Gateway WS connect failed", error);
       this.isConnecting = false;
       this.attemptReconnect();
     }
@@ -205,8 +223,10 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(
-        `尝试重连 WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+      logSocket(
+        "attempt reconnect",
+        `${this.reconnectAttempts}/${this.maxReconnectAttempts}`,
+        { mode: this.mode },
       );
 
       setTimeout(() => {
@@ -219,20 +239,33 @@ export class WebSocketAdapter implements IWebSocketAdapter {
         }
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
-      console.error("WebSocket 重连失败，已达到最大重试次数，切换到模拟模式");
+      logSocket("reconnect failed, switch to simulated mode");
       this.mode = "simulated";
       this.simulateConnection();
     }
   }
 
   private handleMessage(message: WebSocketMessage) {
-    console.log("收到消息:", message);
+    logSocket("dispatch message to listeners", message.type, message);
     this.emit(message.type, message);
   }
 
   private sendMessage(message: WebSocketMessage) {
+    // If using Socket.IO, map high-level events to backend events
+    if (this.mode === "socketio" && this.ioSocket && this.ioSocket.connected) {
+      try {
+        this.sendViaSocketIo(message);
+      } catch (error) {
+        logSocket("Socket.IO send failed, queue message", { error, message });
+        this.messageQueue.push(message);
+      }
+      return;
+    }
+
+    // Fallback: native WebSocket
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       try {
+        logSocket("WS send", message);
         this.ws.send(
           JSON.stringify({
             ...message,
@@ -240,16 +273,109 @@ export class WebSocketAdapter implements IWebSocketAdapter {
           })
         );
       } catch (error) {
-        console.error("发送消息失败:", error);
+        logSocket("WS send failed, queue message", { error, message });
         this.messageQueue.push(message);
       }
     } else {
-      console.warn("WebSocket 未连接，消息已加入队列");
+      logSocket("WS not connected, queue message", message);
       this.messageQueue.push(message);
     }
   }
 
   private connect() {
+    // When using Socket.IO mode, use socket.io-client to connect to NestJS ChatGateway
+    if (this.mode === "socketio") {
+      if (this.ioSocket && this.ioSocket.connected) {
+        logSocket("Socket.IO already connected");
+        return;
+      }
+
+      if (this.isConnecting) {
+        logSocket("Socket.IO is connecting, skip duplicate connect");
+        return;
+      }
+
+      this.isConnecting = true;
+
+      const socketIoUrl =
+        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3000";
+      const token = this.getAuthToken();
+      logSocket("Socket.IO connect", { socketIoUrl, hasToken: !!token });
+
+      this.ioSocket = io(socketIoUrl, {
+        transports: ["websocket", "polling"],
+        withCredentials: true,
+        auth: token ? { token } : undefined,
+      });
+
+      this.ioSocket.on("connect", () => {
+        logSocket("Socket.IO connected", this.ioSocket?.id, { mode: this.mode });
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.emit("connected", { mode: this.mode });
+        this.flushMessageQueue();
+      });
+
+      this.ioSocket.on("disconnect", (reason) => {
+        logSocket("Socket.IO disconnected", reason);
+        this.emit("disconnected", null);
+      });
+
+      this.ioSocket.on("connect_error", (error) => {
+        logSocket("Socket.IO connect error", error);
+        this.isConnecting = false;
+        this.attemptReconnect();
+      });
+
+      // Map backend Socket.IO events to high-level WebSocketMessage
+      this.ioSocket.on("message:received", (data: any) => {
+        logSocket("Socket.IO event message:received", data);
+        const message: WebSocketMessage = {
+          type: "message",
+          from: data.senderId,
+          to: data.chatId,
+          data: {
+            id: data.id,
+            text: data.content,
+            type: (data.type || "TEXT").toString().toLowerCase(),
+            mediaUrl: data.mediaUrl,
+          },
+          timestamp: new Date(data.createdAt || Date.now()).getTime(),
+        };
+        this.handleMessage(message);
+      });
+
+      this.ioSocket.on(
+        "message:typing",
+        (payload: { chatId: string; userId: string; isTyping: boolean }) => {
+          logSocket("Socket.IO event message:typing", payload);
+          const typingMessage: WebSocketMessage = {
+            type: "typing",
+            from: payload.userId,
+            to: payload.chatId,
+            data: { isTyping: payload.isTyping },
+            timestamp: Date.now(),
+          };
+          this.handleMessage(typingMessage);
+        },
+      );
+
+      this.ioSocket.on(
+        "message:read",
+        (payload: { messageId: string; userId: string }) => {
+          logSocket("Socket.IO event message:read", payload);
+          // Expose as a generic message_status event so existing hooks can reuse it
+          this.emit("message_status", {
+            messageId: payload.messageId,
+            status: "read",
+          });
+        },
+      );
+
+      return;
+    }
+
+    // Default: plain WebSocket echo server (mainly for demos)
     if (
       this.isConnecting ||
       (this.ws && this.ws.readyState === WebSocket.OPEN)
@@ -260,12 +386,13 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.isConnecting = true;
 
     try {
-      // Socket.IO or regular WebSocket connection
-      const socketIoUrl = process.env.NEXT_PUBLIC_SOCKET_IO_URL || "ws://localhost:3001";
-      this.ws = new WebSocket(socketIoUrl);
+      const socketWsUrl =
+        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "ws://localhost:3001";
+      logSocket("basic WS connect", { socketWsUrl });
+      this.ws = new WebSocket(socketWsUrl);
 
       this.ws.onopen = () => {
-        console.log("WebSocket 连接已建立 (Socket.IO)");
+        logSocket("basic WS connected");
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.emit("connected", { mode: this.mode });
@@ -292,13 +419,16 @@ export class WebSocketAdapter implements IWebSocketAdapter {
               };
             }
           } else {
-            console.log("收到二进制数据:", event.data);
+            logSocket("basic WS received binary data", event.data);
             return;
           }
 
           this.handleMessage(message);
         } catch (error) {
-          console.warn("WebSocket 消息解析失败，使用原始数据:", event.data);
+          logSocket("basic WS parse message failed, using raw data", {
+            error,
+            raw: event.data,
+          });
           const fallbackMessage: WebSocketMessage = {
             type: "message",
             data: {
@@ -314,7 +444,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       };
 
       this.ws.onclose = (event) => {
-        console.log("WebSocket 连接已关闭", event.code, event.reason);
+        logSocket("basic WS closed", { code: event.code, reason: event.reason });
         this.isConnecting = false;
         this.ws = null;
         this.emit("disconnected", null);
@@ -325,12 +455,12 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       };
 
       this.ws.onerror = (error) => {
-        console.error("WebSocket 错误:", error);
+        logSocket("basic WS error", error);
         this.isConnecting = false;
         this.emit("error", error);
       };
     } catch (error) {
-      console.error("WebSocket 连接失败:", error);
+      logSocket("basic WS connect failed", error);
       this.isConnecting = false;
       this.attemptReconnect();
     }
@@ -339,14 +469,17 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   private getAuthToken(): string | null {
     // Try to get token from localStorage or auth context
     if (typeof window !== "undefined") {
-      return localStorage.getItem("auth_token") || localStorage.getItem("access_token");
+      return (
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token")
+      );
     }
     return null;
   }
 
   send(message: WebSocketMessage): void {
     if (this.mode === "simulated") {
-      console.log("模拟发送消息:", message);
+      logSocket("simulated send", message);
 
       setTimeout(() => {
         if (message.type === "message") {
@@ -379,16 +512,16 @@ export class WebSocketAdapter implements IWebSocketAdapter {
 
   private simulateResponse(originalMessage: WebSocketMessage) {
     const responses = [
-      "收到！",
-      "好的，我知道了",
-      "没问题",
-      "让我想想...",
-      "这个想法不错",
-      "我同意你的看法",
-      "稍等，我查一下",
-      "明白了",
-      "谢谢你的消息",
-      "我们稍后再聊",
+      "Got it!",
+      "Okay, I see.",
+      "No problem.",
+      "Let me think about it...",
+      "That sounds like a good idea.",
+      "I agree with you.",
+      "Hold on, I will check.",
+      "Understood.",
+      "Thanks for your message.",
+      "Let us talk later.",
     ];
 
     const randomResponse =
@@ -433,8 +566,12 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   }
 
   disconnect(): void {
+    if (this.ioSocket) {
+      this.ioSocket.disconnect();
+      this.ioSocket = null;
+    }
     if (this.ws) {
-      this.ws.close(1000, "用户主动断开");
+      this.ws.close(1000, "Client disconnect");
       this.ws = null;
     }
   }
@@ -442,6 +579,9 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   isConnected(): boolean {
     if (this.mode === "simulated") {
       return true;
+    }
+    if (this.mode === "socketio") {
+      return this.ioSocket !== null && this.ioSocket.connected;
     }
     return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
   }

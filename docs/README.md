@@ -4,27 +4,27 @@
 
 ## 📚 文档分类
 
-### 🏗️ 架构设计
+### 🏗️ Architecture Design
 
-#### C4 架构图
+#### C4 Diagrams
 
-- [`architecture/c4-system-context.puml`](./architecture/c4-system-context.puml) - 系统上下文图 (Level 1)
-- [`architecture/c4-container.puml`](./architecture/c4-container.puml) - 容器图 (Level 2)
-- [`architecture/c4-web-components.puml`](./architecture/c4-web-components.puml) - Web应用组件图 (Level 3)
-- [`architecture/c4-mobile-components.puml`](./architecture/c4-mobile-components.puml) - 移动应用组件图 (Level 3)
-- [`architecture/c4-code.puml`](./architecture/c4-code.puml) - 代码结构图 (Level 4)
-- [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - 系统架构概览
-- [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - 部署架构图
+- [`architecture/c4-system-context.puml`](./architecture/c4-system-context.puml) - System context diagram (Level 1)
+- [`architecture/c4-container.puml`](./architecture/c4-container.puml) - Container diagram (Level 2)
+- [`architecture/c4-web-components.puml`](./architecture/c4-web-components.puml) - Web application component diagram (Level 3)
+- [`architecture/c4-mobile-components.puml`](./architecture/c4-mobile-components.puml) - Mobile application component diagram (Level 3)
+- [`architecture/c4-code.puml`](./architecture/c4-code.puml) - Code structure diagram (Level 4)
+- [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - System architecture overview
+- [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - Deployment architecture diagram
 
-#### TOGAF 企业架构
+#### TOGAF Enterprise Architecture
 
-- [`architecture/togaf/overview.puml`](./architecture/togaf/overview.puml) - TOGAF 架构概览
-- [`architecture/togaf/business-architecture.puml`](./architecture/togaf/business-architecture.puml) - 业务架构图
-- [`architecture/togaf/application-architecture.puml`](./architecture/togaf/application-architecture.puml) - 应用架构图
-- [`architecture/togaf/data-architecture.puml`](./architecture/togaf/data-architecture.puml) - 数据架构图
-- [`architecture/togaf/technology-architecture.puml`](./architecture/togaf/technology-architecture.puml) - 技术架构图
+- [`architecture/togaf/overview.puml`](./architecture/togaf/overview.puml) - TOGAF architecture overview
+- [`architecture/togaf/business-architecture.puml`](./architecture/togaf/business-architecture.puml) - Business architecture
+- [`architecture/togaf/application-architecture.puml`](./architecture/togaf/application-architecture.puml) - Application architecture
+- [`architecture/togaf/data-architecture.puml`](./architecture/togaf/data-architecture.puml) - Data architecture
+- [`architecture/togaf/technology-architecture.puml`](./architecture/togaf/technology-architecture.puml) - Technology architecture
 
-详见 [TOGAF 目录说明](./architecture/togaf/README.md)。
+See [TOGAF directory README](./architecture/togaf/README.md) for details.
 
 #### 沃德利地图
 

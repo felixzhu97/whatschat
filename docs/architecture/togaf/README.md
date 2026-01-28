@@ -1,35 +1,36 @@
-# TOGAF 企业架构 - WhatsChat
+# TOGAF Enterprise Architecture - WhatsChat
 
-本目录包含 WhatsChat 即时通讯系统的 TOGAF（The Open Group Architecture Framework）四大架构域图表，用于描述业务、应用、数据与技术架构。
+This directory contains the TOGAF (The Open Group Architecture Framework) views for the WhatsChat real‑time messaging system.  
+The diagrams describe the **four core architecture domains**: Business, Application, Data, and Technology.
 
-## 架构概览
+## Architecture Overview
 
-- [overview.puml](./overview.puml) - **TOGAF 架构概览**：四域关系与依赖（业务 → 应用 → 数据 → 技术），便于新人从单一图进入。
+- [overview.puml](./overview.puml) – **TOGAF Architecture Overview**: shows relationships and dependencies between the four domains (Business → Application → Data → Technology) as a single entry‑point diagram.
 
-## 四大架构域
+## Four Architecture Domains
 
-| 图表 | 说明 |
+| Diagram | Description |
 | --- | --- |
-| [business-architecture.puml](./business-architecture.puml) | **业务架构**：业务角色、能力（用户管理、即时通讯、语音视频通话、文件共享、群组、联系人、通知）、业务流程与业务价值 |
-| [application-architecture.puml](./application-architecture.puml) | **应用架构**：Web/Mobile 客户端、API 网关（REST、WebSocket、WebRTC）、NestJS 应用服务、数据访问与基础设施 |
-| [data-architecture.puml](./data-architecture.puml) | **数据架构**：核心实体（User、Chat、Message、Group、Call、Status、Contact、Notification、FileUpload）、关联实体、PostgreSQL/Redis/S3 存储与数据流 |
-| [technology-architecture.puml](./technology-architecture.puml) | **技术架构**：前后端技术栈（Next.js、React Native、NestJS、Prisma、JWT、Socket.IO、WebRTC）、数据持久化、部署（Docker 等） |
+| [business-architecture.puml](./business-architecture.puml) | **Business Architecture** – business actors, capabilities (user management, instant messaging, voice & video calls, file sharing, groups, contacts, notifications), business processes and business value |
+| [application-architecture.puml](./application-architecture.puml) | **Application Architecture** – Web/Mobile clients, API gateways (REST, WebSocket, WebRTC), NestJS application services, data access, and infrastructure services |
+| [data-architecture.puml](./data-architecture.puml) | **Data Architecture** – core entities (User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload), association entities, PostgreSQL/Redis/S3 storage and data flows |
+| [technology-architecture.puml](./technology-architecture.puml) | **Technology Architecture** – frontend and backend technology stack (Next.js, React Native, NestJS, Prisma, JWT, Socket.IO, WebRTC), data persistence, and deployment (Docker, etc.) |
 
-## 与 WhatsChat 的对应关系
+## Mapping to WhatsChat
 
-- **业务**：即时通讯、音视频通话、文件共享、群组、联系人、通知等核心能力
-- **应用**：`apps/web`、`apps/mobile`、`apps/server` 及 NestJS 模块（Auth、Users、Messages、Chats、Calls、Groups、Status、WebSocket）
-- **数据**：Prisma Schema（`apps/server/prisma/`）与 PostgreSQL/Redis/S3
-- **技术**：Monorepo（Turborepo、pnpm）、各 app 的 `package.json`、`tsconfig.json`
+- **Business** – instant messaging, audio/video calling, file sharing, groups, contacts, notifications and related core capabilities
+- **Application** – `apps/web`, `apps/mobile`, `apps/server` and NestJS modules (Auth, Users, Messages, Chats, Calls, Groups, Status, WebSocket)
+- **Data** – Prisma schema in `apps/server/prisma/` and PostgreSQL/Redis/S3
+- **Technology** – monorepo (Turborepo, pnpm), each app’s `package.json`, `tsconfig.json`, and shared tooling
 
-## 规范与检查清单
+## Specification & Checklist
 
-TOGAF 规范、ADM 流程、架构原则、治理规则及检查清单见：
+TOGAF specification, ADM process, architecture principles, governance rules, and checklists are documented in:
 
 - [.cursor/rules/togaf-specification.mdc](../../../.cursor/rules/togaf-specification.mdc)
 
-## 查看方式
+## How to View the Diagrams
 
-1. **PlantUML 在线**：复制 `.puml` 内容到 [PlantUML 在线编辑器](https://www.plantuml.com/plantuml/uml/)
-2. **VS Code**：安装 [PlantUML 插件](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml)，打开文件后 `Alt+D` 预览
-3. **本地**：`plantuml docs/architecture/togaf/*.puml` 生成 PNG/SVG
+1. **PlantUML Online** – copy the `.puml` content into the [PlantUML online editor](https://www.plantuml.com/plantuml/uml/)
+2. **VS Code** – install the [PlantUML extension](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml) and press `Alt+D` to preview
+3. **Local CLI** – run `plantuml docs/architecture/togaf/*.puml` to generate PNG/SVG files
