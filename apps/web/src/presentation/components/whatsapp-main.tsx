@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "./sidebar";
 import { ChatArea } from "./chat-area";
 import { WelcomeScreen } from "./welcome-screen";
@@ -23,6 +23,7 @@ import { useMessages } from "../hooks/use-messages";
 import { useSearch } from "../hooks/use-search";
 import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
+import { getWebSocketAdapter } from "@/src/infrastructure/adapters/websocket";
 import {
   mockContacts,
   mockMessages,
@@ -38,7 +39,26 @@ export function WhatsAppMain() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Initialize WebSocket adapter once on mount and keep connection state in sync
+  useEffect(() => {
+    const ws = getWebSocketAdapter();
+
+    const handleConnected = () => setIsConnected(true);
+    const handleDisconnected = () => setIsConnected(false);
+
+    ws.on("connected", handleConnected);
+    ws.on("disconnected", handleDisconnected);
+
+    // Set initial state based on current connection
+    setIsConnected(ws.isConnected());
+
+    return () => {
+      ws.off("connected", handleConnected);
+      ws.off("disconnected", handleDisconnected);
+    };
+  }, []);
 
   // Custom hooks
   const {
