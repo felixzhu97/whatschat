@@ -19,7 +19,7 @@ interface ChatAreaProps {
   isTyping: boolean;
   isConnected: boolean;
   onMessageChange: (text: string) => void;
-  onKeyPress: (e: React.KeyboardEvent) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
   onSendMessage: (
     content: string,
     type?: "text" | "image" | "video" | "audio" | "file"
@@ -54,7 +54,7 @@ export function ChatArea({
   isTyping,
   isConnected,
   onMessageChange,
-  onKeyPress,
+  onKeyDown,
   onSendMessage,
   onEmojiSelect,
   onToggleEmojiPicker,
@@ -129,7 +129,7 @@ export function ChatArea({
         editingMessage={editingMessage}
         isRecordingVoice={isRecordingVoice}
         onMessageChange={onMessageChange}
-        onKeyPress={onKeyPress}
+        onKeyDown={onKeyDown}
         onSendMessage={() => onSendMessage(messageText)}
         onEmojiSelect={onEmojiSelect}
         onToggleEmojiPicker={onToggleEmojiPicker}

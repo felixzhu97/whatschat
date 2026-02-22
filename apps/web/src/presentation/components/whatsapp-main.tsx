@@ -98,7 +98,7 @@ export function WhatsAppMain() {
     chatsWithLive.isApiChat
       ? chatsWithLive.messagesForSelected
       : selectedContact
-        ? getMessagesForContact(selectedContact.id, mockMessages)
+        ? [...getMessagesForContact(selectedContact.id, mockMessages)]
         : [];
 
   const {
@@ -109,7 +109,7 @@ export function WhatsAppMain() {
     isRecordingVoice,
     isTyping,
     handleMessageChange,
-    handleKeyPress,
+    handleKeyDown,
     handleSendMessage,
     handleEmojiSelect,
     handleToggleEmojiPicker,
@@ -350,7 +350,7 @@ export function WhatsAppMain() {
             isTyping={isTyping}
             isConnected={isConnected}
             onMessageChange={handleMessageChange}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             onSendMessage={handleSendMessageWrapper}
             onEmojiSelect={handleEmojiSelect}
             onToggleEmojiPicker={handleToggleEmojiPicker}

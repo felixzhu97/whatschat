@@ -22,7 +22,7 @@
     "lint": "turbo run lint",
     "setup": "./scripts/setup/dev.sh",
     "setup:inline": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
-    "start": "./scripts/app/start.sh dev",
+    "start:server": "./scripts/app/start.sh dev",
     "start:mobile": "pnpm --filter react-native-app start",
     "start:prod": "./scripts/app/start.sh prod",
     "start:web": "pnpm --filter whatschat-web dev",

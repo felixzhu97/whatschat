@@ -3,6 +3,8 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
+import { useFeatureIsOn } from "@growthbook/growthbook-react"
+import { useAbTest } from "@/presentation/hooks/use-ab-test"
 import { Button } from "@/src/presentation/components/ui/button"
 import { Textarea } from "@/src/presentation/components/ui/textarea"
 import { Smile, Paperclip, Send, X } from "lucide-react"
@@ -18,7 +20,7 @@ interface MessageInputProps {
   editingMessage: Message | null
   isRecordingVoice: boolean
   onMessageChange: (text: string) => void
-  onKeyPress: (e: React.KeyboardEvent) => void
+  onKeyDown: (e: React.KeyboardEvent) => void
   onSendMessage: () => void
   onEmojiSelect: (emoji: string) => void
   onToggleEmojiPicker: () => void
@@ -36,7 +38,7 @@ export function MessageInput({
   editingMessage,
   isRecordingVoice,
   onMessageChange,
-  onKeyPress,
+  onKeyDown,
   onSendMessage,
   onEmojiSelect,
   onToggleEmojiPicker,
@@ -48,6 +50,10 @@ export function MessageInput({
 }: MessageInputProps) {
   const [showFileUpload, setShowFileUpload] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const sendMessageEnabled = useFeatureIsOn("send_message")
+  const inputPlaceholderVariant = useAbTest("message-input-placeholder")
+  const placeholder =
+    inputPlaceholderVariant === "variant" ? "Type a message..." : "输入消息..."
 
   const handleSend = () => {
     if (messageText.trim()) {
@@ -58,9 +64,28 @@ export function MessageInput({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+      return
+    }
+    onKeyDown(e)
+  }
+
   const handleFileUpload = (file: File, type: "image" | "file") => {
     onFileSelect(file)
     setShowFileUpload(false)
+  }
+
+  if (!sendMessageEnabled) {
+    return (
+      <div className="border-t bg-white p-4">
+        <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-6 text-sm text-gray-500">
+          Send message is currently disabled
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -120,8 +145,8 @@ export function MessageInput({
             ref={textareaRef}
             value={messageText}
             onChange={(e) => onMessageChange(e.target.value)}
-            onKeyPress={onKeyPress}
-            placeholder="输入消息..."
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
             className="min-h-[40px] max-h-32 resize-none border-gray-300 focus:border-green-500 focus:ring-green-500"
             rows={1}
           />

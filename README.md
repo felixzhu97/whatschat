@@ -11,10 +11,11 @@ A modern instant messaging application built with React and TypeScript, supporti
 - 🔍 **Message Search** - Full-text search of chat history
 - 📱 **Responsive Design** - Support for desktop and mobile devices
 - 🔐 **Complete Authentication System** - Registration, login, JWT token management
+- 🧪 **A/B Testing & Feature Flags** - GrowthBook for experiments and feature toggles (e.g. `send_message`, inline experiments)
 
 ## 🛠️ Tech Stack
 
-**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand  
+**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand, **GrowthBook** (A/B testing & feature flags)  
 **Frontend Mobile**: React Native, Expo, TypeScript, Zustand  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
@@ -205,6 +206,11 @@ NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT=https://your-api-id.execute-api.us-ea
 
 # WebRTC Configuration (Optional)
 NEXT_PUBLIC_WEBRTC_MODE=native  # Options: native, chime, simulated
+
+# A/B Testing & Feature Flags (Optional – GrowthBook)
+# When unset, inline experiments still work; when set, flags are loaded from GrowthBook.
+# NEXT_PUBLIC_GROWTHBOOK_API_HOST=https://cdn.growthbook.io
+# NEXT_PUBLIC_GROWTHBOOK_CLIENT_KEY=your-sdk-client-key
 ```
 
 ### 5. Database Setup
@@ -265,7 +271,7 @@ pnpm dev
 pnpm dev
 ```
 
-### 6. Access the Application
+### 7. Access the Application
 
 - **Frontend Application**: http://localhost:3000
 - **Backend API**: http://localhost:3001/api/v1
@@ -376,6 +382,38 @@ pnpm check-types
 ## 🏗️ Architecture Design
 
 View architecture diagrams and documentation: [中文 (zh)](docs/zh/README.md) | [English (en)](docs/en/README.md).
+
+### High-level architecture
+
+```mermaid
+flowchart LR
+  subgraph Users
+    U1[Web User]
+    U2[Mobile User]
+  end
+
+  subgraph WhatsChat["WhatsChat"]
+    WA[Web App\nNext.js, React]
+    MA[Mobile App\nReact Native]
+    API[API Server\nNestJS]
+    DB[(PostgreSQL)]
+    R[(Redis)]
+  end
+
+  subgraph External["External"]
+    S3[S3 / Storage]
+    GB[GrowthBook\nA/B & Feature Flags]
+  end
+
+  U1 --> WA
+  U2 --> MA
+  WA --> API
+  MA --> API
+  WA -.->|optional| GB
+  API --> DB
+  API --> R
+  API --> S3
+```
 
 ### C4 Model (PlantUML) · R&D
 

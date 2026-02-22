@@ -47,6 +47,9 @@ importers:
       '@types/lodash':
         specifier: ^4.17.16
         version: 4.17.23
+      '@whatschat/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       axios:
         specifier: ^1.8.4
         version: 1.13.5
@@ -397,6 +400,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@growthbook/growthbook-react':
+        specifier: ^1.4.0
+        version: 1.6.5(react@19.2.0)
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.71.2(react@19.2.0))
@@ -2066,6 +2072,16 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@growthbook/growthbook-react@1.6.5':
+    resolution: {integrity: sha512-afi/RUbwazVNKv2acn6wDQz4BJNRAEpwIuHfggQup2/aE5PLAxy3+95gjjRMgCcPR0Pf3sFmhYGvOmxLD0ZRbQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: ^16.8.0-0 || ^17.0.0-0 || ^18.0.0-0 || ^19.0.0-0
+
+  '@growthbook/growthbook@1.6.5':
+    resolution: {integrity: sha512-mUaMsgeUTpRIUOTn33EUXHRK6j7pxBjwqH4WpQyq+pukjd1AIzWlEa6w7i6bInJUcweGgP2beXZmaP6b6UPn7A==}
+    engines: {node: '>=10'}
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -5748,6 +5764,10 @@ packages:
 
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
+
+  dom-mutator@0.6.0:
+    resolution: {integrity: sha512-iCt9o0aYfXMUkz/43ZOAUFQYotjGB+GNbYJiJdz4TgXkyToXbbRy5S6FbTp72lRBtfpUMwEc1KmpFEU4CZeoNg==}
+    engines: {node: '>=10'}
 
   domexception@4.0.0:
     resolution: {integrity: sha512-A2is4PLG+eeSfoTMA95/s4pvAoSo2mKtiM5jlHkAVewmiO8ISFTFKZjH7UAM1Atli/OT/7JHOrJRJiMKUZKYBw==}
@@ -12372,6 +12392,15 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@growthbook/growthbook-react@1.6.5(react@19.2.0)':
+    dependencies:
+      '@growthbook/growthbook': 1.6.5
+      react: 19.2.0
+
+  '@growthbook/growthbook@1.6.5':
+    dependencies:
+      dom-mutator: 0.6.0
+
   '@hapi/hoek@9.3.0': {}
 
   '@hapi/topo@5.1.0':
@@ -16617,6 +16646,8 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.6
       csstype: 3.2.3
+
+  dom-mutator@0.6.0: {}
 
   domexception@4.0.0:
     dependencies:

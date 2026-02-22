@@ -35,18 +35,6 @@ export function useMessages({
     [isTyping]
   );
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        if (messageText.trim()) {
-          handleSendMessage(messageText.trim());
-        }
-      }
-    },
-    [messageText]
-  );
-
   const handleSendMessage = useCallback(
     (
       content: string,
@@ -54,8 +42,6 @@ export function useMessages({
     ) => {
       if (!content.trim() && type === "text") return;
       if (!selectedContactId) return;
-
-      console.log("Sending message:", content, type);
 
       // Create new message
       const newMessage = createMessage(content, type);
@@ -73,6 +59,19 @@ export function useMessages({
       simulateResponse(selectedContactId, selectedContact);
     },
     [selectedContactId, selectedContact]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const text = (e.target as HTMLTextAreaElement).value?.trim() ?? "";
+        if (text) {
+          handleSendMessage(text);
+        }
+      }
+    },
+    [handleSendMessage]
   );
 
   const simulateResponse = useCallback(
@@ -182,7 +181,7 @@ export function useMessages({
     isRecordingVoice,
     isTyping,
     handleMessageChange,
-    handleKeyPress,
+    handleKeyDown,
     handleSendMessage,
     handleEmojiSelect,
     handleToggleEmojiPicker,
