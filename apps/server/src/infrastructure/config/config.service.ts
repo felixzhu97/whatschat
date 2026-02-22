@@ -131,7 +131,7 @@ export class ConfigService {
       database: {
         url:
           process.env["DATABASE_URL"] ||
-          "postgresql://username:password@localhost:5432/whatschat?schema=public",
+          "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public",
       },
       redis: {
         url: process.env["REDIS_URL"] || "redis://localhost:6379",

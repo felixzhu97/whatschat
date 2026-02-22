@@ -17,7 +17,7 @@ if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SERVER_DIR="$ROOT_DIR/apps/server"
 
 SERVER_PID=""
@@ -40,7 +40,7 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}环境: ${ENV}${NC}"
 echo ""
 
-echo -e "${BLUE}[1/6] 停止已运行的服务器...${NC}"
+echo -e "${BLUE}[1/7] 停止已运行的服务器...${NC}"
 PORT_PIDS=$(lsof -ti:3001 2>/dev/null || true)
 if [ -n "$PORT_PIDS" ]; then
     echo "$PORT_PIDS" | xargs kill -9 2>/dev/null || true
@@ -67,7 +67,7 @@ else
 fi
 echo ""
 
-echo -e "${BLUE}[2/6] 检查环境依赖...${NC}"
+echo -e "${BLUE}[2/7] 检查环境依赖...${NC}"
 
 if ! docker info > /dev/null 2>&1; then
     echo -e "${RED}错误: Docker 未运行，请先启动 Docker${NC}"
@@ -102,23 +102,30 @@ fi
 
 echo ""
 
-echo -e "${BLUE}[3/6] 启动 Docker 环境服务...${NC}"
-cd "$SERVER_DIR"
-if [ ! -f "docker-start.sh" ]; then
-    echo -e "${RED}错误: docker-start.sh 不存在${NC}"
+echo -e "${BLUE}[3/7] 启动 Docker 环境服务...${NC}"
+COMPOSE_CMD="docker compose"
+if ! docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+fi
+if [ ! -f "$SERVER_DIR/docker-compose.yml" ]; then
+    echo -e "${RED}错误: docker-compose.yml 不存在${NC}"
     exit 1
 fi
-
-bash docker-start.sh "$ENV" > /dev/null 2>&1 || {
-    echo -e "${RED}错误: Docker 环境启动失败${NC}"
-    exit 1
-}
+cd "$SERVER_DIR"
+export COMPOSE_PROJECT_NAME=whatschat
+if [ "$ENV" == "dev" ]; then
+    $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down -v 2>/dev/null || true
+    docker rm -f whatschat-postgres whatschat-redis 2>/dev/null || true
+    $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis
+else
+    $COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml up -d postgres redis
+fi
 echo -e "${GREEN}  ✓ Docker 环境服务已启动${NC}"
 cd "$ROOT_DIR"
 
 echo ""
 
-echo -e "${BLUE}[4/6] 等待数据库就绪...${NC}"
+echo -e "${BLUE}[4/7] 等待数据库就绪...${NC}"
 
 MAX_RETRIES=30
 RETRY_COUNT=0
@@ -140,10 +147,22 @@ if [ "$DB_READY" = false ]; then
 fi
 
 echo -e "${GREEN}  ✓ 数据库已就绪${NC}"
+sleep 3
+RETRY_COUNT=0
+while [ $RETRY_COUNT -lt 10 ]; do
+    if docker exec -e PGPASSWORD=whatschat123 whatschat-postgres psql -U whatschat -d whatschat -c "SELECT 1" > /dev/null 2>&1; then
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    sleep 1
+done
 echo ""
 
-echo -e "${BLUE}[5/6] 运行数据库迁移...${NC}"
+echo -e "${BLUE}[5/7] 运行数据库迁移...${NC}"
 
+if [ "$ENV" == "dev" ]; then
+    export DATABASE_URL="postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public"
+fi
 if [ ! -f "$SERVER_DIR/.env" ]; then
     echo -e "${YELLOW}  警告: .env 文件不存在，将使用默认配置${NC}"
     if [ -f "$SERVER_DIR/env.example" ]; then
@@ -160,7 +179,17 @@ else
 fi
 echo ""
 
-echo -e "${BLUE}[6/6] 启动服务器...${NC}"
+echo -e "${BLUE}[6/7] 生成种子数据...${NC}"
+if [ "$ENV" == "dev" ]; then
+    if "$SCRIPT_DIR/../db/seed.sh" dev > /dev/null 2>&1; then
+        echo -e "${GREEN}  ✓ 种子数据已生成${NC}"
+    else
+        echo -e "${YELLOW}  警告: 种子数据可能失败，可稍后运行 pnpm db:seed${NC}"
+    fi
+fi
+echo ""
+
+echo -e "${BLUE}[7/7] 启动服务器...${NC}"
 
 if [ ! -d "$ROOT_DIR/node_modules" ]; then
     echo -e "${YELLOW}  检测到未安装依赖，正在安装...${NC}"
@@ -189,7 +218,11 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "${BLUE}服务信息:${NC}"
 echo -e "  - 环境: ${GREEN}${ENV}${NC}"
-echo -e "  - PostgreSQL: ${BLUE}postgresql://whatschat:whatschat123@localhost:5432/whatschat${NC}"
+if [ "$ENV" == "dev" ]; then
+    echo -e "  - PostgreSQL: ${BLUE}postgresql://whatschat:whatschat123@localhost:5433/whatschat${NC}"
+else
+    echo -e "  - PostgreSQL: ${BLUE}postgresql://whatschat:whatschat123@localhost:5432/whatschat${NC}"
+fi
 echo -e "  - Redis: ${BLUE}redis://localhost:6379${NC}"
 echo -e "  - 服务器进程 PID: ${GREEN}${SERVER_PID}${NC}"
 echo ""

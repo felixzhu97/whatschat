@@ -27,7 +27,7 @@ if [[ "$ENV" != "dev" && "$ENV" != "prod" && "$ENV" != "--remove-volumes" ]]; th
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SERVER_DIR="$ROOT_DIR/apps/server"
 
 echo -e "${BLUE}========================================${NC}"
@@ -69,19 +69,25 @@ fi
 echo ""
 
 echo -e "${BLUE}[2/2] 停止 Docker 环境服务...${NC}"
+COMPOSE_CMD="docker compose"
+if ! docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+fi
 cd "$SERVER_DIR"
-
-if [ ! -f "docker-stop.sh" ]; then
-    echo -e "${RED}错误: docker-stop.sh 不存在${NC}"
-    exit 1
-fi
-
+export COMPOSE_PROJECT_NAME=whatschat
 if [ "$REMOVE_VOLUMES" == "true" ]; then
-    bash docker-stop.sh "$ENV" --remove-volumes
+    if [ "$ENV" == "dev" ]; then
+        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down -v
+    else
+        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down -v
+    fi
 else
-    bash docker-stop.sh "$ENV"
+    if [ "$ENV" == "dev" ]; then
+        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down
+    else
+        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down
+    fi
 fi
-
 cd "$ROOT_DIR"
 
 echo ""

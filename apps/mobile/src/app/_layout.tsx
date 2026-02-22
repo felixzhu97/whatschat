@@ -15,13 +15,15 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="chat-detail" 
-          options={{ 
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen
+          name="chat-detail"
+          options={{
             headerShown: true,
             title: '聊天',
             presentation: 'card',
-          }} 
+          }}
         />
       </Stack>
     </ThemeProvider>

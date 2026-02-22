@@ -231,8 +231,8 @@ NEXT_PUBLIC_WEBRTC_MODE=native  # Options: native, chime, simulated
 ```bash
 cd apps/server
 
-# Start database services (PostgreSQL + Redis)
-./docker-start.sh dev
+# Start database services (PostgreSQL + Redis) and server
+pnpm start
 
 # Generate Prisma client
 pnpm db:generate
@@ -425,14 +425,14 @@ For more details, see the [Documentation README](docs/README.md).
 ```bash
 cd apps/server
 
-# Start all services with docker-compose (development environment)
-./docker-start.sh dev
+# Start all services (Docker + server, development)
+pnpm start
 
-# Start all services with docker-compose (production environment)
-./docker-start.sh prod
+# Start all services (production)
+pnpm start:prod
 
 # Stop services
-./docker-stop.sh
+pnpm run stop
 
 # Or use docker-compose directly
 docker-compose -f docker-compose.dev.yml up -d  # Development environment
