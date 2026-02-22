@@ -2,19 +2,40 @@
 
 本文件夹包含了 WhatsChat 项目的完整技术文档，涵盖架构设计、开发指南、部署运维等各个方面。
 
+## 📁 docs 目录结构
+
+```
+docs/
+├── README.md                 # 本文件，文档索引
+├── api/                      # API 文档
+├── architecture/             # 架构图（TOGAF、时序图等）
+│   └── togaf/                # TOGAF 四层架构图
+├── c4/                       # C4 模型图（Level 1–3）
+│   ├── README.md
+│   ├── system-context.puml
+│   ├── containers.puml
+│   ├── components-api-server.puml
+│   └── components-web-app.puml
+├── c4-lib/                   # C4-PlantUML 本地库（供 c4/*.puml 引用）
+│   └── C4-PlantUML/          # 官方 C4-PlantUML 仓库内容
+├── distributed-systems/      # 分布式系统图（数据流、复制、负载均衡等）
+├── user-journey-map/         # 用户旅程与故事地图
+├── wardley-map/              # 沃德利地图
+├── zh/                       # 中文文档
+└── en/                       # 英文文档
+```
+
 ## 📚 文档分类
 
 ### 🏗️ Architecture Design
 
-#### C4 Diagrams
+#### C4 Model (PlantUML)
 
-- [`architecture/c4-system-context.puml`](./architecture/c4-system-context.puml) - System context diagram (Level 1)
-- [`architecture/c4-container.puml`](./architecture/c4-container.puml) - Container diagram (Level 2)
-- [`architecture/c4-web-components.puml`](./architecture/c4-web-components.puml) - Web application component diagram (Level 3)
-- [`architecture/c4-mobile-components.puml`](./architecture/c4-mobile-components.puml) - Mobile application component diagram (Level 3)
-- [`architecture/c4-code.puml`](./architecture/c4-code.puml) - Code structure diagram (Level 4)
-- [`architecture/architecture-overview.puml`](./architecture/architecture-overview.puml) - System architecture overview
-- [`architecture/c4-deployment.puml`](./architecture/c4-deployment.puml) - Deployment architecture diagram
+- [**C4 目录**](./c4/README.md) - C4 模型说明与索引
+- [Level 1 - System Context](./c4/system-context.puml) - 系统上下文（用户、WhatsChat、外部系统）
+- [Level 2 - Containers](./c4/containers.puml) - 容器图（Web/Mobile/API Server/PostgreSQL/Redis/Storage）
+- [Level 3 - API Server Components](./c4/components-api-server.puml) - API 服务内部组件（NestJS）
+- [Level 3 - Web App Components](./c4/components-web-app.puml) - Web 应用内部组件（Next.js）
 
 #### TOGAF Enterprise Architecture
 
@@ -336,18 +357,20 @@ apps/web/
 - 提高了代码的可测试性和可维护性
 - 为未来的功能扩展奠定了良好的架构基础
 
-### v4.2 - NestJS 整洁架构迁移 (当前)
+### v4.2 - NestJS 整洁架构迁移
 
 - **后端框架升级**：从 Express 迁移到 NestJS 10
 - **架构重构**：采用整洁架构（Clean Architecture）设计
-  - 领域层（Domain）：核心业务实体和接口
-  - 应用层（Application）：业务逻辑实现
-  - 基础设施层（Infrastructure）：外部依赖实现
-  - 表现层（Presentation）：API 接口和 WebSocket 网关
-- **代码组织优化**：清晰的层次划分，提高可维护性和可测试性
 - **类型安全**：完善的 TypeScript 类型定义
 - **API 文档**：集成 Swagger/OpenAPI 文档
 - **测试覆盖**：使用 Vitest 进行单元测试和集成测试
+
+### v4.3 - 领域抽象与共享包 (当前)
+
+- **共享领域包**：新增 `packages/domain`（@whatschat/domain），统一 User、Message、Chat、Contact、Group、Call 等类型定义
+- **三端统一**：Server、Web、Mobile 均使用 @whatschat/domain 的类型；各应用可扩展或实现接口
+- **共享包结构**：`packages/domain`（领域类型）、`packages/aws-integration`（AWS 服务封装）
+- **类型检查**：根目录 `pnpm tsc` / `pnpm check-types` 对所有 workspace 执行 TypeScript 检查
 
 ### v5.0 - 未来规划
 
@@ -506,12 +529,13 @@ plantuml -tsvg docs/*.puml
 
 ## 文档更新记录
 
-本文档随项目架构演进持续更新，最后更新时间：2025年12月（NestJS 整洁架构迁移版本）
+本文档随项目架构演进持续更新，最后更新时间：2026年2月（共享领域包 @whatschat/domain 版本）
 
 ### 主要更新内容
 
 - ✅ 更新技术栈信息（NestJS 10）
 - ✅ 添加整洁架构说明
+- ✅ 添加共享领域包与 monorepo 包结构（@whatschat/domain、@whatschat/aws-integration）
 - ✅ 更新项目结构描述
 - ✅ 更新环境变量配置说明
 - ✅ 更新 API 文档链接（Swagger）

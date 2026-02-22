@@ -178,7 +178,8 @@ note bottom
   WhatsChat uses PostgreSQL as the primary relational store and Redis for caching and
   messaging:
   
-  1. **Core entities** – User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload
+  1. **Core entities** – User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload.
+     TypeScript types for core entities are defined in the shared package **@whatschat/domain** and consumed by server, web, and mobile.
   2. **Association entities** – ChatParticipant, GroupParticipant, CallParticipant, MessageRead,
      MessageReaction, StatusView, UserSettings, BlockedUser
   3. **Relationships** – one‑to‑one, one‑to‑many, and many‑to‑many modeled via foreign keys

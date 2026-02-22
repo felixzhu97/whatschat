@@ -1,49 +1,35 @@
+import type { Message as DomainMessage } from "@whatschat/domain";
+
 export enum MessageType {
-  Text = 'text',
-  Image = 'image',
-  Video = 'video',
-  Audio = 'audio',
-  File = 'file',
-  Location = 'location',
-  Contact = 'contact',
-  Sticker = 'sticker',
-  Gif = 'gif',
-  Voice = 'voice',
-  System = 'system',
+  Text = "text",
+  Image = "image",
+  Video = "video",
+  Audio = "audio",
+  File = "file",
+  Location = "location",
+  Contact = "contact",
+  Sticker = "sticker",
+  Gif = "gif",
+  Voice = "voice",
+  System = "system",
 }
 
 export enum MessageStatus {
-  Sent = 'sent',
-  Delivered = 'delivered',
-  Read = 'read',
-  Failed = 'failed',
+  Sent = "sent",
+  Delivered = "delivered",
+  Read = "read",
+  Failed = "failed",
 }
 
-export interface Message {
-  id: string;
+export interface Message extends Omit<DomainMessage, "type" | "status"> {
   chatId: string;
   senderId: string;
   senderName: string;
-  senderAvatar?: string;
-  content: string;
   type: MessageType;
   status: MessageStatus;
   timestamp: Date;
-  updatedAt?: Date;
-  fileName?: string;
-  fileUrl?: string;
-  thumbnailUrl?: string;
-  fileSize?: number;
-  mimeType?: string;
-  latitude?: number;
-  longitude?: number;
-  locationName?: string;
-  duration?: number;
-  replyToId?: string;
-  replyToContent?: string;
   isForwarded: boolean;
   forwardedFrom: string[];
-  metadata?: Record<string, any>;
 }
 
 export class MessageEntity implements Message {
@@ -70,7 +56,7 @@ export class MessageEntity implements Message {
   replyToContent?: string;
   isForwarded: boolean;
   forwardedFrom: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   constructor(data: Message) {
     this.id = data.id;
@@ -128,7 +114,7 @@ export class MessageEntity implements Message {
     });
   }
 
-  toMap(): Record<string, any> {
+  toMap(): Record<string, unknown> {
     return {
       id: this.id,
       chatId: this.chatId,
@@ -157,7 +143,7 @@ export class MessageEntity implements Message {
     };
   }
 
-  static fromMap(map: Record<string, any>): MessageEntity {
+  static fromMap(map: Record<string, unknown>): MessageEntity {
     const messageTypeMap: Record<number, MessageType> = {
       0: MessageType.Text,
       1: MessageType.Image,
@@ -180,30 +166,30 @@ export class MessageEntity implements Message {
     };
 
     return new MessageEntity({
-      id: map.id ?? '',
-      chatId: map.chatId ?? '',
-      senderId: map.senderId ?? '',
-      senderName: map.senderName ?? '',
-      senderAvatar: map.senderAvatar,
-      content: map.content ?? '',
-      type: messageTypeMap[map.type ?? 0] ?? MessageType.Text,
-      status: messageStatusMap[map.status ?? 0] ?? MessageStatus.Sent,
-      timestamp: new Date(map.timestamp),
-      updatedAt: map.updatedAt ? new Date(map.updatedAt) : undefined,
-      fileName: map.fileName,
-      fileUrl: map.fileUrl,
-      thumbnailUrl: map.thumbnailUrl,
-      fileSize: map.fileSize,
-      mimeType: map.mimeType,
-      latitude: map.latitude,
-      longitude: map.longitude,
-      locationName: map.locationName,
-      duration: map.duration,
-      replyToId: map.replyToId,
-      replyToContent: map.replyToContent,
-      isForwarded: map.isForwarded ?? false,
-      forwardedFrom: Array.isArray(map.forwardedFrom) ? map.forwardedFrom : [],
-      metadata: map.metadata,
+      id: (map.id as string) ?? "",
+      chatId: (map.chatId as string) ?? "",
+      senderId: (map.senderId as string) ?? "",
+      senderName: (map.senderName as string) ?? "",
+      senderAvatar: map.senderAvatar as string | undefined,
+      content: (map.content as string) ?? "",
+      type: messageTypeMap[(map.type as number) ?? 0] ?? MessageType.Text,
+      status: messageStatusMap[(map.status as number) ?? 0] ?? MessageStatus.Sent,
+      timestamp: new Date(map.timestamp as number),
+      updatedAt: map.updatedAt ? new Date(map.updatedAt as number) : undefined,
+      fileName: map.fileName as string | undefined,
+      fileUrl: map.fileUrl as string | undefined,
+      thumbnailUrl: map.thumbnailUrl as string | undefined,
+      fileSize: map.fileSize as number | undefined,
+      mimeType: map.mimeType as string | undefined,
+      latitude: map.latitude as number | undefined,
+      longitude: map.longitude as number | undefined,
+      locationName: map.locationName as string | undefined,
+      duration: map.duration as number | undefined,
+      replyToId: map.replyToId as string | undefined,
+      replyToContent: map.replyToContent as string | undefined,
+      isForwarded: (map.isForwarded as boolean) ?? false,
+      forwardedFrom: Array.isArray(map.forwardedFrom) ? (map.forwardedFrom as string[]) : [],
+      metadata: map.metadata as Record<string, unknown> | undefined,
     });
   }
 

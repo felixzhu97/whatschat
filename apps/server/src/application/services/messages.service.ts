@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { CacheService } from '@/infrastructure/cache/cache.service';
+import { toMessageType } from '@/shared/utils/message-type';
 
 export interface CreateMessageData {
   content: string;
-  type: 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
+  type: string;
   senderId: string;
   chatId: string;
   metadata?: any;
@@ -15,12 +17,16 @@ export interface GetMessagesOptions {
   search?: string;
 }
 
+const CHATS_CACHE_KEY = (uid: string) => `chats:${uid}`;
+
 @Injectable()
 export class MessagesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async createMessage(data: CreateMessageData) {
-    // 检查聊天是否存在
     const chat = await this.prisma.chat.findUnique({
       where: { id: data.chatId },
     });
@@ -29,12 +35,11 @@ export class MessagesService {
       throw new NotFoundException('聊天不存在');
     }
 
-    // 创建消息
     const message = await this.prisma.message.create({
       data: {
         chatId: data.chatId,
         senderId: data.senderId,
-        type: data.type as any,
+        type: toMessageType(data.type),
         content: data.content,
         ...(data.metadata && { metadata: data.metadata }),
       },
@@ -49,13 +54,18 @@ export class MessagesService {
       },
     });
 
-    // 更新聊天的最后消息时间
     await this.prisma.chat.update({
       where: { id: data.chatId },
       data: {
         updatedAt: new Date(),
       },
     });
+
+    const participants = await this.prisma.chatParticipant.findMany({
+      where: { chatId: data.chatId },
+      select: { userId: true },
+    });
+    await this.cache.delMany(participants.map((p) => CHATS_CACHE_KEY(p.userId)));
 
     return message;
   }
@@ -101,7 +111,7 @@ export class MessagesService {
       updateData.content = data.content;
     }
     if (data.type !== undefined) {
-      updateData.type = data.type as any;
+      updateData.type = toMessageType(data.type);
     }
     return await this.prisma.message.update({
       where: { id: messageId },

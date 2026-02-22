@@ -26,7 +26,11 @@ coverage
 out/
 build
 dist
+*.tsbuildinfo
 
+# Expo
+.expo
+.expo-shared
 
 # Debug
 npm-debug.log*

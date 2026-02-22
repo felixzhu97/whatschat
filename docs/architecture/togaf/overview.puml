@@ -26,7 +26,9 @@ package "Application Architecture" as AA {
   note right of AA
     **application-architecture.puml**
     Web/Mobile, REST/WebSocket/WebRTC,
-    NestJS services, PostgreSQL/Redis
+    NestJS services, PostgreSQL/Redis.
+    Shared packages: @whatschat/domain,
+    @whatschat/aws-integration.
   end note
 }
 

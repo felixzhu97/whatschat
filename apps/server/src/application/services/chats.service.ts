@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { CacheService } from "../../infrastructure/cache/cache.service";
 
 export interface CreateChatData {
   type: "PRIVATE" | "GROUP";
@@ -17,11 +18,20 @@ export interface UpdateChatData {
   avatar?: string;
 }
 
+const CHATS_CACHE_KEY = (uid: string) => `chats:${uid}`;
+
 @Injectable()
 export class ChatsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
-  async getChats(userId: string) {
+  async getChats(userId: string): Promise<unknown[]> {
+    const cacheKey = CHATS_CACHE_KEY(userId);
+    const cached = await this.cache.get<unknown[]>(cacheKey);
+    if (cached) return cached;
+
     const chatParticipants = await this.prisma.chatParticipant.findMany({
       where: { userId },
       include: {
@@ -63,23 +73,30 @@ export class ChatsService {
       },
     });
 
-    return chatParticipants.map((cp) => ({
-      id: cp.chat.id,
-      type: cp.chat.type,
-      name: cp.chat.name,
-      avatar: cp.chat.avatar,
-      isArchived: cp.isArchived,
-      isMuted: cp.isMuted,
-      participants: cp.chat.participants.map((p) => ({
-        id: p.user.id,
-        username: p.user.username,
-        avatar: p.user.avatar,
-        isOnline: p.user.isOnline,
-        status: p.user.status,
-      })),
-      lastMessage: cp.chat.messages[0] || null,
-      updatedAt: cp.chat.updatedAt,
-    }));
+    const result = chatParticipants.map((cp) => {
+      const otherParticipant = cp.chat.type === "PRIVATE"
+        ? cp.chat.participants.find((p) => p.user.id !== userId)?.user
+        : null;
+      return {
+        id: cp.chat.id,
+        type: cp.chat.type,
+        name: cp.chat.name ?? otherParticipant?.username ?? "Chat",
+        avatar: cp.chat.avatar,
+        isArchived: cp.isArchived,
+        isMuted: cp.isMuted,
+        participants: cp.chat.participants.map((p) => ({
+          id: p.user.id,
+          username: p.user.username,
+          avatar: p.user.avatar,
+          isOnline: p.user.isOnline,
+          status: p.user.status,
+        })),
+        lastMessage: cp.chat.messages[0] || null,
+        updatedAt: cp.chat.updatedAt,
+      };
+    });
+    await this.cache.set(CHATS_CACHE_KEY(userId), result);
+    return result;
   }
 
   async createChat(userId: string, data: CreateChatData) {
@@ -164,6 +181,7 @@ export class ChatsService {
       },
     });
 
+    await this.cache.delMany([userId, ...participantIds].map((id) => CHATS_CACHE_KEY(id)));
     return chat;
   }
 
@@ -244,7 +262,7 @@ export class ChatsService {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
 
-    return await this.prisma.chat.update({
+    const updated = await this.prisma.chat.update({
       where: { id },
       data: updateData,
       include: {
@@ -261,6 +279,8 @@ export class ChatsService {
         },
       },
     });
+    await this.cache.delMany(chat.participants.map((p) => CHATS_CACHE_KEY(p.userId)));
+    return updated;
   }
 
   async deleteChat(id: string, userId: string) {

@@ -15,13 +15,18 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { MessagesService } from '@/application/services/messages.service';
+import { ChatGateway } from '../websocket/chat.gateway';
+import type { QueuedMessagePayload } from '@/application/services/offline-message-queue.service';
 
 @ApiTags('消息')
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class MessagesController {
-  constructor(private readonly messagesService: MessagesService) {}
+  constructor(
+    private readonly messagesService: MessagesService,
+    private readonly chatGateway: ChatGateway,
+  ) {}
 
   @Get(':chatId')
   @ApiOperation({ summary: '获取聊天消息' })
@@ -57,11 +62,17 @@ export class MessagesController {
   ) {
     const message = await this.messagesService.createMessage({
       content: createMessageDto.content,
-      type: createMessageDto.type as 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE',
+      type: createMessageDto.type,
       chatId: createMessageDto.chatId,
       senderId: user.id,
       ...(createMessageDto.metadata && { metadata: createMessageDto.metadata }),
     });
+
+    await this.chatGateway.deliverToParticipants(
+      message as QueuedMessagePayload,
+      message.chatId,
+      message.senderId,
+    );
 
     return {
       success: true,

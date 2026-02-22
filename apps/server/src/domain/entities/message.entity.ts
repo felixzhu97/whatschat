@@ -1,24 +1,9 @@
-export type MessageType =
-  | "TEXT"
-  | "IMAGE"
-  | "VIDEO"
-  | "AUDIO"
-  | "FILE"
-  | "LOCATION"
-  | "CONTACT";
+import type { MessageReaction, ContactInfo } from "@whatschat/domain";
+import { MessageTypeValues } from "@whatschat/domain";
 
-export interface MessageReaction {
-  userId: string;
-  emoji: string;
-  createdAt: Date;
-}
+export type MessageType = (typeof MessageTypeValues)[number];
 
-export interface ContactInfo {
-  name: string;
-  phone: string;
-  email?: string;
-  avatar?: string;
-}
+export type { MessageReaction, ContactInfo };
 
 export class Message {
   constructor(

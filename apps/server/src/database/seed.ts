@@ -31,7 +31,7 @@ const PERSON_DATA: { username: string; name: string; status: string }[] = [
   { username: "kobe", name: "Kobe", status: "Mamba mentality." },
   { username: "shaq", name: "Shaq", status: "Big diesel." },
   { username: "bolt", name: "Bolt", status: "Lightning." },
-  { username: "ronaldo", name: "Ronaldo", status: "SIUUU." },
+  { username: "cristiano", name: "Cristiano", status: "SIUUU." },
   { username: "neymar", name: "Neymar", status: "Joga bonito." },
   { username: "zlatan", name: "Zlatan", status: "I am Zlatan." },
   { username: "rihanna", name: "Rihanna", status: "Fenty." },
@@ -152,6 +152,8 @@ const PERSON_DATA: { username: string; name: string; status: string }[] = [
 export async function main() {
   logger.info("开始数据库种子...");
 
+  PERSON_DATA.sort((a, b) => a.name.localeCompare(b.name, "en"));
+
   try {
     if (config.server.isDevelopment) {
       try {
@@ -246,6 +248,56 @@ export async function main() {
       },
     });
 
+    const ladyGagaUser = users.find((_, i) => PERSON_DATA[i]?.username === "ladygaga");
+    const cristianoUser = users.find((_, i) => PERSON_DATA[i]?.username === "cristiano");
+    if (ladyGagaUser && cristianoUser) {
+      const pc = await prisma.chat.create({
+        data: {
+          type: "PRIVATE",
+          participants: {
+            create: [
+              { userId: ladyGagaUser.id, role: "MEMBER" },
+              { userId: cristianoUser.id, role: "MEMBER" },
+            ],
+          },
+        },
+      });
+      await prisma.message.create({
+        data: {
+          chatId: pc.id,
+          senderId: cristianoUser.id,
+          type: "TEXT",
+          content: "Hey Lady Gaga!",
+        },
+      });
+    }
+    const ladyGagaIdx = PERSON_DATA.findIndex((p) => p.username === "ladygaga");
+    if (ladyGagaIdx >= 0) {
+      const others = [0, 1, 16, 17, 22, 24].filter((i) => i !== ladyGagaIdx && i < users.length);
+      for (const otherIdx of others) {
+        if (otherIdx === ladyGagaIdx) continue;
+        const pc = await prisma.chat.create({
+          data: {
+            type: "PRIVATE",
+            participants: {
+              create: [
+                { userId: users[ladyGagaIdx]!.id, role: "MEMBER" },
+                { userId: users[otherIdx]!.id, role: "MEMBER" },
+              ],
+            },
+          },
+        });
+        await prisma.message.create({
+          data: {
+            chatId: pc.id,
+            senderId: users[otherIdx]!.id,
+            type: "TEXT",
+            content: `Hey ${PERSON_DATA[ladyGagaIdx]!.name}!`,
+          },
+        });
+      }
+    }
+
     logger.info("创建了聊天");
 
     const groupMessages = [
@@ -310,6 +362,16 @@ export async function main() {
     const contactPairs = [
       [0, 1], [1, 0], [0, 2], [2, 0], [4, 5], [5, 4],
     ];
+    const cristianoIdx = PERSON_DATA.findIndex((p) => p.username === "cristiano");
+    if (ladyGagaIdx >= 0) {
+      for (const otherIdx of [0, 1, 2, 16, 17, 22, 24, 25]) {
+        if (otherIdx >= users.length || otherIdx === ladyGagaIdx) continue;
+        contactPairs.push([ladyGagaIdx, otherIdx], [otherIdx, ladyGagaIdx]);
+      }
+    }
+    if (cristianoIdx >= 0 && ladyGagaIdx >= 0) {
+      contactPairs.push([cristianoIdx, ladyGagaIdx], [ladyGagaIdx, cristianoIdx]);
+    }
     for (let i = 0; i < Math.min(20, users.length - 1); i += 2) {
       const a = i;
       const b = i + 1;
@@ -351,7 +413,7 @@ export async function main() {
 
     logger.info("数据库种子完成！");
     logger.info(`共 ${users.length} 个测试账户，密码均为: 123456`);
-    logger.info("示例: serena@whatschat.com, beyonce@whatschat.com, messi@whatschat.com ...");
+    logger.info("示例: cristiano@whatschat.com (Web默认), ladygaga@whatschat.com (Mobile默认) ...");
   } catch (error) {
     logger.error("数据库种子失败:", error);
     throw error;

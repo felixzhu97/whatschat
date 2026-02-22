@@ -7,6 +7,7 @@ import type { Contact, Message } from "../../../types"
 interface MessageAreaProps {
   messages: Message[]
   selectedContact: Contact | null
+  currentUserId?: string | null
   isGroup?: boolean
   onReply: (message: Message) => void
   onEdit: (messageId: string, text: string) => void
@@ -19,6 +20,7 @@ interface MessageAreaProps {
 export function MessageArea({
   messages,
   selectedContact,
+  currentUserId = null,
   isGroup = false,
   onReply,
   onEdit,
@@ -54,6 +56,13 @@ export function MessageArea({
             key={message.id}
             message={message}
             isGroup={isGroup}
+            isOwn={
+              currentUserId != null
+                ? message.senderId === currentUserId ||
+                  message.senderId === "current-user" ||
+                  message.senderId === "me"
+                : undefined
+            }
             onReply={onReply}
             onEdit={onEdit}
             onDelete={onDelete}

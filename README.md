@@ -21,8 +21,8 @@ A modern instant messaging application built with React and TypeScript, supporti
 **Communication**: WebSocket (Socket.IO, AWS API Gateway WebSocket), WebRTC (Native, AWS Chime SDK)  
 **AWS Services**: API Gateway WebSocket, Chime SDK, S3, SES, SNS, SQS, Lambda, Cognito, CloudWatch  
 **Testing**: Vitest, React Testing Library  
-**Tools**: Turborepo, PNPM, ESLint, Prettier  
-**Monorepo**: Shared packages for analytics, AV SDK, i18n, performance monitoring, and more
+**Tools**: PNPM workspaces, ESLint, Prettier  
+**Monorepo**: Shared packages – **@whatschat/domain** (domain types), **@whatschat/aws-integration** (AWS SDK wrappers)
 
 ## 📁 Project Structure
 
@@ -32,54 +32,37 @@ whatschat/
 │   ├── web/              # Next.js Web Application
 │   │   ├── app/          # Next.js App Router pages
 │   │   ├── src/
-│   │   │   ├── domain/      # Domain layer (entities, interfaces)
+│   │   │   ├── domain/      # Domain layer (uses @whatschat/domain)
 │   │   │   ├── application/ # Application layer (services, DTOs)
 │   │   │   ├── infrastructure/ # Infrastructure layer (adapters, storage)
-│   │   │   └── presentation/ # Presentation layer (components, hooks, styles)
+│   │   │   ├── presentation/ # Presentation layer (components, hooks, styles)
+│   │   │   └── shared/       # Shared types (re-exports from @whatschat/domain)
 │   │   └── public/       # Static assets
-│   ├── mobile/           # React Native mobile application
+│   ├── mobile/           # React Native mobile application (Expo)
 │   │   ├── src/
-│   │   │   ├── domain/      # Domain layer (entities, interfaces)
-│   │   │   ├── application/ # Application layer (services, DTOs)
-│   │   │   ├── infrastructure/ # Infrastructure layer (adapters, storage)
-│   │   │   └── presentation/ # Presentation layer (components, screens, navigation, state management)
+│   │   │   ├── domain/      # Domain layer (extends @whatschat/domain)
+│   │   │   ├── application/ # Application layer (services)
+│   │   │   ├── infrastructure/
+│   │   │   └── presentation/ # Presentation layer (screens, components, navigation)
 │   │   └── app/          # Expo Router pages
 │   └── server/           # NestJS server application (Clean Architecture)
 │       └── src/
-│           ├── domain/      # Domain layer (entities, interfaces)
+│           ├── domain/      # Domain layer (uses @whatschat/domain types)
 │           ├── application/ # Application layer (services, DTOs)
 │           ├── infrastructure/ # Infrastructure layer (database, external services)
 │           ├── presentation/ # Presentation layer (controllers, gateways)
 │           └── shared/     # Shared utilities
 ├── packages/             # Shared packages (monorepo)
-│   ├── analytics-core/   # Analytics core library
-│   ├── analytics-web/   # Web analytics implementation
-│   ├── analytics-react-native/ # React Native analytics
-│   ├── av-sdk-core/      # Audio/Video SDK core
-│   ├── av-sdk-web/       # Web AV SDK implementation
-│   ├── av-sdk-react-native/ # React Native AV SDK
-│   ├── av-sdk-codec/     # Codec management
-│   ├── av-sdk-filter/    # Video filter effects
-│   ├── av-sdk-database/  # AV SDK database adapter
-│   ├── aws-integration/  # AWS services integration
-│   ├── i18n-core/        # Internationalization core
-│   ├── performance-utils/ # Performance monitoring utilities
-│   ├── sdk-communication/ # Communication SDK
-│   ├── sdk-media/        # Media SDK
-│   ├── sdk-processing/   # Media processing SDK
-│   ├── sdk-recording/    # Recording SDK
-│   ├── sdk-storage/      # Storage SDK
-│   ├── sdk-web/          # Web SDK
-│   ├── sdk-react-native/ # React Native SDK
-│   └── test-utils/       # Testing utilities
+│   ├── domain/           # @whatschat/domain – shared domain types (User, Message, Chat, Contact, Group, Call)
+│   └── aws-integration/  # @whatschat/aws-integration – AWS services (S3, SES, SNS, SQS, Lambda, Cognito, Chime, etc.)
 ├── docs/                 # Documentation and architecture diagrams
 │   ├── api/              # API documentation
 │   ├── architecture/     # Architecture diagrams (TOGAF, distributed systems)
 │   ├── distributed-systems/ # Distributed systems diagrams
 │   ├── user-journey-map/ # User journey and persona maps
 │   └── wardley-map/      # Wardley maps
-├── turbo.json           # Turborepo configuration
-└── package.json         # Workspace configuration
+├── turbo.json            # Turborepo configuration
+└── package.json          # Workspace configuration (pnpm workspaces)
 ```
 
 ## 🔧 Quick Start
@@ -384,13 +367,23 @@ pnpm lint:fix
 # Format code
 pnpm format
 
-# Type checking
+# Type checking (all workspaces)
+pnpm tsc
+# or
 pnpm check-types
 ```
 
 ## 🏗️ Architecture Design
 
 View architecture diagrams and documentation in the `docs/` folder:
+
+### C4 Model (PlantUML)
+
+- [C4 README](docs/c4/README.md) – Overview and how to view
+- [Level 1 – System Context](docs/c4/system-context.puml)
+- [Level 2 – Containers](docs/c4/containers.puml)
+- [Level 3 – API Server Components](docs/c4/components-api-server.puml)
+- [Level 3 – Web App Components](docs/c4/components-web-app.puml)
 
 ### TOGAF Architecture Diagrams
 
@@ -404,8 +397,10 @@ View architecture diagrams and documentation in the `docs/` folder:
 
 - [Distributed Architecture](docs/distributed-systems/distributed-architecture.puml)
 - [Data Flow](docs/distributed-systems/data-flow.puml)
+- [Data Replication](docs/distributed-systems/data-replication.puml)
 - [Service Communication](docs/distributed-systems/service-communication-sequence.puml)
 - [Message Queue](docs/distributed-systems/message-queue.puml)
+- [Load Balancing & Fault Tolerance](docs/distributed-systems/load-balancing-fault-tolerance.puml)
 
 ### Other Diagrams
 
@@ -478,10 +473,10 @@ For more Docker deployment information, see the [Documentation README](docs/READ
 
 ### Backend Development (NestJS Clean Architecture)
 
-The project uses Clean Architecture design, divided into the following layers:
+The project uses Clean Architecture design. Domain types (User, Message, etc.) are defined in **@whatschat/domain**; server entities and DTOs use or extend them. Layers:
 
-1. **Domain Layer (domain/)**: Entity and interface definitions
-   - `entities/`: Domain entities
+1. **Domain Layer (domain/)**: Entity classes and interfaces (types from @whatschat/domain)
+   - `entities/`: Domain entities (implement or use package types)
    - `interfaces/`: Repository and service interfaces
 
 2. **Application Layer (application/)**: Business logic
@@ -517,13 +512,10 @@ The project uses Clean Architecture design, divided into the following layers:
 
 ### Shared Packages Development
 
-The project uses a monorepo structure with shared packages in the `packages/` directory:
+The monorepo provides two shared packages under `packages/`:
 
-- **Analytics Packages**: `analytics-core`, `analytics-web`, `analytics-react-native` - Event tracking and analytics
-- **AV SDK Packages**: `av-sdk-core`, `av-sdk-web`, `av-sdk-react-native` - Audio/Video SDK for calls
-- **SDK Packages**: `sdk-communication`, `sdk-media`, `sdk-processing`, `sdk-recording`, `sdk-storage` - Core SDK functionality
-- **Utilities**: `i18n-core`, `performance-utils`, `test-utils` - Shared utilities
-- **AWS Integration**: `aws-integration` - AWS services integration
+- **@whatschat/domain** – Shared domain types and interfaces (User, Message, Chat, Contact, Group, Call, etc.). All apps (server, web, mobile) use these definitions; app-specific entities extend or implement them.
+- **@whatschat/aws-integration** – AWS service wrappers (S3, SES, SNS, SQS, Lambda, Cognito, Chime SDK, CloudWatch, API Gateway WebSocket).
 
 To work with shared packages:
 
@@ -531,11 +523,12 @@ To work with shared packages:
 # Build all packages
 pnpm build
 
-# Build specific package
-cd packages/analytics-core && pnpm build
+# Build a specific package
+pnpm --filter @whatschat/domain build
+pnpm --filter @whatschat/aws-integration build
 
-# Run tests for a package
-cd packages/i18n-core && pnpm test
+# Type check all workspaces
+pnpm tsc
 ```
 
 ## 👥 Contributing

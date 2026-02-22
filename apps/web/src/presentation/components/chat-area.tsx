@@ -10,6 +10,7 @@ import type { Contact, Message } from "../../../types";
 interface ChatAreaProps {
   selectedContact: Contact;
   messages: Message[];
+  currentUserId?: string | null;
   messageText: string;
   showEmojiPicker: boolean;
   replyingTo: Message | null;
@@ -44,6 +45,7 @@ interface ChatAreaProps {
 export function ChatArea({
   selectedContact,
   messages,
+  currentUserId = null,
   messageText,
   showEmojiPicker,
   replyingTo,
@@ -87,6 +89,7 @@ export function ChatArea({
       <MessageArea
         messages={messages}
         selectedContact={selectedContact}
+        currentUserId={currentUserId}
         isGroup={selectedContact.isGroup}
         onReply={onReply}
         onEdit={(messageId: string, text: string) => {

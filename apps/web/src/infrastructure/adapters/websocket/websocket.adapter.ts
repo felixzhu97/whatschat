@@ -33,7 +33,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
 
   constructor() {
     // Determine connection mode from environment or config
-    const wsMode = (process.env.NEXT_PUBLIC_WEBSOCKET_MODE || "simulated") as WebSocketMode;
+    const wsMode = (process.env.NEXT_PUBLIC_WEBSOCKET_MODE || "socketio") as WebSocketMode;
     this.mode = wsMode;
     this.apiGatewayEndpoint = process.env.NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT || null;
 
@@ -298,7 +298,7 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       this.isConnecting = true;
 
       const socketIoUrl =
-        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3000";
+        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3001";
       const token = this.getAuthToken();
       logSocket("Socket.IO connect", { socketIoUrl, hasToken: !!token });
 

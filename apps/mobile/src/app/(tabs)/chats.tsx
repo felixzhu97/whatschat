@@ -1,48 +1,51 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Chat, ChatType, ChatEntity } from '@/src/domain/entities';
+import { Chat } from '@/src/domain/entities';
 import { ChatListItem } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { chatService } from '@/src/application/services';
 
 export default function ChatsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const [chats, setChats] = React.useState<Chat[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  React.useEffect(() => {
-    const now = new Date();
-    const mockChats: Chat[] = [
-      new ChatEntity({
-        id: '1',
-        name: 'Jenny',
-        type: ChatType.Individual,
-        participantIds: ['user1', 'user2'],
-        lastMessageContent: 'You reacted 👍 to "That\'s good advice, Marty."',
-        lastMessageTime: new Date(now.getTime() - 114 * 60 * 1000),
-        lastMessageSender: 'Jenny',
-        unreadCount: 0,
-        isPinned: true,
-        createdAt: now,
-        updatedAt: now,
-      }),
-      new ChatEntity({
-        id: '2',
-        name: 'Mom',
-        type: ChatType.Individual,
-        participantIds: ['user1', 'user3'],
-        lastMessageContent: 'Mom is typing...',
-        lastMessageTime: new Date(now.getTime() - 15 * 60 * 1000),
-        lastMessageSender: 'Mom',
-        unreadCount: 1,
-        createdAt: now,
-        updatedAt: now,
-      }),
-    ];
-    setChats(mockChats);
+  const loadChats = React.useCallback(async () => {
+    try {
+      const list = await chatService.getChats();
+      setChats(list);
+    } catch {
+      setChats([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setLoading(true);
+      loadChats();
+    }, [loadChats])
+  );
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    loadChats();
+  }, [loadChats]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -64,22 +67,38 @@ export default function ChatsScreen() {
           </View>
         </View>
       </View>
-      <FlatList
-        data={chats}
-        renderItem={({ item }) => (
-          <ChatListItem
-            chat={item}
-            onPress={() => router.push(`/chat-detail?chatId=${item.id}`)}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
-            <Text style={[styles.emptyText, { color: colors.secondaryText }]}>暂无聊天</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={[styles.emptyContainer, { justifyContent: 'center' }]}>
+          <ActivityIndicator size="large" color={colors.primaryGreen} />
+          <Text style={[styles.emptyText, { color: colors.secondaryText, marginTop: 16 }]}>
+            加载中...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={chats}
+          renderItem={({ item }) => (
+            <ChatListItem
+              chat={item}
+              onPress={() => router.push(`/chat-detail?chatId=${item.id}`)}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primaryGreen}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
+              <Text style={[styles.emptyText, { color: colors.secondaryText }]}>暂无聊天</Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }

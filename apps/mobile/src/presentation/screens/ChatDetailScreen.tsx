@@ -1,9 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Message, MessageType, MessageStatus, MessageEntity, Chat } from '@/src/domain/entities';
 import { MessageBubble, ChatInputField } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useAuthStore } from '@/src/presentation/stores';
+import { messageService } from '@/src/application/services';
 
 interface ChatDetailScreenProps {
   route: { params: { chat: Chat } };
@@ -13,57 +23,73 @@ interface ChatDetailScreenProps {
 export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ route, navigation }) => {
   const { chat } = route.params;
   const { colors } = useTheme();
+  const userId = useAuthStore((s) => s.user?.id);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
+  const loadMessages = useCallback(async () => {
+    try {
+      const list = await messageService.getMessages(chat.id);
+      setMessages(list.reverse());
+    } catch {
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [chat.id]);
+
   useEffect(() => {
     loadMessages();
-  }, []);
+  }, [loadMessages]);
 
-  const loadMessages = () => {
-    const now = new Date();
-    const mockMessages: Message[] = [
-      new MessageEntity({
-        id: '1',
+  const handleSend = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return;
+      const trimmed = text.trim();
+      setInputText('');
+      const tempId = `temp-${Date.now()}`;
+      const temp = new MessageEntity({
+        id: tempId,
         chatId: chat.id,
-        senderId: 'user2',
-        senderName: chat.name,
-        content: '你好！',
-        type: MessageType.Text,
-        timestamp: new Date(now.getTime() - 10 * 60 * 1000),
-        status: MessageStatus.Read,
-      }),
-      new MessageEntity({
-        id: '2',
-        chatId: chat.id,
-        senderId: 'user1',
+        senderId: userId ?? '',
         senderName: '我',
-        content: '你好，最近怎么样？',
+        content: trimmed,
         type: MessageType.Text,
-        timestamp: new Date(now.getTime() - 8 * 60 * 1000),
-        status: MessageStatus.Read,
-      }),
-    ];
-    setMessages(mockMessages);
-  };
+        status: MessageStatus.Sent,
+        timestamp: new Date(),
+        isForwarded: false,
+        forwardedFrom: [],
+      });
+      setMessages((prev) => [...prev, temp].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      ));
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      try {
+        const msg = await messageService.sendMessage(chat.id, trimmed);
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
+      } catch {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempId
+              ? new MessageEntity({ ...m, status: MessageStatus.Failed })
+              : m
+          )
+        );
+      }
+    },
+    [chat.id, userId]
+  );
 
-  const handleSend = (text: string) => {
-    const newMessage = new MessageEntity({
-      id: Date.now().toString(),
-      chatId: chat.id,
-      senderId: 'user1',
-      senderName: '我',
-      content: text,
-      type: MessageType.Text,
-      timestamp: new Date(),
-      status: MessageStatus.Sent,
-    });
-    setMessages([...messages, newMessage]);
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  };
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
+        <Text style={[styles.loadingText, { color: colors.secondaryText }]}>加载中...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.chatBackground }]} edges={['top']}>
@@ -76,7 +102,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ route, navig
           ref={flatListRef}
           data={messages}
           renderItem={({ item }) => (
-            <MessageBubble message={item} isMe={item.senderId === 'user1'} />
+            <MessageBubble message={item} isMe={item.senderId === userId} />
           )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messagesContainer}
@@ -95,6 +121,14 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ route, navig
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 15,
   },
   keyboardView: {
     flex: 1,

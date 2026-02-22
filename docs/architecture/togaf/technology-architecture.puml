@@ -5,6 +5,22 @@ skinparam linetype ortho
 
 title TOGAF Technology Architecture - WhatsChat Messaging System
 
+package "Shared Packages (Monorepo)" {
+  component [@whatschat/domain] as DomainPkg #LightYellow
+  component [@whatschat/aws-integration] as AwsPkg #LightYellow
+  note right of DomainPkg
+    Shared TypeScript types:
+    User, Message, Chat,
+    Contact, Group, Call
+  end note
+  note right of AwsPkg
+    AWS SDK wrappers:
+    S3, SES, SNS, SQS,
+    Lambda, Cognito, Chime,
+    CloudWatch, API GW
+  end note
+}
+
 package "Client Technology Stack" {
   component [Web Browser] as WebBrowser
   component [Mobile Device] as MobileDevice
@@ -142,6 +158,12 @@ package "Deployment Infrastructure" {
   component [Nginx] as Nginx
   component [Load Balancer] as LoadBalancer
 }
+
+\' Shared packages used by clients and server
+NextJS --> DomainPkg : types
+ReactNative --> DomainPkg : types
+NestJS --> DomainPkg : types
+NestJS --> AwsPkg : AWS services
 
 \' Client to server connections
 WebBrowser --> NextJS : HTTP/HTTPS

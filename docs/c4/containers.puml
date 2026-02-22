@@ -1,0 +1,28 @@
+@startuml
+!global RELATIVE_INCLUDE = 1
+!include ../c4-lib/C4-PlantUML/C4_Container.puml
+
+title C4 Level 2 - Containers: WhatsChat
+
+Person(user_web, "Web User", "Uses chat via browser")
+Person(user_mobile, "Mobile User", "Uses chat via app")
+
+System_Boundary(whatschat, "WhatsChat") {
+  Container(web_app, "Web Application", "Next.js, React, TypeScript", "Chat UI, calls, contacts, auth")
+  Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript", "Chat UI, calls, contacts, auth")
+  Container(api_server, "API Server", "NestJS, TypeScript", "REST API, WebSocket, auth, business logic")
+  ContainerDb(postgres, "PostgreSQL", "Relational DB", "Users, messages, chats, groups")
+  ContainerDb(redis, "Redis", "Cache & Pub/Sub", "Sessions, presence, message queue")
+  Container_Ext(s3, "Object Storage", "S3/MinIO", "Files, media")
+}
+
+Rel(user_web, web_app, "Uses", "HTTPS, WebSocket")
+Rel(user_mobile, mobile_app, "Uses", "HTTPS, WebSocket")
+Rel(web_app, api_server, "API, WebSocket", "REST, Socket.IO")
+Rel(mobile_app, api_server, "API, WebSocket", "REST, Socket.IO")
+Rel(api_server, postgres, "Reads/Writes", "Prisma")
+Rel(api_server, redis, "Cache, Pub/Sub")
+Rel(api_server, s3, "Upload/Download")
+
+SHOW_LEGEND()
+@enduml

@@ -5,6 +5,21 @@ skinparam linetype ortho
 
 title TOGAF Application Architecture - WhatsChat Messaging System
 
+package "Shared Packages" {
+  component [@whatschat/domain] as DomainPkg #LightYellow
+  component [@whatschat/aws-integration] as AwsPkg #LightYellow
+  note right of DomainPkg
+    Shared domain types:
+    User, Message, Chat,
+    Contact, Group, Call
+  end note
+  note right of AwsPkg
+    AWS SDK wrappers:
+    S3, SES, SNS, SQS,
+    Lambda, Cognito, Chime
+  end note
+}
+
 package "Client Applications" {
   component [Web App] as WebApp #LightBlue
   note right of WebApp
@@ -26,6 +41,9 @@ package "Client Applications" {
   end note
 }
 
+WebApp --> DomainPkg : uses types
+MobileApp --> DomainPkg : uses types
+
 package "API Gateway Layer" {
   component [REST API Gateway] as RestGateway
   component [WebSocket Gateway] as WsGateway
@@ -43,6 +61,11 @@ package "Application Services Layer" {
   component [File Service] as FileService
   component [Notification Service] as NotificationService
 }
+
+AuthService --> DomainPkg : uses types
+MessageService --> DomainPkg : uses types
+ChatService --> DomainPkg : uses types
+FileService --> AwsPkg : uses
 
 package "Business Logic Layer" {
   component [Message Handling Logic] as MessageLogic

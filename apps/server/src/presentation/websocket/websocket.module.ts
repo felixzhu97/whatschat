@@ -6,6 +6,8 @@ import { ChimeGateway } from './chime.gateway';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { ChimeModule } from '../../infrastructure/services/chime/chime.module';
 import { ApiGatewayWebSocketModule } from '../../infrastructure/services/apigateway/apigateway-websocket.module';
+import { KafkaModule } from '../../infrastructure/messaging/kafka.module';
+import { OfflineMessageQueueService } from '../../application/services/offline-message-queue.service';
 
 @Module({
   imports: [
@@ -18,11 +20,12 @@ import { ApiGatewayWebSocketModule } from '../../infrastructure/services/apigate
       },
     }),
     DatabaseModule,
+    KafkaModule,
     ChimeModule,
     ApiGatewayWebSocketModule,
   ],
-  providers: [ChatGateway, ChimeGateway],
-  exports: [ChatGateway, ChimeGateway],
+  providers: [OfflineMessageQueueService, ChatGateway, ChimeGateway],
+  exports: [OfflineMessageQueueService, ChatGateway, ChimeGateway],
 })
 export class WebSocketModule {}
 

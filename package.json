@@ -15,7 +15,8 @@
   "scripts": {
     "build": "turbo run build",
     "db:seed": "./scripts/db/seed.sh dev",
-    "check-types": "turbo run check-types",
+    "check-types": "pnpm -r run --if-present check-types",
+    "tsc": "pnpm -r run --if-present check-types",
     "dev": "turbo run dev --filter=whatschat-web --filter=whatschat-server --concurrency=23",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",

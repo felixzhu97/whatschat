@@ -131,6 +131,8 @@ note right of API1
   - 业务逻辑处理
   - 认证授权
   - 数据验证
+  - 使用 @whatschat/domain 类型
+  - 使用 @whatschat/aws-integration
 end note
 
 note right of WS1

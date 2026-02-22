@@ -22,7 +22,7 @@ import {
 import { useAuth } from "../../src/presentation/hooks/use-auth";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@whatschat.com");
+  const [email, setEmail] = useState("cristiano@whatschat.com");
   const [password, setPassword] = useState("123456");
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);

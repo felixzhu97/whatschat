@@ -167,6 +167,13 @@ export function useMessages({
     setIsRecordingVoice(isRecording);
   }, []);
 
+  const clearInput = useCallback(() => {
+    setMessageText("");
+    setReplyingTo(null);
+    setEditingMessage(null);
+    setIsTyping(false);
+  }, []);
+
   return {
     messageText,
     showEmojiPicker,
@@ -190,5 +197,6 @@ export function useMessages({
     handleCancelReply,
     handleCancelEdit,
     handleRecordingChange,
+    clearInput,
   };
 }

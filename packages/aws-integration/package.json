@@ -17,7 +17,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts",
-    "check-types": "tsc --noEmit"
+    "check-types": "npx -p typescript tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",

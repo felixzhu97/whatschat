@@ -10,6 +10,7 @@
     "start:prod": "node dist/main.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
+    "check-types": "npx -p typescript tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -60,9 +61,11 @@
     "moment": "^2.29.4",
     "sharp": "^0.32.6",
     "ioredis": "^5.3.2",
+    "kafkajs": "^2.2.4",
     "ws": "^8.14.2",
     "tsconfig-paths": "^4.2.0",
-    "@whatschat/aws-integration": "workspace:*"
+    "@whatschat/aws-integration": "workspace:*",
+    "@whatschat/domain": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",
