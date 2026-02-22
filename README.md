@@ -172,7 +172,7 @@ For more configuration options, refer to the `apps/server/env.example` file.
 
 ### AWS Integration
 
-For detailed AWS integration setup instructions, see [AWS Integration Guide](docs/aws-integration.md).
+For detailed AWS integration setup instructions, see [AWS Integration Guide](docs/zh/rd/aws-integration.md).
 
 **Quick Setup:**
 
@@ -375,43 +375,43 @@ pnpm check-types
 
 ## 🏗️ Architecture Design
 
-View architecture diagrams and documentation in the `docs/` folder:
+View architecture diagrams and documentation: [中文 (zh)](docs/zh/README.md) | [English (en)](docs/en/README.md).
 
-### C4 Model (PlantUML)
+### C4 Model (PlantUML) · R&D
 
-- [C4 README](docs/c4/README.md) – Overview and how to view
-- [Level 1 – System Context](docs/c4/system-context.puml)
-- [Level 2 – Containers](docs/c4/containers.puml)
-- [Level 3 – API Server Components](docs/c4/components-api-server.puml)
-- [Level 3 – Web App Components](docs/c4/components-web-app.puml)
+- [C4 README](docs/en/rd/c4/README.md) – Overview and how to view
+- [Level 1 – System Context](docs/en/rd/c4/system-context.puml)
+- [Level 2 – Containers](docs/en/rd/c4/containers.puml)
+- [Level 3 – API Server Components](docs/en/rd/c4/components-api-server.puml)
+- [Level 3 – Web App Components](docs/en/rd/c4/components-web-app.puml)
 
-### TOGAF Architecture Diagrams
+### TOGAF Architecture Diagrams · R&D
 
-- [TOGAF Overview](docs/architecture/togaf/overview.puml)
-- [Business Architecture](docs/architecture/togaf/business-architecture.puml)
-- [Application Architecture](docs/architecture/togaf/application-architecture.puml)
-- [Data Architecture](docs/architecture/togaf/data-architecture.puml)
-- [Technology Architecture](docs/architecture/togaf/technology-architecture.puml)
+- [TOGAF Overview](docs/en/rd/togaf/overview.puml)
+- [Business Architecture](docs/en/rd/togaf/business-architecture.puml)
+- [Application Architecture](docs/en/rd/togaf/application-architecture.puml)
+- [Data Architecture](docs/en/rd/togaf/data-architecture.puml)
+- [Technology Architecture](docs/en/rd/togaf/technology-architecture.puml)
 
-### Distributed Systems Diagrams
+### Distributed Systems · R&D
 
-- [Distributed Architecture](docs/distributed-systems/distributed-architecture.puml)
-- [Data Flow](docs/distributed-systems/data-flow.puml)
-- [Data Replication](docs/distributed-systems/data-replication.puml)
-- [Service Communication](docs/distributed-systems/service-communication-sequence.puml)
-- [Message Queue](docs/distributed-systems/message-queue.puml)
-- [Load Balancing & Fault Tolerance](docs/distributed-systems/load-balancing-fault-tolerance.puml)
+- [Distributed Architecture](docs/zh/rd/distributed-systems/distributed-architecture.puml)
+- [Data Flow](docs/zh/data/data-flow.puml)
+- [Data Replication](docs/zh/data/data-replication.puml)
+- [Service Communication](docs/zh/rd/distributed-systems/service-communication-sequence.puml)
+- [Message Queue](docs/zh/rd/distributed-systems/message-queue.puml)
+- [Load Balancing & Fault Tolerance](docs/zh/rd/distributed-systems/load-balancing-fault-tolerance.puml)
 
-### Other Diagrams
+### Product
 
-- [User Journey Map](docs/user-journey-map/user-journey-map.puml)
-- [Wardley Map](docs/wardley-map/wardley-map.puml)
+- [User Journey Map](docs/zh/product/user-journey-map/user-journey-map.puml)
+- [Wardley Map](docs/zh/product/wardley-map/wardley-map.puml)
 
-### AWS Integration
+### AWS Integration · R&D
 
-- [AWS Integration Guide](docs/aws-integration.md) - Complete guide for setting up AWS API Gateway WebSocket and Chime SDK
+- [AWS Integration Guide](docs/zh/rd/aws-integration.md) - Complete guide for setting up AWS API Gateway WebSocket and Chime SDK
 
-For more details, see the [Documentation README](docs/README.md).
+For more details, see the [Documentation index](docs/README.md).
 
 ## 🚀 Deployment
 
@@ -434,7 +434,7 @@ docker-compose -f docker-compose.dev.yml up -d  # Development environment
 docker-compose -f docker-compose.prod.yml up -d # Production environment
 ```
 
-For more Docker deployment information, see the [Documentation README](docs/README.md) for available documentation.
+For more Docker deployment information, see the [Documentation index](docs/README.md) (zh / en) for available documentation.
 
 ### Production Environment Considerations
 

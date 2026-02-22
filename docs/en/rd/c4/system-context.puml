@@ -1,6 +1,6 @@
 @startuml
 !global RELATIVE_INCLUDE = 1
-!include ../c4-lib/C4-PlantUML/C4_Context.puml
+!include ../../../c4-lib/C4-PlantUML/C4_Context.puml
 
 title C4 Level 1 - System Context: WhatsChat
 

@@ -1,6 +1,6 @@
 @startuml
 !global RELATIVE_INCLUDE = 1
-!include ../c4-lib/C4-PlantUML/C4_Container.puml
+!include ../../../c4-lib/C4-PlantUML/C4_Container.puml
 
 title C4 Level 2 - Containers: WhatsChat
 

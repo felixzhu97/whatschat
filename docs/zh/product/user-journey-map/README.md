@@ -161,5 +161,7 @@ plantuml -tsvg docs/user-journey-map/*.puml
 
 ---
 
+中文 | [English](../../../en/product/user-journey-map/README.md)
+
 最后更新时间：2025年12月
 

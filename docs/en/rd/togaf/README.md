@@ -33,4 +33,6 @@ TOGAF specification, ADM process, architecture principles, governance rules, and
 
 1. **PlantUML Online** – copy the `.puml` content into the [PlantUML online editor](https://www.plantuml.com/plantuml/uml/)
 2. **VS Code** – install the [PlantUML extension](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml) and press `Alt+D` to preview
-3. **Local CLI** – run `plantuml docs/architecture/togaf/*.puml` to generate PNG/SVG files
+3. **Local CLI** – run `plantuml docs/en/rd/togaf/*.puml` to generate PNG/SVG files
+
+English | [中文](../../zh/rd/togaf/README.md)

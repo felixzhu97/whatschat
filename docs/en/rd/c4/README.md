@@ -50,3 +50,5 @@ plantuml -tsvg docs/c4/*.puml
 
 - [C4 Model](https://c4model.com/)
 - [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML)
+
+English | [中文](../../zh/rd/c4/README.md)

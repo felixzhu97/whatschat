@@ -10,7 +10,7 @@
 - **内容**: API服务、WebSocket服务、数据库、缓存、消息队列等组件的部署和交互
 
 ### 2. 数据流图
-- **文件**: [`data-flow.puml`](./data-flow.puml)
+- **文件**: [数据流图](../data/data-flow.puml)（见 [data](../data/README.md)）
 - **描述**: 展示关键业务流程中的数据流动路径
 - **内容**: 消息发送、用户认证、文件上传等场景的完整数据流
 
@@ -35,7 +35,7 @@
 - **内容**: 生产者、消费者、主题订阅、实时消息推送和离线消息队列
 
 ### 7. 数据复制与分片图
-- **文件**: [`data-replication.puml`](./data-replication.puml)
+- **文件**: [数据复制图](../data/data-replication.puml)（见 [data](../data/README.md)）
 - **描述**: 展示 PostgreSQL 主从复制架构
 - **内容**: 读写分离、数据同步、故障切换、数据备份和恢复策略
 
@@ -125,6 +125,8 @@ plantuml docs/distributed-systems/distributed-architecture.puml
 - [Redis Pub/Sub 文档](https://redis.io/docs/manual/pubsub/)
 
 ---
+
+中文 | [English](../../../en/rd/distributed-systems/README.md)
 
 最后更新时间：2025年12月
 

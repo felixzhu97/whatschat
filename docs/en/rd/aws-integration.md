@@ -267,3 +267,5 @@ All services log to CloudWatch Logs:
 - [AWS API Gateway WebSocket Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html)
 - [AWS Chime SDK Documentation](https://docs.aws.amazon.com/chime/latest/dg/meetings-sdk.html)
 - [Chime SDK JavaScript Guide](https://aws.github.io/amazon-chime-sdk-js/)
+
+English | [中文](../../zh/rd/aws-integration.md)

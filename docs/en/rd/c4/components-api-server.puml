@@ -1,6 +1,6 @@
 @startuml
 !global RELATIVE_INCLUDE = 1
-!include ../c4-lib/C4-PlantUML/C4_Component.puml
+!include ../../../c4-lib/C4-PlantUML/C4_Component.puml
 
 title C4 Level 3 - Components: API Server (NestJS)
 
