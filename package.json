@@ -13,9 +13,14 @@
     "chat"
   ],
   "scripts": {
+    "start": "./scripts/start.sh dev",
+    "start:prod": "./scripts/start.sh prod",
+    "stop": "./scripts/stop.sh dev",
+    "stop:prod": "./scripts/stop.sh prod",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=whatschat-web --filter=whatschat-server --concurrency=23",
-    "setup": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
+    "setup": "./scripts/setup-dev.sh",
+    "setup:inline": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
