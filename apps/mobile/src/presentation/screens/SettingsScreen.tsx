@@ -12,14 +12,6 @@ import { useTranslation } from '@/src/presentation/shared/i18n';
 import { setStoredLanguage, type AppLanguage } from '@/src/presentation/shared/i18n';
 import type { ThemeMode } from '@/src/presentation/shared/theme';
 
-const LIST_INSET = 16;
-const ROW_MIN_HEIGHT = 44;
-const CARD_RADIUS = 12;
-const PROFILE_CARD_RADIUS = 14;
-const CARD_GAP = 20;
-const CARD_PADDING_V = 12;
-const CARD_PADDING_H = 16;
-
 const ScreenWrap = styled.View`
   flex: 1;
 `;
@@ -28,24 +20,20 @@ const Scroll = styled.ScrollView`
   flex: 1;
 `;
 
-const SCROLL_PADDING_TOP = 12 + TAB_PAGE_HEADER_HEIGHT;
-
 const ScrollContent = styled.View`
   padding-bottom: 100px;
-  padding-horizontal: ${LIST_INSET}px;
-  padding-top: ${LIST_INSET}px;
+  padding-horizontal: 12px;
+  padding-top: 16px;
 `;
-
-const CARD_INSET_H = 12;
 
 const ProfileCard = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   padding-vertical: 16px;
-  padding-horizontal: ${LIST_INSET}px;
-  margin-bottom: ${CARD_GAP}px;
-  margin-horizontal: ${CARD_INSET_H}px;
-  border-radius: ${PROFILE_CARD_RADIUS}px;
+  padding-horizontal: 16px;
+  margin-bottom: 20px;
+  margin-horizontal: 8px;
+  border-radius: 14px;
   overflow: hidden;
 `;
 
@@ -68,37 +56,41 @@ const ProfileSubtitle = styled.Text`
 `;
 
 const Card = styled.View`
-  border-radius: ${CARD_RADIUS}px;
+  border-radius: 12px;
   overflow: hidden;
-  margin-top: ${CARD_GAP}px;
-  margin-bottom: ${CARD_GAP}px;
-  margin-horizontal: ${CARD_INSET_H}px;
-  padding-top: ${CARD_PADDING_V}px;
-  padding-bottom: ${CARD_PADDING_V}px;
-  padding-horizontal: ${CARD_PADDING_H}px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  margin-horizontal: 8px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-horizontal: 16px;
 `;
-
-const ICON_SIZE = 28;
-const ICON_RADIUS = 8;
 
 const Row = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
-  min-height: ${ROW_MIN_HEIGHT}px;
+  min-height: 44px;
   padding-vertical: 11px;
   padding-horizontal: 0;
 `;
 
-const RowBorder = styled(Row)`
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => (p.theme as { colors?: { separator?: string } })?.colors?.separator};
-`;
+function InsetSeparator({ color }: { color: string }) {
+  return (
+    <View
+      style={{
+        height: StyleSheet.hairlineWidth,
+        marginLeft: 40,
+        backgroundColor: color,
+      }}
+    />
+  );
+}
 
 const rowIconWrapStyle = StyleSheet.create({
   outer: {
-    width: ICON_SIZE,
-    height: ICON_SIZE,
-    borderRadius: ICON_RADIUS,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     marginRight: 12,
     overflow: 'hidden',
     justifyContent: 'center',
@@ -175,7 +167,8 @@ export const SettingsScreen: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { t, i18n } = useTranslation();
-  const { colors, themeMode, setThemeMode } = useTheme();
+  const { colors, themeMode, setThemeMode, isDark } = useTheme();
+  const separatorColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
   const user = useAuthStore((s) => s.user);
 
   const grad = {
@@ -236,12 +229,12 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-      <ScreenWrap style={{ backgroundColor: colors.tertiaryBackground }}>
+      <ScreenWrap style={{ backgroundColor: 'colors.tertiaryBackground' }}>
         <TabPageHeader title={t('settings.title')} />
         <Scroll
           style={{ backgroundColor: colors.tertiaryBackground }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: SCROLL_PADDING_TOP }}
+          contentContainerStyle={{ paddingTop: 12 + TAB_PAGE_HEADER_HEIGHT }}
         >
           <ScrollContent style={{ backgroundColor: colors.tertiaryBackground }}>
             <ProfileCard
@@ -255,29 +248,31 @@ export const SettingsScreen: React.FC = () => {
               </ProfileInfo>
               <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
             </ProfileCard>
-
             <Card style={{ backgroundColor: colors.secondaryBackground }}>
-              <RowBorder activeOpacity={0.7}>
+              <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.blue}>
                   <Ionicons name="lock-closed" size={16} color="#FFFFFF" />
                 </RowIconGradient>
                 <RowLabel>{t('settings.privacy')}</RowLabel>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </RowBorder>
-              <RowBorder activeOpacity={0.7}>
+              </Row>
+              <InsetSeparator color={separatorColor} />
+              <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.green}>
                   <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
                 </RowIconGradient>
                 <RowLabel>{t('settings.security')}</RowLabel>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </RowBorder>
-              <RowBorder activeOpacity={0.7}>
+              </Row>
+              <InsetSeparator color={separatorColor} />
+              <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.orange}>
                   <Ionicons name="key" size={16} color="#FFFFFF" />
                 </RowIconGradient>
                 <RowLabel>{t('settings.twoStepVerification')}</RowLabel>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </RowBorder>
+              </Row>
+              <InsetSeparator color={separatorColor} />
               <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.teal}>
                   <Ionicons name="person" size={16} color="#FFFFFF" />
@@ -286,6 +281,7 @@ export const SettingsScreen: React.FC = () => {
                 <RowValue numberOfLines={1}>{user?.username ?? t('common.none')}</RowValue>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
               </Row>
+              <InsetSeparator color={separatorColor} />
               <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.blue}>
                   <Ionicons name="mail" size={16} color="#FFFFFF" />
@@ -297,22 +293,24 @@ export const SettingsScreen: React.FC = () => {
             </Card>
 
             <Card style={{ backgroundColor: colors.secondaryBackground }}>
-              <RowBorder activeOpacity={0.7} onPress={handleThemePress}>
+              <Row activeOpacity={0.7} onPress={handleThemePress}>
                 <RowIconGradient colors={grad.pink}>
                   <Ionicons name="color-palette" size={16} color="#FFFFFF" />
                 </RowIconGradient>
                 <RowLabel>{t('settings.theme')}</RowLabel>
                 <RowValue>{themeLabel}</RowValue>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </RowBorder>
-              <RowBorder activeOpacity={0.7} onPress={handleLanguagePress}>
+              </Row>
+              <InsetSeparator color={separatorColor} />
+              <Row activeOpacity={0.7} onPress={handleLanguagePress}>
                 <RowIconGradient colors={grad.blue}>
                   <Ionicons name="language" size={16} color="#FFFFFF" />
                 </RowIconGradient>
                 <RowLabel>{t('settings.language')}</RowLabel>
                 <RowValue>{languageLabel}</RowValue>
                 <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </RowBorder>
+              </Row>
+              <InsetSeparator color={separatorColor} />
               <Row activeOpacity={0.7}>
                 <RowIconGradient colors={grad.purple}>
                   <Ionicons name="images" size={16} color="#FFFFFF" />
