@@ -1,21 +1,101 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAppDispatch, setAuth } from '@/src/presentation/stores';
 import { authService } from '@/src/application/services';
+
+const Page = styled.View`
+  flex: 1;
+  background-color: ${(p) => p.theme.colors.primaryGreenDark};
+`;
+
+const Keyboard = styled(KeyboardAvoidingView)`
+  flex: 1;
+`;
+
+const Header = styled.View`
+  padding: 48px 24px 24px;
+  background-color: ${(p) => p.theme.colors.primaryGreenDark};
+`;
+
+const HeaderTitle = styled.Text`
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+`;
+
+const HeaderSubtitle = styled.Text`
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8px;
+`;
+
+const FormScroll = styled(ScrollView)`
+  flex: 1;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+`;
+
+const FormContent = styled.View`
+  padding: 32px 24px 48px;
+`;
+
+const Label = styled.Text`
+  font-size: 13px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const Input = styled.TextInput`
+  height: 48px;
+  border-radius: 10px;
+  border-width: 1px;
+  padding: 0 16px;
+  font-size: 17px;
+  margin-bottom: 20px;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+  color: ${(p) => p.theme.colors.primaryText};
+  border-color: ${(p) => p.theme.colors.separator};
+`;
+
+const PrimaryButton = styled.TouchableOpacity`
+  height: 50px;
+  border-radius: 25px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const PrimaryButtonText = styled.Text`
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+`;
+
+const Footer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+`;
+
+const FooterText = styled.Text`
+  font-size: 15px;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const LinkText = styled.Text`
+  font-size: 15px;
+  font-weight: 600;
+  color: ${(p) => p.theme.colors.primaryGreen};
+`;
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
@@ -64,167 +144,63 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.primaryGreenDark }]} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboard}
-      >
-        <View style={[styles.header, { backgroundColor: colors.primaryGreenDark }]}>
-          <Text style={styles.headerTitle}>WhatsChat</Text>
-          <Text style={styles.headerSubtitle}>创建账号</Text>
-        </View>
-        <ScrollView
-          style={[styles.form, { backgroundColor: colors.background }]}
-          contentContainerStyle={styles.formContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={[styles.label, { color: colors.secondaryText }]}>用户名</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.secondaryBackground,
-                color: colors.primaryText,
-                borderColor: colors.separator,
-              },
-            ]}
-            placeholder="至少 2 个字符"
-            placeholderTextColor={colors.tertiaryText}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            editable={!loading}
-          />
-          <Text style={[styles.label, { color: colors.secondaryText }]}>邮箱</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.secondaryBackground,
-                color: colors.primaryText,
-                borderColor: colors.separator,
-              },
-            ]}
-            placeholder="your@email.com"
-            placeholderTextColor={colors.tertiaryText}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-          />
-          <Text style={[styles.label, { color: colors.secondaryText }]}>密码</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.secondaryBackground,
-                color: colors.primaryText,
-                borderColor: colors.separator,
-              },
-            ]}
-            placeholder="至少 6 位"
-            placeholderTextColor={colors.tertiaryText}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-          />
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.primaryGreen }]}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>创建账号</Text>
-            )}
-          </TouchableOpacity>
-          <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: colors.secondaryText }]}>已有账号？</Text>
-            <Link href="/login" asChild>
-              <TouchableOpacity disabled={loading}>
-                <Text style={[styles.link, { color: colors.primaryGreen }]}>登录</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <Page>
+        <Keyboard behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Header>
+            <HeaderTitle>WhatsChat</HeaderTitle>
+            <HeaderSubtitle>创建账号</HeaderSubtitle>
+          </Header>
+          <FormScroll contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+            <FormContent>
+              <Label>用户名</Label>
+              <Input
+                placeholder="至少 2 个字符"
+                placeholderTextColor={colors.tertiaryText}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                editable={!loading}
+              />
+              <Label>邮箱</Label>
+              <Input
+                placeholder="your@email.com"
+                placeholderTextColor={colors.tertiaryText}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
+              />
+              <Label>密码</Label>
+              <Input
+                placeholder="至少 6 位"
+                placeholderTextColor={colors.tertiaryText}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+              />
+              <PrimaryButton onPress={handleRegister} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <PrimaryButtonText>创建账号</PrimaryButtonText>
+                )}
+              </PrimaryButton>
+              <Footer>
+                <FooterText>已有账号？</FooterText>
+                <Link href="/login" asChild>
+                  <TouchableOpacity disabled={loading}>
+                    <LinkText>登录</LinkText>
+                  </TouchableOpacity>
+                </Link>
+              </Footer>
+            </FormContent>
+          </FormScroll>
+        </Keyboard>
+      </Page>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
-  keyboard: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 8,
-  },
-  form: {
-    flex: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  formContent: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 48,
-  },
-  label: {
-    fontSize: 13,
-    marginBottom: 6,
-    fontWeight: '500',
-  },
-  input: {
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    fontSize: 17,
-    marginBottom: 20,
-  },
-  primaryButton: {
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  primaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 15,
-  },
-  link: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});

@@ -25,13 +25,12 @@ import {
   Download,
   FileText,
 } from "lucide-react";
-import { cn } from "@/shared/utils/utils";
 import type { Message } from "../../../types";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface MessageBubbleProps {
   message: Message;
   isGroup?: boolean;
-  // 兼容某些页面传入的属性
   isOwn?: boolean;
   showAvatar?: boolean;
   onReply?: (message: Message) => void;
@@ -41,6 +40,205 @@ interface MessageBubbleProps {
   onStar?: (messageId: string) => void;
   onInfo?: (message: Message) => void;
 }
+
+const Row = styled.div<{ $isSent: boolean }>`
+  display: flex;
+  align-items: flex-start;
+  column-gap: 0.5rem;
+  ${({ $isSent }) =>
+    $isSent
+      ? `
+    flex-direction: row-reverse;
+  `
+      : `
+    flex-direction: row;
+  `}
+`;
+
+const Bubble = styled.div<{ $isSent: boolean }>`
+  position: relative;
+  max-width: 20rem;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  ${({ $isSent }) =>
+    $isSent
+      ? `
+    background-color: #22c55e;
+    color: white;
+  `
+      : `
+    background-color: white;
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+  `}
+
+  @media (min-width: 1024px) {
+    max-width: 28rem;
+  }
+`;
+
+const GroupSender = styled.p`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(75 85 99);
+  margin-bottom: 0.25rem;
+`;
+
+const TextContent = styled.p`
+  font-size: 0.875rem;
+`;
+
+const EditedMark = styled.span`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+  font-style: italic;
+  margin-left: 0.25rem;
+`;
+
+const TimeRow = styled.div<{ $isSent: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  ${({ $isSent }) =>
+    $isSent
+      ? `
+    color: rgb(187 247 208);
+  `
+      : `
+    color: rgb(107 114 128);
+  `}
+`;
+
+const StatusIcons = styled.div`
+  display: flex;
+`;
+
+const ReadIcon = styled.span`
+  color: #60a5fa;
+`;
+
+const ReplyIconWrap = styled.span`
+  margin-right: 0.5rem;
+  display: inline-flex;
+`;
+
+const DeleteMenuItem = styled(DropdownMenuItem)`
+  color: rgb(220 38 38);
+`;
+
+const ImageWrapper = styled.div`
+  position: relative;
+  max-width: 16rem;
+`;
+
+const ImageElement = styled.img`
+  width: 100%;
+  border-radius: 0.75rem;
+`;
+
+const ImageTimeBadge = styled.div`
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  background-color: rgb(0 0 0 / 0.5);
+  color: white;
+`;
+
+const VideoThumb = styled.div`
+  max-width: 16rem;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(229 231 235);
+`;
+
+const AudioWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  max-width: 16rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background-color: rgb(243 244 246);
+`;
+
+const AudioBar = styled.div`
+  flex: 1;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: rgb(209 213 219);
+  overflow: hidden;
+`;
+
+const AudioProgress = styled.div`
+  width: 33%;
+  height: 100%;
+  border-radius: inherit;
+  background-color: #3b82f6;
+`;
+
+const AudioTime = styled.span`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const FileWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  column-gap: 0.75rem;
+  max-width: 16rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background-color: rgb(243 244 246);
+`;
+
+const FileInfo = styled.div`
+  flex: 1;
+`;
+
+const FileTitle = styled.p`
+  font-size: 0.875rem;
+  font-weight: 500;
+`;
+
+const FileMeta = styled.p`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const MenuTriggerButton = styled(Button)<{ $isSent: boolean }>`
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0;
+  opacity: 0;
+  border-radius: 9999px;
+  transition: opacity 0.15s ease;
+  ${({ $isSent }) =>
+    $isSent
+      ? `
+    background-color: #16a34a;
+    color: white;
+  `
+      : `
+    background-color: rgb(243 244 246);
+  `}
+
+  ${Row}:hover & {
+    opacity: 1;
+  }
+`;
 
 export function MessageBubble({
   message,
@@ -71,65 +269,54 @@ export function MessageBubble({
     switch (message.type) {
       case "image":
         return (
-          <div className="relative">
-            <img
+          <ImageWrapper>
+            <ImageElement
               src="/placeholder.svg?height=200&width=300&text=图片"
               alt="图片消息"
-              className="rounded-lg max-w-xs"
             />
-            <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-              {formatTime(message.timestamp)}
-            </div>
-          </div>
+            <ImageTimeBadge>{formatTime(message.timestamp)}</ImageTimeBadge>
+          </ImageWrapper>
         );
       case "video":
         return (
-          <div className="relative">
-            <div className="bg-gray-200 rounded-lg p-4 max-w-xs flex items-center justify-center">
-              <Play className="h-8 w-8 text-gray-600" />
-            </div>
-            <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-              {formatTime(message.timestamp)}
-            </div>
-          </div>
+          <ImageWrapper>
+            <VideoThumb>
+              <Play size={32} color="#4b5563" />
+            </VideoThumb>
+            <ImageTimeBadge>{formatTime(message.timestamp)}</ImageTimeBadge>
+          </ImageWrapper>
         );
       case "audio":
         return (
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-3 max-w-xs">
+          <AudioWrapper>
             <Button size="sm" variant="ghost">
-              <Play className="h-4 w-4" />
+              <Play size={16} />
             </Button>
-            <div className="flex-1">
-              <div className="h-2 bg-gray-300 rounded-full">
-                <div className="h-2 bg-blue-500 rounded-full w-1/3"></div>
-              </div>
-            </div>
-            <span className="text-xs text-gray-500">0:30</span>
-          </div>
+            <AudioBar>
+              <AudioProgress />
+            </AudioBar>
+            <AudioTime>0:30</AudioTime>
+          </AudioWrapper>
         );
       case "file":
         return (
-          <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-3 max-w-xs">
-            <FileText className="h-8 w-8 text-gray-600" />
-            <div className="flex-1">
-              <p className="font-medium text-sm">
-                {message.fileName || "文件"}
-              </p>
-              <p className="text-xs text-gray-500">
-                {message.fileSize || "未知大小"}
-              </p>
-            </div>
+          <FileWrapper>
+            <FileText size={32} color="#4b5563" />
+            <FileInfo>
+              <FileTitle>{message.fileName || "文件"}</FileTitle>
+              <FileMeta>{message.fileSize || "未知大小"}</FileMeta>
+            </FileInfo>
             <Button size="sm" variant="ghost">
-              <Download className="h-4 w-4" />
+              <Download size={16} />
             </Button>
-          </div>
+          </FileWrapper>
         );
       default:
         return (
           <div>
-            <p className="text-sm">{message.content}</p>
+            <TextContent>{message.content}</TextContent>
             {message.isEdited && (
-              <span className="text-xs text-gray-500 italic">已编辑</span>
+              <EditedMark>已编辑</EditedMark>
             )}
           </div>
         );
@@ -137,31 +324,19 @@ export function MessageBubble({
   };
 
   return (
-    <div
-      className={cn(
-        "flex items-start space-x-2 group",
-        isSent ? "flex-row-reverse space-x-reverse" : "flex-row"
-      )}
-    >
+    <Row $isSent={isSent}>
       {/* Avatar for received messages in groups */}
       {!isSent && isGroup && (
-        <Avatar className="h-8 w-8">
+        <Avatar>
           <AvatarImage src="/placeholder.svg?height=32&width=32&text=头像" />
           <AvatarFallback>{message.senderName?.[0] || "U"}</AvatarFallback>
         </Avatar>
       )}
 
-      <div
-        className={cn(
-          "max-w-xs lg:max-w-md xl:max-w-lg rounded-lg px-3 py-2 relative",
-          isSent ? "bg-green-500 text-white" : "bg-white border shadow-sm"
-        )}
-      >
+      <Bubble $isSent={isSent}>
         {/* Sender name for group messages */}
         {!isSent && isGroup && (
-          <p className="text-xs font-medium text-gray-600 mb-1">
-            {message.senderName}
-          </p>
+          <GroupSender>{message.senderName}</GroupSender>
         )}
 
         {/* Message content */}
@@ -169,82 +344,60 @@ export function MessageBubble({
 
         {/* Message time and status */}
         {message.type === "text" && (
-          <div
-            className={cn(
-              "flex items-center justify-end space-x-1 mt-1",
-              isSent ? "text-green-100" : "text-gray-500"
-            )}
-          >
-            <span className="text-xs">{formatTime(message.timestamp)}</span>
+          <TimeRow $isSent={isSent}>
+            <span>{formatTime(message.timestamp)}</span>
             {isSent && (
-              <div className="flex">
-                {message.status === "sent" && (
-                  <div className="w-3 h-3 text-green-100">✓</div>
-                )}
-                {message.status === "delivered" && (
-                  <div className="w-3 h-3 text-green-100">✓✓</div>
-                )}
-                {message.status === "read" && (
-                  <div className="w-3 h-3 text-blue-300">✓✓</div>
-                )}
-              </div>
+              <StatusIcons>
+                {message.status === "sent" && <span>✓</span>}
+                {message.status === "delivered" && <span>✓✓</span>}
+                {message.status === "read" && <ReadIcon>✓✓</ReadIcon>}
+              </StatusIcons>
             )}
-          </div>
+          </TimeRow>
         )}
 
-        {/* Message menu */}
         <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                isSent
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-100 hover:bg-gray-200"
-              )}
-            >
-              <MoreVertical className="h-3 w-3" />
-            </Button>
+            <MenuTriggerButton variant="ghost" size="sm" $isSent={isSent}>
+              <MoreVertical size={12} />
+            </MenuTriggerButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onReply && onReply(message)}>
-              <Reply className="h-4 w-4 mr-2" />
+              <ReplyIconWrap>
+                <Reply size={16} />
+              </ReplyIconWrap>
               回复
             </DropdownMenuItem>
             {isSent && message.type === "text" && (
               <DropdownMenuItem
                 onClick={() => onEdit && onEdit(message.id, message.content)}
               >
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit size={16} style={{ marginRight: 8 }} />
                 编辑
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => onForward && onForward(message)}>
-              <Forward className="h-4 w-4 mr-2" />
+              <Forward size={16} style={{ marginRight: 8 }} />
               转发
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onStar && onStar(message.id)}>
-              <Star className="h-4 w-4 mr-2" />
+              <Star size={16} style={{ marginRight: 8 }} />
               收藏
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onInfo && onInfo(message)}>
-              <Info className="h-4 w-4 mr-2" />
+              <Info size={16} style={{ marginRight: 8 }} />
               信息
             </DropdownMenuItem>
             {isSent && (
-              <DropdownMenuItem
-                onClick={() => onDelete && onDelete(message.id)}
-                className="text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
+              <DeleteMenuItem onClick={() => onDelete && onDelete(message.id)}>
+                <Trash2 size={16} style={{ marginRight: 8 }} />
                 删除
-              </DropdownMenuItem>
+              </DeleteMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
-    </div>
+      </Bubble>
+    </Row>
   );
 }

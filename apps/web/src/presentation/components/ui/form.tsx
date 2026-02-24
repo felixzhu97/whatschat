@@ -12,7 +12,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 
-import { cn } from "@/shared/utils/utils";
+import { styled } from "@/src/shared/utils/emotion";
 import { Label } from "@/src/presentation/components/ui/label";
 
 const Form = FormProvider;
@@ -33,19 +33,16 @@ const FormField = <
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
-}: ControllerProps<TFieldValues, TName>) => {
-  return (
-    <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller {...props} />
-    </FormFieldContext.Provider>
-  );
-};
+}: ControllerProps<TFieldValues, TName>) => (
+  <FormFieldContext.Provider value={{ name: props.name }}>
+    <Controller {...props} />
+  </FormFieldContext.Provider>
+);
 
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
   const { getFieldState, formState } = useFormContext();
-
   const fieldState = getFieldState(fieldContext.name, formState);
 
   if (!fieldContext) {
@@ -72,30 +69,38 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue
 );
 
+const FormItemRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+>((props, ref) => {
   const id = React.useId();
-
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <FormItemRoot ref={ref} {...props} />
     </FormItemContext.Provider>
   );
 });
 FormItem.displayName = "FormItem";
 
+const FormLabelRoot = styled(Label)<{ $hasError?: boolean }>`
+  ${({ $hasError }) => $hasError && "color: hsl(var(--destructive));"}
+`;
+
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+>((props, ref) => {
   const { error, formItemId } = useFormField();
-
   return (
-    <Label
+    <FormLabelRoot
       ref={ref}
-      className={cn(error && "text-destructive", className)}
+      $hasError={!!error}
       htmlFor={formItemId}
       {...props}
     />
@@ -106,10 +111,9 @@ FormLabel.displayName = "FormLabel";
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
->(({ ...props }, ref) => {
+>((props, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
-
   return (
     <Slot
       ref={ref}
@@ -126,27 +130,30 @@ const FormControl = React.forwardRef<
 });
 FormControl.displayName = "FormControl";
 
+const FormDescriptionRoot = styled.p`
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+`;
+
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => {
+>((props, ref) => {
   const { formDescriptionId } = useFormField();
-
-  return (
-    <p
-      ref={ref}
-      id={formDescriptionId}
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  );
+  return <FormDescriptionRoot ref={ref} id={formDescriptionId} {...props} />;
 });
 FormDescription.displayName = "FormDescription";
+
+const FormMessageRoot = styled.p`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--destructive));
+`;
 
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
+>(({ children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
 
@@ -155,14 +162,9 @@ const FormMessage = React.forwardRef<
   }
 
   return (
-    <p
-      ref={ref}
-      id={formMessageId}
-      className={cn("text-sm font-medium text-destructive", className)}
-      {...props}
-    >
+    <FormMessageRoot ref={ref} id={formMessageId} {...props}>
       {body}
-    </p>
+    </FormMessageRoot>
   );
 });
 FormMessage.displayName = "FormMessage";

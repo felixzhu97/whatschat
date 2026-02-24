@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/src/presentation/shared/theme';
+import { styled } from '@/src/presentation/shared/emotion';
 import type { CallState } from '@/src/infrastructure/call/callManagerLoader';
 
 interface IncomingCallOverlayProps {
@@ -10,78 +10,80 @@ interface IncomingCallOverlayProps {
   onDecline: () => void;
 }
 
+const Overlay = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  background-color: #0b141a;
+`;
+
+const Content = styled.View`
+  align-items: center;
+`;
+
+const Avatar = styled.View`
+  width: 120px;
+  height: 120px;
+  border-radius: 60px;
+  background-color: rgba(255, 255, 255, 0.2);
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+`;
+
+const Name = styled.Text`
+  font-size: 20px;
+  font-weight: 500;
+  color: #e9edef;
+  margin-bottom: 8px;
+`;
+
+const Subtitle = styled.Text`
+  font-size: 14px;
+  color: #8696a0;
+  margin-bottom: 48px;
+`;
+
+const Buttons = styled.View`
+  flex-direction: row;
+  gap: 48px;
+`;
+
+const Btn = styled.TouchableOpacity`
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  justify-content: center;
+  align-items: center;
+  background-color: ${(p: { isDecline?: boolean }) =>
+    p.isDecline ? p.theme.colors.iosRed : p.theme.colors.primaryGreen};
+`;
+
 export function IncomingCallOverlay({ callState, onAnswer, onDecline }: IncomingCallOverlayProps) {
-  const { colors } = useTheme();
   return (
-    <View style={[styles.overlay, { backgroundColor: '#0B141A' }]}>
-      <View style={styles.content}>
-        <View style={styles.avatar}>
+    <Overlay>
+      <Content>
+        <Avatar>
           <Ionicons name="person" size={64} color="#8696A0" />
-        </View>
-        <Text style={styles.name}>{callState.contactName}</Text>
-        <Text style={styles.subtitle}>
+        </Avatar>
+        <Name>{callState.contactName}</Name>
+        <Subtitle>
           {callState.callType === 'video' ? '视频通话' : '语音通话'} · 正在响铃...
-        </Text>
-        <View style={styles.buttons}>
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.iosRed }]}
-            onPress={onDecline}
-            activeOpacity={0.8}
-          >
+        </Subtitle>
+        <Buttons>
+          <Btn isDecline onPress={onDecline} activeOpacity={0.8}>
             <Ionicons name="close-circle" size={32} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.primaryGreen }]}
-            onPress={onAnswer}
-            activeOpacity={0.8}
-          >
+          </Btn>
+          <Btn onPress={onAnswer} activeOpacity={0.8}>
             <Ionicons name="call" size={32} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+          </Btn>
+        </Buttons>
+      </Content>
+    </Overlay>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#E9EDEF',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#8696A0',
-    marginBottom: 48,
-  },
-  buttons: {
-    flexDirection: 'row',
-    gap: 48,
-  },
-  btn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

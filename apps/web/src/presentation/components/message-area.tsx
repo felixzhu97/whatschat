@@ -1,21 +1,52 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { MessageBubble } from "./message-bubble"
-import type { Contact, Message } from "../../../types"
+import { useEffect, useRef } from "react";
+import { MessageBubble } from "./message-bubble";
+import type { Contact, Message } from "../../../types";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface MessageAreaProps {
-  messages: Message[]
-  selectedContact: Contact | null
-  currentUserId?: string | null
-  isGroup?: boolean
-  onReply: (message: Message) => void
-  onEdit: (messageId: string, text: string) => void
-  onDelete: (messageId: string) => void
-  onForward: (message: Message) => void
-  onStar: (messageId: string) => void
-  onInfo: (message: Message) => void
+  messages: Message[];
+  selectedContact: Contact | null;
+  currentUserId?: string | null;
+  isGroup?: boolean;
+  onReply: (message: Message) => void;
+  onEdit: (messageId: string, text: string) => void;
+  onDelete: (messageId: string) => void;
+  onForward: (message: Message) => void;
+  onStar: (messageId: string) => void;
+  onInfo: (message: Message) => void;
 }
+
+const MessageAreaShell = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(249 250 251);
+`;
+
+const EmptyText = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const MessageList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+  background-color: rgb(249 250 251);
+`;
+
+const InnerEmpty = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+`;
 
 export function MessageArea({
   messages,
@@ -29,27 +60,27 @@ export function MessageArea({
   onStar,
   onInfo,
 }: MessageAreaProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   if (!selectedContact) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">选择一个联系人开始聊天</p>
-      </div>
-    )
+      <MessageAreaShell>
+        <EmptyText>选择一个联系人开始聊天</EmptyText>
+      </MessageAreaShell>
+    );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+    <MessageList>
       {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-gray-500">还没有消息，开始聊天吧！</p>
-        </div>
+        <InnerEmpty>
+          <EmptyText>还没有消息，开始聊天吧！</EmptyText>
+        </InnerEmpty>
       ) : (
         messages.map((message) => (
           <MessageBubble
@@ -73,6 +104,6 @@ export function MessageArea({
         ))
       )}
       <div ref={messagesEndRef} />
-    </div>
-  )
+    </MessageList>
+  );
 }

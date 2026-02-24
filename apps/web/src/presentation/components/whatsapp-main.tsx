@@ -6,8 +6,6 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "./sidebar";
 import { ChatArea } from "./chat-area";
 import { WelcomeScreen } from "./welcome-screen";
-import { CallInterface } from "./call-interface";
-import { IncomingCall } from "./incoming-call";
 import { ProfilePage } from "./profile-page";
 import { CallsPage } from "./calls-page";
 import { StatusPage } from "./status-page";
@@ -27,6 +25,7 @@ import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
 import { useAuth } from "../hooks/use-auth";
+import { styled } from "@/src/shared/utils/emotion";
 import {
   mockContacts,
   mockMessages,
@@ -37,6 +36,37 @@ import {
   handleContactAction,
 } from "@/shared/utils/message-utils";
 import type { Contact, User, Message } from "@/shared/types";
+
+const AppShell = styled.div`
+  display: flex;
+  height: 100vh;
+  background-color: hsl(var(--background));
+`;
+
+const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const FullscreenOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+`;
+
+const ErrorToast = styled.div`
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  background-color: rgb(254 226 226);
+  color: rgb(153 27 27);
+`;
 
 export function WhatsAppMain() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
@@ -273,6 +303,10 @@ export function WhatsAppMain() {
     }
   };
 
+  const handleKeyDownWrapper = (e: React.KeyboardEvent<Element>) => {
+    handleKeyDown(e as React.KeyboardEvent<HTMLTextAreaElement>);
+  };
+
   // Render current page
   const renderCurrentPage = () => {
     if (callState?.isActive) {
@@ -337,7 +371,7 @@ export function WhatsAppMain() {
             isTyping={isTyping}
             isConnected={isConnected}
             onMessageChange={handleMessageChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleKeyDownWrapper}
             onSendMessage={handleSendMessageWrapper}
             onEmojiSelect={handleEmojiSelect}
             onToggleEmojiPicker={handleToggleEmojiPicker}
@@ -363,8 +397,7 @@ export function WhatsAppMain() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Sidebar */}
+    <AppShell>
       <Sidebar
         user={mockUser}
         contacts={filteredContacts}
@@ -393,23 +426,20 @@ export function WhatsAppMain() {
         searchInputRef={searchInputRef}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">{renderCurrentPage()}</div>
+      <MainContent>{renderCurrentPage()}      </MainContent>
 
-      {/* Incoming call */}
       {callState?.status === "ringing" && (
-        <div className="fixed inset-0 z-50">
-          <RealIncomingCall callState={callState} onAnswer={answerCall} onDecline={endCall} />
-        </div>
+        <FullscreenOverlay>
+          <RealIncomingCall
+            callState={callState}
+            onAnswer={answerCall}
+            onDecline={endCall}
+          />
+        </FullscreenOverlay>
       )}
 
-      {callError && (
-        <div className="fixed bottom-4 left-4 right-4 z-50 rounded-lg bg-red-100 p-3 text-sm text-red-800">
-          {callError}
-        </div>
-      )}
+      {callError && <ErrorToast>{callError}</ErrorToast>}
 
-      {/* Create Group Dialog */}
       <CreateGroupDialog
         isOpen={showCreateGroupDialog}
         onClose={closeCreateGroupDialog}
@@ -417,20 +447,18 @@ export function WhatsAppMain() {
         onCreateGroup={handleCreateGroup}
       />
 
-      {/* Add Friend Dialog */}
       <AddFriendDialog
         isOpen={showAddFriendDialog}
         onClose={closeAddFriendDialog}
         onAddFriend={handleAddFriend}
       />
 
-      {/* Advanced Search Dialog */}
       <AdvancedSearchDialog
         isOpen={showAdvancedSearchDialog}
         onClose={closeAdvancedSearchDialog}
         contacts={mockContacts}
         onSearch={handleAdvancedSearch}
       />
-    </div>
+    </AppShell>
   );
 }

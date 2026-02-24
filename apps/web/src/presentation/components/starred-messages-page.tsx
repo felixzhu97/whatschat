@@ -7,6 +7,7 @@ import { Button } from "@/src/presentation/components/ui/button";
 import { Input } from "@/src/presentation/components/ui/input";
 import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
 import { MessageBubble } from "./message-bubble";
+import { styled } from "@/src/shared/utils/emotion";
 import type { Message } from "../../../types";
 
 interface StarredMessage extends Message {
@@ -18,15 +19,152 @@ interface StarredMessagesPageProps {
   onBack: () => void;
 }
 
+const PageRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+`;
+
+const Header = styled.div`
+  background-color: #16a34a;
+  color: white;
+  padding: 1rem;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const BackBtn = styled(Button)`
+  color: white;
+
+  &:hover {
+    background-color: #15803d;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 500;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const SearchWrap = styled.div`
+  position: relative;
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1rem;
+  width: 1rem;
+  color: rgb(156 163 175);
+`;
+
+const SearchInput = styled(Input)`
+  padding-left: 2.5rem;
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.2);
+  color: white;
+
+  &::placeholder {
+    color: rgb(255 255 255 / 0.7);
+  }
+`;
+
+const ListArea = styled(ScrollArea)`
+  flex: 1;
+`;
+
+const ListInner = styled.div`
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const MessageBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const SmallAvatar = styled(Avatar)`
+  height: 1.5rem;
+  width: 1.5rem;
+`;
+
+const SmallFallback = styled(AvatarFallback)`
+  font-size: 0.75rem;
+`;
+
+const StarIcon = styled(Star)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: rgb(234 179 8);
+  fill: currentColor;
+  margin-left: auto;
+`;
+
+const MessageContent = styled.div`
+  margin-left: 2rem;
+`;
+
+const EmptyState = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const EmptyInner = styled.div`
+  text-align: center;
+`;
+
+const EmptyStarIcon = styled(Star)`
+  height: 4rem;
+  width: 4rem;
+  color: rgb(209 213 219);
+  margin: 0 auto 1rem;
+`;
+
+const EmptyTitle = styled.h2`
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: rgb(75 85 99);
+  margin-bottom: 0.5rem;
+`;
+
+const EmptyText = styled.p`
+  color: rgb(107 114 128);
+`;
+
 export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 模拟星标消息数据
   const [starredMessages] = useState<StarredMessage[]>([
     {
       id: "1",
       content: "记得明天的会议时间是下午2点",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1天前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
       senderId: "user1",
       senderName: "张三",
       type: "text",
@@ -37,7 +175,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     {
       id: "2",
       content: "这个项目的截止日期是下周五",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2天前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
       senderId: "user2",
       senderName: "李四",
       type: "text",
@@ -48,7 +186,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     {
       id: "3",
       content: "/placeholder.svg?height=200&width=300&text=重要图片",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3天前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
       senderId: "user3",
       senderName: "王五",
       type: "image",
@@ -59,7 +197,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     {
       id: "4",
       content: "生日聚会地址：中山路123号",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(), // 4天前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
       senderId: "user4",
       senderName: "赵六",
       type: "text",
@@ -69,7 +207,6 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     },
   ]);
 
-  // 过滤星标消息
   const filteredMessages = starredMessages.filter(
     (message) =>
       message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,81 +232,65 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* 头部 */}
-      <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onBack}
-            className="text-white hover:bg-green-700"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-medium">星标消息</h1>
-        </div>
+    <PageRoot>
+      <Header>
+        <HeaderRow>
+          <BackBtn variant="ghost" size="icon" onClick={onBack}>
+            <ArrowIcon />
+          </BackBtn>
+          <Title>星标消息</Title>
+        </HeaderRow>
 
-        {/* 搜索框 */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
+        <SearchWrap>
+          <SearchIcon />
+          <SearchInput
             placeholder="搜索星标消息"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
           />
-        </div>
-      </div>
+        </SearchWrap>
+      </Header>
 
-      <ScrollArea className="flex-1">
+      <ListArea>
         {filteredMessages.length > 0 ? (
-          <div className="p-4 space-y-4">
+          <ListInner>
             {filteredMessages.map((message) => (
-              <div key={message.id} className="space-y-2">
-                {/* 聊天信息 */}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage
-                      src={message.chatAvatar || "/placeholder.svg"}
-                    />
-                    <AvatarFallback className="text-xs">
-                      {message.chatName[0]}
-                    </AvatarFallback>
-                  </Avatar>
+              <MessageBlock key={message.id}>
+                <MetaRow>
+                  <SmallAvatar>
+                    <AvatarImage src={message.chatAvatar || "/placeholder.svg"} />
+                    <SmallFallback>{message.chatName[0]}</SmallFallback>
+                  </SmallAvatar>
                   <span>{message.chatName}</span>
                   <span>•</span>
                   <span>{formatDate(message.timestamp)}</span>
-                  <Star className="h-3 w-3 text-yellow-500 fill-current ml-auto" />
-                </div>
+                  <StarIcon />
+                </MetaRow>
 
-                {/* 消息内容 */}
-                <div className="ml-8">
+                <MessageContent>
                   <MessageBubble
                     message={message}
                     isOwn={false}
                     showAvatar={false}
                   />
-                </div>
-              </div>
+                </MessageContent>
+              </MessageBlock>
             ))}
-          </div>
+          </ListInner>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-lg font-medium text-gray-600 mb-2">
-                没有星标消息
-              </h2>
-              <p className="text-gray-500">
+          <EmptyState>
+            <EmptyInner>
+              <EmptyStarIcon />
+              <EmptyTitle>没有星标消息</EmptyTitle>
+              <EmptyText>
                 {searchQuery
                   ? "没有找到匹配的星标消息"
                   : "点击消息旁的星标图标来收藏重要消息"}
-              </p>
-            </div>
-          </div>
+              </EmptyText>
+            </EmptyInner>
+          </EmptyState>
         )}
-      </ScrollArea>
-    </div>
+      </ListArea>
+    </PageRoot>
   );
 }

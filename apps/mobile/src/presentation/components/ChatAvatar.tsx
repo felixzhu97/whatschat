@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Image, Text } from 'react-native';
 import { useTheme } from '@/src/presentation/shared/theme';
 
 interface ChatAvatarProps {
@@ -9,6 +9,27 @@ interface ChatAvatarProps {
   showBorder?: boolean;
 }
 
+const AVATAR_COLORS = [
+  '#7EC8C4',
+  '#E5A88B',
+  '#6BA3C4',
+  '#98D8C8',
+  '#D4A5A5',
+  '#7BAFCC',
+  '#C9B896',
+  '#6EB5C2',
+];
+
+function getAvatarColor(name: string): string {
+  if (!name || name.length === 0) return AVATAR_COLORS[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[index];
+}
+
 export const ChatAvatar: React.FC<ChatAvatarProps> = ({
   name,
   imageUrl,
@@ -16,75 +37,52 @@ export const ChatAvatar: React.FC<ChatAvatarProps> = ({
   showBorder = false,
 }) => {
   const { colors } = useTheme();
+  const initial = name?.[0]?.toUpperCase() || '?';
+  const radius = size / 2;
 
-  const getInitial = () => {
-    return name?.[0]?.toUpperCase() || '?';
+  const containerStyle = {
+    width: size,
+    height: size,
+    borderRadius: radius,
+    overflow: 'hidden' as const,
+    borderWidth: showBorder ? 2 : 0,
+    borderColor: colors.primaryGreen,
   };
 
-  const getAvatarColor = (name: string): string => {
-    const colors = [
-      '#FF6B6B',
-      '#4ECDC4',
-      '#45B7D1',
-      '#FFA07A',
-      '#98D8C8',
-      '#F7DC6F',
-      '#BB8FCE',
-      '#85C1E2',
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
+  const imageStyle = {
+    width: size,
+    height: size,
+    borderRadius: radius,
+  };
+
+  const placeholderStyle = {
+    width: size,
+    height: size,
+    borderRadius: radius,
+    backgroundColor: getAvatarColor(name),
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  };
+
+  const initialStyle = {
+    color: '#ffffff',
+    fontWeight: '600' as const,
+    fontSize: Math.round(size * 0.4),
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: showBorder ? 2 : 0,
-          borderColor: colors.primaryGreen,
-        },
-      ]}
-    >
+    <View style={containerStyle}>
       {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        <Image
+          source={{ uri: imageUrl }}
+          style={imageStyle}
+          resizeMode="cover"
+        />
       ) : (
-        <View
-          style={[
-            styles.placeholder,
-            {
-              backgroundColor: getAvatarColor(name),
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-            },
-          ]}
-        >
-          <Text style={[styles.initial, { fontSize: size * 0.36 }]}>{getInitial()}</Text>
+        <View style={placeholderStyle}>
+          <Text style={initialStyle}>{initial}</Text>
         </View>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initial: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-});
-

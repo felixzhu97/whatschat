@@ -1,35 +1,170 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ArrowLeft, Plus, MoreVertical } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Button } from "@/src/presentation/components/ui/button"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { useAuth } from "../hooks/use-auth"
+import { useState } from "react";
+import { ArrowLeft, Plus, MoreVertical } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Button } from "@/src/presentation/components/ui/button";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { styled } from "@/src/shared/utils/emotion";
+import { useAuth } from "../hooks/use-auth";
 
 interface Status {
-  id: string
-  name: string
-  avatar: string
-  timestamp: Date
-  viewed: boolean
-  isOwn?: boolean
+  id: string;
+  name: string;
+  avatar: string;
+  timestamp: Date;
+  viewed: boolean;
+  isOwn?: boolean;
 }
 
 interface StatusPageProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
-export function StatusPage({ onBack }: StatusPageProps) {
-  const { user } = useAuth()
+const PageRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+`;
 
-  // 模拟状态数据
+const Header = styled.div`
+  background-color: #16a34a;
+  color: white;
+  padding: 1rem;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const BackBtn = styled(Button)`
+  color: white;
+
+  &:hover {
+    background-color: #15803d;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 500;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const Body = styled(ScrollArea)`
+  flex: 1;
+`;
+
+const Inner = styled.div`
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const StatusRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgb(249 250 251);
+  }
+`;
+
+const StatusRowViewed = styled(StatusRow)`
+  opacity: 0.6;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+`;
+
+const AvatarMedium = styled(Avatar)`
+  height: 3.5rem;
+  width: 3.5rem;
+`;
+
+const PlusBtn = styled(Button)`
+  position: absolute;
+  bottom: -0.25rem;
+  right: -0.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 9999px;
+  background-color: #22c55e;
+
+  &:hover {
+    background-color: #16a34a;
+  }
+`;
+
+const PlusIcon = styled(Plus)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const StatusInfo = styled.div`
+  flex: 1;
+`;
+
+const StatusName = styled.h3`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const StatusTime = styled.p`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const RingGreen = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #22c55e;
+`;
+
+const RingGray = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgb(209 213 219);
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(75 85 99);
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+`;
+
+const SectionList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+export function StatusPage({ onBack }: StatusPageProps) {
+  const { user } = useAuth();
+
   const [statuses] = useState<Status[]>([
     {
       id: "own",
       name: "我的状态",
       avatar: user?.avatar || "/placeholder.svg?height=40&width=40&text=我",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2小时前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
       viewed: true,
       isOwn: true,
     },
@@ -37,139 +172,126 @@ export function StatusPage({ onBack }: StatusPageProps) {
       id: "1",
       name: "张三",
       avatar: "/placeholder.svg?height=40&width=40&text=张",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30分钟前
+      timestamp: new Date(Date.now() - 1000 * 60 * 30),
       viewed: false,
     },
     {
       id: "2",
       name: "李四",
       avatar: "/placeholder.svg?height=40&width=40&text=李",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1小时前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60),
       viewed: true,
     },
     {
       id: "3",
       name: "王五",
       avatar: "/placeholder.svg?height=40&width=40&text=王",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3小时前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
       viewed: false,
     },
-  ])
+  ]);
 
   const formatTimestamp = (timestamp: Date) => {
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60))
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60));
 
     if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60))
-      return `${diffInMinutes}分钟前`
+      const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+      return `${diffInMinutes}分钟前`;
     } else if (diffInHours < 24) {
-      return `${diffInHours}小时前`
+      return `${diffInHours}小时前`;
     } else {
-      return timestamp.toLocaleDateString()
+      return timestamp.toLocaleDateString();
     }
-  }
+  };
 
-  const recentStatuses = statuses.filter((s) => !s.isOwn && !s.viewed)
-  const viewedStatuses = statuses.filter((s) => !s.isOwn && s.viewed)
-  const myStatus = statuses.find((s) => s.isOwn)
+  const recentStatuses = statuses.filter((s) => !s.isOwn && !s.viewed);
+  const viewedStatuses = statuses.filter((s) => !s.isOwn && s.viewed);
+  const myStatus = statuses.find((s) => s.isOwn);
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* 头部 */}
-      <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-medium">状态</h1>
-        </div>
-      </div>
+    <PageRoot>
+      <Header>
+        <HeaderRow>
+          <BackBtn variant="ghost" size="icon" onClick={onBack}>
+            <ArrowIcon />
+          </BackBtn>
+          <Title>状态</Title>
+        </HeaderRow>
+      </Header>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
-          {/* 我的状态 */}
+      <Body>
+        <Inner>
           {myStatus && (
             <div>
-              <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
-                <div className="relative">
-                  <Avatar className="h-14 w-14">
+              <StatusRow>
+                <AvatarWrap>
+                  <AvatarMedium>
                     <AvatarImage src={myStatus.avatar || "/placeholder.svg"} />
                     <AvatarFallback>{myStatus.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="icon"
-                    className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-green-500 hover:bg-green-600"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">{myStatus.name}</h3>
-                  <p className="text-sm text-gray-600">{formatTimestamp(myStatus.timestamp)}</p>
-                </div>
+                  </AvatarMedium>
+                  <PlusBtn size="icon">
+                    <PlusIcon />
+                  </PlusBtn>
+                </AvatarWrap>
+                <StatusInfo>
+                  <StatusName>{myStatus.name}</StatusName>
+                  <StatusTime>{formatTimestamp(myStatus.timestamp)}</StatusTime>
+                </StatusInfo>
                 <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical size={16} />
                 </Button>
-              </div>
+              </StatusRow>
             </div>
           )}
 
-          {/* 最近更新 */}
           {recentStatuses.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-gray-600 mb-3 px-3">最近更新</h2>
-              <div className="space-y-2">
+              <SectionTitle>最近更新</SectionTitle>
+              <SectionList>
                 {recentStatuses.map((status) => (
-                  <div
-                    key={status.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
-                    <div className="relative">
-                      <Avatar className="h-14 w-14">
+                  <StatusRow key={status.id}>
+                    <AvatarWrap>
+                      <AvatarMedium>
                         <AvatarImage src={status.avatar || "/placeholder.svg"} />
                         <AvatarFallback>{status.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 rounded-full border-2 border-green-500"></div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{status.name}</h3>
-                      <p className="text-sm text-gray-600">{formatTimestamp(status.timestamp)}</p>
-                    </div>
-                  </div>
+                      </AvatarMedium>
+                      <RingGreen />
+                    </AvatarWrap>
+                    <StatusInfo>
+                      <StatusName>{status.name}</StatusName>
+                      <StatusTime>{formatTimestamp(status.timestamp)}</StatusTime>
+                    </StatusInfo>
+                  </StatusRow>
                 ))}
-              </div>
+              </SectionList>
             </div>
           )}
 
-          {/* 已查看 */}
           {viewedStatuses.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-gray-600 mb-3 px-3">已查看</h2>
-              <div className="space-y-2">
+              <SectionTitle>已查看</SectionTitle>
+              <SectionList>
                 {viewedStatuses.map((status) => (
-                  <div
-                    key={status.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer opacity-60"
-                  >
-                    <div className="relative">
-                      <Avatar className="h-14 w-14">
+                  <StatusRowViewed key={status.id}>
+                    <AvatarWrap>
+                      <AvatarMedium>
                         <AvatarImage src={status.avatar || "/placeholder.svg"} />
                         <AvatarFallback>{status.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 rounded-full border-2 border-gray-300"></div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{status.name}</h3>
-                      <p className="text-sm text-gray-600">{formatTimestamp(status.timestamp)}</p>
-                    </div>
-                  </div>
+                      </AvatarMedium>
+                      <RingGray />
+                    </AvatarWrap>
+                    <StatusInfo>
+                      <StatusName>{status.name}</StatusName>
+                      <StatusTime>{formatTimestamp(status.timestamp)}</StatusTime>
+                    </StatusInfo>
+                  </StatusRowViewed>
                 ))}
-              </div>
+              </SectionList>
             </div>
           )}
-        </div>
-      </ScrollArea>
-    </div>
-  )
+        </Inner>
+      </Body>
+    </PageRoot>
+  );
 }

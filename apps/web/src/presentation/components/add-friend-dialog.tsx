@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/src/presentation/components/ui/button"
-import { Input } from "@/src/presentation/components/ui/input"
-import { Label } from "@/src/presentation/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/presentation/components/ui/tabs"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { Textarea } from "@/src/presentation/components/ui/textarea"
-import { X, Search, UserPlus, QrCode, MapPin, Clock, Phone } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Input } from "@/src/presentation/components/ui/input";
+import { Label } from "@/src/presentation/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/presentation/components/ui/tabs";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { Textarea } from "@/src/presentation/components/ui/textarea";
+import { X, Search, UserPlus, QrCode, MapPin, Clock, Phone } from "lucide-react";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface AddFriendDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onAddFriend: (friendId: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onAddFriend: (friendId: string) => void;
 }
 
-// Mock data for demonstration
 const mockSearchResults = [
   {
     id: "user1",
@@ -32,7 +32,7 @@ const mockSearchResults = [
     phone: "+86 139 0002 0002",
     mutualFriends: 1,
   },
-]
+];
 
 const mockNearbyUsers = [
   {
@@ -47,7 +47,7 @@ const mockNearbyUsers = [
     avatar: "/placeholder.svg?height=40&width=40&text=李",
     distance: "120米",
   },
-]
+];
 
 const mockRecentContacts = [
   {
@@ -62,73 +62,326 @@ const mockRecentContacts = [
     avatar: "/placeholder.svg?height=40&width=40&text=钱",
     lastContact: "1周前",
   },
-]
+];
+
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+`;
+
+const Panel = styled.div`
+  background: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 1rem;
+  max-height: 80vh;
+  overflow: hidden;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+`;
+
+const Title = styled.h2`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17 24 31);
+`;
+
+const XIcon = styled(X)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const Content = styled.div`
+  flex: 1;
+`;
+
+const TabsListStyled = styled(TabsList)`
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 1rem 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  height: auto;
+  min-height: 3.5rem;
+  background-color: transparent;
+  border-bottom: 1px solid rgb(229 231 235);
+  border-radius: 0;
+`;
+
+const TabsTriggerStyled = styled(TabsTrigger)`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  background-color: transparent;
+  color: rgb(107 114 128);
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  margin-bottom: -1px;
+
+  &[data-state="active"] {
+    background-color: transparent;
+    color: rgb(17 24 39);
+    font-weight: 600;
+    box-shadow: none;
+    border-bottom: 2px solid rgb(37 99 235);
+  }
+
+  &:hover:not([data-state="active"]) {
+    color: rgb(55 65 81);
+  }
+`;
+
+const TabLabel = styled.span`
+  font-size: 0.75rem;
+`;
+
+const TabsContentStyled = styled(TabsContent)`
+  margin-top: 1rem;
+  padding: 0 1rem;
+`;
+
+const SearchSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const SearchRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const SearchInputRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const ScrollSearch = styled(ScrollArea)`
+  height: 16rem;
+`;
+
+const UserList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const UserRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+`;
+
+const UserMain = styled.div`
+  flex: 1;
+`;
+
+const UserName = styled.p`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const UserMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const MutualText = styled.p`
+  font-size: 0.75rem;
+  color: rgb(37 99 235);
+`;
+
+const AvatarMedium = styled(Avatar)`
+  height: 3rem;
+  width: 3rem;
+`;
+
+const AddBtn = styled(Button)`
+  & svg {
+    margin-right: 0.25rem;
+  }
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 2rem 0;
+  color: rgb(107 114 128);
+`;
+
+const EmptyIcon = styled(Search)`
+  height: 3rem;
+  width: 3rem;
+  margin: 0 auto 0.5rem;
+  opacity: 0.5;
+`;
+
+const MessageSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const CharCount = styled.p`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const NearbyHeader = styled.div`
+  text-align: center;
+  padding: 1rem 0;
+`;
+
+const MapPinIcon = styled(MapPin)`
+  height: 2rem;
+  width: 2rem;
+  margin: 0 auto 0.5rem;
+  color: rgb(59 130 246);
+`;
+
+const NearbyText = styled.p`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const ScrollNearby = styled(ScrollArea)`
+  height: 20rem;
+`;
+
+const QrSection = styled.div`
+  text-align: center;
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const QrPlaceholder = styled.div`
+  width: 12rem;
+  height: 12rem;
+  margin: 0 auto;
+  background-color: rgb(243 244 246);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const QrIcon = styled(QrCode)`
+  height: 4rem;
+  width: 4rem;
+  color: rgb(156 163 175);
+`;
+
+const QrTitle = styled.p`
+  font-weight: 500;
+  color: rgb(17 24 31);
+  margin-bottom: 0.5rem;
+`;
+
+const QrDesc = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const ScanBtn = styled(Button)`
+  width: 100%;
+  background: transparent;
+`;
+
+const PhoneIcon = styled(Phone)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const UserPlusIcon = styled(UserPlus)`
+  height: 1rem;
+  width: 1rem;
+`;
 
 export function AddFriendDialog({ isOpen, onClose, onAddFriend }: AddFriendDialogProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [addMessage, setAddMessage] = useState("你好，我想加你为好友")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<typeof mockSearchResults>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [addMessage, setAddMessage] = useState("你好，我想加你为好友");
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return
-
-    setIsSearching(true)
-    // Simulate API call
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
     setTimeout(() => {
       setSearchResults(
-        mockSearchResults.filter((user) => user.name.includes(searchQuery) || user.phone.includes(searchQuery)),
-      )
-      setIsSearching(false)
-    }, 1000)
-  }
+        mockSearchResults.filter(
+          (user) => user.name.includes(searchQuery) || user.phone.includes(searchQuery)
+        )
+      );
+      setIsSearching(false);
+    }, 1000);
+  };
 
-  const handleAddFriend = (userId: string) => {
-    onAddFriend(userId)
-    console.log("Adding friend:", userId, "with message:", addMessage)
-  }
+  const handleAddFriendClick = (userId: string) => {
+    onAddFriend(userId);
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">添加好友</h2>
+    <Overlay>
+      <Panel>
+        <Header>
+          <Title>添加好友</Title>
           <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
+            <XIcon />
           </Button>
-        </div>
+        </Header>
 
-        {/* Content */}
-        <div className="flex-1">
-          <Tabs defaultValue="search" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mx-4 mt-4">
-              <TabsTrigger value="search" className="flex flex-col gap-1 py-2">
-                <Search className="h-4 w-4" />
-                <span className="text-xs">搜索</span>
-              </TabsTrigger>
-              <TabsTrigger value="nearby" className="flex flex-col gap-1 py-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-xs">附近</span>
-              </TabsTrigger>
-              <TabsTrigger value="recent" className="flex flex-col gap-1 py-2">
-                <Clock className="h-4 w-4" />
-                <span className="text-xs">最近</span>
-              </TabsTrigger>
-              <TabsTrigger value="qr" className="flex flex-col gap-1 py-2">
-                <QrCode className="h-4 w-4" />
-                <span className="text-xs">扫码</span>
-              </TabsTrigger>
-            </TabsList>
+        <Content>
+          <Tabs defaultValue="search" style={{ width: "100%" }}>
+            <TabsListStyled>
+              <TabsTriggerStyled value="search">
+                <Search size={16} />
+                <TabLabel>搜索</TabLabel>
+              </TabsTriggerStyled>
+              <TabsTriggerStyled value="nearby">
+                <MapPin size={16} />
+                <TabLabel>附近</TabLabel>
+              </TabsTriggerStyled>
+              <TabsTriggerStyled value="recent">
+                <Clock size={16} />
+                <TabLabel>最近</TabLabel>
+              </TabsTriggerStyled>
+              <TabsTriggerStyled value="qr">
+                <QrCode size={16} />
+                <TabLabel>扫码</TabLabel>
+              </TabsTriggerStyled>
+            </TabsListStyled>
 
-            {/* Search Tab */}
-            <TabsContent value="search" className="mt-4 px-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
+            <TabsContentStyled value="search">
+              <SearchSection>
+                <SearchRow>
                   <Label htmlFor="search">搜索用户</Label>
-                  <div className="flex gap-2">
+                  <SearchInputRow>
                     <Input
                       id="search"
                       placeholder="输入手机号或用户名"
@@ -136,55 +389,56 @@ export function AddFriendDialog({ isOpen, onClose, onAddFriend }: AddFriendDialo
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     />
-                    <Button onClick={handleSearch} disabled={isSearching}>
+                    <Button
+                      variant="secondary"
+                      onClick={handleSearch}
+                      disabled={isSearching}
+                    >
                       {isSearching ? "搜索中..." : "搜索"}
                     </Button>
-                  </div>
-                </div>
+                  </SearchInputRow>
+                </SearchRow>
 
-                <ScrollArea className="h-64">
+                <ScrollSearch>
                   {searchResults.length > 0 ? (
-                    <div className="space-y-2">
+                    <UserList>
                       {searchResults.map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
-                        >
-                          <Avatar className="h-12 w-12">
+                        <UserRow key={user.id}>
+                          <AvatarMedium>
                             <AvatarImage src={user.avatar || "/placeholder.svg"} />
                             <AvatarFallback>{user.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                              <Phone className="h-3 w-3" />
+                          </AvatarMedium>
+                          <UserMain>
+                            <UserName>{user.name}</UserName>
+                            <UserMeta>
+                              <PhoneIcon />
                               <span>{user.phone}</span>
-                            </div>
+                            </UserMeta>
                             {user.mutualFriends > 0 && (
-                              <p className="text-xs text-blue-600">{user.mutualFriends} 个共同好友</p>
+                              <MutualText>{user.mutualFriends} 个共同好友</MutualText>
                             )}
-                          </div>
-                          <Button size="sm" onClick={() => handleAddFriend(user.id)}>
-                            <UserPlus className="h-4 w-4 mr-1" />
+                          </UserMain>
+                          <AddBtn size="sm" onClick={() => handleAddFriendClick(user.id)}>
+                            <UserPlusIcon />
                             添加
-                          </Button>
-                        </div>
+                          </AddBtn>
+                        </UserRow>
                       ))}
-                    </div>
+                    </UserList>
                   ) : searchQuery && !isSearching ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <EmptyState>
+                      <EmptyIcon />
                       <p>没有找到相关用户</p>
-                    </div>
+                    </EmptyState>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <EmptyState>
+                      <EmptyIcon />
                       <p>输入手机号或用户名搜索好友</p>
-                    </div>
+                    </EmptyState>
                   )}
-                </ScrollArea>
+                </ScrollSearch>
 
-                <div className="space-y-2">
+                <MessageSection>
                   <Label htmlFor="message">添加好友消息</Label>
                   <Textarea
                     id="message"
@@ -194,94 +448,85 @@ export function AddFriendDialog({ isOpen, onClose, onAddFriend }: AddFriendDialo
                     rows={2}
                     maxLength={100}
                   />
-                  <p className="text-xs text-gray-500">{addMessage.length}/100</p>
-                </div>
-              </div>
-            </TabsContent>
+                  <CharCount>{addMessage.length}/100</CharCount>
+                </MessageSection>
+              </SearchSection>
+            </TabsContentStyled>
 
-            {/* Nearby Tab */}
-            <TabsContent value="nearby" className="mt-4 px-4">
-              <ScrollArea className="h-80">
-                <div className="space-y-2">
-                  <div className="text-center py-4">
-                    <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">正在搜索附近的人...</p>
-                  </div>
+            <TabsContentStyled value="nearby">
+              <ScrollNearby>
+                <NearbyHeader>
+                  <MapPinIcon />
+                  <NearbyText>正在搜索附近的人...</NearbyText>
+                </NearbyHeader>
+                <UserList>
                   {mockNearbyUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
-                    >
-                      <Avatar className="h-12 w-12">
+                    <UserRow key={user.id}>
+                      <AvatarMedium>
                         <AvatarImage src={user.avatar || "/placeholder.svg"} />
                         <AvatarFallback>{user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <MapPin className="h-3 w-3" />
+                      </AvatarMedium>
+                      <UserMain>
+                        <UserName>{user.name}</UserName>
+                        <UserMeta>
+                          <MapPin size={12} />
                           <span>距离 {user.distance}</span>
-                        </div>
-                      </div>
-                      <Button size="sm" onClick={() => handleAddFriend(user.id)}>
-                        <UserPlus className="h-4 w-4 mr-1" />
+                        </UserMeta>
+                      </UserMain>
+                      <AddBtn size="sm" onClick={() => handleAddFriendClick(user.id)}>
+                        <UserPlusIcon />
                         添加
-                      </Button>
-                    </div>
+                      </AddBtn>
+                    </UserRow>
                   ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
+                </UserList>
+              </ScrollNearby>
+            </TabsContentStyled>
 
-            {/* Recent Tab */}
-            <TabsContent value="recent" className="mt-4 px-4">
-              <ScrollArea className="h-80">
-                <div className="space-y-2">
+            <TabsContentStyled value="recent">
+              <ScrollNearby>
+                <UserList>
                   {mockRecentContacts.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
-                    >
-                      <Avatar className="h-12 w-12">
+                    <UserRow key={user.id}>
+                      <AvatarMedium>
                         <AvatarImage src={user.avatar || "/placeholder.svg"} />
                         <AvatarFallback>{user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="h-3 w-3" />
+                      </AvatarMedium>
+                      <UserMain>
+                        <UserName>{user.name}</UserName>
+                        <UserMeta>
+                          <Clock size={12} />
                           <span>最后联系：{user.lastContact}</span>
-                        </div>
-                      </div>
-                      <Button size="sm" onClick={() => handleAddFriend(user.id)}>
-                        <UserPlus className="h-4 w-4 mr-1" />
+                        </UserMeta>
+                      </UserMain>
+                      <AddBtn size="sm" onClick={() => handleAddFriendClick(user.id)}>
+                        <UserPlusIcon />
                         添加
-                      </Button>
-                    </div>
+                      </AddBtn>
+                    </UserRow>
                   ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
+                </UserList>
+              </ScrollNearby>
+            </TabsContentStyled>
 
-            {/* QR Code Tab */}
-            <TabsContent value="qr" className="mt-4 px-4">
-              <div className="text-center py-8 space-y-4">
-                <div className="w-48 h-48 mx-auto bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                  <QrCode className="h-16 w-16 text-gray-400" />
-                </div>
+            <TabsContentStyled value="qr">
+              <QrSection>
+                <QrPlaceholder>
+                  <QrIcon />
+                </QrPlaceholder>
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white mb-2">我的二维码</p>
-                  <p className="text-sm text-gray-500">扫描上方二维码，加我为好友</p>
+                  <QrTitle>我的二维码</QrTitle>
+                  <QrDesc>扫描上方二维码，加我为好友</QrDesc>
                 </div>
-                <Button variant="outline" className="w-full bg-transparent">
-                  <QrCode className="h-4 w-4 mr-2" />
+                <ScanBtn variant="outline">
+                  <QrCode size={16} style={{ marginRight: "0.5rem" }} />
                   扫描二维码
-                </Button>
-              </div>
-            </TabsContent>
+                </ScanBtn>
+              </QrSection>
+            </TabsContentStyled>
           </Tabs>
-        </div>
-      </div>
-    </div>
-  )
+        </Content>
+      </Panel>
+    </Overlay>
+  );
 }

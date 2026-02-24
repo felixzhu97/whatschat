@@ -16,6 +16,7 @@ import {
   Mic,
   File,
 } from "lucide-react";
+import { styled } from "@/src/shared/utils/emotion";
 import type { Contact, Message } from "../../../types";
 
 interface MessageSearchPageProps {
@@ -35,6 +36,217 @@ interface SearchResult {
   contact: Contact;
   matchedText: string;
 }
+
+const PageRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+`;
+
+const HeaderSearchWrap = styled.div`
+  flex: 1;
+`;
+
+const SearchWrap = styled.div`
+  position: relative;
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1rem;
+  width: 1rem;
+  color: rgb(156 163 175);
+`;
+
+const SearchInput = styled(Input)`
+  padding-left: 2.5rem;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const FilterIcon = styled(Filter)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const FiltersRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+  overflow-x: auto;
+`;
+
+const FilterBtn = styled(Button)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+`;
+
+const Body = styled(ScrollArea)`
+  flex: 1;
+`;
+
+const BodyInner = styled.div`
+  padding: 1rem;
+`;
+
+const SpinnerWrap = styled.div`
+  text-align: center;
+  padding: 2rem 0;
+`;
+
+const Spinner = styled.div`
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-bottom-color: rgb(59 130 246);
+  margin: 0 auto 0.5rem;
+  animation: spin 0.8s linear infinite;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const SpinnerText = styled.p`
+  color: rgb(107 114 128);
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 3rem 0;
+  color: rgb(107 114 128);
+`;
+
+const EmptyIcon = styled(Search)`
+  height: 4rem;
+  width: 4rem;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+`;
+
+const EmptyTitle = styled.h3`
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+`;
+
+const ResultsHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+
+const ResultsCount = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const ResultsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const ResultCard = styled.div`
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgb(249 250 251);
+  }
+`;
+
+const ResultRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+`;
+
+const ResultMain = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const ResultTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+`;
+
+const ContactName = styled.p`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgb(107 114 128);
+`;
+
+const MetaTime = styled.span`
+  font-size: 0.75rem;
+`;
+
+const ResultContent = styled.div`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const ResultExcerpt = styled.div`
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const SenderName = styled.p`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+  margin-top: 0.25rem;
+`;
+
+const MediaRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const AvatarSmall = styled(Avatar)`
+  height: 2.5rem;
+  width: 2.5rem;
+`;
+
+const GroupBadge = styled(Badge)`
+  font-size: 0.75rem;
+`;
 
 export function MessageSearchPage({
   isOpen,
@@ -68,8 +280,6 @@ export function MessageSearchPage({
 
   const performSearch = async (query: string) => {
     setIsSearching(true);
-
-    // Simulate search delay
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const results: SearchResult[] = [];
@@ -79,12 +289,7 @@ export function MessageSearchPage({
       if (!contact) return;
 
       messages.forEach((message) => {
-        // Filter by message type
-        if (selectedFilter !== "all" && message.type !== selectedFilter) {
-          return;
-        }
-
-        // Search in message content
+        if (selectedFilter !== "all" && message.type !== selectedFilter) return;
         if (message.content.toLowerCase().includes(query.toLowerCase())) {
           results.push({
             message,
@@ -95,11 +300,9 @@ export function MessageSearchPage({
       });
     });
 
-    // Sort by date (newest first)
     results.sort(
       (a, b) =>
-        new Date(b.message.timestamp).getTime() -
-        new Date(a.message.timestamp).getTime()
+        new Date(b.message.timestamp).getTime() - new Date(a.message.timestamp).getTime()
     );
 
     setSearchResults(results);
@@ -132,158 +335,133 @@ export function MessageSearchPage({
   };
 
   const getMessageTypeIcon = (type: string) => {
+    const size = 16;
     switch (type) {
       case "image":
-        return <ImageIcon className="h-4 w-4" />;
+        return <ImageIcon size={size} />;
       case "video":
-        return <Video className="h-4 w-4" />;
+        return <Video size={size} />;
       case "audio":
-        return <Mic className="h-4 w-4" />;
+        return <Mic size={size} />;
       case "file":
-        return <File className="h-4 w-4" />;
+        return <File size={size} />;
       default:
-        return <FileText className="h-4 w-4" />;
+        return <FileText size={size} />;
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
+    <PageRoot>
+      <Header>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowIcon />
         </Button>
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
+        <HeaderSearchWrap>
+          <SearchWrap>
+            <SearchIcon />
+            <SearchInput
               placeholder="搜索消息..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
             />
-          </div>
-        </div>
+          </SearchWrap>
+        </HeaderSearchWrap>
         <Button variant="ghost" size="icon">
-          <Filter className="h-5 w-5" />
+          <FilterIcon />
         </Button>
-      </div>
+      </Header>
 
-      {/* Filters */}
-      <div className="flex gap-2 p-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <FiltersRow>
         {filters.map((filter) => {
           const IconComponent = filter.icon;
           const isSelected = selectedFilter === filter.id;
           return (
-            <Button
+            <FilterBtn
               key={filter.id}
               variant={isSelected ? "default" : "outline"}
               size="sm"
-              className="flex items-center gap-2 whitespace-nowrap"
               onClick={() => setSelectedFilter(filter.id)}
             >
-              <IconComponent className="h-4 w-4" />
+              <IconComponent size={16} />
               {filter.name}
-            </Button>
+            </FilterBtn>
           );
         })}
-      </div>
+      </FiltersRow>
 
-      {/* Search Results */}
-      <ScrollArea className="flex-1">
-        <div className="p-4">
+      <Body>
+        <BodyInner>
           {isSearching ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-              <p className="text-gray-500">搜索中...</p>
-            </div>
+            <SpinnerWrap>
+              <Spinner />
+              <SpinnerText>搜索中...</SpinnerText>
+            </SpinnerWrap>
           ) : searchQuery.trim() === "" ? (
-            <div className="text-center py-12 text-gray-500">
-              <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">搜索消息</h3>
+            <EmptyState>
+              <EmptyIcon />
+              <EmptyTitle>搜索消息</EmptyTitle>
               <p>输入关键词搜索聊天记录</p>
-            </div>
+            </EmptyState>
           ) : searchResults.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">没有找到结果</h3>
+            <EmptyState>
+              <EmptyIcon />
+              <EmptyTitle>没有找到结果</EmptyTitle>
               <p>尝试使用其他关键词</p>
-            </div>
+            </EmptyState>
           ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
-                  找到 {searchResults.length} 条相关消息
-                </p>
-              </div>
+            <>
+              <ResultsHeader>
+                <ResultsCount>找到 {searchResults.length} 条相关消息</ResultsCount>
+              </ResultsHeader>
 
-              <div className="space-y-2">
+              <ResultsList>
                 {searchResults.map((result, index) => (
-                  <div
+                  <ResultCard
                     key={`${result.message.id}-${index}`}
-                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                    onClick={() =>
-                      onSelectMessage(result.contact.id, result.message.id)
-                    }
+                    onClick={() => onSelectMessage(result.contact.id, result.message.id)}
                   >
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={result.contact.avatar || "/placeholder.svg"}
-                        />
-                        <AvatarFallback>
-                          {result.contact.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {result.contact.name}
-                          </p>
+                    <ResultRow>
+                      <AvatarSmall>
+                        <AvatarImage src={result.contact.avatar || "/placeholder.svg"} />
+                        <AvatarFallback>{result.contact.name[0]}</AvatarFallback>
+                      </AvatarSmall>
+                      <ResultMain>
+                        <ResultTop>
+                          <ContactName>{result.contact.name}</ContactName>
                           {result.contact.isGroup && (
-                            <Badge variant="secondary" className="text-xs">
-                              群组
-                            </Badge>
+                            <GroupBadge variant="secondary">群组</GroupBadge>
                           )}
-                          <div className="flex items-center gap-1 text-gray-500">
+                          <MetaRow>
                             {getMessageTypeIcon(result.message.type)}
-                            <span className="text-xs">
-                              {formatDate(result.message.timestamp)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <MetaTime>{formatDate(result.message.timestamp)}</MetaTime>
+                          </MetaRow>
+                        </ResultTop>
+                        <ResultContent>
                           {result.message.type === "text" ? (
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html: result.matchedText,
-                              }}
-                              className="line-clamp-2"
+                            <ResultExcerpt
+                              dangerouslySetInnerHTML={{ __html: result.matchedText }}
                             />
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <MediaRow>
                               {getMessageTypeIcon(result.message.type)}
                               <span>{result.message.content}</span>
-                            </div>
+                            </MediaRow>
                           )}
-                        </div>
-                        {result.message.senderName &&
-                          result.contact.isGroup && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {result.message.senderName}
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  </div>
+                        </ResultContent>
+                        {result.message.senderName && result.contact.isGroup && (
+                          <SenderName>{result.message.senderName}</SenderName>
+                        )}
+                      </ResultMain>
+                    </ResultRow>
+                  </ResultCard>
                 ))}
-              </div>
-            </div>
+              </ResultsList>
+            </>
           )}
-        </div>
-      </ScrollArea>
-    </div>
+        </BodyInner>
+      </Body>
+    </PageRoot>
   );
 }

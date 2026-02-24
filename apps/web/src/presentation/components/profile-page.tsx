@@ -1,151 +1,316 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ArrowLeft, Camera, Edit2, Check, X } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Button } from "@/src/presentation/components/ui/button"
-import { Input } from "@/src/presentation/components/ui/input"
-import { Label } from "@/src/presentation/components/ui/label"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { Separator } from "@/src/presentation/components/ui/separator"
-import { useAuth } from "../hooks/use-auth"
+import { useState } from "react";
+import { ArrowLeft, Camera, Edit2, Check, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Input } from "@/src/presentation/components/ui/input";
+import { Label } from "@/src/presentation/components/ui/label";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { Separator } from "@/src/presentation/components/ui/separator";
+import { styled } from "@/src/shared/utils/emotion";
+import { useAuth } from "../hooks/use-auth";
 
 interface ProfilePageProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
+const PageRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+`;
+
+const Header = styled.div`
+  background-color: #16a34a;
+  color: white;
+  padding: 1rem;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const BackBtn = styled(Button)`
+  color: white;
+
+  &:hover {
+    background-color: #15803d;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 500;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const Body = styled(ScrollArea)`
+  flex: 1;
+`;
+
+const Inner = styled.div`
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+`;
+
+const AvatarSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+`;
+
+const AvatarLarge = styled(Avatar)`
+  height: 8rem;
+  width: 8rem;
+`;
+
+const FallbackLarge = styled(AvatarFallback)`
+  font-size: 1.5rem;
+`;
+
+const CameraBtn = styled(Button)`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-radius: 9999px;
+  background-color: #22c55e;
+
+  &:hover {
+    background-color: #16a34a;
+  }
+`;
+
+const CameraIcon = styled(Camera)`
+  height: 1rem;
+  width: 1rem;
+`;
+
+const AvatarHint = styled.p`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const FieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const LabelGreen = styled(Label)`
+  color: #16a34a;
+  font-weight: 500;
+`;
+
+const EditRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const InputFlex = styled(Input)`
+  flex: 1;
+`;
+
+const CheckIcon = styled(Check)`
+  height: 1rem;
+  width: 1rem;
+  color: #16a34a;
+`;
+
+const XIcon = styled(X)`
+  height: 1rem;
+  width: 1rem;
+  color: rgb(75 85 99);
+`;
+
+const ViewRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+
+  &:hover {
+    background-color: rgb(249 250 251);
+  }
+`;
+
+const ViewText = styled.span`
+  color: rgb(17 24 31);
+`;
+
+const EditIcon = styled(Edit2)`
+  height: 1rem;
+  width: 1rem;
+  color: rgb(75 85 99);
+`;
+
+const FieldHint = styled.p`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const ContactGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const ContactLabel = styled(Label)`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const ContactValue = styled.div`
+  padding: 0.75rem;
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+`;
+
+const ContactText = styled.span`
+  color: rgb(17 24 31);
+`;
+
 export function ProfilePage({ onBack }: ProfilePageProps) {
-  const { user, updateUser } = useAuth()
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [isEditingAbout, setIsEditingAbout] = useState(false)
-  const [tempName, setTempName] = useState(user?.name || "")
-  const [tempAbout, setTempAbout] = useState(user?.about || "")
+  const { user, updateUser } = useAuth();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+  const [tempName, setTempName] = useState(user?.name || "");
+  const [tempAbout, setTempAbout] = useState(user?.about || "");
 
   const handleSaveName = () => {
     if (tempName.trim()) {
-      updateUser({ name: tempName.trim() })
-      setIsEditingName(false)
+      updateUser({ name: tempName.trim() });
+      setIsEditingName(false);
     }
-  }
+  };
 
   const handleSaveAbout = () => {
-    updateUser({ about: tempAbout.trim() })
-    setIsEditingAbout(false)
-  }
+    updateUser({ about: tempAbout.trim() });
+    setIsEditingAbout(false);
+  };
 
   const handleCancelName = () => {
-    setTempName(user?.name || "")
-    setIsEditingName(false)
-  }
+    setTempName(user?.name || "");
+    setIsEditingName(false);
+  };
 
   const handleCancelAbout = () => {
-    setTempAbout(user?.about || "")
-    setIsEditingAbout(false)
-  }
+    setTempAbout(user?.about || "");
+    setIsEditingAbout(false);
+  };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* 头部 */}
-      <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-medium">个人资料</h1>
-        </div>
-      </div>
+    <PageRoot>
+      <Header>
+        <HeaderRow>
+          <BackBtn variant="ghost" size="icon" onClick={onBack}>
+            <ArrowIcon />
+          </BackBtn>
+          <Title>个人资料</Title>
+        </HeaderRow>
+      </Header>
 
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-8">
-          {/* 头像部分 */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <Avatar className="h-32 w-32">
+      <Body>
+        <Inner>
+          <AvatarSection>
+            <AvatarWrap>
+              <AvatarLarge>
                 <AvatarImage src={user?.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="text-2xl">{user?.name?.[0] || "我"}</AvatarFallback>
-              </Avatar>
-              <Button size="icon" className="absolute bottom-0 right-0 rounded-full bg-green-500 hover:bg-green-600">
-                <Camera className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-gray-600">点击更换头像</p>
-          </div>
+                <FallbackLarge>{user?.name?.[0] || "我"}</FallbackLarge>
+              </AvatarLarge>
+              <CameraBtn size="icon">
+                <CameraIcon />
+              </CameraBtn>
+            </AvatarWrap>
+            <AvatarHint>点击更换头像</AvatarHint>
+          </AvatarSection>
 
           <Separator />
 
-          {/* 姓名编辑 */}
-          <div className="space-y-3">
-            <Label className="text-green-600 font-medium">姓名</Label>
+          <FieldGroup>
+            <LabelGreen>姓名</LabelGreen>
             {isEditingName ? (
-              <div className="flex items-center gap-2">
-                <Input value={tempName} onChange={(e) => setTempName(e.target.value)} className="flex-1" autoFocus />
+              <EditRow>
+                <InputFlex value={tempName} onChange={(e) => setTempName(e.target.value)} autoFocus />
                 <Button size="icon" variant="ghost" onClick={handleSaveName}>
-                  <Check className="h-4 w-4 text-green-600" />
+                  <CheckIcon />
                 </Button>
                 <Button size="icon" variant="ghost" onClick={handleCancelName}>
-                  <X className="h-4 w-4 text-gray-600" />
+                  <XIcon />
                 </Button>
-              </div>
+              </EditRow>
             ) : (
-              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-                <span className="text-gray-900">{user?.name || "未设置"}</span>
+              <ViewRow>
+                <ViewText>{user?.name || "未设置"}</ViewText>
                 <Button size="icon" variant="ghost" onClick={() => setIsEditingName(true)}>
-                  <Edit2 className="h-4 w-4 text-gray-600" />
+                  <EditIcon />
                 </Button>
-              </div>
+              </ViewRow>
             )}
-            <p className="text-xs text-gray-500">这不是用户名或PIN码。此名称将对您的WhatsApp联系人可见。</p>
-          </div>
+            <FieldHint>这不是用户名或PIN码。此名称将对您的WhatsApp联系人可见。</FieldHint>
+          </FieldGroup>
 
           <Separator />
 
-          {/* 关于编辑 */}
-          <div className="space-y-3">
-            <Label className="text-green-600 font-medium">关于</Label>
+          <FieldGroup>
+            <LabelGreen>关于</LabelGreen>
             {isEditingAbout ? (
-              <div className="flex items-center gap-2">
-                <Input value={tempAbout} onChange={(e) => setTempAbout(e.target.value)} className="flex-1" autoFocus />
+              <EditRow>
+                <InputFlex value={tempAbout} onChange={(e) => setTempAbout(e.target.value)} autoFocus />
                 <Button size="icon" variant="ghost" onClick={handleSaveAbout}>
-                  <Check className="h-4 w-4 text-green-600" />
+                  <CheckIcon />
                 </Button>
                 <Button size="icon" variant="ghost" onClick={handleCancelAbout}>
-                  <X className="h-4 w-4 text-gray-600" />
+                  <XIcon />
                 </Button>
-              </div>
+              </EditRow>
             ) : (
-              <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-                <span className="text-gray-900">{user?.about || "嗨，我正在使用 WhatsApp！"}</span>
+              <ViewRow>
+                <ViewText>{user?.about || "嗨，我正在使用 WhatsApp！"}</ViewText>
                 <Button size="icon" variant="ghost" onClick={() => setIsEditingAbout(true)}>
-                  <Edit2 className="h-4 w-4 text-gray-600" />
+                  <EditIcon />
                 </Button>
-              </div>
+              </ViewRow>
             )}
-          </div>
+          </FieldGroup>
 
           <Separator />
 
-          {/* 联系信息 */}
-          <div className="space-y-4">
-            <Label className="text-green-600 font-medium">联系信息</Label>
-
-            <div className="space-y-3">
+          <ContactGroup>
+            <LabelGreen>联系信息</LabelGreen>
+            <FieldGroup>
               <div>
-                <Label className="text-sm text-gray-600">邮箱</Label>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-900">{user?.email || "未设置"}</span>
-                </div>
+                <ContactLabel>邮箱</ContactLabel>
+                <ContactValue>
+                  <ContactText>{user?.email || "未设置"}</ContactText>
+                </ContactValue>
               </div>
-
               <div>
-                <Label className="text-sm text-gray-600">手机号</Label>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-900">{user?.phone || "未设置"}</span>
-                </div>
+                <ContactLabel>手机号</ContactLabel>
+                <ContactValue>
+                  <ContactText>{user?.phone || "未设置"}</ContactText>
+                </ContactValue>
               </div>
-            </div>
-          </div>
-        </div>
-      </ScrollArea>
-    </div>
-  )
+            </FieldGroup>
+          </ContactGroup>
+        </Inner>
+      </Body>
+    </PageRoot>
+  );
 }

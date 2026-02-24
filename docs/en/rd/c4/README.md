@@ -7,9 +7,9 @@ This folder contains the [C4 model](https://c4model.com/) diagrams for WhatsChat
 | Level | Diagram | Description |
 |-------|---------|-------------|
 | **1 – System Context** | [system-context.puml](./system-context.puml) | WhatsChat as one system and its users and external systems (email, push, storage, STUN/TURN). |
-| **2 – Containers** | [containers.puml](./containers.puml) | Main containers: Web App, Mobile App, API Server, PostgreSQL, Redis, Object Storage. |
+| **2 – Containers** | [containers.puml](./containers.puml) | Main containers: Web App, Admin App, Mobile App, API Server, PostgreSQL, Redis, Object Storage. |
 | **3 – Components (API Server)** | [components-api-server.puml](./components-api-server.puml) | NestJS API Server: controllers, WebSocket gateway, services, repositories. |
-| **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, chat/call UI, hooks, API/WebSocket clients, @whatschat/domain. |
+| **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, chat/call UI (Emotion, Radix UI), hooks, API/WebSocket clients, @whatschat/domain. |
 
 ## How to view
 
@@ -42,7 +42,7 @@ plantuml -tsvg docs/c4/*.puml
 ## Conventions
 
 - **System Context**: One system (WhatsChat), actors (Web/Mobile User), and external systems only.
-- **Containers**: Runnable deployables and data stores; Web App, Mobile App, API Server, PostgreSQL, Redis, Object Storage.
+- **Containers**: Runnable deployables and data stores; Web App, Admin App, Mobile App, API Server, PostgreSQL, Redis, Object Storage.
 - **Components**: Logical building blocks inside a container (e.g. services, gateways, hooks, API client).  
   Shared domain types are represented where relevant (e.g. Web App uses `@whatschat/domain`).
 

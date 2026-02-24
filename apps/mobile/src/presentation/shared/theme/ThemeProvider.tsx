@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeProvider as EmotionThemeProvider } from '@emotion/react';
 import {
   ThemeColors,
   ThemeMode,
@@ -72,7 +73,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     setThemeMode,
   };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  const emotionTheme = { colors, typography };
+
+  return (
+    <ThemeContext.Provider value={value}>
+      <EmotionThemeProvider theme={emotionTheme}>{children}</EmotionThemeProvider>
+    </ThemeContext.Provider>
+  );
 };
 
 const defaultThemeValue: ThemeContextType = {

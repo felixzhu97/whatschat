@@ -1,8 +1,15 @@
-/**
- * Emotion utilities for component-level styling.
- * Use with Tailwind: prefer `className={cn(...)}` for layout/utilities,
- * use `styled()` or `css` for dynamic or complex component styles.
- */
-export { default as styled } from "@emotion/styled";
-export { default as keyframes } from "@emotion/styled";
-export { css, useTheme } from "@emotion/react";
+import styled from "@emotion/styled";
+import { keyframes, useTheme, css } from "@emotion/react";
+
+export const whatsappListRowColors = {
+  default: "transparent",
+  selected: "rgb(243 244 246)",
+  active: "rgb(239 246 255)",
+  hover: "rgb(249 250 251)",
+} as const;
+
+export const whatsappShadows = {
+  listRowActive: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+} as const;
+
+export { styled, keyframes, css, useTheme };

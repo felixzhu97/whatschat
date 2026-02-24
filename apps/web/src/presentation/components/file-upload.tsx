@@ -1,74 +1,131 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useRef } from "react"
-import { Button } from "@/src/presentation/components/ui/button"
-import { Card } from "@/src/presentation/components/ui/card"
-import { ImageIcon, FileText, Camera } from "lucide-react"
+import type React from "react";
+import { useRef } from "react";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Card } from "@/src/presentation/components/ui/card";
+import { ImageIcon, FileText, Camera } from "lucide-react";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface FileUploadProps {
-  onFileSelect: (file: File, type: "image" | "file") => void
+  onFileSelect: (file: File, type: "image" | "file") => void;
 }
 
+const UploadCard = styled(Card)`
+  padding: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+`;
+
+const UploadGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 12rem;
+`;
+
+const UploadOptionButton = styled(Button)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  height: auto;
+  padding: 0.75rem;
+`;
+
+const OptionLabel = styled.span`
+  font-size: 0.75rem;
+`;
+
+const ImageIconStyled = styled(ImageIcon)`
+  height: 1.5rem;
+  width: 1.5rem;
+  color: #3b82f6;
+`;
+
+const FileIconStyled = styled(FileText)`
+  height: 1.5rem;
+  width: 1.5rem;
+  color: rgb(107 114 128);
+`;
+
+const CameraIconStyled = styled(Camera)`
+  height: 1.5rem;
+  width: 1.5rem;
+  color: rgb(147 51 234);
+`;
+
+const HiddenInput = styled.input`
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+`;
+
 export function FileUpload({ onFileSelect }: FileUploadProps) {
-  const imageInputRef = useRef<HTMLInputElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = () => {
-    imageInputRef.current?.click()
-  }
+    imageInputRef.current?.click();
+  };
 
   const handleFileClick = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      onFileSelect(file, "image")
+      onFileSelect(file, "image");
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      onFileSelect(file, "file")
+      onFileSelect(file, "file");
     }
-  }
+  };
 
   return (
-    <Card className="p-2 shadow-lg">
-      <div className="grid grid-cols-3 gap-2 w-48">
-        <Button
+    <UploadCard>
+      <UploadGrid>
+        <UploadOptionButton
           variant="ghost"
           size="sm"
           onClick={handleImageClick}
-          className="flex flex-col items-center space-y-1 h-auto p-3"
         >
-          <ImageIcon className="h-6 w-6 text-blue-500" />
-          <span className="text-xs">图片</span>
-        </Button>
+          <ImageIconStyled />
+          <OptionLabel>图片</OptionLabel>
+        </UploadOptionButton>
 
-        <Button
+        <UploadOptionButton
           variant="ghost"
           size="sm"
           onClick={handleFileClick}
-          className="flex flex-col items-center space-y-1 h-auto p-3"
         >
-          <FileText className="h-6 w-6 text-gray-500" />
-          <span className="text-xs">文件</span>
-        </Button>
+          <FileIconStyled />
+          <OptionLabel>文件</OptionLabel>
+        </UploadOptionButton>
 
-        <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 h-auto p-3">
-          <Camera className="h-6 w-6 text-purple-500" />
-          <span className="text-xs">相机</span>
-        </Button>
-      </div>
+        <UploadOptionButton variant="ghost" size="sm">
+          <CameraIconStyled />
+          <OptionLabel>相机</OptionLabel>
+        </UploadOptionButton>
+      </UploadGrid>
 
-      <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-
-      <input ref={fileInputRef} type="file" onChange={handleFileChange} className="hidden" />
-    </Card>
-  )
+      <HiddenInput
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+      <HiddenInput
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileChange}
+      />
+    </UploadCard>
+  );
 }

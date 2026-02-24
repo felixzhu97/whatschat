@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
@@ -13,12 +11,112 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Chat, ChatType } from '@/src/domain/entities';
 import { ChatListItem } from '@/src/presentation/components';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { chatService } from '@/src/application/services';
 
 interface ChatListScreenProps {
   navigation: any;
 }
+
+const Page = styled.View`
+  flex: 1;
+  background-color: ${(p) => p.theme.colors.background};
+`;
+
+const Header = styled.View`
+  padding: 8px 16px;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+`;
+
+const HeaderTop = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const Title = styled.Text`
+  font-size: 17px;
+  font-weight: 600;
+  color: ${(p) => p.theme.colors.primaryText};
+`;
+
+const HeaderRight = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const HeaderButton = styled.TouchableOpacity`
+  padding: 4px;
+`;
+
+const NewChatButton = styled.View`
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  justify-content: center;
+  align-items: center;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const CategoryContainer = styled.View`
+  margin-top: 8px;
+`;
+
+const CategoryButton = styled.TouchableOpacity`
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-right: 8px;
+  border-width: 1px;
+  border-color: rgba(0, 0, 0, 0.1);
+  background-color: ${(p: { selected: boolean }) =>
+    p.selected ? p.theme.colors.primaryGreen : 'transparent'};
+`;
+
+const CategoryText = styled.Text`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${(p: { selected: boolean }) =>
+    p.selected ? '#ffffff' : p.theme.colors.secondaryText};
+`;
+
+const EmptyContainer = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px;
+`;
+
+const EmptyContainerCentered = styled(EmptyContainer)`
+  justify-content: center;
+`;
+
+const EmptyText = styled.Text`
+  font-size: 16px;
+  margin-top: 16px;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const Footer = styled.View`
+  padding: 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: ${(p) => p.theme.colors.background};
+`;
+
+const FooterText = styled.Text`
+  font-size: 13px;
+  text-align: center;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const FooterLink = styled.Text`
+  color: ${(p) => p.theme.colors.primaryGreen};
+`;
 
 export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) => {
   const { colors } = useTheme();
@@ -48,12 +146,7 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
   }, [loadChats]);
 
   useEffect(() => {
-    filterChats();
-  }, [searchQuery, selectedCategory, chats]);
-
-  const filterChats = () => {
     let filtered = [...chats];
-
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -62,76 +155,60 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
           chat.lastMessageContent?.toLowerCase().includes(query)
       );
     }
-
     if (selectedCategory === 1) {
       filtered = filtered.filter((chat) => chat.unreadCount > 0);
-    } else if (selectedCategory === 2) {
-      // Favourites - would need a favourite field
     } else if (selectedCategory === 3) {
       filtered = filtered.filter((chat) => chat.type === ChatType.Group);
     }
-
     setFilteredChats(filtered);
-  };
+  }, [searchQuery, selectedCategory, chats]);
 
   const categories = ['全部', '未读', '收藏', '群组'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: colors.secondaryBackground }]}>
-        <View style={styles.headerTop}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+    <Page>
+      <Header>
+        <HeaderTop>
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="ellipsis-horizontal" size={24} color={colors.primaryText} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.primaryText }]}>聊天</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => {}} style={styles.headerButton}>
+          <Title>聊天</Title>
+          <HeaderRight>
+            <HeaderButton onPress={() => {}}>
               <Ionicons name="camera" size={24} color={colors.primaryText} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => {}} style={styles.headerButton}>
-              <View style={[styles.newChatButton, { backgroundColor: colors.primaryGreen }]}>
+            </HeaderButton>
+            <HeaderButton onPress={() => {}}>
+              <NewChatButton>
                 <Ionicons name="add" size={18} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.categoryContainer}>
+              </NewChatButton>
+            </HeaderButton>
+          </HeaderRight>
+        </HeaderTop>
+        <CategoryContainer>
           <FlatList
             horizontal
             data={categories}
             renderItem={({ item, index }) => (
-              <TouchableOpacity
+              <CategoryButton
                 onPress={() => setSelectedCategory(index)}
-                style={[
-                  styles.categoryButton,
-                  selectedCategory === index && { backgroundColor: colors.primaryGreen },
-                ]}
+                selected={selectedCategory === index}
               >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    {
-                      color:
-                        selectedCategory === index ? '#FFFFFF' : colors.secondaryText,
-                    },
-                  ]}
-                >
+                <CategoryText selected={selectedCategory === index}>
                   {item}
-                </Text>
-              </TouchableOpacity>
+                </CategoryText>
+              </CategoryButton>
             )}
             keyExtractor={(_, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
           />
-        </View>
-      </View>
+        </CategoryContainer>
+      </Header>
       {loading ? (
-        <View style={[styles.emptyContainer, { justifyContent: 'center' }]}>
+        <EmptyContainerCentered>
           <ActivityIndicator size="large" color={colors.primaryGreen} />
-          <Text style={[styles.emptyText, { color: colors.secondaryText, marginTop: 16 }]}>
-            加载中...
-          </Text>
-        </View>
+          <EmptyText>加载中...</EmptyText>
+        </EmptyContainerCentered>
       ) : (
         <FlatList
           data={filteredChats}
@@ -153,93 +230,20 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
             />
           }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
+            <EmptyContainer>
               <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
-              <Text style={[styles.emptyText, { color: colors.secondaryText }]}>暂无聊天</Text>
-            </View>
+              <EmptyText>暂无聊天</EmptyText>
+            </EmptyContainer>
           }
         />
       )}
-      <View style={[styles.footer, { backgroundColor: colors.background }]}>
+      <Footer>
         <Ionicons name="lock-closed" size={14} color={colors.secondaryText} />
-        <Text style={[styles.footerText, { color: colors.secondaryText }]}>
-          Your personal messages are{' '}
-          <Text style={{ color: colors.primaryGreen }}>end-to-end encrypted</Text>
-        </Text>
-      </View>
+        <FooterText>
+          Your personal messages are <FooterLink>end-to-end encrypted</FooterLink>
+        </FooterText>
+      </Footer>
+    </Page>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerButton: {
-    padding: 4,
-  },
-  newChatButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryContainer: {
-    marginTop: 8,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    fontSize: 16,
-    marginTop: 16,
-  },
-  footer: {
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  footerText: {
-    fontSize: 13,
-    textAlign: 'center',
-  },
-});
-

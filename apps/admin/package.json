@@ -1,0 +1,26 @@
+{
+  "name": "whatschat-admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm exec next build",
+    "dev": "pnpm exec next dev --port 3002",
+    "check-types": "npx -p typescript tsc --noEmit",
+    "lint": "pnpm exec next lint",
+    "start": "pnpm exec next start --port 3002"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "next": "15.2.8",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

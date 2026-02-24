@@ -25,7 +25,7 @@ import {
 } from "@/src/presentation/components/ui/popover";
 import { CalendarIcon, Search, X } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/shared/utils/utils";
+import { styled } from "@/src/shared/utils/emotion";
 import type { Contact } from "../../../types";
 
 interface AdvancedSearchDialogProps {
@@ -44,6 +44,83 @@ interface SearchFilters {
   hasMedia: boolean;
 }
 
+const Content = styled(DialogContent)`
+  @media (min-width: 640px) {
+    max-width: 500px;
+  }
+`;
+
+const TitleRow = styled(DialogTitle)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const SearchIcon = styled(Search)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const FormBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const DateGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+`;
+
+const DateTriggerButton = styled(Button)<{ $empty?: boolean }>`
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-weight: normal;
+  ${(p) => p.$empty && "color: hsl(var(--muted-foreground));"}
+`;
+
+const CalendarIconStyled = styled(CalendarIcon)`
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+`;
+
+const PopoverContentStyled = styled(PopoverContent)`
+  width: auto;
+  padding: 0;
+`;
+
+const ActionsRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+`;
+
+const ActionsRight = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const XIcon = styled(X)`
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+`;
+
+const SearchBtnIcon = styled(Search)`
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+`;
+
 export function AdvancedSearchDialog({
   isOpen,
   onClose,
@@ -52,14 +129,13 @@ export function AdvancedSearchDialog({
 }: AdvancedSearchDialogProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
-    contact: "all", // Updated default value
-    messageType: "all", // Updated default value
+    contact: "all",
+    messageType: "all",
     dateFrom: undefined,
     dateTo: undefined,
     hasMedia: false,
   });
 
-  // Ensure contacts is always an array
   const safeContacts = Array.isArray(contacts) ? contacts : [];
 
   const handleSearch = () => {
@@ -70,8 +146,8 @@ export function AdvancedSearchDialog({
   const handleReset = () => {
     setFilters({
       query: "",
-      contact: "all", // Updated default value
-      messageType: "all", // Updated default value
+      contact: "all",
+      messageType: "all",
       dateFrom: undefined,
       dateTo: undefined,
       hasMedia: false,
@@ -80,17 +156,16 @@ export function AdvancedSearchDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <Content>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+          <TitleRow>
+            <SearchIcon />
             高级搜索
-          </DialogTitle>
+          </TitleRow>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Search Query */}
-          <div className="space-y-2">
+        <FormBody>
+          <FieldGroup>
             <Label htmlFor="query">搜索内容</Label>
             <Input
               id="query"
@@ -100,10 +175,9 @@ export function AdvancedSearchDialog({
                 setFilters({ ...filters, query: e.target.value })
               }
             />
-          </div>
+          </FieldGroup>
 
-          {/* Contact Filter */}
-          <div className="space-y-2">
+          <FieldGroup>
             <Label>联系人</Label>
             <Select
               value={filters.contact}
@@ -123,10 +197,9 @@ export function AdvancedSearchDialog({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </FieldGroup>
 
-          {/* Message Type Filter */}
-          <div className="space-y-2">
+          <FieldGroup>
             <Label>消息类型</Label>
             <Select
               value={filters.messageType}
@@ -146,28 +219,21 @@ export function AdvancedSearchDialog({
                 <SelectItem value="file">文件</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </FieldGroup>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <DateGrid>
+            <FieldGroup>
               <Label>开始日期</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.dateFrom && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                  <DateTriggerButton variant="outline" $empty={!filters.dateFrom}>
+                    <CalendarIconStyled />
                     {filters.dateFrom
                       ? format(filters.dateFrom, "PPP")
                       : "选择日期"}
-                  </Button>
+                  </DateTriggerButton>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContentStyled align="start">
                   <Calendar
                     mode="single"
                     selected={filters.dateFrom}
@@ -176,28 +242,22 @@ export function AdvancedSearchDialog({
                     }
                     initialFocus
                   />
-                </PopoverContent>
+                </PopoverContentStyled>
               </Popover>
-            </div>
+            </FieldGroup>
 
-            <div className="space-y-2">
+            <FieldGroup>
               <Label>结束日期</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.dateTo && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                  <DateTriggerButton variant="outline" $empty={!filters.dateTo}>
+                    <CalendarIconStyled />
                     {filters.dateTo
                       ? format(filters.dateTo, "PPP")
                       : "选择日期"}
-                  </Button>
+                  </DateTriggerButton>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContentStyled align="start">
                   <Calendar
                     mode="single"
                     selected={filters.dateTo}
@@ -206,29 +266,28 @@ export function AdvancedSearchDialog({
                     }
                     initialFocus
                   />
-                </PopoverContent>
+                </PopoverContentStyled>
               </Popover>
-            </div>
-          </div>
+            </FieldGroup>
+          </DateGrid>
 
-          {/* Action Buttons */}
-          <div className="flex justify-between pt-4">
+          <ActionsRow>
             <Button variant="outline" onClick={handleReset}>
-              <X className="mr-2 h-4 w-4" />
+              <XIcon />
               重置
             </Button>
-            <div className="space-x-2">
+            <ActionsRight>
               <Button variant="outline" onClick={onClose}>
                 取消
               </Button>
               <Button onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" />
+                <SearchBtnIcon />
                 搜索
               </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
+            </ActionsRight>
+          </ActionsRow>
+        </FormBody>
+      </Content>
     </Dialog>
   );
 }

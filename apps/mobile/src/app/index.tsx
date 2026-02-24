@@ -1,8 +1,16 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore, useAppDispatch, hydrateAuth } from '@/src/presentation/stores';
+
+const Centered = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+`;
 
 export default function Index() {
   const { colors } = useTheme();
@@ -16,9 +24,9 @@ export default function Index() {
 
   if (!isReady) {
     return (
-      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+      <Centered>
         <ActivityIndicator size="large" color={colors.primaryGreen} />
-      </View>
+      </Centered>
     );
   }
 
@@ -27,11 +35,3 @@ export default function Index() {
   }
   return <Redirect href="/login" />;
 }
-
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

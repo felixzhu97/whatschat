@@ -11,8 +11,10 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.iosBlue,
         tabBarInactiveTintColor: colors.secondaryText,
+        tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: {
           backgroundColor: colors.secondaryBackground,
+          borderTopWidth: 0.5,
           borderTopColor: colors.separator,
         },
       }}

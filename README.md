@@ -15,8 +15,9 @@ A modern instant messaging application built with React and TypeScript, supporti
 
 ## 🛠️ Tech Stack
 
-**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, **Emotion** (styled/css), Radix UI, Zustand, **GrowthBook** (A/B testing & feature flags)  
-**Frontend Mobile**: React Native, Expo, TypeScript, **Emotion** (@emotion/native), Zustand  
+**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, **Emotion** (styled/css), Radix UI, **Redux Toolkit + React Redux**, **GrowthBook** (A/B testing & feature flags)  
+**Frontend Mobile**: React Native, Expo, TypeScript, **Emotion** (@emotion/native), **Redux Toolkit + React Redux**  
+**Frontend Admin**: Next.js 15, React 19, TypeScript, **Emotion** (styled/css)  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
 **Communication**: WebSocket (Socket.IO or API Gateway) for realtime and call signaling; WebRTC (native) for media; optional Chime SDK  
@@ -39,6 +40,9 @@ whatschat/
 │   │   │   ├── presentation/ # Presentation layer (components, hooks, styles)
 │   │   │   └── shared/       # Shared types (re-exports from @whatschat/domain)
 │   │   └── public/       # Static assets
+│   ├── admin/            # Next.js Admin Application (Emotion)
+│   │   ├── app/          # Next.js App Router pages
+│   │   └── src/shared/   # Shared utilities (e.g. emotion)
 │   ├── mobile/           # React Native mobile application (Expo)
 │   │   ├── src/
 │   │   │   ├── domain/      # Domain layer (extends @whatschat/domain)
@@ -270,9 +274,20 @@ pnpm dev
 pnpm dev
 ```
 
+#### Method 3: Start Individual Apps from Root
+
+```bash
+pnpm start:web      # Web app (port 3000)
+pnpm start:admin    # Admin app (port 3002)
+pnpm start:server   # Backend (see scripts/app/start.sh)
+pnpm start:mobile   # Mobile app (Expo); use start:mobile:ios or start:mobile:android for simulator
+```
+
 ### 7. Access the Application
 
-- **Frontend Application**: http://localhost:3000
+- **Web Application**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3002
+- **Mobile Application**: Expo dev client or simulator (`pnpm start:mobile` then `i` / `a`)
 - **Backend API**: http://localhost:3001/api/v1
 - **API Documentation (Swagger)**: http://localhost:3001/api/docs (development environment)
 - **Health Check**: http://localhost:3001/api/v1/health
@@ -511,7 +526,7 @@ The project uses Clean Architecture design. Domain types (User, Message, etc.) a
 1. Create pages in `apps/web/app/` (Next.js App Router)
 2. Create components in `apps/web/src/presentation/components/`
 3. Add custom hooks in `apps/web/src/presentation/hooks/`
-4. Add state management (Zustand) in `apps/web/src/infrastructure/stores/`
+4. Add state management (Redux Toolkit slices) in `apps/web/src/infrastructure/adapters/state/`
 5. Update routes and navigation
 
 ### Shared Packages Development

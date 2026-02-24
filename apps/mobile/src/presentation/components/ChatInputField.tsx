@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 
 interface ChatInputFieldProps {
@@ -10,11 +11,99 @@ interface ChatInputFieldProps {
   onAttachmentPress?: () => void;
 }
 
+const Container = styled.View`
+  padding: 8px 16px;
+`;
+
+const AttachmentMenu = styled.View`
+  padding: 16px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  border-width: 0.5px;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+  border-color: ${(p) => p.theme.colors.separator};
+`;
+
+const AttachmentRow = styled.View`
+  flex-direction: row;
+  justify-content: space-around;
+`;
+
+const AttachmentButton = styled.TouchableOpacity`
+  align-items: center;
+`;
+
+const AttachmentIcon = styled.View`
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  background-color: ${(p) => p.theme.colors.iosBlue};
+`;
+
+const AttachmentIconGreen = styled(AttachmentIcon)`
+  background-color: ${(p) => p.theme.colors.iosGreen};
+`;
+
+const AttachmentIconPurple = styled(AttachmentIcon)`
+  background-color: ${(p) => p.theme.colors.iosPurple};
+`;
+
+const AttachmentIconRed = styled(AttachmentIcon)`
+  background-color: ${(p) => p.theme.colors.iosRed};
+`;
+
+const AttachmentLabel = styled.Text`
+  font-size: 12px;
+  color: #808080;
+`;
+
+const InputContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const InputWrapper = styled.View`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 20px;
+  border-width: 0.5px;
+  padding: 10px 16px;
+  background-color: ${(p) => p.theme.colors.secondaryBackground};
+  border-color: ${(p) => p.theme.colors.separator};
+`;
+
+const Input = styled.TextInput`
+  flex: 1;
+  font-size: 16px;
+  max-height: 100px;
+  padding-right: 8px;
+  color: ${(p) => p.theme.colors.primaryText};
+`;
+
+const SendButton = styled.TouchableOpacity`
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  justify-content: center;
+  align-items: center;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const AddButton = styled.TouchableOpacity`
+  align-items: center;
+  background-color: ${(p: { active: boolean }) =>
+    p.active ? p.theme.colors.primaryGreen + '20' : 'transparent'};
+`;
+
 export const ChatInputField: React.FC<ChatInputFieldProps> = ({
   value,
   onChangeText,
   onSend,
-  onAttachmentPress,
 }) => {
   const { colors } = useTheme();
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
@@ -28,64 +117,50 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <Container>
       {showAttachmentMenu && (
-        <View
-          style={[
-            styles.attachmentMenu,
-            { backgroundColor: colors.secondaryBackground, borderColor: colors.separator },
-          ]}
-        >
-          <View style={styles.attachmentRow}>
-            <TouchableOpacity style={styles.attachmentButton} onPress={() => {}}>
-              <View style={[styles.attachmentIcon, { backgroundColor: colors.iosBlue }]}>
+        <AttachmentMenu>
+          <AttachmentRow>
+            <AttachmentButton onPress={() => {}}>
+              <AttachmentIcon>
                 <Ionicons name="camera" size={24} color="#FFFFFF" />
-              </View>
-              <Text style={styles.attachmentLabel}>相机</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.attachmentButton} onPress={() => {}}>
-              <View style={[styles.attachmentIcon, { backgroundColor: colors.iosGreen }]}>
+              </AttachmentIcon>
+              <AttachmentLabel>相机</AttachmentLabel>
+            </AttachmentButton>
+            <AttachmentButton onPress={() => {}}>
+              <AttachmentIconGreen>
                 <Ionicons name="images" size={24} color="#FFFFFF" />
-              </View>
-              <Text style={styles.attachmentLabel}>相册</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.attachmentButton} onPress={() => {}}>
-              <View style={[styles.attachmentIcon, { backgroundColor: colors.iosPurple }]}>
+              </AttachmentIconGreen>
+              <AttachmentLabel>相册</AttachmentLabel>
+            </AttachmentButton>
+            <AttachmentButton onPress={() => {}}>
+              <AttachmentIconPurple>
                 <Ionicons name="document" size={24} color="#FFFFFF" />
-              </View>
-              <Text style={styles.attachmentLabel}>文件</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.attachmentButton} onPress={() => {}}>
-              <View style={[styles.attachmentIcon, { backgroundColor: colors.iosRed }]}>
+              </AttachmentIconPurple>
+              <AttachmentLabel>文件</AttachmentLabel>
+            </AttachmentButton>
+            <AttachmentButton onPress={() => {}}>
+              <AttachmentIconRed>
                 <Ionicons name="location" size={24} color="#FFFFFF" />
-              </View>
-              <Text style={styles.attachmentLabel}>位置</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              </AttachmentIconRed>
+              <AttachmentLabel>位置</AttachmentLabel>
+            </AttachmentButton>
+          </AttachmentRow>
+        </AttachmentMenu>
       )}
-      <View style={styles.inputContainer}>
-        <TouchableOpacity
+      <InputContainer>
+        <AddButton
+          active={showAttachmentMenu}
           onPress={() => setShowAttachmentMenu(!showAttachmentMenu)}
-          style={[
-            styles.attachmentButton,
-            showAttachmentMenu && { backgroundColor: colors.primaryGreen + '20' },
-          ]}
         >
           <Ionicons
             name={showAttachmentMenu ? 'close' : 'add'}
             size={20}
             color={colors.primaryGreen}
           />
-        </TouchableOpacity>
-        <View
-          style={[
-            styles.inputWrapper,
-            { backgroundColor: colors.secondaryBackground, borderColor: colors.separator },
-          ]}
-        >
-          <TextInput
-            style={[styles.input, { color: colors.primaryText }]}
+        </AddButton>
+        <InputWrapper>
+          <Input
             value={value}
             onChangeText={onChangeText}
             placeholder="消息"
@@ -97,78 +172,18 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="happy-outline" size={24} color={colors.secondaryText} />
           </TouchableOpacity>
-        </View>
-        <TouchableOpacity
+        </InputWrapper>
+        <SendButton
           onPress={value.trim() ? handleSend : () => {}}
-          style={[styles.sendButton, { backgroundColor: colors.primaryGreen }]}
+          disabled={!value.trim()}
         >
           <Ionicons
             name={value.trim() ? 'send' : 'mic'}
             size={18}
             color="#FFFFFF"
           />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </SendButton>
+      </InputContainer>
+    </Container>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  attachmentMenu: {
-    padding: 16,
-    marginBottom: 8,
-    borderRadius: 16,
-    borderWidth: 0.5,
-  },
-  attachmentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  attachmentButton: {
-    alignItems: 'center',
-  },
-  attachmentIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  attachmentLabel: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  inputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    borderWidth: 0.5,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    maxHeight: 100,
-    paddingRight: 8,
-  },
-  sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-

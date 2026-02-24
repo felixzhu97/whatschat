@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
-  StyleSheet,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -22,12 +21,33 @@ import {
   ChatType,
 } from '@/src/domain/entities';
 import { MessageBubble, ChatInputField } from '@/src/presentation/components';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
 import { useSocket } from '@/src/presentation/hooks/useSocket';
 import { useCall } from '@/src/presentation/hooks/useCall';
 import { messageService } from '@/src/application/services/MessageService';
 import { chatService } from '@/src/application/services/ChatService';
+
+const Container = styled.View`
+  flex: 1;
+  background-color: ${(p) => p.theme.colors.chatBackground};
+`;
+
+const Centered = styled(Container)`
+  justify-content: center;
+  align-items: center;
+`;
+
+const LoadingText = styled.Text`
+  margin-top: 8px;
+  font-size: 15px;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const KeyboardView = styled(KeyboardAvoidingView)`
+  flex: 1;
+`;
 
 export default function ChatDetailScreen() {
   const params = useLocalSearchParams<{ chatId: string }>();
@@ -115,9 +135,11 @@ export default function ChatDetailScreen() {
           isForwarded: false,
           forwardedFrom: [],
         });
-        setMessages((prev) => [...prev, temp].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        ));
+        setMessages((prev) =>
+          [...prev, temp].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          )
+        );
         setInputText('');
         messageService.sendMessage(chatId, text.trim()).then((msg) => {
           setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
@@ -135,26 +157,30 @@ export default function ChatDetailScreen() {
 
   if (loading && !chat) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primaryGreen} />
-        <Text style={[styles.loadingText, { color: colors.secondaryText }]}>加载中...</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <Centered>
+          <ActivityIndicator size="large" color={colors.primaryGreen} />
+          <LoadingText>加载中...</LoadingText>
+        </Centered>
+      </SafeAreaView>
     );
   }
 
-  const displayChat = chat ?? new ChatEntity({
-    id: params.chatId ?? '',
-    name: 'Chat',
-    type: ChatType.Individual,
-    participantIds: [],
-    unreadCount: 0,
-    isMuted: false,
-    isPinned: false,
-    isArchived: false,
-    adminIds: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  const displayChat =
+    chat ??
+    new ChatEntity({
+      id: params.chatId ?? '',
+      name: 'Chat',
+      type: ChatType.Individual,
+      participantIds: [],
+      unreadCount: 0,
+      isMuted: false,
+      isPinned: false,
+      isArchived: false,
+      adminIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
   const otherUserId = displayChat.participantIds?.find((id) => id !== userId) ?? null;
   const handleVoiceCall = () => {
@@ -188,48 +214,29 @@ export default function ChatDetailScreen() {
           headerTintColor: colors.primaryText,
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.chatBackground }]} edges={['bottom']}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={({ item }) => (
-              <MessageBubble message={item} isMe={item.senderId === userId} />
-            )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.messagesContainer}
-          />
-          <ChatInputField
-            value={inputText}
-            onChangeText={setInputText}
-            onSend={handleSend}
-          />
-        </KeyboardAvoidingView>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <Container>
+          <KeyboardView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          >
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={({ item }) => (
+                <MessageBubble message={item} isMe={item.senderId === userId} />
+              )}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ padding: 16 }}
+            />
+            <ChatInputField
+              value={inputText}
+              onChangeText={setInputText}
+              onSend={handleSend}
+            />
+          </KeyboardView>
+        </Container>
       </SafeAreaView>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 15,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  messagesContainer: {
-    padding: 16,
-  },
-});

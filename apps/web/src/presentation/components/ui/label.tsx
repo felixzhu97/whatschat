@@ -2,24 +2,25 @@
 
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
-import { cva, type VariantProps } from "class-variance-authority";
+import { styled } from "@/src/shared/utils/emotion";
 
-import { cn } from "@/shared/utils/utils";
+const LabelRoot = styled(LabelPrimitive.Root)`
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
 
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-);
+  .peer:disabled + &,
+  .peer[aria-disabled="true"] + & {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+`;
 
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn(labelVariants(), className)}
-    {...props}
-  />
+  <LabelRoot ref={ref} className={className} {...props} />
 ));
 Label.displayName = LabelPrimitive.Root.displayName;
 

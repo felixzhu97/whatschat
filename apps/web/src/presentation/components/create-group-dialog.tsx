@@ -1,218 +1,477 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/src/presentation/components/ui/button"
-import { Input } from "@/src/presentation/components/ui/input"
-import { Label } from "@/src/presentation/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Checkbox } from "@/src/presentation/components/ui/checkbox"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { Textarea } from "@/src/presentation/components/ui/textarea"
-import { X, Search, Users, Camera, ArrowLeft, ArrowRight } from "lucide-react"
-import type { Contact } from "../../../types"
+import { useState } from "react";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Input } from "@/src/presentation/components/ui/input";
+import { Label } from "@/src/presentation/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Checkbox } from "@/src/presentation/components/ui/checkbox";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { Textarea } from "@/src/presentation/components/ui/textarea";
+import { X, Search, Users, Camera, ArrowLeft, ArrowRight } from "lucide-react";
+import { styled } from "@/src/shared/utils/emotion";
+import type { Contact } from "../../../types";
 
 interface CreateGroupDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  contacts: Contact[]
-  onCreateGroup: (name: string, selectedMembers: Contact[]) => void
+  isOpen: boolean;
+  onClose: () => void;
+  contacts: Contact[];
+  onCreateGroup: (name: string, selectedMembers: Contact[]) => void;
 }
 
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+`;
+
+const Panel = styled.div`
+  background: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 1rem;
+  max-height: 80vh;
+  overflow: hidden;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const Title = styled.h2`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17 24 31);
+`;
+
+const XIcon = styled(X)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const ArrowLeftIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const Section = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+`;
+
+const SearchWrap = styled.div`
+  position: relative;
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1rem;
+  width: 1rem;
+  color: rgb(156 163 175);
+`;
+
+const SearchInput = styled(Input)`
+  padding-left: 2.5rem;
+`;
+
+const SelectedHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+`;
+
+const UsersIcon = styled(Users)`
+  height: 1rem;
+  width: 1rem;
+  color: rgb(107 114 128);
+`;
+
+const SelectedLabel = styled.span`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const Chips = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+const ChipBlue = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgb(219 234 254);
+  color: rgb(30 64 175);
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+`;
+
+const ChipGray = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgb(229 231 235);
+  color: rgb(31 41 55);
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+`;
+
+const ChipAvatar = styled(Avatar)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const ChipFallback = styled(AvatarFallback)`
+  font-size: 0.75rem;
+`;
+
+const ChipRemoveBtn = styled(Button)`
+  height: 1rem;
+  width: 1rem;
+  padding: 0;
+
+  &:hover {
+    background-color: rgb(191 219 254);
+  }
+`;
+
+const XSmall = styled(X)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const ListArea = styled(ScrollArea)`
+  flex: 1;
+  max-height: 24rem;
+`;
+
+const ListInner = styled.div`
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const ContactRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgb(249 250 251);
+  }
+`;
+
+const ContactMain = styled.div`
+  flex: 1;
+`;
+
+const ContactName = styled.p`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const ContactPhone = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const AvatarMedium = styled(Avatar)`
+  height: 2.5rem;
+  width: 2.5rem;
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 2rem 0;
+  color: rgb(107 114 128);
+`;
+
+const EmptyUsersIcon = styled(Users)`
+  height: 3rem;
+  width: 3rem;
+  margin: 0 auto 0.5rem;
+  opacity: 0.5;
+`;
+
+const Footer = styled.div`
+  padding: 1rem;
+  border-top: 1px solid rgb(229 231 235);
+`;
+
+const FullWidthBtn = styled(Button)`
+  width: 100%;
+`;
+
+const ArrowRightIcon = styled(ArrowRight)`
+  height: 1rem;
+  width: 1rem;
+  margin-left: 0.5rem;
+`;
+
+const FormArea = styled(ScrollArea)`
+  flex: 1;
+  max-height: 24rem;
+`;
+
+const FormInner = styled.div`
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const AvatarSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+`;
+
+const AvatarLarge = styled(Avatar)`
+  height: 5rem;
+  width: 5rem;
+`;
+
+const FallbackLarge = styled(AvatarFallback)`
+  font-size: 1.5rem;
+  background-color: rgb(219 234 254);
+  color: rgb(37 99 235);
+`;
+
+const CameraBtn = styled(Button)`
+  position: absolute;
+  bottom: -0.25rem;
+  right: -0.25rem;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 9999px;
+  background: transparent;
+`;
+
+const CameraIcon = styled(Camera)`
+  height: 1rem;
+  width: 1rem;
+`;
+
+const AvatarHint = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const FieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const CharCount = styled.p`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const MembersSummary = styled.div`
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+`;
+
+const FooterRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const OutlineBtn = styled(Button)`
+  flex: 1;
+  background: transparent;
+`;
+
 export function CreateGroupDialog({ isOpen, onClose, contacts, onCreateGroup }: CreateGroupDialogProps) {
-  const [step, setStep] = useState<"select" | "info">("select")
-  const [selectedMembers, setSelectedMembers] = useState<Contact[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [groupName, setGroupName] = useState("")
-  const [groupDescription, setGroupDescription] = useState("")
-  const [groupAvatar, setGroupAvatar] = useState<string | null>(null)
+  const [step, setStep] = useState<"select" | "info">("select");
+  const [selectedMembers, setSelectedMembers] = useState<Contact[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [groupAvatar, setGroupAvatar] = useState<string | null>(null);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const filteredContacts = contacts.filter((contact) => contact.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleMemberToggle = (contact: Contact) => {
     setSelectedMembers((prev) => {
-      const isSelected = prev.some((member) => member.id === contact.id)
+      const isSelected = prev.some((member) => member.id === contact.id);
       if (isSelected) {
-        return prev.filter((member) => member.id !== contact.id)
-      } else {
-        return [...prev, contact]
+        return prev.filter((member) => member.id !== contact.id);
       }
-    })
-  }
+      return [...prev, contact];
+    });
+  };
 
   const handleNext = () => {
-    if (selectedMembers.length > 0) {
-      setStep("info")
-    }
-  }
+    if (selectedMembers.length > 0) setStep("info");
+  };
 
-  const handleBack = () => {
-    setStep("select")
-  }
+  const handleBack = () => setStep("select");
 
   const handleCreate = () => {
     if (groupName.trim()) {
-      onCreateGroup(groupName.trim(), selectedMembers)
-      // Reset form
-      setStep("select")
-      setSelectedMembers([])
-      setSearchQuery("")
-      setGroupName("")
-      setGroupDescription("")
-      setGroupAvatar(null)
+      onCreateGroup(groupName.trim(), selectedMembers);
+      setStep("select");
+      setSelectedMembers([]);
+      setSearchQuery("");
+      setGroupName("");
+      setGroupDescription("");
+      setGroupAvatar(null);
     }
-  }
+  };
 
   const handleClose = () => {
-    // Reset form
-    setStep("select")
-    setSelectedMembers([])
-    setSearchQuery("")
-    setGroupName("")
-    setGroupDescription("")
-    setGroupAvatar(null)
-    onClose()
-  }
+    setStep("select");
+    setSelectedMembers([]);
+    setSearchQuery("");
+    setGroupName("");
+    setGroupDescription("");
+    setGroupAvatar(null);
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
+    <Overlay>
+      <Panel>
+        <Header>
+          <HeaderLeft>
             {step === "info" && (
               <Button variant="ghost" size="icon" onClick={handleBack}>
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeftIcon />
               </Button>
             )}
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {step === "select" ? "选择群成员" : "群组信息"}
-            </h2>
-          </div>
+            <Title>{step === "select" ? "选择群成员" : "群组信息"}</Title>
+          </HeaderLeft>
           <Button variant="ghost" size="icon" onClick={handleClose}>
-            <X className="h-5 w-5" />
+            <XIcon />
           </Button>
-        </div>
+        </Header>
 
         {step === "select" ? (
           <>
-            {/* Search */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
+            <Section>
+              <SearchWrap>
+                <SearchIcon />
+                <SearchInput
                   placeholder="搜索联系人..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
                 />
-              </div>
-            </div>
+              </SearchWrap>
+            </Section>
 
-            {/* Selected members preview */}
             {selectedMembers.length > 0 && (
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-500">已选择 {selectedMembers.length} 人</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
+              <Section>
+                <SelectedHeader>
+                  <UsersIcon />
+                  <SelectedLabel>已选择 {selectedMembers.length} 人</SelectedLabel>
+                </SelectedHeader>
+                <Chips>
                   {selectedMembers.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-sm"
-                    >
-                      <Avatar className="h-5 w-5">
+                    <ChipBlue key={member.id}>
+                      <ChipAvatar>
                         <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                        <AvatarFallback className="text-xs">{member.name[0]}</AvatarFallback>
-                      </Avatar>
+                        <ChipFallback>{member.name[0]}</ChipFallback>
+                      </ChipAvatar>
                       <span>{member.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-4 w-4 p-0 hover:bg-blue-200 dark:hover:bg-blue-800"
-                        onClick={() => handleMemberToggle(member)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
+                      <ChipRemoveBtn variant="ghost" size="icon" onClick={() => handleMemberToggle(member)}>
+                        <XSmall />
+                      </ChipRemoveBtn>
+                    </ChipBlue>
                   ))}
-                </div>
-              </div>
+                </Chips>
+              </Section>
             )}
 
-            {/* Contact list */}
-            <ScrollArea className="flex-1 max-h-96">
-              <div className="p-4 space-y-2">
-                {filteredContacts.map((contact) => {
-                  const isSelected = selectedMembers.some((member) => member.id === contact.id)
-                  return (
-                    <div
-                      key={contact.id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleMemberToggle(contact)}
-                    >
-                      <Checkbox checked={isSelected} onChange={() => {}} />
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={contact.avatar || "/placeholder.svg"} />
-                        <AvatarFallback>{contact.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{contact.name}</p>
-                        <p className="text-sm text-gray-500">{contact.phone}</p>
-                      </div>
-                    </div>
-                  )
-                })}
+            <ListArea>
+              <ListInner>
+                {filteredContacts.map((contact) => (
+                  <ContactRow key={contact.id} onClick={() => handleMemberToggle(contact)}>
+                    <Checkbox checked={selectedMembers.some((m) => m.id === contact.id)} onChange={() => {}} />
+                    <AvatarMedium>
+                      <AvatarImage src={contact.avatar || "/placeholder.svg"} />
+                      <AvatarFallback>{contact.name[0]}</AvatarFallback>
+                    </AvatarMedium>
+                    <ContactMain>
+                      <ContactName>{contact.name}</ContactName>
+                      <ContactPhone>{contact.phone}</ContactPhone>
+                    </ContactMain>
+                  </ContactRow>
+                ))}
                 {filteredContacts.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <EmptyState>
+                    <EmptyUsersIcon />
                     <p>没有找到联系人</p>
-                  </div>
+                  </EmptyState>
                 )}
-              </div>
-            </ScrollArea>
+              </ListInner>
+            </ListArea>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <Button className="w-full" onClick={handleNext} disabled={selectedMembers.length === 0}>
+            <Footer>
+              <FullWidthBtn onClick={handleNext} disabled={selectedMembers.length === 0}>
                 下一步 ({selectedMembers.length})
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
+                <ArrowRightIcon />
+              </FullWidthBtn>
+            </Footer>
           </>
         ) : (
           <>
-            {/* Group info form */}
-            <ScrollArea className="flex-1 max-h-96">
-              <div className="p-4 space-y-4">
-                {/* Group avatar */}
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative">
-                    <Avatar className="h-20 w-20">
+            <FormArea>
+              <FormInner>
+                <AvatarSection>
+                  <AvatarWrap>
+                    <AvatarLarge>
                       <AvatarImage src={groupAvatar || ""} />
-                      <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                        <Users className="h-8 w-8" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-transparent"
-                      onClick={() => {
-                        // In a real app, this would open a file picker
-                        console.log("Open avatar picker")
-                      }}
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-500">点击添加群头像</p>
-                </div>
+                      <FallbackLarge>
+                        <Users size={32} />
+                      </FallbackLarge>
+                    </AvatarLarge>
+                    <CameraBtn variant="outline" size="icon">
+                      <CameraIcon />
+                    </CameraBtn>
+                  </AvatarWrap>
+                  <AvatarHint>点击添加群头像</AvatarHint>
+                </AvatarSection>
 
-                {/* Group name */}
-                <div className="space-y-2">
+                <FieldGroup>
                   <Label htmlFor="groupName">群组名称 *</Label>
                   <Input
                     id="groupName"
@@ -221,11 +480,10 @@ export function CreateGroupDialog({ isOpen, onClose, contacts, onCreateGroup }: 
                     onChange={(e) => setGroupName(e.target.value)}
                     maxLength={50}
                   />
-                  <p className="text-xs text-gray-500">{groupName.length}/50</p>
-                </div>
+                  <CharCount>{groupName.length}/50</CharCount>
+                </FieldGroup>
 
-                {/* Group description */}
-                <div className="space-y-2">
+                <FieldGroup>
                   <Label htmlFor="groupDescription">群组描述</Label>
                   <Textarea
                     id="groupDescription"
@@ -235,54 +493,47 @@ export function CreateGroupDialog({ isOpen, onClose, contacts, onCreateGroup }: 
                     maxLength={200}
                     rows={3}
                   />
-                  <p className="text-xs text-gray-500">{groupDescription.length}/200</p>
-                </div>
+                  <CharCount>{groupDescription.length}/200</CharCount>
+                </FieldGroup>
 
-                {/* Selected members summary */}
-                <div className="space-y-2">
+                <FieldGroup>
                   <Label>群成员 ({selectedMembers.length + 1})</Label>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {/* Current user */}
-                      <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-sm">
-                        <Avatar className="h-5 w-5">
-                          <AvatarFallback className="text-xs">我</AvatarFallback>
-                        </Avatar>
+                  <MembersSummary>
+                    <Chips>
+                      <ChipBlue>
+                        <ChipAvatar>
+                          <ChipFallback>我</ChipFallback>
+                        </ChipAvatar>
                         <span>我（群主）</span>
-                      </div>
-                      {/* Selected members */}
+                      </ChipBlue>
                       {selectedMembers.map((member) => (
-                        <div
-                          key={member.id}
-                          className="flex items-center gap-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-sm"
-                        >
-                          <Avatar className="h-5 w-5">
+                        <ChipGray key={member.id}>
+                          <ChipAvatar>
                             <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                            <AvatarFallback className="text-xs">{member.name[0]}</AvatarFallback>
-                          </Avatar>
+                            <ChipFallback>{member.name[0]}</ChipFallback>
+                          </ChipAvatar>
                           <span>{member.name}</span>
-                        </div>
+                        </ChipGray>
                       ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
+                    </Chips>
+                  </MembersSummary>
+                </FieldGroup>
+              </FormInner>
+            </FormArea>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 bg-transparent" onClick={handleBack}>
+            <Footer>
+              <FooterRow>
+                <OutlineBtn variant="outline" onClick={handleBack}>
                   返回
-                </Button>
-                <Button className="flex-1" onClick={handleCreate} disabled={!groupName.trim()}>
+                </OutlineBtn>
+                <FullWidthBtn onClick={handleCreate} disabled={!groupName.trim()}>
                   创建群组
-                </Button>
-              </div>
-            </div>
+                </FullWidthBtn>
+              </FooterRow>
+            </Footer>
           </>
         )}
-      </div>
-    </div>
-  )
+      </Panel>
+    </Overlay>
+  );
 }
