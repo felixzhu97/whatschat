@@ -117,6 +117,21 @@ partition "场景5: 实时消息推送" {
   :客户端接收消息;
 }
 
+' 通话信令与媒体数据流
+partition "场景6: 语音/视频通话 (WebRTC)" {
+  :主叫方发起通话;
+  :WebSocket 发送 call-offer 等信令;
+  :API/WebSocket 转发信令至被叫方;
+  :被叫方 WebSocket 接收 offer;
+  :被叫方创建 answer，经 WebSocket 回传;
+  :双方交换 ICE candidate (WebSocket);
+  :建立 P2P WebRTC 媒体通道;
+  note right
+    媒体流直连 (或经 STUN/TURN)
+    不经过 API 服务器
+  end note
+}
+
 stop
 
 note right
@@ -127,8 +142,9 @@ note right
   3. **文件上传**: 客户端 -> API服务 -> 对象存储 -> PostgreSQL
   4. **消息查询**: 客户端 -> API服务 -> Redis缓存 / PostgreSQL从库
   5. **实时推送**: API服务 -> Redis Pub/Sub -> WebSocket服务 -> 客户端
+  6. **语音/视频通话**: 信令经 WebSocket 转发；媒体经 WebRTC P2P（可选 STUN/TURN）
   
-  **共享类型**: API 与客户端使用的领域类型（User、Message、Chat 等）由 @whatschat/domain 统一定义。
+  **共享类型**: API 与客户端使用的领域类型（User、Message、Chat、Call 等）由 @whatschat/domain 统一定义。
 end note
 
 @enduml

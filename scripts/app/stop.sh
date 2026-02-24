@@ -76,17 +76,9 @@ fi
 cd "$SERVER_DIR"
 export COMPOSE_PROJECT_NAME=whatschat
 if [ "$REMOVE_VOLUMES" == "true" ]; then
-    if [ "$ENV" == "dev" ]; then
-        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down -v
-    else
-        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down -v
-    fi
+    $COMPOSE_CMD -f docker-compose.yml down -v
 else
-    if [ "$ENV" == "dev" ]; then
-        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down
-    else
-        $COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down
-    fi
+    $COMPOSE_CMD -f docker-compose.yml down
 fi
 cd "$ROOT_DIR"
 

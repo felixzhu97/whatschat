@@ -159,10 +159,6 @@ export function WhatsAppMain() {
     error: callError,
   } = useRealCall();
 
-  useEffect(() => {
-    getWebRTCManager().setSimulatedMode(!isConnected);
-  }, [isConnected]);
-
   // Filter contacts based on search
   const filteredContacts = filterContacts(contactsForList, searchQuery);
 
@@ -174,7 +170,21 @@ export function WhatsAppMain() {
 
   // Handle contact actions
   const handleContactActionWrapper = (action: string, contact: Contact) => {
-    handleContactAction(action, contact, startCall);
+    const startCallWithOptions = (
+      contactId: string,
+      contactName: string,
+      contactAvatar: string,
+      callType: "voice" | "video"
+    ) => {
+      startCall(
+        contactId,
+        contactName,
+        contactAvatar,
+        callType,
+        isConnected ? { chatId: contactId } : undefined
+      );
+    };
+    handleContactAction(action, contact, startCallWithOptions);
   };
 
   // Handle search
@@ -189,13 +199,25 @@ export function WhatsAppMain() {
 
   const handleVoiceCall = () => {
     if (selectedContact) {
-      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar || "", "voice");
+      startCall(
+        selectedContact.id,
+        selectedContact.name,
+        selectedContact.avatar || "",
+        "voice",
+        isConnected ? { chatId: selectedContact.id } : undefined
+      );
     }
   };
 
   const handleVideoCall = () => {
     if (selectedContact) {
-      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar || "", "video");
+      startCall(
+        selectedContact.id,
+        selectedContact.name,
+        selectedContact.avatar || "",
+        "video",
+        isConnected ? { chatId: selectedContact.id } : undefined
+      );
     }
   };
 

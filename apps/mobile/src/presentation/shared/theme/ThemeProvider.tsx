@@ -75,11 +75,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
+const defaultThemeValue: ThemeContextType = {
+  colors: lightThemeColors,
+  typography,
+  themeMode: 'system',
+  isDark: false,
+  setThemeMode: async () => {},
+};
+
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+  return context ?? defaultThemeValue;
 };
 

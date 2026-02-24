@@ -8,7 +8,13 @@ interface ServerChat {
   avatar?: string | null;
   isArchived?: boolean;
   isMuted?: boolean;
-  participants?: { id: string; username?: string; avatar?: string | null }[];
+  participants?: {
+    id: string;
+    userId?: string;
+    user?: { id: string; username?: string; avatar?: string | null };
+    username?: string;
+    avatar?: string | null;
+  }[];
   lastMessage?: {
     content: string;
     createdAt: string;
@@ -23,7 +29,7 @@ function mapServerChat(c: ServerChat): Chat {
     id: c.id,
     name: c.name ?? 'Chat',
     type: c.type === 'GROUP' ? ChatType.Group : ChatType.Individual,
-    participantIds: c.participants?.map((p) => p.id) ?? [],
+    participantIds: c.participants?.map((p) => p.userId ?? p.user?.id ?? p.id) ?? [],
     groupImage: c.avatar ?? undefined,
     lastMessageContent: c.lastMessage?.content,
     lastMessageTime: c.lastMessage?.createdAt ? new Date(c.lastMessage.createdAt) : undefined,

@@ -8,21 +8,26 @@ const OFFLINE_KEY_PREFIX = "offline:";
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
-  private kafka: Kafka;
-  private consumer: Consumer;
+  private kafka: Kafka | null = null;
+  private consumer: Consumer | null = null;
   private readonly topic: string;
+  private readonly enabled: boolean;
 
   constructor(private readonly redis: RedisService) {
     const config = ConfigService.loadConfig();
     this.topic = config.kafka.topicOfflineMessages;
-    this.kafka = new Kafka({
-      clientId: "whatschat-server",
-      brokers: config.kafka.brokers,
-    });
-    this.consumer = this.kafka.consumer({ groupId: "offline-messages-consumer" });
+    this.enabled = config.kafka.brokers.length > 0;
+    if (this.enabled) {
+      this.kafka = new Kafka({
+        clientId: "whatschat-server",
+        brokers: config.kafka.brokers,
+      });
+      this.consumer = this.kafka.consumer({ groupId: "offline-messages-consumer" });
+    }
   }
 
   async onModuleInit() {
+    if (!this.enabled || !this.consumer) return;
     try {
       await this.consumer.connect();
       await this.consumer.subscribe({ topic: this.topic, fromBeginning: false });
@@ -46,7 +51,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await this.consumer.disconnect();
-    logger.info("Kafka consumer disconnected");
+    if (this.consumer) {
+      await this.consumer.disconnect();
+      logger.info("Kafka consumer disconnected");
+    }
   }
 }

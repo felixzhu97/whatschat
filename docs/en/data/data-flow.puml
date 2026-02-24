@@ -6,7 +6,7 @@ skinparam activity {
   FontSize 12
 }
 
-title WhatsChat 数据流图
+title WhatsChat Data Flow Diagram
 
 start
 
@@ -117,6 +117,22 @@ partition "场景5: 实时消息推送" {
   :客户端接收消息;
 }
 
+' Call signaling and media flow
+partition "Scenario 6: Voice/Video call (WebRTC)" {
+  :Caller initiates call;
+  :WebSocket sends call-offer etc.;
+  :API/WebSocket forwards signaling to callee;
+  :Callee WebSocket receives offer;
+  :Callee creates answer, sends via WebSocket;
+  :Both exchange ICE candidates (WebSocket);
+  :Establish P2P WebRTC media channel;
+  note right
+    Media flows peer-to-peer
+    (or via STUN/TURN)
+    Not via API server
+  end note
+}
+
 stop
 
 note right
@@ -127,8 +143,9 @@ note right
   3. **文件上传**: 客户端 -> API服务 -> 对象存储 -> PostgreSQL
   4. **消息查询**: 客户端 -> API服务 -> Redis缓存 / PostgreSQL从库
   5. **实时推送**: API服务 -> Redis Pub/Sub -> WebSocket服务 -> 客户端
+  6. **Voice/Video call**: Signaling via WebSocket; media via WebRTC P2P (optional STUN/TURN)
   
-  **共享类型**: API 与客户端使用的领域类型（User、Message、Chat 等）由 @whatschat/domain 统一定义。
+  **Shared types**: Domain types (User, Message, Chat, Call, etc.) used by API and clients are defined in @whatschat/domain.
 end note
 
 @enduml

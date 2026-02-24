@@ -22,7 +22,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = reactnativeapp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = reactnativeapp/Info.plist; sourceTree = "<group>"; };
 		404C843E7EFE66891BA08D66 /* Pods-reactnativeapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-reactnativeapp.debug.xcconfig"; path = "Target Support Files/Pods-reactnativeapp/Pods-reactnativeapp.debug.xcconfig"; sourceTree = "<group>"; };
-		65BD5F99CED0EBEB4F42DAEC /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = reactnativeapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		65BD5F99CED0EBEB4F42DAEC /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = reactnativeapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = reactnativeapp/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		C239EF85B12AC0A80B20377B /* libPods-reactnativeapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-reactnativeapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,7 +89,6 @@
 				404C843E7EFE66891BA08D66 /* Pods-reactnativeapp.debug.xcconfig */,
 				08F0FFBC492F03C5272E65E5 /* Pods-reactnativeapp.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -345,6 +344,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = reactnativeapp/reactnativeapp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z44FDY898W;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -363,7 +363,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.reactnativeapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whatschat.mobile;
 				PRODUCT_NAME = reactnativeapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "reactnativeapp/reactnativeapp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -381,6 +381,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = reactnativeapp/reactnativeapp.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z44FDY898W;
 				INFOPLIST_FILE = reactnativeapp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -394,7 +395,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.reactnativeapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whatschat.mobile;
 				PRODUCT_NAME = reactnativeapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "reactnativeapp/reactnativeapp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

@@ -29,6 +29,5 @@ export interface IWebRTCAdapter {
   getRemoteStream(): MediaStream | null;
   on(event: string, callback: Function): void;
   off(event: string, callback: Function): void;
-  setSimulatedMode(enabled: boolean): void;
 }
 

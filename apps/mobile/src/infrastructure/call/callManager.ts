@@ -1,31 +1,50 @@
-import {
-  RTCPeerConnection,
-  RTCSessionDescription,
-  RTCIceCandidate,
-  mediaDevices,
-  MediaStream,
-} from 'react-native-webrtc';
+// Lazy-load webrtc so Expo Go never triggers the native module (callManager may still be in the bundle).
+import type { MediaStream } from 'react-native-webrtc';
 import { Socket } from 'socket.io-client';
 import { apiClient } from '@/src/infrastructure/api/client';
 import { useAuthStore } from '@/src/presentation/stores';
+import type { CallState } from './callTypes';
 
-export interface CallState {
-  isActive: boolean;
-  isIncoming: boolean;
-  contactId: string;
-  contactName: string;
-  contactAvatar: string;
-  callType: 'voice' | 'video';
-  status: 'calling' | 'ringing' | 'connected' | 'ended';
-  duration: number;
-  isMuted: boolean;
-  isVideoOff: boolean;
-  isSpeakerOn: boolean;
+export type { CallState } from './callTypes';
+
+// Runtime: package may export RTCPeerConnection as default or named; we use both for compatibility.
+type WebRTCModule = {
+  RTCPeerConnection: typeof import('react-native-webrtc').RTCPeerConnection;
+  RTCSessionDescription: typeof import('react-native-webrtc').RTCSessionDescription;
+  RTCIceCandidate: typeof import('react-native-webrtc').RTCIceCandidate;
+  mediaDevices: typeof import('react-native-webrtc').mediaDevices;
+};
+
+let webrtc: WebRTCModule | null = null;
+
+function getWebRTC(): WebRTCModule {
+  if (!webrtc) {
+    const m = require('react-native-webrtc') as WebRTCModule & { default?: WebRTCModule['RTCPeerConnection'] };
+    webrtc = {
+      RTCPeerConnection: m.default ?? m.RTCPeerConnection,
+      RTCSessionDescription: m.RTCSessionDescription,
+      RTCIceCandidate: m.RTCIceCandidate,
+      mediaDevices: m.mediaDevices,
+    };
+  }
+  return webrtc;
 }
 
 function getCurrentUserId(): string | null {
   const user = useAuthStore.getState().user;
   return user?.id ?? null;
+}
+
+/** Serialize session description to plain { type, sdp } so it survives Socket.IO JSON. */
+function sessionDescToPlain(
+  desc: { type?: string | null; sdp?: string; _type?: string; _sdp?: string } | null,
+  defaultType?: "offer" | "answer"
+): RTCSessionDescriptionInit | null {
+  if (!desc) return null;
+  const t = desc.type ?? (desc as any)._type ?? defaultType ?? null;
+  const s = desc.sdp ?? (desc as any)._sdp;
+  if (t == null && (s == null || s === "")) return null;
+  return { type: t ?? null, sdp: typeof s === "string" ? s : "" };
 }
 
 type Listener = (data: unknown) => void;
@@ -52,6 +71,7 @@ export class CallManager {
   private durationTimer: ReturnType<typeof setInterval> | null = null;
   private currentCallId: string | null = null;
   private currentInitiatorId: string | null = null;
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
 
   setSocket(socket: Socket | null) {
     if (this.socket === socket) return;
@@ -119,7 +139,7 @@ export class CallManager {
     const callId = this.currentCallId;
     const targetUserId = this.targetUserId();
 
-    const peer = new RTCPeerConnection({
+    const peer = new (getWebRTC().RTCPeerConnection as any)({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
@@ -136,9 +156,11 @@ export class CallManager {
         });
       }
     };
-    (peer as any).ontrack = (e: { streams?: MediaStream[] }) => {
-      if (e.streams?.[0]) {
-        this.remoteStream = e.streams[0];
+    (peer as any).ontrack = (e: { streams?: MediaStream[]; track?: { kind: string } }) => {
+      const stream = e.streams?.[0];
+      console.log('[Call] ontrack', { streamsLen: e.streams?.length, trackKind: e.track?.kind, hasStream: !!stream });
+      if (stream) {
+        this.remoteStream = stream;
         this.emit('remoteStream', this.remoteStream);
       }
     };
@@ -196,7 +218,7 @@ export class CallManager {
       callerAvatar: contactAvatar,
     });
 
-    const stream = await mediaDevices.getUserMedia({
+        const stream = await getWebRTC().mediaDevices.getUserMedia({
       audio: true,
       video: callType === 'video' ? { width: 640, height: 480 } : false,
     });
@@ -231,13 +253,20 @@ export class CallManager {
     try {
       await this.createPeerConnection();
       if (!this.peer || !this.localStream) return;
-      this.localStream.getTracks().forEach((t) => this.peer!.addTrack(t, this.localStream!));
+      this.localStream.getTracks().forEach((t) => (this.peer as any).addTrack(t, this.localStream));
       const offer = await this.peer.createOffer();
       await this.peer.setLocalDescription(offer);
+      const localDesc = this.peer.localDescription;
+      const plain = sessionDescToPlain(localDesc, "offer");
+      console.log("[Call] handleCallAnswer sending offer", {
+        callId: this.currentCallId,
+        offerType: plain?.type,
+        offerSdpLen: plain?.sdp?.length ?? 0,
+      });
       this.socket?.emit('call:offer', {
         callId: this.currentCallId,
         targetUserId: this.callState.contactId,
-        offer: this.peer.localDescription,
+        offer: plain,
       });
     } catch (err) {
       console.error('handleCallAnswer', err);
@@ -247,46 +276,89 @@ export class CallManager {
 
   private async handleCallOffer(payload: unknown) {
     const d = payload as Record<string, unknown>;
+    const offer = d.offer as RTCSessionDescriptionInit | undefined;
+    console.log("[Call] handleCallOffer received", {
+      callId: d.callId,
+      currentCallId: this.currentCallId,
+      isIncoming: this.callState.isIncoming,
+      offerType: offer?.type ?? (offer as any)?._type,
+      offerSdpLen: typeof (offer as any)?.sdp === 'string' ? (offer as any).sdp.length : typeof (offer as any)?._sdp === 'string' ? (offer as any)._sdp.length : 0,
+    });
     if (d.callId !== this.currentCallId || !this.callState.isIncoming) return;
     try {
-      if (!this.peer) await this.createPeerConnection();
-      const offer = d.offer as RTCSessionDescription;
-      await this.peer!.setRemoteDescription(new RTCSessionDescription(offer));
+      const pc = this.peer;
+      const alreadyHaveOffer =
+        pc &&
+        (pc.signalingState === 'have-remote-offer' || pc.signalingState === 'have-local-pranswer');
+      if (alreadyHaveOffer) {
+        console.log("[Call] handleCallOffer skip: alreadyHaveOffer", pc?.signalingState);
+        return;
+      }
+      if (pc) {
+        pc.close();
+        this.peer = null;
+        this.pendingIceCandidates = [];
+      }
+      await this.createPeerConnection();
+      const offerObj = d.offer as RTCSessionDescriptionInit;
+      await this.peer!.setRemoteDescription(new (getWebRTC().RTCSessionDescription as any)(offerObj));
+      const stateAfterSet = this.peer!.signalingState;
+      console.log("[Call] handleCallOffer after setRemoteDescription(offer)", { stateAfterSet });
+      await this.drainPendingIceCandidates();
       if (!this.localStream) {
-        const stream = await mediaDevices.getUserMedia({
+        const stream = await getWebRTC().mediaDevices.getUserMedia({
           audio: true,
           video: this.callState.callType === 'video' ? { width: 640, height: 480 } : false,
         });
         this.localStream = stream;
         this.emit('localStream', stream);
       }
-      this.localStream!.getTracks().forEach((t) => this.peer!.addTrack(t, this.localStream!));
+      this.localStream!.getTracks().forEach((t) => (this.peer as any).addTrack(t, this.localStream));
+      const state = this.peer!.signalingState;
+      if (state !== 'have-remote-offer' && state !== 'have-local-pranswer') {
+        console.warn("[Call] handleCallOffer skip createAnswer, state=", state);
+        return;
+      }
       const answer = await this.peer!.createAnswer();
       await this.peer!.setLocalDescription(answer);
+      const answerPlain = sessionDescToPlain(this.peer!.localDescription, "answer");
+      console.log("[Call] handleCallOffer sending answer", { answerType: answerPlain?.type, answerSdpLen: answerPlain?.sdp?.length ?? 0 });
       this.socket?.emit('call:webrtc-answer', {
         callId: this.currentCallId,
         targetUserId: (d.userId as string) ?? this.currentInitiatorId,
-        answer: this.peer!.localDescription,
+        answer: answerPlain,
       });
       this.updateState({ status: 'connected', isIncoming: false });
       this.startDurationTimer();
     } catch (err) {
-      console.error('handleCallOffer', err);
+      console.error('[Call] handleCallOffer error', err);
       this.endCall();
     }
   }
 
   private async handleWebRTCAnswer(payload: unknown) {
     const d = payload as Record<string, unknown>;
+    const state = this.peer?.signalingState;
+    console.log("[Call] handleWebRTCAnswer received", {
+      callId: d.callId,
+      currentCallId: this.currentCallId,
+      state,
+      hasAnswer: !!d.answer,
+    });
     if (d.callId !== this.currentCallId) return;
+    if (!this.peer || !d.answer) return;
+    if (state !== 'have-local-offer' && state !== 'have-local-pranswer') {
+      console.warn("[Call] handleWebRTCAnswer skip: wrong state", state);
+      return;
+    }
     try {
-      if (this.peer && d.answer) {
-        await this.peer.setRemoteDescription(new RTCSessionDescription(d.answer as RTCSessionDescription));
-        this.updateState({ status: 'connected' });
-        this.startDurationTimer();
-      }
+      await this.peer.setRemoteDescription(new (getWebRTC().RTCSessionDescription as any)(d.answer));
+      console.log("[Call] handleWebRTCAnswer setRemoteDescription ok", { stateAfter: this.peer.signalingState });
+      await this.drainPendingIceCandidates();
+      this.updateState({ status: 'connected' });
+      this.startDurationTimer();
     } catch (err) {
-      console.error('handleWebRTCAnswer', err);
+      console.error('[Call] handleWebRTCAnswer error', err);
       this.endCall();
     }
   }
@@ -294,13 +366,28 @@ export class CallManager {
   private async handleIceCandidate(payload: unknown) {
     const d = payload as Record<string, unknown>;
     if (d.callId !== this.currentCallId || !this.peer) return;
+    if (!d.candidate) return;
     try {
-      if (d.candidate) {
-        await this.peer.addIceCandidate(new RTCIceCandidate(d.candidate as RTCIceCandidate));
+      if (!this.peer.remoteDescription) {
+        this.pendingIceCandidates.push(d.candidate as RTCIceCandidateInit);
+        return;
       }
+      await this.peer.addIceCandidate(new (getWebRTC().RTCIceCandidate as any)(d.candidate));
     } catch (err) {
       console.error('handleIceCandidate', err);
     }
+  }
+
+  private async drainPendingIceCandidates() {
+    for (const c of this.pendingIceCandidates) {
+      if (!this.peer) break;
+      try {
+        await this.peer.addIceCandidate(new (getWebRTC().RTCIceCandidate as any)(c));
+      } catch (e) {
+        console.warn('drainPendingIceCandidates', e);
+      }
+    }
+    this.pendingIceCandidates = [];
   }
 
   private handleCallEnd() {
@@ -315,7 +402,7 @@ export class CallManager {
       callId: this.currentCallId,
       initiatorId: this.currentInitiatorId,
     });
-    const stream = await mediaDevices.getUserMedia({
+    const stream = await getWebRTC().mediaDevices.getUserMedia({
       audio: true,
       video: this.callState.callType === 'video' ? { width: 640, height: 480 } : false,
     });
@@ -323,7 +410,7 @@ export class CallManager {
     this.emit('localStream', stream);
     await this.createPeerConnection();
     if (this.peer && this.localStream) {
-      this.localStream.getTracks().forEach((t) => this.peer!.addTrack(t, this.localStream!));
+      this.localStream.getTracks().forEach((t) => (this.peer as any).addTrack(t, this.localStream));
     }
     this.updateState({ status: 'calling', isIncoming: false });
   }
@@ -350,6 +437,7 @@ export class CallManager {
     this.remoteStream = null;
     this.peer?.close();
     this.peer = null;
+    this.pendingIceCandidates = [];
     this.currentCallId = null;
     this.currentInitiatorId = null;
     this.updateState({ isActive: false, status: 'ended', duration: 0 });

@@ -4,15 +4,12 @@ import { IWebRTCAdapter, RTCCallState } from "../../../domain/interfaces/adapter
 import { IWebSocketAdapter } from "../../../domain/interfaces/adapters/websocket.interface";
 import { getWebSocketAdapter } from "./websocket.adapter";
 
-type WebRTCMode = "native" | "simulated";
-
 export class WebRTCAdapter implements IWebRTCAdapter {
   private peerConnection: RTCPeerConnection | null = null;
   private localStream: MediaStream | null = null;
   private remoteStream: MediaStream | null = null;
   private wsManager: IWebSocketAdapter;
   private listeners: Map<string, Function[]> = new Map();
-  private mode: WebRTCMode = "simulated";
   private callState: RTCCallState = {
     isActive: false,
     isIncoming: false,
@@ -30,8 +27,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
 
   constructor(wsManager?: IWebSocketAdapter) {
     this.wsManager = wsManager || getWebSocketAdapter();
-    const raw = process.env.NEXT_PUBLIC_WEBRTC_MODE || "simulated";
-    this.mode = raw === "native" ? "native" : "simulated";
     this.setupWebSocketListeners();
   }
 
@@ -43,8 +38,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   private async createPeerConnection() {
-    if (this.mode === "simulated") return;
-
     try {
       const configuration: RTCConfiguration = {
         iceServers: [
@@ -98,49 +91,8 @@ export class WebRTCAdapter implements IWebRTCAdapter {
       return await navigator.mediaDevices.getUserMedia(constraints);
     } catch (error) {
       console.error("获取媒体设备失败:", error);
-
-      if (this.mode === "simulated") {
-        return this.createSimulatedStream(video);
-      }
-
       throw new Error("无法访问摄像头或麦克风，请检查权限设置");
     }
-  }
-
-  private createSimulatedStream(video: boolean): MediaStream {
-    const canvas = document.createElement("canvas");
-    canvas.width = 640;
-    canvas.height = 480;
-    const ctx = canvas.getContext("2d")!;
-
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.font = "24px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("模拟视频流", canvas.width / 2, canvas.height / 2);
-
-    const stream = new MediaStream();
-
-    if (video) {
-      const videoTrack = canvas.captureStream(30).getVideoTracks()[0];
-      stream.addTrack(videoTrack);
-    }
-
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 0;
-    oscillator.connect(gainNode);
-
-    const destination = audioContext.createMediaStreamDestination();
-    gainNode.connect(destination);
-    oscillator.start();
-
-    const audioTrack = destination.stream.getAudioTracks()[0];
-    stream.addTrack(audioTrack);
-
-    return stream;
   }
 
   async startCall(
@@ -161,46 +113,28 @@ export class WebRTCAdapter implements IWebRTCAdapter {
         isVideoOff: callType === "voice",
       });
 
-      if (this.mode === "simulated") {
-        this.localStream = await this.getUserMedia(callType === "video");
-        this.emit("localStream", this.localStream);
+      this.localStream = await this.getUserMedia(callType === "video");
+      this.emit("localStream", this.localStream);
 
-        setTimeout(
-          () => {
-            this.updateCallState({ status: "connected" });
-            this.startDurationTimer();
+      await this.createPeerConnection();
 
-            if (callType === "video") {
-              this.remoteStream = this.createSimulatedStream(true);
-              this.emit("remoteStream", this.remoteStream);
-            }
-          },
-          2000 + Math.random() * 3000
-        );
-      } else {
-        this.localStream = await this.getUserMedia(callType === "video");
-        this.emit("localStream", this.localStream);
+      this.localStream.getTracks().forEach((track) => {
+        this.peerConnection!.addTrack(track, this.localStream!);
+      });
 
-        await this.createPeerConnection();
+      const offer = await this.peerConnection!.createOffer();
+      await this.peerConnection!.setLocalDescription(offer);
 
-        this.localStream.getTracks().forEach((track) => {
-          this.peerConnection!.addTrack(track, this.localStream!);
-        });
-
-        const offer = await this.peerConnection!.createOffer();
-        await this.peerConnection!.setLocalDescription(offer);
-
-        this.wsManager.send({
-          type: "call_offer",
-          to: contactId,
-          data: {
-            offer,
-            callType,
-            callerName: "Me",
-            callerAvatar: "/placeholder.svg?height=40&width=40&text=我",
-          },
-        });
-      }
+      this.wsManager.send({
+        type: "call_offer",
+        to: contactId,
+        data: {
+          offer,
+          callType,
+          callerName: "Me",
+          callerAvatar: "/placeholder.svg?height=40&width=40&text=我",
+        },
+      });
     } catch (error) {
       console.error("发起通话失败:", error);
       this.endCall();
@@ -223,10 +157,8 @@ export class WebRTCAdapter implements IWebRTCAdapter {
         isVideoOff: callType === "voice",
       });
 
-      if (this.mode !== "simulated") {
-        await this.createPeerConnection();
-        await this.peerConnection!.setRemoteDescription(offer);
-      }
+      await this.createPeerConnection();
+      await this.peerConnection!.setRemoteDescription(offer);
 
       this.emit("incomingCall", this.callState);
     } catch (error) {
@@ -241,44 +173,34 @@ export class WebRTCAdapter implements IWebRTCAdapter {
         throw new Error("没有来电可接听");
       }
 
-      if (this.mode === "simulated") {
-        this.localStream = await this.getUserMedia(
-          this.callState.callType === "video"
-        );
-        this.emit("localStream", this.localStream);
-
-        this.updateCallState({ status: "connected", isIncoming: false });
-        this.startDurationTimer();
-
-        if (this.callState.callType === "video") {
-          this.remoteStream = this.createSimulatedStream(true);
-          this.emit("remoteStream", this.remoteStream);
-        }
-      } else {
-        if (!this.peerConnection) {
-          throw new Error("通话连接未建立");
-        }
-
-        this.localStream = await this.getUserMedia(
-          this.callState.callType === "video"
-        );
-        this.emit("localStream", this.localStream);
-
-        this.localStream.getTracks().forEach((track) => {
-          this.peerConnection!.addTrack(track, this.localStream!);
-        });
-
-        const answer = await this.peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
-
-        this.wsManager.send({
-          type: "call_answer",
-          to: this.callState.contactId,
-          data: answer,
-        });
-
-        this.updateCallState({ status: "connected", isIncoming: false });
+      if (!this.peerConnection) {
+        throw new Error("通话连接未建立");
       }
+
+      this.localStream = await this.getUserMedia(
+        this.callState.callType === "video"
+      );
+      this.emit("localStream", this.localStream);
+
+      this.localStream.getTracks().forEach((track) => {
+        this.peerConnection!.addTrack(track, this.localStream!);
+      });
+
+      const state = this.peerConnection!.signalingState;
+      if (state !== "have-remote-offer" && state !== "have-local-pranswer") {
+        console.warn("answerCall: skip createAnswer, signalingState=", state);
+        return;
+      }
+      const answer = await this.peerConnection.createAnswer();
+      await this.peerConnection.setLocalDescription(answer);
+
+      this.wsManager.send({
+        type: "call_answer",
+        to: this.callState.contactId,
+        data: answer,
+      });
+
+      this.updateCallState({ status: "connected", isIncoming: false });
     } catch (error) {
       console.error("接听通话失败:", error);
       this.endCall();
@@ -422,13 +344,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
     }
   }
 
-  setSimulatedMode(enabled: boolean): void {
-    this.mode = enabled ? "simulated" : "native";
-  }
-
-  getMode(): WebRTCMode {
-    return this.mode;
-  }
 }
 
 // 单例模式

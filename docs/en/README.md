@@ -43,7 +43,7 @@ docs/
 ### Data
 
 - [Data architecture & flow](data/README.md) — data-flow, data-replication, TOGAF data-architecture
-- [data-flow.puml](data/data-flow.puml) — messaging, auth, file upload
+- [data-flow.puml](data/data-flow.puml) — messaging, auth, file upload, call signaling (WebRTC)
 - [data-replication.puml](data/data-replication.puml) — PostgreSQL replication
 - [TOGAF data-architecture](rd/togaf/data-architecture.puml)
 

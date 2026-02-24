@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/presentation/shared/theme';
-import type { CallState } from '@/src/infrastructure/call/callManager';
+import type { CallState } from '@/src/infrastructure/call/callManagerLoader';
 
 interface IncomingCallOverlayProps {
   callState: CallState;
@@ -13,26 +13,25 @@ interface IncomingCallOverlayProps {
 export function IncomingCallOverlay({ callState, onAnswer, onDecline }: IncomingCallOverlayProps) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.overlay, { backgroundColor: colors.darkBackground }]}>
+    <View style={[styles.overlay, { backgroundColor: '#0B141A' }]}>
       <View style={styles.content}>
         <View style={styles.avatar}>
-          <Ionicons name="person" size={64} color={colors.darkSecondaryText} />
+          <Ionicons name="person" size={64} color="#8696A0" />
         </View>
-        <Text style={[styles.name, { color: colors.lightPrimaryText }]}>{callState.contactName}</Text>
-        <Text style={[styles.subtitle, { color: colors.darkSecondaryText }]}>
-          {callState.callType === 'video' ? '视频通话' : '语音通话'}来电
+        <Text style={styles.name}>{callState.contactName}</Text>
+        <Text style={styles.subtitle}>
+          {callState.callType === 'video' ? '视频通话' : '语音通话'} · 正在响铃...
         </Text>
-        <Text style={[styles.ringing, { color: colors.darkSecondaryText }]}>正在响铃...</Text>
         <View style={styles.buttons}>
           <TouchableOpacity
-            style={[styles.btn, styles.declineBtn]}
+            style={[styles.btn, { backgroundColor: colors.iosRed }]}
             onPress={onDecline}
             activeOpacity={0.8}
           >
-            <Ionicons name="call-reject" size={32} color="#fff" />
+            <Ionicons name="close-circle" size={32} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.btn, styles.answerBtn]}
+            style={[styles.btn, { backgroundColor: colors.primaryGreen }]}
             onPress={onAnswer}
             activeOpacity={0.8}
           >
@@ -64,16 +63,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   name: {
-    fontSize: 24,
-    fontWeight: '300',
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#E9EDEF',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  ringing: {
     fontSize: 14,
+    color: '#8696A0',
     marginBottom: 48,
   },
   buttons: {
@@ -81,16 +78,10 @@ const styles = StyleSheet.create({
     gap: 48,
   },
   btn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  declineBtn: {
-    backgroundColor: '#FF3B30',
-  },
-  answerBtn: {
-    backgroundColor: '#34C759',
   },
 });

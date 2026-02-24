@@ -69,10 +69,16 @@ export function useRealCall() {
   }, [rtcManager])
 
   const startCall = useCallback(
-    async (contactId: string, contactName: string, contactAvatar: string, callType: "voice" | "video") => {
+    async (
+      contactId: string,
+      contactName: string,
+      contactAvatar: string,
+      callType: "voice" | "video",
+      options?: { chatId?: string }
+    ) => {
       try {
         setError(null)
-        await rtcManager.startCall(contactId, contactName, contactAvatar, callType)
+        await rtcManager.startCall(contactId, contactName, contactAvatar, callType, options)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "发起通话失败"
         setError(errorMessage)

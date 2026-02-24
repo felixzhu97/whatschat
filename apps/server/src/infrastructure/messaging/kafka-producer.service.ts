@@ -5,23 +5,31 @@ import logger from "@/shared/utils/logger";
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
-  private kafka: Kafka;
-  private producer: Producer;
+  private kafka: Kafka | null = null;
+  private producer: Producer | null = null;
   private readonly topic: string;
+  private readonly enabled: boolean;
 
   constructor() {
     const config = ConfigService.loadConfig();
     this.topic = config.kafka.topicOfflineMessages;
-    this.kafka = new Kafka({
-      clientId: "whatschat-server",
-      brokers: config.kafka.brokers,
-    });
-    this.producer = this.kafka.producer();
+    this.enabled = config.kafka.brokers.length > 0;
+    if (this.enabled) {
+      this.kafka = new Kafka({
+        clientId: "whatschat-server",
+        brokers: config.kafka.brokers,
+      });
+      this.producer = this.kafka.producer();
+    }
   }
 
   private connected = false;
 
   async onModuleInit() {
+    if (!this.enabled || !this.producer) {
+      logger.info("Kafka disabled (no brokers); offline message queue will no-op");
+      return;
+    }
     try {
       await this.producer.connect();
       this.connected = true;
@@ -32,14 +40,14 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    if (this.connected) {
+    if (this.connected && this.producer) {
       await this.producer.disconnect();
       logger.info("Kafka producer disconnected");
     }
   }
 
   async sendOfflineMessage(recipientUserId: string, payload: string): Promise<void> {
-    if (!this.connected) return;
+    if (!this.connected || !this.producer) return;
     await this.producer.send({
       topic: this.topic,
       messages: [

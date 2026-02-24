@@ -43,7 +43,6 @@ class WebRTCManager {
   private remoteStream: MediaStream | null = null
   private wsManager = getWebSocketManager()
   private listeners: Map<string, Function[]> = new Map()
-  private simulatedMode = true
   private callState: RTCCallState = {
     isActive: false,
     isIncoming: false,
@@ -61,6 +60,8 @@ class WebRTCManager {
   /** Server call id and initiator (for signaling). */
   private currentCallId: string | null = null
   private currentInitiatorId: string | null = null
+  /** ICE candidates received before remote description is set; applied after setRemoteDescription. */
+  private pendingIceCandidates: RTCIceCandidateInit[] = []
 
   constructor() {
     this.setupWebSocketListeners()
@@ -99,8 +100,6 @@ class WebRTCManager {
   }
 
   private async createPeerConnection() {
-    if (this.simulatedMode) return
-
     try {
       const configuration: RTCConfiguration = {
         iceServers: [
@@ -122,18 +121,26 @@ class WebRTCManager {
       }
 
       this.peerConnection.ontrack = (event) => {
-        this.remoteStream = event.streams[0]
-        this.emit("remoteStream", this.remoteStream)
+        const stream = event.streams?.[0] ?? (() => {
+          const s = new MediaStream()
+          if (event.track) s.addTrack(event.track)
+          return s
+        })()
+        const tracks = stream.getTracks()
+        console.log("[WebRTC] ontrack", { streamsLen: event.streams?.length, trackKind: event.track?.kind, tracksInStream: tracks.length })
+        if (tracks.length) {
+          this.remoteStream = stream
+          this.emit("remoteStream", this.remoteStream)
+        }
       }
 
       this.peerConnection.onconnectionstatechange = () => {
-        if (this.peerConnection?.connectionState === "connected") {
+        const connState = this.peerConnection?.connectionState
+        console.log("[WebRTC] connectionstatechange", connState)
+        if (connState === "connected") {
           this.updateCallState({ status: "connected" })
           this.startDurationTimer()
-        } else if (
-          this.peerConnection?.connectionState === "disconnected" ||
-          this.peerConnection?.connectionState === "failed"
-        ) {
+        } else if (connState === "disconnected" || connState === "failed") {
           this.endCall()
         }
       }
@@ -153,57 +160,17 @@ class WebRTCManager {
       return await navigator.mediaDevices.getUserMedia(constraints)
     } catch (error) {
       console.error("获取媒体设备失败:", error)
-
-      if (this.simulatedMode) {
-        // 在模拟模式下创建一个虚拟的媒体流
-        return this.createSimulatedStream(video)
-      }
-
       throw new Error("无法访问摄像头或麦克风，请检查权限设置")
     }
   }
 
-  private createSimulatedStream(video: boolean): MediaStream {
-    // 创建一个模拟的媒体流用于演示
-    const canvas = document.createElement("canvas")
-    canvas.width = 640
-    canvas.height = 480
-    const ctx = canvas.getContext("2d")!
-
-    // 绘制一个简单的背景
-    ctx.fillStyle = "#2563eb"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = "white"
-    ctx.font = "24px Arial"
-    ctx.textAlign = "center"
-    ctx.fillText("模拟视频流", canvas.width / 2, canvas.height / 2)
-
-    const stream = new MediaStream()
-
-    if (video) {
-      // 添加视频轨道
-      const videoTrack = canvas.captureStream(30).getVideoTracks()[0]
-      stream.addTrack(videoTrack)
-    }
-
-    // 创建一个静音的音频轨道
-    const audioContext = new AudioContext()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    gainNode.gain.value = 0 // 静音
-    oscillator.connect(gainNode)
-
-    const destination = audioContext.createMediaStreamDestination()
-    gainNode.connect(destination)
-    oscillator.start()
-
-    const audioTrack = destination.stream.getAudioTracks()[0]
-    stream.addTrack(audioTrack)
-
-    return stream
-  }
-
-  public async startCall(contactId: string, contactName: string, contactAvatar: string, callType: "voice" | "video") {
+  public async startCall(
+    contactId: string,
+    contactName: string,
+    contactAvatar: string,
+    callType: "voice" | "video",
+    options?: { chatId?: string }
+  ) {
     try {
       this.updateCallState({
         isActive: true,
@@ -216,37 +183,31 @@ class WebRTCManager {
         isVideoOff: callType === "voice",
       })
 
-      if (this.simulatedMode) {
-        this.localStream = await this.getUserMedia(callType === "video")
-        this.emit("localStream", this.localStream)
-        setTimeout(
-          () => {
-            this.updateCallState({ status: "connected" })
-            this.startDurationTimer()
-            if (callType === "video") {
-              this.remoteStream = this.createSimulatedStream(true)
-              this.emit("remoteStream", this.remoteStream)
-            }
-          },
-          2000 + Math.random() * 3000,
-        )
-        return
-      }
-
       const apiType = callType === "video" ? "VIDEO" : "AUDIO"
+      const body: { type: string; targetUserId?: string; chatId?: string } = { type: apiType }
+      if (options?.chatId) {
+        body.chatId = options.chatId
+      } else {
+        body.targetUserId = contactId
+      }
       const created = await this.apiFetch("/calls", {
         method: "POST",
-        body: JSON.stringify({ type: apiType, targetUserId: contactId }),
+        body: JSON.stringify(body),
       })
-      const callId = created?.data?.id
+      const callData = created?.data
+      const callId = callData?.id
       if (!callId) throw new Error("Failed to create call")
+      const myId = getCurrentUserId()
+      const targetUserId =
+        callData?.participants?.find((p: { userId: string }) => p.userId !== myId)?.userId ?? contactId
       this.currentCallId = callId
-      this.currentInitiatorId = getCurrentUserId()
+      this.currentInitiatorId = myId
+      this.updateCallState({ contactId: targetUserId })
 
       this.wsManager.send({
         type: "call:incoming",
         data: {
-          targetUserId: contactId,
+          targetUserId,
           callId,
           type: callType,
           callerName: contactName,
@@ -268,6 +229,7 @@ class WebRTCManager {
     const initiatorId = d.initiatorId
     const callId = d.callId
     const callType = (d.type || "voice") as "voice" | "video"
+    console.log("[WebRTC] handleCallIncoming", { callId, initiatorId, callType })
     this.currentCallId = callId
     this.currentInitiatorId = initiatorId
     this.updateCallState({
@@ -306,17 +268,69 @@ class WebRTCManager {
     }
   }
 
+  /** Normalize SDP object to { type, sdp } (handles _type/_sdp from react-native-webrtc). */
+  private normalizeSdp(desc: any): RTCSessionDescriptionInit | null {
+    if (!desc || (desc.type == null && desc.sdp == null && desc._type == null && desc._sdp == null))
+      return null
+    const type = desc.type ?? desc._type ?? "offer"
+    const sdp = typeof (desc.sdp ?? desc._sdp) === "string" ? desc.sdp ?? desc._sdp : ""
+    return { type, sdp }
+  }
+
   private async handleCallOfferServer(message: { data: any }) {
     const d = message.data || message
-    if (d.callId !== this.currentCallId || !this.callState.isIncoming) return
+    console.log("[WebRTC] handleCallOfferServer received", {
+      callId: d.callId,
+      currentCallId: this.currentCallId,
+      isIncoming: this.callState.isIncoming,
+      hasOffer: !!d.offer,
+      offerType: d.offer?.type ?? d.offer?._type,
+      offerSdpLen: typeof d.offer?.sdp === "string" ? d.offer.sdp.length : (typeof d.offer?._sdp === "string" ? d.offer._sdp.length : 0),
+    })
+    if (d.callId !== this.currentCallId || !this.callState.isIncoming) {
+      console.log("[WebRTC] handleCallOfferServer skip: callId or isIncoming mismatch")
+      return
+    }
+    const offerInit = this.normalizeSdp(d.offer)
+    if (!offerInit || offerInit.type !== "offer" || typeof offerInit.sdp !== "string" || !offerInit.sdp) {
+      console.warn("[WebRTC] handleCallOfferServer invalid offer", { offerInit, need: "type=offer and non-empty sdp" })
+      return
+    }
     try {
-      if (!this.peerConnection) await this.createPeerConnection()
-      await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(d.offer))
+      const pc = this.peerConnection
+      const alreadyHaveOffer =
+        pc &&
+        (pc.signalingState === "have-remote-offer" || pc.signalingState === "have-local-pranswer")
+      if (alreadyHaveOffer) {
+        console.log("[WebRTC] handleCallOfferServer skip: alreadyHaveOffer, state=", pc?.signalingState)
+        return
+      }
+
+      if (pc) {
+        pc.close()
+        this.peerConnection = null
+        this.pendingIceCandidates = []
+      }
+      await this.createPeerConnection()
       if (!this.localStream) {
         this.localStream = await this.getUserMedia(this.callState.callType === "video")
         this.emit("localStream", this.localStream)
       }
       this.localStream.getTracks().forEach((t) => this.peerConnection!.addTrack(t, this.localStream!))
+      console.log("[WebRTC] handleCallOfferServer setRemoteDescription(offer)", { sdpLen: offerInit.sdp.length })
+      await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(offerInit))
+      const stateAfterSet = this.peerConnection!.signalingState
+      const hasRemoteDesc = !!this.peerConnection!.remoteDescription
+      console.log("[WebRTC] handleCallOfferServer after setRemoteDescription", { stateAfterSet, hasRemoteDesc })
+      if (stateAfterSet !== "have-remote-offer" && stateAfterSet !== "have-local-pranswer") {
+        console.warn("[WebRTC] handleCallOfferServer skip createAnswer: state is", stateAfterSet)
+        return
+      }
+      if (!hasRemoteDesc) {
+        console.warn("[WebRTC] handleCallOfferServer skip: no remoteDescription")
+        return
+      }
+      await this.drainPendingIceCandidates()
       const answer = await this.peerConnection!.createAnswer()
       await this.peerConnection!.setLocalDescription(answer)
       this.wsManager.send({
@@ -327,25 +341,40 @@ class WebRTCManager {
           answer,
         },
       })
+      console.log("[WebRTC] handleCallOfferServer sent answer ok")
       this.updateCallState({ status: "connected", isIncoming: false })
       this.startDurationTimer()
     } catch (err) {
-      console.error("handleCallOfferServer", err)
+      console.error("[WebRTC] handleCallOfferServer error", err)
       this.endCall()
     }
   }
 
   private async handleWebRTCAnswerServer(message: { data: any }) {
     const d = message.data || message
+    const stateBefore = this.peerConnection?.signalingState
+    console.log("[WebRTC] handleWebRTCAnswerServer received", {
+      callId: d.callId,
+      currentCallId: this.currentCallId,
+      stateBefore,
+      hasAnswer: !!d.answer,
+    })
     if (d.callId !== this.currentCallId) return
+    const answerInit = this.normalizeSdp(d.answer)
+    if (!answerInit) {
+      console.warn("[WebRTC] handleWebRTCAnswerServer invalid answer", d.answer)
+      return
+    }
     try {
       if (this.peerConnection) {
-        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(d.answer))
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answerInit))
+        console.log("[WebRTC] handleWebRTCAnswerServer setRemoteDescription ok", { stateAfter: this.peerConnection.signalingState })
+        await this.drainPendingIceCandidates()
         this.updateCallState({ status: "connected" })
         this.startDurationTimer()
       }
     } catch (err) {
-      console.error("handleWebRTCAnswerServer", err)
+      console.error("[WebRTC] handleWebRTCAnswerServer error", err)
       this.endCall()
     }
   }
@@ -353,11 +382,28 @@ class WebRTCManager {
   private async handleIceCandidateServer(message: { data: any }) {
     const d = message.data || message
     if (d.callId !== this.currentCallId || !this.peerConnection) return
+    if (!d.candidate) return
     try {
-      if (d.candidate) await this.peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate))
+      if (!this.peerConnection.remoteDescription) {
+        this.pendingIceCandidates.push(d.candidate)
+        return
+      }
+      await this.peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate))
     } catch (err) {
       console.error("handleIceCandidateServer", err)
     }
+  }
+
+  private async drainPendingIceCandidates() {
+    if (!this.peerConnection) return
+    for (const c of this.pendingIceCandidates) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(c))
+      } catch (e) {
+        console.warn("drainPendingIceCandidates", e)
+      }
+    }
+    this.pendingIceCandidates = []
   }
 
   private handleCallEndServer() {
@@ -367,19 +413,6 @@ class WebRTCManager {
   public async answerCall() {
     try {
       if (!this.callState.isIncoming) throw new Error("没有来电可接听")
-
-      if (this.simulatedMode) {
-        this.localStream = await this.getUserMedia(this.callState.callType === "video")
-        this.emit("localStream", this.localStream)
-        this.updateCallState({ status: "connected", isIncoming: false })
-        this.startDurationTimer()
-        if (this.callState.callType === "video") {
-          this.remoteStream = this.createSimulatedStream(true)
-          this.emit("remoteStream", this.remoteStream)
-        }
-        return
-      }
-
       if (!this.currentCallId) throw new Error("Call id missing")
       await this.apiFetch(`/calls/${this.currentCallId}/answer`, { method: "PUT" })
       this.wsManager.send({
@@ -401,7 +434,7 @@ class WebRTCManager {
   }
 
   public endCall() {
-    if (!this.simulatedMode && this.currentCallId) {
+    if (this.currentCallId) {
       const me = getCurrentUserId()
       const participants =
         me && this.currentInitiatorId
@@ -438,6 +471,7 @@ class WebRTCManager {
       this.peerConnection.close()
       this.peerConnection = null
     }
+    this.pendingIceCandidates = []
 
     this.currentCallId = null
     this.currentInitiatorId = null
@@ -521,9 +555,6 @@ class WebRTCManager {
     }
   }
 
-  public setSimulatedMode(enabled: boolean) {
-    this.simulatedMode = enabled
-  }
 }
 
 // 单例模式

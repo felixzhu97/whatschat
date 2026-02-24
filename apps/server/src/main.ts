@@ -66,15 +66,18 @@ async function bootstrap() {
   }
 
   const port = parseInt(process.env["PORT"] || "3001", 10);
-  const host = process.env["HOST"] || "localhost";
+  const host = process.env["HOST"] || "0.0.0.0";
 
   await app.listen(port, host);
 
   logger.info(`🚀 WhatsChat服务器启动成功`);
-  logger.info(`📍 地址: http://${host}:${port}`);
+  logger.info(`📍 监听: ${host}:${port} (本机: http://localhost:${port}, 局域网: http://<本机IP>:${port})`);
+  if (host === "0.0.0.0") {
+    logger.info(`📍 真机访问请用本机局域网 IP，并确保防火墙放行 ${port} 端口`);
+  }
   logger.info(`🌍 环境: ${process.env["NODE_ENV"] || "development"}`);
   if (process.env["NODE_ENV"] !== "production") {
-    logger.info(`📚 API文档: http://${host}:${port}/api/docs`);
+    logger.info(`📚 API文档: http://localhost:${port}/api/docs`);
   }
 }
 

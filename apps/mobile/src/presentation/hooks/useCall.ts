@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { MediaStream } from 'react-native-webrtc';
 import { useSocketStore } from '@/src/presentation/stores';
-import { getCallManager, CallState } from '@/src/infrastructure/call/callManager';
+import { getCallManager, type CallState } from '@/src/infrastructure/call/callManagerLoader';
 
+// Use unknown to avoid importing react-native-webrtc here (Expo Go has no native webrtc module)
 export function useCall() {
   const socket = useSocketStore((s) => s.socket);
   const [callState, setCallState] = useState<CallState>(getCallManager().getCallState());
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [localStream, setLocalStream] = useState<unknown>(null);
+  const [remoteStream, setRemoteStream] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
 
   const manager = getCallManager();
@@ -18,8 +18,8 @@ export function useCall() {
 
   useEffect(() => {
     const onState = (s: CallState) => setCallState(s);
-    const onLocal = (s: MediaStream | null) => setLocalStream(s);
-    const onRemote = (s: MediaStream | null) => setRemoteStream(s);
+    const onLocal = (s: unknown) => setLocalStream(s);
+    const onRemote = (s: unknown) => setRemoteStream(s);
     const onEnded = () => {
       setLocalStream(null);
       setRemoteStream(null);
@@ -32,8 +32,8 @@ export function useCall() {
     manager.on('callEnded', onEnded);
 
     setCallState(manager.getCallState());
-    setLocalStream(manager.getLocalStream());
-    setRemoteStream(manager.getRemoteStream());
+    setLocalStream(manager.getLocalStream() ?? null);
+    setRemoteStream(manager.getRemoteStream() ?? null);
 
     return () => {
       manager.off('callStateChanged', onState);
