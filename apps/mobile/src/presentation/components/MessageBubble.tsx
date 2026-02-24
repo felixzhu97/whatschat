@@ -1,66 +1,265 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Message, MessageType, MessageStatus } from '@/src/domain/entities';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 
 interface MessageBubbleProps {
   message: Message;
   isMe: boolean;
   showSenderName?: boolean;
+  showAvatar?: boolean;
   onTap?: () => void;
   onLongPress?: () => void;
+}
+
+const Row = styled.View`
+  flex-direction: row;
+  margin-vertical: 2px;
+  margin-horizontal: 4px;
+  align-items: flex-end;
+  justify-content: ${(p: { isMe: boolean }) => (p.isMe ? 'flex-end' : 'flex-start')};
+`;
+
+const Avatar = styled.View`
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const AvatarText = styled.Text`
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: bold;
+`;
+
+const MessageWrapper = styled.View`
+  flex: 1;
+  max-width: 78%;
+`;
+
+const ReplyIndicator = styled.View`
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: rgba(128, 128, 128, 0.2);
+  border-radius: 12px;
+  flex-direction: row;
+`;
+
+const ReplyBorder = styled.View`
+  width: 3px;
+  margin-right: 8px;
+  border-radius: 2px;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const ReplyContent = styled.View`
+  flex: 1;
+`;
+
+const ReplyLabel = styled.Text`
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const ReplyText = styled.Text`
+  font-size: 12px;
+  color: #808080;
+`;
+
+const Bubble = styled.View`
+  padding: 10px 14px 8px 14px;
+  background-color: ${(p: { isMe: boolean }) =>
+    p.isMe ? p.theme.colors.myMessageBubble : p.theme.colors.otherMessageBubble};
+  border-radius: 18px;
+`;
+
+const SenderName = styled.Text`
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const MessageText = styled.Text`
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
+  color: ${(p: {
+    isMe: boolean;
+    isDark?: boolean;
+    theme?: { colors: { primaryText: string } };
+  }) =>
+    p.isMe ? (p.isDark ? '#FFFFFF' : '#111B21') : (p.theme?.colors?.primaryText ?? '#000000')};
+`;
+
+const ImageMessage = styled.Image`
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+`;
+
+const VideoContainer = styled.View`
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const VideoThumbnail = styled.Image`
+  width: 100%;
+  height: 100%;
+`;
+
+const VideoOverlay = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  align-items: center;
+`;
+
+const VideoDuration = styled.View`
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 8px;
+`;
+
+const DurationText = styled.Text`
+  color: #ffffff;
+  font-size: 12px;
+`;
+
+const MediaRow = styled.View`
+  width: 200px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const MediaIcon = styled.View`
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  background-color: ${(p) => p.theme.colors.primaryGreen};
+`;
+
+const FileIcon = styled(MediaIcon)`
+  border-radius: 8px;
+`;
+
+const LocationIcon = styled(MediaIcon)`
+  background-color: ${(p) => p.theme.colors.iosRed};
+`;
+
+const MediaInfo = styled.View`
+  flex: 1;
+`;
+
+const MediaLabel = styled.Text`
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+`;
+
+const MediaMeta = styled.Text`
+  font-size: 12px;
+  color: #808080;
+`;
+
+const SystemContainer = styled.View`
+  padding: 6px 12px;
+  background-color: rgba(128, 128, 128, 0.2);
+  border-radius: 12px;
+`;
+
+const SystemText = styled.Text`
+  font-size: 13px;
+  color: #808080;
+  font-style: italic;
+  text-align: center;
+`;
+
+const MessageInfo = styled.View`
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-end;
+  margin-top: 4px;
+  gap: 4px;
+`;
+
+const TimeText = styled.Text`
+  font-size: 11px;
+  color: ${(p: { isMe?: boolean; isDark?: boolean }) =>
+    p.isMe
+      ? p.isDark
+        ? 'rgba(255,255,255,0.85)'
+        : 'rgba(17,27,33,0.6)'
+      : 'rgba(0,0,0,0.45)'};
+`;
+
+function formatTime(timestamp: Date): string {
+  const now = new Date();
+  const hour = timestamp.getHours();
+  const minute = timestamp.getMinutes();
+  if (
+    now.getDate() === timestamp.getDate() &&
+    now.getMonth() === timestamp.getMonth() &&
+    now.getFullYear() === timestamp.getFullYear()
+  ) {
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  }
+  return `${timestamp.getMonth() + 1}/${timestamp.getDate()} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+}
+
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   isMe,
   showSenderName = false,
+  showAvatar = false,
   onTap,
   onLongPress,
 }) => {
-  const { colors } = useTheme();
-
-  const formatTime = (timestamp: Date): string => {
-    const now = new Date();
-    const hour = timestamp.getHours();
-    const minute = timestamp.getMinutes();
-
-    if (
-      now.getDate() === timestamp.getDate() &&
-      now.getMonth() === timestamp.getMonth() &&
-      now.getFullYear() === timestamp.getFullYear()
-    ) {
-      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    } else {
-      return `${timestamp.getMonth() + 1}/${timestamp.getDate()} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    }
-  };
-
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    } else if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    } else if (bytes < 1024 * 1024 * 1024) {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    } else {
-      return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-    }
-  };
+  const { colors, isDark } = useTheme();
+  const sentStatusColor = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(17,27,33,0.6)';
 
   const renderMessageStatusIcon = () => {
     switch (message.status) {
       case MessageStatus.Sent:
-        return <Ionicons name="checkmark" size={12} color={colors.secondaryText} />;
+        return <Ionicons name="checkmark" size={12} color={sentStatusColor} />;
       case MessageStatus.Delivered:
-        return <Ionicons name="checkmark-done" size={12} color={colors.secondaryText} />;
+        return <Ionicons name="checkmark-done" size={12} color={sentStatusColor} />;
       case MessageStatus.Read:
         return <Ionicons name="checkmark-done" size={12} color={colors.deliveredColor} />;
       case MessageStatus.Failed:
@@ -74,372 +273,126 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     switch (message.type) {
       case MessageType.Text:
         return (
-          <Text
-            style={[
-              styles.messageText,
-              { color: isMe ? '#FFFFFF' : colors.primaryText },
-            ]}
-          >
+          <MessageText isMe={isMe} isDark={isDark}>
             {message.content}
-          </Text>
+          </MessageText>
         );
       case MessageType.Image:
         return (
-          <Image
+          <ImageMessage
             source={{ uri: message.fileUrl || message.content }}
-            style={styles.imageMessage}
             resizeMode="cover"
           />
         );
       case MessageType.Video:
         return (
-          <View style={styles.videoContainer}>
-            <Image
-              source={{ uri: message.thumbnailUrl || message.fileUrl || message.content }}
-              style={styles.videoThumbnail}
+          <VideoContainer>
+            <VideoThumbnail
+              source={{
+                uri: message.thumbnailUrl || message.fileUrl || message.content,
+              }}
               resizeMode="cover"
             />
-            <View style={styles.videoOverlay}>
+            <VideoOverlay>
               <Ionicons name="play-circle" size={48} color="#FFFFFF" />
-            </View>
+            </VideoOverlay>
             {message.duration && (
-              <View style={styles.videoDuration}>
-                <Text style={styles.durationText}>{formatDuration(message.duration)}</Text>
-              </View>
+              <VideoDuration>
+                <DurationText>{formatDuration(message.duration)}</DurationText>
+              </VideoDuration>
             )}
-          </View>
+          </VideoContainer>
         );
       case MessageType.Audio:
       case MessageType.Voice:
         return (
-          <View style={styles.audioContainer}>
-            <View style={[styles.audioIcon, { backgroundColor: colors.primaryGreen }]}>
+          <MediaRow>
+            <MediaIcon>
               <Ionicons name="play" size={16} color="#FFFFFF" />
-            </View>
-            <View style={styles.audioInfo}>
-              <Text style={styles.audioLabel}>
+            </MediaIcon>
+            <MediaInfo>
+              <MediaLabel>
                 {message.type === MessageType.Voice ? '语音消息' : '音频文件'}
-              </Text>
-              <Text style={styles.audioDuration}>
+              </MediaLabel>
+              <MediaMeta>
                 {message.duration ? formatDuration(message.duration) : '00:00'}
-              </Text>
-            </View>
-          </View>
+              </MediaMeta>
+            </MediaInfo>
+          </MediaRow>
         );
       case MessageType.File:
         return (
-          <View style={styles.fileContainer}>
-            <View style={[styles.fileIcon, { backgroundColor: colors.primaryGreen }]}>
+          <MediaRow>
+            <FileIcon>
               <Ionicons name="document" size={16} color="#FFFFFF" />
-            </View>
-            <View style={styles.fileInfo}>
-              <Text style={styles.fileName} numberOfLines={1}>
-                {message.fileName || '文件'}
-              </Text>
-              <Text style={styles.fileSize}>
+            </FileIcon>
+            <MediaInfo>
+              <MediaLabel numberOfLines={1}>{message.fileName || '文件'}</MediaLabel>
+              <MediaMeta>
                 {message.fileSize ? formatFileSize(message.fileSize) : '未知大小'}
-              </Text>
-            </View>
-          </View>
+              </MediaMeta>
+            </MediaInfo>
+          </MediaRow>
         );
       case MessageType.Location:
         return (
-          <View style={styles.locationContainer}>
-            <View style={[styles.locationIcon, { backgroundColor: colors.iosRed }]}>
+          <MediaRow>
+            <LocationIcon>
               <Ionicons name="location" size={16} color="#FFFFFF" />
-            </View>
-            <View style={styles.locationInfo}>
-              <Text style={styles.locationLabel}>位置</Text>
-              <Text style={styles.locationName} numberOfLines={1}>
-                {message.locationName || '未知位置'}
-              </Text>
-            </View>
-          </View>
+            </LocationIcon>
+            <MediaInfo>
+              <MediaLabel>位置</MediaLabel>
+              <MediaMeta numberOfLines={1}>{message.locationName || '未知位置'}</MediaMeta>
+            </MediaInfo>
+          </MediaRow>
         );
       case MessageType.System:
         return (
-          <View style={styles.systemContainer}>
-            <Text style={styles.systemText}>{message.content}</Text>
-          </View>
+          <SystemContainer>
+            <SystemText>{message.content}</SystemText>
+          </SystemContainer>
         );
       default:
         return (
-          <Text
-            style={[
-              styles.messageText,
-              { color: isMe ? '#FFFFFF' : colors.primaryText },
-            ]}
-          >
+          <MessageText isMe={isMe} isDark={isDark}>
             {message.content}
-          </Text>
+          </MessageText>
         );
     }
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onTap}
-      onLongPress={onLongPress}
-      style={[
-        styles.container,
-        { justifyContent: isMe ? 'flex-end' : 'flex-start' },
-      ]}
-    >
-      {!isMe && (
-        <View style={[styles.avatar, { backgroundColor: colors.primaryGreen }]}>
-          <Text style={styles.avatarText}>
-            {message.senderName?.[0]?.toUpperCase() || 'U'}
-          </Text>
-        </View>
-      )}
-      <View style={[styles.messageWrapper, { maxWidth: '70%' }]}>
-        {message.replyToId && (
-          <View style={styles.replyIndicator}>
-            <View style={[styles.replyBorder, { backgroundColor: colors.primaryGreen }]} />
-            <View style={styles.replyContent}>
-              <Text style={[styles.replyLabel, { color: colors.primaryGreen }]}>回复</Text>
-              <Text style={styles.replyText} numberOfLines={2}>
-                {message.replyToContent || ''}
-              </Text>
-            </View>
-          </View>
+    <TouchableOpacity activeOpacity={0.8} onPress={onTap} onLongPress={onLongPress}>
+      <Row isMe={isMe}>
+        {!isMe && showAvatar && (
+          <Avatar>
+            <AvatarText>{message.senderName?.[0]?.toUpperCase() || 'U'}</AvatarText>
+          </Avatar>
         )}
-        <View
-          style={[
-            styles.bubble,
-            {
-              backgroundColor: isMe ? colors.myMessageBubble : colors.otherMessageBubble,
-              borderTopLeftRadius: 18,
-              borderTopRightRadius: 18,
-              borderBottomLeftRadius: isMe ? 18 : 4,
-              borderBottomRightRadius: isMe ? 4 : 18,
-            },
-          ]}
-        >
-          {!isMe && message.type !== MessageType.System && (
-            <Text style={[styles.senderName, { color: colors.primaryGreen }]}>
-              {message.senderName}
-            </Text>
+        <MessageWrapper>
+          {message.replyToId && (
+            <ReplyIndicator>
+              <ReplyBorder />
+              <ReplyContent>
+                <ReplyLabel>回复</ReplyLabel>
+                <ReplyText numberOfLines={2}>{message.replyToContent || ''}</ReplyText>
+              </ReplyContent>
+            </ReplyIndicator>
           )}
-          {renderMessageContent()}
-        </View>
-        <View style={styles.messageInfo}>
-          <Text style={styles.timeText}>{formatTime(message.timestamp)}</Text>
-          {isMe && renderMessageStatusIcon()}
-        </View>
-      </View>
+          <Bubble isMe={isMe}>
+            {!isMe && showSenderName && message.type !== MessageType.System && (
+              <SenderName>{message.senderName}</SenderName>
+            )}
+            {renderMessageContent()}
+            <MessageInfo>
+              <TimeText isMe={isMe} isDark={isDark}>
+                {formatTime(message.timestamp)}
+              </TimeText>
+              {isMe && renderMessageStatusIcon()}
+            </MessageInfo>
+          </Bubble>
+        </MessageWrapper>
+      </Row>
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    marginVertical: 4,
-    marginHorizontal: 8,
-    alignItems: 'flex-end',
-  },
-  avatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  messageWrapper: {
-    flex: 1,
-  },
-  replyIndicator: {
-    marginBottom: 8,
-    padding: 8,
-    backgroundColor: 'rgba(128, 128, 128, 0.2)',
-    borderRadius: 12,
-    flexDirection: 'row',
-  },
-  replyBorder: {
-    width: 3,
-    marginRight: 8,
-    borderRadius: 2,
-  },
-  replyContent: {
-    flex: 1,
-  },
-  replyLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  replyText: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  bubble: {
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  messageText: {
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  imageMessage: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-  },
-  videoContainer: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  videoThumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-  videoOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  videoDuration: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  durationText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-  },
-  audioContainer: {
-    width: 200,
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  audioIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  audioInfo: {
-    flex: 1,
-  },
-  audioLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  audioDuration: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  fileContainer: {
-    width: 200,
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  fileIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  fileInfo: {
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  fileSize: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  locationContainer: {
-    width: 200,
-    padding: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  locationInfo: {
-    flex: 1,
-  },
-  locationLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  locationName: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  systemContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(128, 128, 128, 0.2)',
-    borderRadius: 12,
-  },
-  systemText: {
-    fontSize: 13,
-    color: '#808080',
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  messageInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-    gap: 4,
-  },
-  timeText: {
-    fontSize: 11,
-    color: '#808080',
-  },
-});
-

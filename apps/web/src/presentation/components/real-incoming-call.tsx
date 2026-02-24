@@ -1,52 +1,150 @@
-"use client"
+"use client";
 
-import { Phone, PhoneOff } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Button } from "@/src/presentation/components/ui/button"
-import type { RTCCallState } from "@/src/lib/webrtc"
+import { Phone, PhoneOff } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Button } from "@/src/presentation/components/ui/button";
+import { styled } from "@/src/shared/utils/emotion";
+import type { RTCCallState } from "@/src/lib/webrtc";
 
 interface RealIncomingCallProps {
-  callState: RTCCallState
-  onAnswer: () => void
-  onDecline: () => void
+  callState: RTCCallState;
+  onAnswer: () => void;
+  onDecline: () => void;
 }
+
+const Root = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0B141A;
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+  margin-bottom: 1.5rem;
+`;
+
+const AvatarLarge = styled(Avatar)`
+  height: 7rem;
+  width: 7rem;
+  border: 2px solid rgb(255 255 255 / 0.2);
+`;
+
+const Fallback = styled(AvatarFallback)`
+  font-size: 1.875rem;
+  background-color: #2A3942;
+`;
+
+const PingRing = styled.div`
+  position: absolute;
+  inset: -0.25rem;
+  border-radius: 9999px;
+  border: 2px solid rgb(37 211 102 / 0.4);
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(1.1);
+      opacity: 0;
+    }
+  }
+`;
+
+const Name = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+`;
+
+const Status = styled.p`
+  color: #8696A0;
+  font-size: 0.875rem;
+  margin-bottom: 2.5rem;
+`;
+
+const BtnRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+`;
+
+const DeclineBtn = styled(Button)`
+  height: 4rem;
+  width: 4rem;
+  border-radius: 9999px;
+  background-color: #E53935;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #D32F2F;
+  }
+`;
+
+const AnswerBtn = styled(Button)`
+  height: 4rem;
+  width: 4rem;
+  border-radius: 9999px;
+  background-color: #25D366;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  &:hover {
+    background-color: #20BD5C;
+  }
+`;
 
 export function RealIncomingCall({ callState, onAnswer, onDecline }: RealIncomingCallProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B141A]">
-      <div className="flex flex-col items-center text-white">
-        <div className="relative mb-6">
-          <Avatar className="h-28 w-28 border-2 border-white/20">
+    <Root>
+      <Content>
+        <AvatarWrap>
+          <AvatarLarge>
             <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-            <AvatarFallback className="text-3xl bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
-          </Avatar>
-          <div className="absolute -inset-1 rounded-full border-2 border-[#25D366]/40 animate-ping" />
-        </div>
+            <Fallback>{callState.contactName[0]}</Fallback>
+          </AvatarLarge>
+          <PingRing />
+        </AvatarWrap>
 
-        <h2 className="text-xl font-medium mb-1">{callState.contactName}</h2>
-        <p className="text-[#8696A0] text-sm mb-10">
+        <Name>{callState.contactName}</Name>
+        <Status>
           {callState.callType === "video" ? "视频通话" : "语音通话"} · 正在响铃...
-        </p>
+        </Status>
 
-        <div className="flex items-center justify-center gap-12">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-16 w-16 rounded-full bg-[#E53935] hover:bg-[#D32F2F] text-white flex items-center justify-center"
-            onClick={onDecline}
-          >
-            <PhoneOff className="h-8 w-8" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-16 w-16 rounded-full bg-[#25D366] hover:bg-[#20BD5C] text-white flex items-center justify-center animate-pulse"
-            onClick={onAnswer}
-          >
-            <Phone className="h-8 w-8" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
+        <BtnRow>
+          <DeclineBtn variant="ghost" size="icon" onClick={onDecline}>
+            <PhoneOff size={32} />
+          </DeclineBtn>
+          <AnswerBtn variant="ghost" size="icon" onClick={onAnswer}>
+            <Phone size={32} />
+          </AnswerBtn>
+        </BtnRow>
+      </Content>
+    </Root>
+  );
 }

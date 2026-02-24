@@ -1,191 +1,353 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Bell, Shield, Palette, Globe, HelpCircle, LogOut, Camera } from "lucide-react"
-import { Button } from "@/src/presentation/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/presentation/components/ui/card"
-import { Switch } from "@/src/presentation/components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { useAuth } from "../hooks/use-auth"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Bell, Shield, Palette, Globe, HelpCircle, LogOut, Camera } from "lucide-react";
+import { Button } from "@/src/presentation/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/presentation/components/ui/card";
+import { Switch } from "@/src/presentation/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { styled } from "@/src/shared/utils/emotion";
+import { useAuth } from "../hooks/use-auth";
 
 interface SettingsPageProps {
-  onBack: () => void
-  onProfileClick: () => void
+  onBack: () => void;
+  onProfileClick: () => void;
 }
 
+const PageRoot = styled.div`
+  height: 100vh;
+  background-color: rgb(249 250 251);
+  display: flex;
+  flex-direction: column;
+`;
+
+const Header = styled.div`
+  background-color: #16a34a;
+  color: white;
+  padding: 1rem;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const BackBtn = styled(Button)`
+  color: white;
+
+  &:hover {
+    background-color: #15803d;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 600;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const Content = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const ProfileCard = styled(Card)`
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+`;
+
+const ProfileCardContent = styled(CardContent)`
+  padding: 1rem;
+`;
+
+const ProfileRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+`;
+
+const AvatarMedium = styled(Avatar)`
+  height: 4rem;
+  width: 4rem;
+`;
+
+const FallbackText = styled(AvatarFallback)`
+  font-size: 1.125rem;
+`;
+
+const CameraBadge = styled.div`
+  position: absolute;
+  bottom: -0.25rem;
+  right: -0.25rem;
+  background-color: #22c55e;
+  border-radius: 9999px;
+  padding: 0.25rem;
+`;
+
+const CameraIcon = styled(Camera)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: white;
+`;
+
+const ProfileInfo = styled.div`
+  flex: 1;
+`;
+
+const ProfileName = styled.h3`
+  font-weight: 600;
+  font-size: 1.125rem;
+`;
+
+const ProfileAbout = styled.p`
+  color: rgb(75 85 99);
+`;
+
+const ProfilePhone = styled.p`
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const CardTitleRow = styled(CardTitle)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const Icon20 = styled(Bell)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const SettingRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const SettingText = styled.div``;
+
+const SettingTitle = styled.p`
+  font-weight: 500;
+`;
+
+const SettingDesc = styled.p`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const CardContentSpaced = styled(CardContent)`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const CardContentSpaced3 = styled(CardContent)`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const FullWidthBtn = styled(Button)`
+  width: 100%;
+  justify-content: flex-start;
+`;
+
+const LogoutBtn = styled(Button)`
+  width: 100%;
+`;
+
+const LogoutCardContent = styled(CardContent)`
+  padding: 1rem;
+`;
+
+const LogoutIcon = styled(LogOut)`
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.5rem;
+`;
+
+const ShieldIcon = styled(Shield)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const PaletteIcon = styled(Palette)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const GlobeIcon = styled(Globe)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const HelpIcon = styled(HelpCircle)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
 export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
-  const { user, logout } = useAuth()
-  const router = useRouter()
-  const [notifications, setNotifications] = useState(true)
-  const [readReceipts, setReadReceipts] = useState(true)
-  const [lastSeen, setLastSeen] = useState(true)
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [notifications, setNotifications] = useState(true);
+  const [readReceipts, setReadReceipts] = useState(true);
+  const [lastSeen, setLastSeen] = useState(true);
 
   const handleLogout = async () => {
-    await logout()
-    router.push("/login")
-  }
+    await logout();
+    router.push("/login");
+  };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
-      {/* 头部 */}
-      <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">设置</h1>
-        </div>
-      </div>
+    <PageRoot>
+      <Header>
+        <HeaderRow>
+          <BackBtn variant="ghost" size="icon" onClick={onBack}>
+            <ArrowIcon />
+          </BackBtn>
+          <Title>设置</Title>
+        </HeaderRow>
+      </Header>
 
-      {/* 内容区域 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* 用户信息卡片 */}
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onProfileClick}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Avatar className="h-16 w-16">
+      <Content>
+        <ProfileCard onClick={onProfileClick}>
+          <ProfileCardContent>
+            <ProfileRow>
+              <AvatarWrap>
+                <AvatarMedium>
                   <AvatarImage src={user?.avatar || "/placeholder.svg?height=64&width=64&text=我"} />
-                  <AvatarFallback className="text-lg">{user?.name?.[0] || "我"}</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
-                  <Camera className="h-3 w-3 text-white" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">{user?.name || "我的名字"}</h3>
-                <p className="text-gray-600">{user?.about || "嗨，我正在使用 WhatsApp！"}</p>
-                <p className="text-sm text-gray-500">{user?.phone || "+86 138 0013 8000"}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  <FallbackText>{user?.name?.[0] || "我"}</FallbackText>
+                </AvatarMedium>
+                <CameraBadge>
+                  <CameraIcon />
+                </CameraBadge>
+              </AvatarWrap>
+              <ProfileInfo>
+                <ProfileName>{user?.name || "我的名字"}</ProfileName>
+                <ProfileAbout>{user?.about || "嗨，我正在使用 WhatsApp！"}</ProfileAbout>
+                <ProfilePhone>{user?.phone || "+86 138 0013 8000"}</ProfilePhone>
+              </ProfileInfo>
+            </ProfileRow>
+          </ProfileCardContent>
+        </ProfileCard>
 
-        {/* 通知设置 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
+            <CardTitleRow>
+              <Icon20 />
               通知
-            </CardTitle>
+            </CardTitleRow>
             <CardDescription>管理消息通知设置</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">消息通知</p>
-                <p className="text-sm text-gray-600">接收新消息通知</p>
-              </div>
+          <CardContentSpaced>
+            <SettingRow>
+              <SettingText>
+                <SettingTitle>消息通知</SettingTitle>
+                <SettingDesc>接收新消息通知</SettingDesc>
+              </SettingText>
               <Switch checked={notifications} onCheckedChange={setNotifications} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">已读回执</p>
-                <p className="text-sm text-gray-600">发送已读回执给联系人</p>
-              </div>
+            </SettingRow>
+            <SettingRow>
+              <SettingText>
+                <SettingTitle>已读回执</SettingTitle>
+                <SettingDesc>发送已读回执给联系人</SettingDesc>
+              </SettingText>
               <Switch checked={readReceipts} onCheckedChange={setReadReceipts} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">最后在线时间</p>
-                <p className="text-sm text-gray-600">显示最后在线时间</p>
-              </div>
+            </SettingRow>
+            <SettingRow>
+              <SettingText>
+                <SettingTitle>最后在线时间</SettingTitle>
+                <SettingDesc>显示最后在线时间</SettingDesc>
+              </SettingText>
               <Switch checked={lastSeen} onCheckedChange={setLastSeen} />
-            </div>
-          </CardContent>
+            </SettingRow>
+          </CardContentSpaced>
         </Card>
 
-        {/* 隐私设置 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
+            <CardTitleRow>
+              <ShieldIcon />
               隐私
-            </CardTitle>
+            </CardTitleRow>
             <CardDescription>管理隐私和安全设置</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="ghost" className="w-full justify-start">
-              阻止的联系人
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              两步验证
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              更改号码
-            </Button>
-          </CardContent>
+          <CardContentSpaced3>
+            <FullWidthBtn variant="ghost">阻止的联系人</FullWidthBtn>
+            <FullWidthBtn variant="ghost">两步验证</FullWidthBtn>
+            <FullWidthBtn variant="ghost">更改号码</FullWidthBtn>
+          </CardContentSpaced3>
         </Card>
 
-        {/* 外观设置 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
+            <CardTitleRow>
+              <PaletteIcon />
               外观
-            </CardTitle>
+            </CardTitleRow>
             <CardDescription>自定义应用外观</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="ghost" className="w-full justify-start">
-              主题
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              聊天壁纸
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              字体大小
-            </Button>
-          </CardContent>
+          <CardContentSpaced3>
+            <FullWidthBtn variant="ghost">主题</FullWidthBtn>
+            <FullWidthBtn variant="ghost">聊天壁纸</FullWidthBtn>
+            <FullWidthBtn variant="ghost">字体大小</FullWidthBtn>
+          </CardContentSpaced3>
         </Card>
 
-        {/* 语言设置 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
+            <CardTitleRow>
+              <GlobeIcon />
               语言
-            </CardTitle>
+            </CardTitleRow>
           </CardHeader>
           <CardContent>
-            <Button variant="ghost" className="w-full justify-start">
-              应用语言
-            </Button>
+            <FullWidthBtn variant="ghost">应用语言</FullWidthBtn>
           </CardContent>
         </Card>
 
-        {/* 帮助 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HelpCircle className="h-5 w-5" />
+            <CardTitleRow>
+              <HelpIcon />
               帮助
-            </CardTitle>
+            </CardTitleRow>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="ghost" className="w-full justify-start">
-              常见问题
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              联系我们
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              服务条款和隐私政策
-            </Button>
-          </CardContent>
+          <CardContentSpaced3>
+            <FullWidthBtn variant="ghost">常见问题</FullWidthBtn>
+            <FullWidthBtn variant="ghost">联系我们</FullWidthBtn>
+            <FullWidthBtn variant="ghost">服务条款和隐私政策</FullWidthBtn>
+          </CardContentSpaced3>
         </Card>
 
-        {/* 退出登录 */}
         <Card>
-          <CardContent className="p-4">
-            <Button variant="destructive" className="w-full" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
+          <LogoutCardContent>
+            <LogoutBtn variant="destructive" onClick={handleLogout}>
+              <LogoutIcon />
               退出登录
-            </Button>
-          </CardContent>
+            </LogoutBtn>
+          </LogoutCardContent>
         </Card>
-      </div>
-    </div>
-  )
+      </Content>
+    </PageRoot>
+  );
 }

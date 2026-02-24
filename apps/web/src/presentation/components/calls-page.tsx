@@ -1,28 +1,163 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ArrowLeft, Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Button } from "@/src/presentation/components/ui/button"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { Badge } from "@/src/presentation/components/ui/badge"
+import { useState } from "react";
+import { ArrowLeft, Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Button } from "@/src/presentation/components/ui/button";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { Badge } from "@/src/presentation/components/ui/badge";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface CallRecord {
-  id: string
-  name: string
-  avatar: string
-  type: "incoming" | "outgoing" | "missed"
-  callType: "voice" | "video"
-  timestamp: Date
-  duration?: number
+  id: string;
+  name: string;
+  avatar: string;
+  type: "incoming" | "outgoing" | "missed";
+  callType: "voice" | "video";
+  timestamp: Date;
+  duration?: number;
 }
 
 interface CallsPageProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
+const PageRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+`;
+
+const Header = styled.div`
+  background-color: #16a34a;
+  color: white;
+  padding: 1rem;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const BackBtn = styled(Button)`
+  color: white;
+
+  &:hover {
+    background-color: #15803d;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 500;
+`;
+
+const ArrowIcon = styled(ArrowLeft)`
+  height: 1.25rem;
+  width: 1.25rem;
+`;
+
+const ListArea = styled(ScrollArea)`
+  flex: 1;
+`;
+
+const ListInner = styled.div`
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const RecordRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+
+  &:hover {
+    background-color: rgb(249 250 251);
+  }
+`;
+
+const AvatarSized = styled(Avatar)`
+  height: 3rem;
+  width: 3rem;
+`;
+
+const RecordMain = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const RecordTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const RecordName = styled.h3`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const RecordMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+`;
+
+const IconMissed = styled(PhoneMissed)`
+  height: 1rem;
+  width: 1rem;
+  color: rgb(239 68 68);
+`;
+
+const IconIncoming = styled(PhoneIncoming)`
+  height: 1rem;
+  width: 1rem;
+  color: #22c55e;
+`;
+
+const IconOutgoing = styled(PhoneOutgoing)`
+  height: 1rem;
+  width: 1rem;
+  color: #3b82f6;
+`;
+
+const ActionBtns = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+
+const GreenIconBtn = styled(Button)`
+  color: #16a34a;
+
+  &:hover {
+    background-color: rgb(240 253 244);
+  }
+`;
+
+const PhoneIcon = styled(Phone)`
+  height: 1rem;
+  width: 1rem;
+`;
+
+const VideoIcon = styled(Video)`
+  height: 1rem;
+  width: 1rem;
+`;
+
+const MissedBadge = styled(Badge)`
+  font-size: 0.75rem;
+`;
+
 export function CallsPage({ onBack }: CallsPageProps) {
-  // 模拟通话记录数据
   const [callRecords] = useState<CallRecord[]>([
     {
       id: "1",
@@ -30,8 +165,8 @@ export function CallsPage({ onBack }: CallsPageProps) {
       avatar: "/placeholder.svg?height=40&width=40&text=张",
       type: "outgoing",
       callType: "video",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30分钟前
-      duration: 1200, // 20分钟
+      timestamp: new Date(Date.now() - 1000 * 60 * 30),
+      duration: 1200,
     },
     {
       id: "2",
@@ -39,8 +174,8 @@ export function CallsPage({ onBack }: CallsPageProps) {
       avatar: "/placeholder.svg?height=40&width=40&text=李",
       type: "incoming",
       callType: "voice",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2小时前
-      duration: 300, // 5分钟
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      duration: 300,
     },
     {
       id: "3",
@@ -48,7 +183,7 @@ export function CallsPage({ onBack }: CallsPageProps) {
       avatar: "/placeholder.svg?height=40&width=40&text=王",
       type: "missed",
       callType: "voice",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4小时前
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4),
     },
     {
       id: "4",
@@ -56,74 +191,71 @@ export function CallsPage({ onBack }: CallsPageProps) {
       avatar: "/placeholder.svg?height=40&width=40&text=赵",
       type: "outgoing",
       callType: "voice",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1天前
-      duration: 600, // 10分钟
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
+      duration: 600,
     },
-  ])
+  ]);
 
   const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
   const formatTimestamp = (timestamp: Date) => {
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60))
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60 * 60));
 
     if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60))
-      return `${diffInMinutes}分钟前`
+      const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+      return `${diffInMinutes}分钟前`;
     } else if (diffInHours < 24) {
-      return `${diffInHours}小时前`
+      return `${diffInHours}小时前`;
     } else {
-      return timestamp.toLocaleDateString()
+      return timestamp.toLocaleDateString();
     }
-  }
+  };
 
   const getCallIcon = (record: CallRecord) => {
-    const iconClass = "h-4 w-4"
-
     if (record.type === "missed") {
-      return <PhoneMissed className={`${iconClass} text-red-500`} />
+      return <IconMissed />;
     } else if (record.type === "incoming") {
-      return <PhoneIncoming className={`${iconClass} text-green-500`} />
+      return <IconIncoming />;
     } else {
-      return <PhoneOutgoing className={`${iconClass} text-blue-500`} />
+      return <IconOutgoing />;
     }
-  }
+  };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* 头部 */}
-      <div className="bg-green-600 text-white p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-green-700">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-medium">通话</h1>
-        </div>
-      </div>
+    <PageRoot>
+      <Header>
+        <HeaderRow>
+          <BackBtn variant="ghost" size="icon" onClick={onBack}>
+            <ArrowIcon />
+          </BackBtn>
+          <Title>通话</Title>
+        </HeaderRow>
+      </Header>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
+      <ListArea>
+        <ListInner>
           {callRecords.map((record) => (
-            <div key={record.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
-              <Avatar className="h-12 w-12">
+            <RecordRow key={record.id}>
+              <AvatarSized>
                 <AvatarImage src={record.avatar || "/placeholder.svg"} />
                 <AvatarFallback>{record.name[0]}</AvatarFallback>
-              </Avatar>
+              </AvatarSized>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-gray-900">{record.name}</h3>
+              <RecordMain>
+                <RecordTop>
+                  <RecordName>{record.name}</RecordName>
                   {record.type === "missed" && (
-                    <Badge variant="destructive" className="text-xs">
+                    <MissedBadge variant="destructive">
                       未接
-                    </Badge>
+                    </MissedBadge>
                   )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                </RecordTop>
+                <RecordMeta>
                   {getCallIcon(record)}
                   <span>{formatTimestamp(record.timestamp)}</span>
                   {record.duration && (
@@ -132,21 +264,21 @@ export function CallsPage({ onBack }: CallsPageProps) {
                       <span>{formatDuration(record.duration)}</span>
                     </>
                   )}
-                </div>
-              </div>
+                </RecordMeta>
+              </RecordMain>
 
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="text-green-600 hover:bg-green-50">
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-green-600 hover:bg-green-50">
-                  <Video className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+              <ActionBtns>
+                <GreenIconBtn variant="ghost" size="icon">
+                  <PhoneIcon />
+                </GreenIconBtn>
+                <GreenIconBtn variant="ghost" size="icon">
+                  <VideoIcon />
+                </GreenIconBtn>
+              </ActionBtns>
+            </RecordRow>
           ))}
-        </div>
-      </ScrollArea>
-    </div>
-  )
+        </ListInner>
+      </ListArea>
+    </PageRoot>
+  );
 }

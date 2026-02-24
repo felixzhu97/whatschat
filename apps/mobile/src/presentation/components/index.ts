@@ -5,4 +5,7 @@ export * from './ChatListItem';
 export * from './CallOverlay';
 export * from './IncomingCallOverlay';
 export * from './ActiveCallOverlay';
+export * from './GlassView';
+export * from './LiquidGlassBar';
+export * from './TabPageHeader';
 

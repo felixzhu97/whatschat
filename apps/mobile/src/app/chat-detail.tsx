@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View,
-  StyleSheet,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   Text,
   ActivityIndicator,
 } from 'react-native';
@@ -21,17 +18,101 @@ import {
   ChatEntity,
   ChatType,
 } from '@/src/domain/entities';
-import { MessageBubble, ChatInputField } from '@/src/presentation/components';
+import { MessageBubble, ChatInputField, ChatAvatar } from '@/src/presentation/components';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAuthStore } from '@/src/presentation/stores';
 import { useSocket } from '@/src/presentation/hooks/useSocket';
 import { useCall } from '@/src/presentation/hooks/useCall';
 import { messageService } from '@/src/application/services/MessageService';
 import { chatService } from '@/src/application/services/ChatService';
 
+const Container = styled.View`
+  flex: 1;
+  background-color: ${(p) => p.theme.colors.chatBackground};
+`;
+
+const Centered = styled(Container)`
+  justify-content: center;
+  align-items: center;
+`;
+
+const LoadingText = styled.Text`
+  margin-top: 8px;
+  font-size: 15px;
+  color: ${(p) => p.theme.colors.secondaryText};
+`;
+
+const KeyboardView = styled(KeyboardAvoidingView)`
+  flex: 1;
+`;
+
+const SafeWrap = styled(SafeAreaView)`
+  flex: 1;
+  background-color: ${(p) => (p.theme as { colors?: { chatBackground?: string } })?.colors?.chatBackground};
+`;
+
+const HeaderRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  padding-horizontal: 4px;
+`;
+
+const BackButton = styled.TouchableOpacity`
+  padding-vertical: 8px;
+  padding-horizontal: 12px;
+  border-radius: 20px;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+`;
+
+const HeaderCenter = styled.View`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  margin-horizontal: 12px;
+  min-width: 0;
+`;
+
+const HeaderAvatarBlock = styled.View`
+  margin-left: 12px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const HeaderName = styled.Text`
+  font-size: 17px;
+  font-weight: 600;
+  color: ${(p) => (p.theme as { colors?: { primaryText?: string } })?.colors?.primaryText};
+`;
+
+const HeaderSubtitle = styled.Text`
+  font-size: 13px;
+  font-weight: 400;
+  color: ${(p) => (p.theme as { colors?: { secondaryText?: string } })?.colors?.secondaryText};
+  margin-top: 2px;
+`;
+
+const HeaderActions = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 6px;
+  padding-horizontal: 8px;
+  border-radius: 20px;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+  gap: 4px;
+`;
+
+const HeaderIconButton = styled.TouchableOpacity`
+  padding: 6px;
+`;
+
 export default function ChatDetailScreen() {
   const params = useLocalSearchParams<{ chatId: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const userId = useAuthStore((s) => s.user?.id);
   const [chat, setChat] = useState<Chat | null>(null);
@@ -115,9 +196,11 @@ export default function ChatDetailScreen() {
           isForwarded: false,
           forwardedFrom: [],
         });
-        setMessages((prev) => [...prev, temp].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        ));
+        setMessages((prev) =>
+          [...prev, temp].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          )
+        );
         setInputText('');
         messageService.sendMessage(chatId, text.trim()).then((msg) => {
           setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
@@ -135,101 +218,113 @@ export default function ChatDetailScreen() {
 
   if (loading && !chat) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primaryGreen} />
-        <Text style={[styles.loadingText, { color: colors.secondaryText }]}>加载中...</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+        <Centered>
+          <ActivityIndicator size="large" color={colors.primaryGreen} />
+          <LoadingText>{t('common.loading')}</LoadingText>
+        </Centered>
+      </SafeAreaView>
     );
   }
 
-  const displayChat = chat ?? new ChatEntity({
-    id: params.chatId ?? '',
-    name: 'Chat',
-    type: ChatType.Individual,
-    participantIds: [],
-    unreadCount: 0,
-    isMuted: false,
-    isPinned: false,
-    isArchived: false,
-    adminIds: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  const displayChat =
+    chat ??
+    new ChatEntity({
+      id: params.chatId ?? '',
+      name: 'Chat',
+      type: ChatType.Individual,
+      participantIds: [],
+      unreadCount: 0,
+      isMuted: false,
+      isPinned: false,
+      isArchived: false,
+      adminIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
   const otherUserId = displayChat.participantIds?.find((id) => id !== userId) ?? null;
+  const contactName =
+    displayChat.name && displayChat.name !== 'Chat'
+      ? displayChat.name
+      : (messages.find((m) => m.senderId !== userId)?.senderName ?? displayChat.name);
   const handleVoiceCall = () => {
-    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'voice');
+    if (otherUserId) startCall(otherUserId, contactName, '', 'voice');
   };
   const handleVideoCall = () => {
-    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'video');
+    if (otherUserId) startCall(otherUserId, contactName, '', 'video');
   };
+
+  const HeaderContent = () => (
+    <HeaderRow>
+      <BackButton onPress={() => router.back()}>
+        <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
+      </BackButton>
+      <HeaderCenter>
+        <ChatAvatar name={contactName} size={40} />
+        <HeaderAvatarBlock>
+          <HeaderName numberOfLines={1}>{contactName}</HeaderName>
+          <HeaderSubtitle>{t('chatDetail.online')}</HeaderSubtitle>
+        </HeaderAvatarBlock>
+      </HeaderCenter>
+      <HeaderActions>
+        <HeaderIconButton onPress={handleVideoCall} disabled={!otherUserId}>
+          <Ionicons name="videocam-outline" size={22} color={colors.primaryText} />
+        </HeaderIconButton>
+        <HeaderIconButton onPress={handleVoiceCall} disabled={!otherUserId}>
+          <Ionicons name="call-outline" size={22} color={colors.primaryText} />
+        </HeaderIconButton>
+        <HeaderIconButton>
+          <Ionicons name="ellipsis-vertical" size={20} color={colors.primaryText} />
+        </HeaderIconButton>
+      </HeaderActions>
+    </HeaderRow>
+  );
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: displayChat.name,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 16 }}>
-              <Ionicons name="arrow-back" size={24} color={colors.primaryText} />
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', marginRight: 16, gap: 16 }}>
-              <TouchableOpacity onPress={handleVideoCall} disabled={!otherUserId}>
-                <Ionicons name="videocam" size={24} color={colors.primaryText} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleVoiceCall} disabled={!otherUserId}>
-                <Ionicons name="call" size={24} color={colors.primaryText} />
-              </TouchableOpacity>
-            </View>
-          ),
-          headerStyle: { backgroundColor: colors.secondaryBackground },
+          headerTransparent: false,
+          headerBackVisible: false,
+          headerLeft: () => null,
+          headerRight: () => null,
+          headerTitle: HeaderContent,
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: colors.secondaryBackground,
+            borderBottomWidth: 0.5,
+            borderBottomColor: colors.separator,
+            shadowOpacity: 0,
+            elevation: 0,
+          },
           headerTintColor: colors.primaryText,
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.chatBackground }]} edges={['bottom']}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={({ item }) => (
-              <MessageBubble message={item} isMe={item.senderId === userId} />
-            )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.messagesContainer}
-          />
-          <ChatInputField
-            value={inputText}
-            onChangeText={setInputText}
-            onSend={handleSend}
-          />
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+      <SafeWrap edges={['bottom']}>
+        <Container>
+          <KeyboardView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          >
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={({ item }) => (
+                <MessageBubble message={item} isMe={item.senderId === userId} />
+              )}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8, flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+            />
+            <ChatInputField
+              value={inputText}
+              onChangeText={setInputText}
+              onSend={handleSend}
+            />
+          </KeyboardView>
+        </Container>
+      </SafeWrap>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 15,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  messagesContainer: {
-    padding: 16,
-  },
-});

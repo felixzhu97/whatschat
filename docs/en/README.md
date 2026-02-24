@@ -49,11 +49,12 @@ docs/
 
 ### R&D
 
-- [C4 Model](rd/c4/README.md) — system context, containers, components (API server, web app)
+- [C4 Model](rd/c4/README.md) — system context, containers, components (API server, web app, mobile app)
   - [Level 1 – System Context](rd/c4/system-context.puml)
   - [Level 2 – Containers](rd/c4/containers.puml)
   - [Level 3 – API Server Components](rd/c4/components-api-server.puml)
   - [Level 3 – Web App Components](rd/c4/components-web-app.puml)
+  - [Level 3 – Mobile App Components](rd/c4/components-mobile-app.puml)
 - [TOGAF](rd/togaf/README.md) — overview, business, application, data, technology
 - [API](../zh/rd/api/README.md) — API docs and Postman collection
 - [Distributed systems](../zh/rd/distributed-systems/README.md) — architecture, service discovery, transaction, load balancing, message queue
@@ -84,6 +85,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 - [Level 2 – Containers](rd/c4/containers.puml)
 - [Level 3 – API Server](rd/c4/components-api-server.puml)
 - [Level 3 – Web App](rd/c4/components-web-app.puml)
+- [Level 3 – Mobile App](rd/c4/components-mobile-app.puml)
 - [TOGAF](rd/togaf/)
 - [Distributed systems](../zh/rd/distributed-systems/)
 - [User journey map](../zh/product/user-journey-map/user-journey-map.puml)

@@ -2,7 +2,7 @@
 import type { MediaStream } from 'react-native-webrtc';
 import { Socket } from 'socket.io-client';
 import { apiClient } from '@/src/infrastructure/api/client';
-import { useAuthStore } from '@/src/presentation/stores';
+import { store } from '@/src/presentation/stores';
 import type { CallState } from './callTypes';
 
 export type { CallState } from './callTypes';
@@ -31,7 +31,7 @@ function getWebRTC(): WebRTCModule {
 }
 
 function getCurrentUserId(): string | null {
-  const user = useAuthStore.getState().user;
+  const user = store.getState().auth.user;
   return user?.id ?? null;
 }
 

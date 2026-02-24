@@ -1,8 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useCall } from '@/src/presentation/hooks/useCall';
 import { IncomingCallOverlay } from './IncomingCallOverlay';
 import { ActiveCallOverlay } from './ActiveCallOverlay';
+
+const ErrorBar = styled.View`
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  right: 16px;
+  background-color: rgba(255, 59, 48, 0.9);
+  padding: 12px;
+  border-radius: 8px;
+  z-index: 999;
+`;
+
+const ErrorText = styled.Text`
+  color: #fff;
+  text-align: center;
+  font-size: 14px;
+`;
 
 export function CallOverlay() {
   const {
@@ -45,29 +63,11 @@ export function CallOverlay() {
 
   if (error && !callState.isActive) {
     return (
-      <View style={styles.errorBar} pointerEvents="box-none">
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
+      <ErrorBar pointerEvents="box-none">
+        <ErrorText>{error}</ErrorText>
+      </ErrorBar>
     );
   }
 
   return null;
 }
-
-const styles = StyleSheet.create({
-  errorBar: {
-    position: 'absolute',
-    bottom: 24,
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(255,59,48,0.9)',
-    padding: 12,
-    borderRadius: 8,
-    zIndex: 999,
-  },
-  errorText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 14,
-  },
-});

@@ -1,21 +1,232 @@
-"use client"
+"use client";
 
-import { useRef, useEffect } from "react"
-import { PhoneOff, Mic, MicOff, Video, VideoOff, Volume2, VolumeX } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
-import { Button } from "@/src/presentation/components/ui/button"
-import type { RTCCallState } from "@/src/lib/webrtc"
+import { useRef, useEffect } from "react";
+import { PhoneOff, Mic, MicOff, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import { Button } from "@/src/presentation/components/ui/button";
+import { styled } from "@/src/shared/utils/emotion";
+import type { RTCCallState } from "@/src/lib/webrtc";
 
 interface RealCallInterfaceProps {
-  callState: RTCCallState
-  localStream: MediaStream | null
-  remoteStream: MediaStream | null
-  onEndCall: () => void
-  onToggleMute: () => void
-  onToggleVideo: () => void
-  onToggleSpeaker: () => void
-  formatDuration: (seconds: number) => string
+  callState: RTCCallState;
+  localStream: MediaStream | null;
+  remoteStream: MediaStream | null;
+  onEndCall: () => void;
+  onToggleMute: () => void;
+  onToggleVideo: () => void;
+  onToggleSpeaker: () => void;
+  formatDuration: (seconds: number) => string;
 }
+
+const bgDark = "#0B141A";
+const bgPanel = "#2A3942";
+const textMuted = "#8696A0";
+
+const Root = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background-color: ${bgDark};
+`;
+
+const TopBar = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: white;
+`;
+
+const TopAvatar = styled(Avatar)`
+  height: 2.5rem;
+  width: 2.5rem;
+`;
+
+const TopFallback = styled(AvatarFallback)`
+  font-size: 0.875rem;
+  background-color: ${bgPanel};
+`;
+
+const TopCenter = styled.div`
+  text-align: center;
+`;
+
+const TopName = styled.p`
+  font-size: 1rem;
+  font-weight: 500;
+`;
+
+const TopStatus = styled.p`
+  font-size: 0.875rem;
+  color: ${textMuted};
+`;
+
+const MainArea = styled.div`
+  flex: 1;
+  position: relative;
+  min-height: 0;
+`;
+
+const VideoFull = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${bgDark};
+`;
+
+const RemoteVideo = styled.video`
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+`;
+
+const WaitingBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+`;
+
+const WaitingAvatar = styled(Avatar)`
+  height: 6rem;
+  width: 6rem;
+  margin-bottom: 1rem;
+  border: 2px solid rgb(255 255 255 / 0.2);
+`;
+
+const WaitingFallback = styled(AvatarFallback)`
+  font-size: 1.875rem;
+  background-color: ${bgPanel};
+`;
+
+const WaitingName = styled.p`
+  font-size: 1.125rem;
+  font-weight: 500;
+`;
+
+const WaitingText = styled.p`
+  font-size: 0.875rem;
+  color: ${textMuted};
+`;
+
+const LocalVideoWrap = styled.div`
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  height: 9rem;
+  width: 7rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  background-color: black;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+`;
+
+const LocalVideo = styled.video`
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+`;
+
+const VideoOffPlaceholder = styled.div`
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  height: 9rem;
+  width: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  background-color: ${bgPanel};
+`;
+
+const VideoOffIcon = styled(VideoOff)`
+  height: 2.5rem;
+  width: 2.5rem;
+  color: rgb(255 255 255 / 0.7);
+`;
+
+const VoiceAvatarWrap = styled.div`
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+`;
+
+const VoiceAvatar = styled(Avatar)`
+  height: 8rem;
+  width: 8rem;
+  border: 2px solid rgb(255 255 255 / 0.2);
+`;
+
+const VoiceFallback = styled(AvatarFallback)`
+  font-size: 2.25rem;
+  background-color: ${bgPanel};
+`;
+
+const ControlsBar = styled.div`
+  flex-shrink: 0;
+  padding: 1.5rem 0 2.5rem;
+`;
+
+const ControlsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+`;
+
+const ControlBtn = styled(Button)<{ $active?: boolean; $off?: boolean }>`
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgb(255 255 255 / 0.3);
+  }
+
+  ${(p) =>
+    p.$active &&
+    `
+    background-color: #25D366;
+    &:hover { background-color: #20BD5C; }
+  `}
+  ${(p) =>
+    p.$off &&
+    `
+    &:hover { background-color: rgb(239 68 68 / 0.8); }
+  `}
+`;
+
+const EndCallBtn = styled(Button)`
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 9999px;
+  background-color: #E53935;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #D32F2F;
+  }
+`;
 
 export function RealCallInterface({
   callState,
@@ -27,151 +238,134 @@ export function RealCallInterface({
   onToggleSpeaker,
   formatDuration,
 }: RealCallInterfaceProps) {
-  const localVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // 设置本地视频流
   useEffect(() => {
     if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream
+      localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream])
+  }, [localStream]);
 
-  // 设置远程视频流
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream
+      remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [remoteStream])
+  }, [remoteStream]);
 
   const getStatusText = () => {
     switch (callState.status) {
       case "calling":
-        return "正在呼叫..."
+        return "正在呼叫...";
       case "ringing":
-        return "响铃中..."
+        return "响铃中...";
       case "connected":
-        return formatDuration(callState.duration)
+        return formatDuration(callState.duration);
       case "ended":
-        return "通话已结束"
+        return "通话已结束";
       default:
-        return ""
+        return "";
     }
-  }
-
-  const controlBtnBase =
-    "h-14 w-14 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
-  const controlBtnActive = "bg-[#25D366] hover:bg-[#20BD5C] text-white"
-  const controlBtnOff = "bg-white/20 hover:bg-red-500/80 text-white"
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#0B141A]">
-      {/* 顶部条：联系人 + 状态/时长 */}
-      <div className="flex shrink-0 items-center justify-center gap-3 px-4 py-3 text-white">
-        <Avatar className="h-10 w-10">
+    <Root>
+      <TopBar>
+        <TopAvatar>
           <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-          <AvatarFallback className="text-sm bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
-        </Avatar>
-        <div className="text-center">
-          <p className="text-base font-medium">{callState.contactName}</p>
-          <p className="text-sm text-[#8696A0]">
+          <TopFallback>{callState.contactName[0]}</TopFallback>
+        </TopAvatar>
+        <TopCenter>
+          <TopName>{callState.contactName}</TopName>
+          <TopStatus>
             {getStatusText()}
             {callState.callType === "video" && " · 视频通话"}
             {callState.callType === "voice" && " · 语音通话"}
-          </p>
-        </div>
-      </div>
+          </TopStatus>
+        </TopCenter>
+      </TopBar>
 
-      {/* 视频/语音主体 */}
-      <div className="flex-1 relative min-h-0">
+      <MainArea>
         {callState.callType === "video" ? (
           <>
-            <div className="absolute inset-0 flex items-center justify-center bg-[#0B141A]">
+            <VideoFull>
               {remoteStream ? (
-                <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-contain" />
+                <RemoteVideo ref={remoteVideoRef} autoPlay playsInline />
               ) : (
-                <div className="flex flex-col items-center text-white">
-                  <Avatar className="h-24 w-24 mb-4 border-2 border-white/20">
+                <WaitingBlock>
+                  <WaitingAvatar>
                     <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-                    <AvatarFallback className="text-3xl bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
-                  </Avatar>
-                  <p className="text-lg font-medium">{callState.contactName}</p>
-                  <p className="text-sm text-[#8696A0]">等待视频连接...</p>
-                </div>
+                    <WaitingFallback>{callState.contactName[0]}</WaitingFallback>
+                  </WaitingAvatar>
+                  <WaitingName>{callState.contactName}</WaitingName>
+                  <WaitingText>等待视频连接...</WaitingText>
+                </WaitingBlock>
               )}
-            </div>
+            </VideoFull>
 
             {localStream && !callState.isVideoOff && (
-              <div className="absolute right-4 top-4 h-36 w-28 overflow-hidden rounded-xl border border-white/20 bg-black shadow-lg">
-                <video
+              <LocalVideoWrap>
+                <LocalVideo
                   ref={localVideoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="h-full w-full object-cover"
-                  style={{ transform: "scaleX(-1)" }}
                 />
-              </div>
+              </LocalVideoWrap>
             )}
 
             {callState.isVideoOff && (
-              <div className="absolute right-4 top-4 flex h-36 w-28 items-center justify-center rounded-xl border border-white/20 bg-[#2A3942]">
-                <VideoOff className="h-10 w-10 text-white/70" />
-              </div>
+              <VideoOffPlaceholder>
+                <VideoOffIcon />
+              </VideoOffPlaceholder>
             )}
           </>
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <Avatar className="h-32 w-32 border-2 border-white/20">
+          <VoiceAvatarWrap>
+            <VoiceAvatar>
               <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-              <AvatarFallback className="text-4xl bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
-            </Avatar>
-          </div>
+              <VoiceFallback>{callState.contactName[0]}</VoiceFallback>
+            </VoiceAvatar>
+          </VoiceAvatarWrap>
         )}
-      </div>
+      </MainArea>
 
-      {/* 底部控制栏 - WhatsApp 风格 */}
-      <div className="shrink-0 pb-10 pt-6">
-        <div className="flex items-center justify-center gap-6">
-          <Button
+      <ControlsBar>
+        <ControlsRow>
+          <ControlBtn
             variant="ghost"
             size="icon"
-            className={`${controlBtnBase} ${callState.isMuted ? controlBtnOff : ""}`}
+            $off={callState.isMuted}
             onClick={onToggleMute}
           >
-            {callState.isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
-          </Button>
+            {callState.isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+          </ControlBtn>
 
-          <Button
+          <ControlBtn
             variant="ghost"
             size="icon"
-            className={`${controlBtnBase} ${callState.isSpeakerOn ? controlBtnActive : ""}`}
+            $active={callState.isSpeakerOn}
             onClick={onToggleSpeaker}
           >
-            {callState.isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
-          </Button>
+            {callState.isSpeakerOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </ControlBtn>
 
           {callState.callType === "video" && (
-            <Button
+            <ControlBtn
               variant="ghost"
               size="icon"
-              className={`${controlBtnBase} ${callState.isVideoOff ? controlBtnOff : ""}`}
+              $off={callState.isVideoOff}
               onClick={onToggleVideo}
             >
-              {callState.isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
-            </Button>
+              {callState.isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
+            </ControlBtn>
           )}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-14 w-14 rounded-full bg-[#E53935] hover:bg-[#D32F2F] text-white flex items-center justify-center"
-            onClick={onEndCall}
-          >
-            <PhoneOff className="h-6 w-6" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
+          <EndCallBtn variant="ghost" size="icon" onClick={onEndCall}>
+            <PhoneOff size={24} />
+          </EndCallBtn>
+        </ControlsRow>
+      </ControlsBar>
+    </Root>
+  );
 }

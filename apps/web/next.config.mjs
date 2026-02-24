@@ -9,6 +9,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  compiler: {
+    emotion: {
+      sourceMap: true,
+      autoLabel: "dev-only",
+      labelFormat: "[local]",
+      importMap: {
+        "@/src/shared/utils/emotion": {
+          styled: {
+            canonicalImport: ["@emotion/styled", "default"],
+            styledBaseImport: ["@emotion/styled", "default"],
+          },
+        },
+      },
+    },
+  },
 }
 
 export default nextConfig

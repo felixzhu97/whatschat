@@ -8,8 +8,9 @@ Person(user_web, "Web User", "Uses chat via browser")
 Person(user_mobile, "Mobile User", "Uses chat via app")
 
 System_Boundary(whatschat, "WhatsChat") {
-  Container(web_app, "Web Application", "Next.js, React, TypeScript", "Chat UI, calls, contacts, auth")
-  Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript", "Chat UI, calls, contacts, auth")
+  Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
+  Container(admin_app, "Admin Application", "Next.js, React, TypeScript, Emotion", "Admin dashboard")
+  Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
   Container(api_server, "API Server", "NestJS, TypeScript", "REST API, WebSocket, auth, business logic")
   ContainerDb(postgres, "PostgreSQL", "Relational DB", "Users, messages, chats, groups")
   ContainerDb(redis, "Redis", "Cache & Pub/Sub", "Sessions, presence, message queue")
@@ -17,9 +18,13 @@ System_Boundary(whatschat, "WhatsChat") {
   Container_Ext(growthbook, "GrowthBook", "A/B & feature flags", "Feature toggles, experiments")
 }
 
+Person(admin_user, "Admin User", "Manages system via admin dashboard")
+
 Rel(user_web, web_app, "Uses", "HTTPS, WebSocket, WebRTC")
+Rel(admin_user, admin_app, "Uses", "HTTPS")
 Rel(user_mobile, mobile_app, "Uses", "HTTPS, WebSocket, WebRTC")
 Rel(web_app, api_server, "API, WebSocket, call signaling", "REST, Socket.IO")
+Rel(admin_app, api_server, "API", "REST")
 Rel(mobile_app, api_server, "API, WebSocket, call signaling", "REST, Socket.IO")
 Rel(web_app, growthbook, "Feature flags", "HTTPS, optional")
 Rel(api_server, postgres, "Reads/Writes", "Prisma")

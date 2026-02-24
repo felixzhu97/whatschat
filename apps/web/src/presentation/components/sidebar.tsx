@@ -27,7 +27,78 @@ import {
 } from "@/src/presentation/components/ui/dropdown-menu";
 import { ContactListItem } from "./contact-list-item";
 import { SearchSuggestions } from "./search-suggestions";
-import type { Contact, User } from "../../../types";
+import type { Contact, User } from "@/shared/types";
+import { styled } from "@/src/shared/utils/emotion";
+
+const SidebarRoot = styled.div`
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  background-color: hsl(var(--card));
+  border-right: 1px solid hsl(var(--border));
+`;
+
+const SidebarHeader = styled.div`
+  background-color: hsl(var(--card));
+  padding: 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const ConnectionStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const ActionsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+`;
+
+const SearchIconWrapper = styled.div`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(156 163 175);
+`;
+
+const SearchInput = styled(Input)`
+  padding-left: 2.5rem;
+  background-color: hsl(var(--background));
+`;
+
+const EmptyState = styled.div`
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
+const ScrollAreaFlex = styled(ScrollArea)`
+  flex: 1;
+  min-height: 0;
+`;
 
 interface SidebarProps {
   user: User | null;
@@ -84,7 +155,6 @@ export function Sidebar({
   onSettingsClick,
   searchInputRef,
 }: SidebarProps) {
-  // 安全地过滤联系人，添加空值检查
   const filteredContacts = contacts.filter((contact) => {
     if (!contact) return false;
 
@@ -99,13 +169,11 @@ export function Sidebar({
   });
 
   return (
-    <div className="w-[400px] bg-white border-r border-gray-200 flex flex-col">
-      {/* 头部 */}
-      <div className="bg-gray-50 p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+    <SidebarRoot>
+      <SidebarHeader>
+        <HeaderRow>
+          <HeaderLeft>
             <Avatar
-              className="h-10 w-10 cursor-pointer"
               onClick={onProfileClick}
             >
               <AvatarImage
@@ -115,85 +183,81 @@ export function Sidebar({
               />
               <AvatarFallback>{user?.name?.[0] || "我"}</AvatarFallback>
             </Avatar>
-            <div className="flex items-center gap-2">
+            <ConnectionStatus>
               {isConnected ? (
-                <Wifi className="h-4 w-4 text-green-500" />
+                <Wifi size={16} color="#22c55e" />
               ) : (
-                <WifiOff className="h-4 w-4 text-red-500" />
+                <WifiOff size={16} color="#ef4444" />
               )}
-              <span className="text-xs text-gray-500">
-                {isConnected ? "已连接" : "连接中..."}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+              <span>{isConnected ? "已连接" : "连接中..."}</span>
+            </ConnectionStatus>
+          </HeaderLeft>
+          <ActionsRow>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
               onClick={onStatusClick}
             >
-              <Users className="h-4 w-4" />
+              <Users size={16} />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
               onClick={onCallsClick}
             >
-              <Phone className="h-4 w-4" />
+              <Phone size={16} />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
               onClick={onAddFriendClick}
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus size={16} />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
+                <Button variant="ghost" size="icon">
+                  <MoreVertical size={16} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onCreateGroupClick}>
-                  <Users className="h-4 w-4 mr-2" />
+                  <Users size={16} style={{ marginRight: 8 }} />
                   新建群组
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSearchPageClick}>
-                  <Search className="h-4 w-4 mr-2" />
+                  <Search size={16} style={{ marginRight: 8 }} />
                   搜索消息
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onAdvancedSearchClick}>
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter size={16} style={{ marginRight: 8 }} />
                   高级搜索
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onStarredClick}>
-                  <Star className="h-4 w-4 mr-2" />
+                  <Star size={16} style={{ marginRight: 8 }} />
                   星标消息
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Archive className="h-4 w-4 mr-2" />
+                  <Archive size={16} style={{ marginRight: 8 }} />
                   已归档
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSettingsClick}>
-                  <Settings className="h-4 w-4 mr-2" />
+                  <Settings size={16} style={{ marginRight: 8 }} />
                   设置
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </div>
+          </ActionsRow>
+        </HeaderRow>
 
-        {/* 搜索框 */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
+        <SearchContainer>
+          <SearchIconWrapper>
+            <Search size={16} />
+          </SearchIconWrapper>
+          <SearchInput
             ref={searchInputRef}
             placeholder="搜索或开始新聊天"
             value={searchQuery}
@@ -205,10 +269,8 @@ export function Sidebar({
                 onGlobalSearch(searchQuery);
               }
             }}
-            className="pl-10 bg-white"
           />
 
-          {/* 搜索建议 */}
           {showSearchSuggestions && (
             <SearchSuggestions
               query={searchQuery}
@@ -219,15 +281,14 @@ export function Sidebar({
               onAdvancedSearch={onAdvancedSearchClick}
             />
           )}
-        </div>
-      </div>
+        </SearchContainer>
+      </SidebarHeader>
 
-      {/* 联系人列表 */}
-      <ScrollArea className="flex-1">
+      <ScrollAreaFlex>
         {filteredContacts.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
+          <EmptyState>
             {searchQuery ? "未找到匹配的联系人" : "暂无联系人"}
-          </div>
+          </EmptyState>
         ) : (
           filteredContacts
             .sort((a, b) => {
@@ -246,7 +307,7 @@ export function Sidebar({
               />
             ))
         )}
-      </ScrollArea>
-    </div>
+      </ScrollAreaFlex>
+    </SidebarRoot>
   );
 }

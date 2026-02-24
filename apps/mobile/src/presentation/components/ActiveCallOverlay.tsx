@@ -1,20 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import type { CallState } from '@/src/infrastructure/call/callManagerLoader';
 
-// Load RTCView only when NOT in Expo Go, so we never touch the native webrtc module in Expo Go
-let RTCViewComponent: React.ComponentType<{ streamURL: string; style: any; objectFit?: string }> | null = null;
+interface StreamLike {
+  toURL(): string;
+}
+
+let RTCViewComponent: React.ComponentType<{
+  streamURL: string;
+  style: unknown;
+  objectFit?: string;
+}> | null = null;
 if (Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
   try {
     RTCViewComponent = require('react-native-webrtc').RTCView;
   } catch {}
-}
-
-interface StreamLike {
-  toURL(): string;
 }
 
 interface ActiveCallOverlayProps {
@@ -28,6 +32,123 @@ interface ActiveCallOverlayProps {
   formatDuration: (seconds: number) => string;
 }
 
+const Overlay = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background-color: #0b141a;
+`;
+
+const TopBar = styled.View`
+  padding-top: 56px;
+  padding-bottom: 12px;
+  padding-horizontal: 16px;
+  align-items: center;
+`;
+
+const TopName = styled.Text`
+  font-size: 18px;
+  font-weight: 500;
+  color: #e9edef;
+`;
+
+const TopStatus = styled.Text`
+  font-size: 14px;
+  color: #8696a0;
+  margin-top: 4px;
+`;
+
+const RemoteContainer = styled.View`
+  flex: 1;
+`;
+
+const RemoteVideo = styled.View`
+  flex: 1;
+  width: 100%;
+  height: 100%;
+`;
+
+const Placeholder = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+
+const PlaceholderName = styled.Text`
+  font-size: 20px;
+  font-weight: 500;
+  margin-top: 16px;
+  color: #e9edef;
+`;
+
+const PlaceholderStatus = styled.Text`
+  font-size: 15px;
+  color: #8696a0;
+  margin-top: 8px;
+`;
+
+const LocalContainer = styled.View`
+  position: absolute;
+  top: 100px;
+  right: 16px;
+  width: 112px;
+  height: 144px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #000;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.2);
+`;
+
+const LocalVideo = styled.View`
+  width: 100%;
+  height: 100%;
+`;
+
+const LocalPlaceholder = styled.View`
+  position: absolute;
+  top: 100px;
+  right: 16px;
+  width: 112px;
+  height: 144px;
+  border-radius: 12px;
+  background-color: #2a3942;
+  justify-content: center;
+  align-items: center;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.2);
+`;
+
+const Controls = styled.View`
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  flex-direction: row;
+  justify-content: center;
+  gap: 24px;
+`;
+
+const ControlBtn = styled.TouchableOpacity`
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.2);
+`;
+
+const ControlBtnOff = styled(ControlBtn)`
+  background-color: rgba(255, 255, 255, 0.15);
+`;
+
+const ControlBtnEnd = styled(ControlBtn)`
+  background-color: #e53935;
+`;
+
 export function ActiveCallOverlay({
   callState,
   localStream,
@@ -39,7 +160,6 @@ export function ActiveCallOverlay({
   formatDuration,
 }: ActiveCallOverlayProps) {
   const { colors } = useTheme();
-
   const statusText =
     callState.status === 'calling'
       ? '正在呼叫...'
@@ -47,179 +167,85 @@ export function ActiveCallOverlay({
         ? formatDuration(callState.duration)
         : '连接中...';
 
+  const RemoteRTC = RTCViewComponent;
+  const LocalRTC = RTCViewComponent;
+
   return (
-    <View style={[styles.overlay, { backgroundColor: '#0B141A' }]}>
-      {/* Top bar: name + status/duration (WhatsApp style) */}
-      <View style={styles.topBar}>
-        <Text style={styles.topName} numberOfLines={1}>{callState.contactName}</Text>
-        <Text style={styles.topStatus}>
+    <Overlay>
+      <TopBar>
+        <TopName numberOfLines={1}>{callState.contactName}</TopName>
+        <TopStatus>
           {statusText}
           {callState.callType === 'video' ? ' · 视频通话' : ' · 语音通话'}
-        </Text>
-      </View>
+        </TopStatus>
+      </TopBar>
 
-      {/* Remote video (full screen) or placeholder */}
-      <View style={styles.remoteContainer}>
-        {remoteStream && RTCViewComponent ? (
-          <RTCViewComponent
+      <RemoteContainer>
+        {remoteStream && RemoteRTC ? (
+          <RemoteRTC
             streamURL={remoteStream.toURL()}
-            style={styles.remoteVideo}
+            style={{ flex: 1, width: '100%', height: '100%' }}
             objectFit="contain"
           />
         ) : (
-          <View style={styles.placeholder}>
+          <Placeholder>
             <Ionicons name="person" size={80} color="#8696A0" />
-            <Text style={[styles.placeholderName, { color: '#E9EDEF' }]}>
-              {callState.contactName}
-            </Text>
-            <Text style={styles.placeholderStatus}>
-              等待视频连接...
-            </Text>
-          </View>
+            <PlaceholderName>{callState.contactName}</PlaceholderName>
+            <PlaceholderStatus>等待视频连接...</PlaceholderStatus>
+          </Placeholder>
         )}
-      </View>
+      </RemoteContainer>
 
-      {/* Local video (picture-in-picture) for video call */}
-      {callState.callType === 'video' && localStream && RTCViewComponent && !callState.isVideoOff && (
-        <View style={styles.localContainer}>
-          <RTCViewComponent
+      {callState.callType === 'video' && localStream && LocalRTC && !callState.isVideoOff && (
+        <LocalContainer>
+          <LocalRTC
             streamURL={localStream.toURL()}
-            style={styles.localVideo}
+            style={{ width: '100%', height: '100%' }}
             objectFit="cover"
           />
-        </View>
+        </LocalContainer>
       )}
 
       {callState.callType === 'video' && (callState.isVideoOff || !localStream) && (
-        <View style={styles.localPlaceholder}>
+        <LocalPlaceholder>
           <Ionicons name="videocam-off" size={32} color="rgba(255,255,255,0.7)" />
-        </View>
+        </LocalPlaceholder>
       )}
 
-      {/* Bottom controls - WhatsApp style */}
-      <View style={styles.controls}>
-        <TouchableOpacity
-          style={[styles.controlBtn, callState.isMuted && styles.controlBtnOff]}
-          onPress={onToggleMute}
-        >
-          <Ionicons name={callState.isMuted ? 'mic-off' : 'mic'} size={26} color="#fff" />
-        </TouchableOpacity>
-        {callState.callType === 'video' && (
-          <TouchableOpacity
-            style={[styles.controlBtn, callState.isVideoOff && styles.controlBtnOff]}
-            onPress={onToggleVideo}
-          >
-            <Ionicons name={callState.isVideoOff ? 'videocam-off' : 'videocam'} size={26} color="#fff" />
-          </TouchableOpacity>
+      <Controls>
+        {callState.isMuted ? (
+          <ControlBtnOff onPress={onToggleMute}>
+            <Ionicons name="mic-off" size={26} color="#fff" />
+          </ControlBtnOff>
+        ) : (
+          <ControlBtn onPress={onToggleMute}>
+            <Ionicons name="mic" size={26} color="#fff" />
+          </ControlBtn>
         )}
-        <TouchableOpacity
-          style={[styles.controlBtn, callState.isSpeakerOn && { backgroundColor: colors.primaryGreen }]}
+        {callState.callType === 'video' &&
+          (callState.isVideoOff ? (
+            <ControlBtnOff onPress={onToggleVideo}>
+              <Ionicons name="videocam-off" size={26} color="#fff" />
+            </ControlBtnOff>
+          ) : (
+            <ControlBtn onPress={onToggleVideo}>
+              <Ionicons name="videocam" size={26} color="#fff" />
+            </ControlBtn>
+          ))}
+        <ControlBtn
           onPress={onToggleSpeaker}
+          style={callState.isSpeakerOn ? { backgroundColor: colors.primaryGreen } : undefined}
         >
-          <Ionicons name={callState.isSpeakerOn ? 'volume-high' : 'volume-medium'} size={26} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.controlBtn, styles.endBtn]} onPress={onEndCall}>
+          <Ionicons
+            name={callState.isSpeakerOn ? 'volume-high' : 'volume-medium'}
+            size={26}
+            color="#fff"
+          />
+        </ControlBtn>
+        <ControlBtnEnd onPress={onEndCall}>
           <Ionicons name="close" size={26} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </ControlBtnEnd>
+      </Controls>
+    </Overlay>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-  },
-  topBar: {
-    paddingTop: 56,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  topName: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#E9EDEF',
-  },
-  topStatus: {
-    fontSize: 14,
-    color: '#8696A0',
-    marginTop: 4,
-  },
-  remoteContainer: {
-    flex: 1,
-  },
-  remoteVideo: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderName: {
-    fontSize: 20,
-    fontWeight: '500',
-    marginTop: 16,
-  },
-  placeholderStatus: {
-    fontSize: 15,
-    color: '#8696A0',
-    marginTop: 8,
-  },
-  localContainer: {
-    position: 'absolute',
-    top: 100,
-    right: 16,
-    width: 112,
-    height: 144,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  localVideo: {
-    width: '100%',
-    height: '100%',
-  },
-  localPlaceholder: {
-    position: 'absolute',
-    top: 100,
-    right: 16,
-    width: 112,
-    height: 144,
-    borderRadius: 12,
-    backgroundColor: '#2A3942',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  controls: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-  },
-  controlBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  controlBtnOff: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  endBtn: {
-    backgroundColor: '#E53935',
-  },
-});

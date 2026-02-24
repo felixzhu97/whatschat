@@ -1,0 +1,45 @@
+@startuml
+!global RELATIVE_INCLUDE = 1
+!include ../../../c4-lib/C4-PlantUML/C4_Component.puml
+
+title C4 Level 3 - Components: Mobile Application (Expo)
+
+Container_Boundary(mobile_app, "Mobile Application") {
+  Component(screens, "Screens", "Expo Router", "Chat list, Chat detail, Settings, Status, Calls, Login")
+  Component(chat_ui, "Chat UI", "React Native, Emotion", "Message list, input, bubbles, tabs")
+  Component(call_ui, "Call UI", "React Native, WebRTC", "Voice/video call UI; signaling via WebSocket")
+  Component(settings_ui, "Settings UI", "React Native, Emotion", "iOS-style grouped cards, theme, language, profile")
+  Component(auth_hooks, "Auth Hooks", "Redux Toolkit + React Redux", "Login state, token refresh")
+  Component(message_hooks, "Message Hooks", "Redux Toolkit + React Redux", "Messages, send, live updates")
+  Component(i18n, "i18n", "i18next, react-i18next", "en/zh locales, language picker")
+  Component(theme, "Theme", "Context + AsyncStorage", "Light/dark/system, theme-aware layout")
+  Component(api_client, "API Client", "Fetch/axios", "REST calls to API Server")
+  Component(ws_client, "WebSocket Client", "Socket.IO", "Realtime connection")
+  Component(domain_types, "Domain Types", "@whatschat/domain", "User, Message, Chat, Contact, Call")
+}
+
+Container_Ext(api_server, "API Server", "NestJS", "Backend API")
+Person(user, "Mobile User", "Uses the app")
+
+Rel(user, screens, "Uses")
+Rel(screens, chat_ui, "Renders")
+Rel(screens, call_ui, "Renders")
+Rel(screens, settings_ui, "Renders")
+Rel(chat_ui, message_hooks, "Uses")
+Rel(chat_ui, auth_hooks, "Uses")
+Rel(chat_ui, i18n, "Uses")
+Rel(chat_ui, theme, "Uses")
+Rel(settings_ui, i18n, "Uses")
+Rel(settings_ui, theme, "Uses")
+Rel(call_ui, auth_hooks, "Uses")
+Rel(call_ui, ws_client, "Signaling")
+Rel(message_hooks, api_client, "Calls")
+Rel(message_hooks, ws_client, "Subscribes")
+Rel(auth_hooks, api_client, "Calls")
+Rel(api_client, api_server, "HTTPS")
+Rel(ws_client, api_server, "WebSocket")
+Rel(message_hooks, domain_types, "Uses types")
+Rel(chat_ui, domain_types, "Uses types")
+
+SHOW_LEGEND()
+@enduml

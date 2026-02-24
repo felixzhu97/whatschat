@@ -1,17 +1,34 @@
+import React from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
-import { ThemeProvider } from '@/src/presentation/shared/theme';
+import { ThemeProvider, useTheme } from '@/src/presentation/shared/theme';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
 import { CallOverlay } from '@/src/presentation/components';
+import { StoreProvider } from '@/src/presentation/store/StoreProvider';
+import { styled } from '@/src/presentation/shared/emotion';
+import { applyStoredLanguage } from '@/src/presentation/shared/i18n';
+import '@/src/presentation/shared/i18n/i18n';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+const OverlayWrap = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
 
+function ThemeAwareLayout() {
+  const { colors, isDark } = useTheme();
+  React.useEffect(() => {
+    applyStoredLanguage();
+  }, []);
   return (
-    <ThemeProvider>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <View style={{ flex: 1 }}>
+    <>
+      <StatusBar
+        style={isDark ? 'light' : 'dark'}
+        backgroundColor={colors.secondaryBackground}
+      />
+      <View style={{ flex: 1, backgroundColor: colors.secondaryBackground }}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -24,15 +41,24 @@ export default function RootLayout() {
             name="chat-detail"
             options={{
               headerShown: true,
-              title: '聊天',
               presentation: 'card',
             }}
           />
         </Stack>
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' }}>
+        <OverlayWrap pointerEvents="box-none">
           <CallOverlay />
-        </View>
+        </OverlayWrap>
       </View>
-    </ThemeProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <StoreProvider>
+      <ThemeProvider>
+        <ThemeAwareLayout />
+      </ThemeProvider>
+    </StoreProvider>
   );
 }

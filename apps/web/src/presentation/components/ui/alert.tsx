@@ -1,59 +1,64 @@
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/shared/utils/utils";
+import { styled } from "@/src/shared/utils/emotion";
 
-const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
-  {
-    variants: {
-      variant: {
-        default: "bg-background text-foreground",
-        destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
+type AlertVariant = "default" | "destructive";
+
+const StyledAlert = styled.div<{ variant?: AlertVariant }>`
+  position: relative;
+  width: 100%;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  padding: 1rem;
+
+  & > svg ~ * {
+    padding-left: 1.75rem;
   }
-);
+  & > svg + div {
+    transform: translateY(-3px);
+  }
+  & > svg {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    color: hsl(var(--foreground));
+  }
+
+  ${({ variant = "default" }) =>
+    variant === "destructive"
+      ? `
+        border-color: hsl(var(--destructive) / 0.5);
+        color: hsl(var(--destructive));
+        & > svg { color: hsl(var(--destructive)); }
+      `
+      : `
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        border-color: hsl(var(--border));
+      `}
+`;
+
+const AlertTitle = styled.h5`
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.025em;
+`;
+
+const AlertDescription = styled.div`
+  font-size: 0.875rem;
+  & p {
+    line-height: 1.625;
+  }
+`;
 
 const Alert = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
+  React.HTMLAttributes<HTMLDivElement> & { variant?: AlertVariant }
+>(({ variant, ...props }, ref) => (
+  <StyledAlert ref={ref} role="alert" variant={variant} {...props} />
 ));
 Alert.displayName = "Alert";
-
-const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
-    {...props}
-  />
-));
-AlertTitle.displayName = "AlertTitle";
-
-const AlertDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed", className)}
-    {...props}
-  />
-));
-AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription };

@@ -27,6 +27,249 @@ import {
 } from "@/src/presentation/components/ui/dropdown-menu";
 import type { Contact } from "../../../types";
 import { useLongPress } from "../hooks/use-long-press";
+import {
+  styled,
+  whatsappListRowColors,
+  whatsappShadows,
+} from "@/src/shared/utils/emotion";
+
+const ContactRow = styled.div<{
+  $isSelected?: boolean;
+  $showActions?: boolean;
+  $isLongPressing?: boolean;
+}>`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgb(243 244 246);
+  position: relative;
+  transition: all 0.2s;
+  user-select: none;
+  background: ${(p) =>
+    p.$showActions
+      ? whatsappListRowColors.active
+      : p.$isSelected
+        ? whatsappListRowColors.selected
+        : whatsappListRowColors.default};
+  box-shadow: ${(p) => (p.$showActions ? whatsappShadows.listRowActive : "none")};
+  transform: ${(p) => (p.$isLongPressing ? "scale(0.95)" : "none")};
+  &:hover {
+    background: ${(p) =>
+      p.$showActions
+        ? whatsappListRowColors.active
+        : p.$isSelected
+          ? whatsappListRowColors.selected
+          : whatsappListRowColors.hover};
+  }
+`;
+
+const PinBadge = styled(Pin)`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  height: 0.75rem;
+  width: 0.75rem;
+  color: #22c55e;
+`;
+
+const AvatarWrap = styled.div`
+  position: relative;
+`;
+
+const AvatarSized = styled(Avatar)`
+  height: 3rem;
+  width: 3rem;
+`;
+
+const OnlineDot = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: #22c55e;
+  border-radius: 9999px;
+  border: 2px solid white;
+`;
+
+const MainContent = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const TopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const NameBlock = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+
+const Name = styled.h3`
+  font-weight: 500;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const MetaIcon = styled(Users)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const MuteIcon = styled(BellOff)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: rgb(156 163 175);
+`;
+
+const TimeText = styled.span`
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+`;
+
+const BottomRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const LastMessage = styled.p`
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const BadgeRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+
+const MutedMeta = styled.span`
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+`;
+
+const MutedDot = styled.div`
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: rgb(156 163 175);
+  border-radius: 9999px;
+`;
+
+const UnreadBadge = styled(Badge)`
+  background-color: #22c55e;
+  color: white;
+  font-size: 0.75rem;
+`;
+
+const LongPressHint = styled.div`
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: black;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  z-index: 20;
+`;
+
+const ActionsPanel = styled.div`
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border));
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 10;
+`;
+
+const ActionBtn = styled(Button)`
+  height: 1.75rem;
+  width: 1.75rem;
+
+  &:hover {
+    background-color: rgb(243 244 246);
+  }
+`;
+
+const DeleteItem = styled(DropdownMenuItem)`
+  color: rgb(220 38 38);
+
+  &:focus {
+    color: rgb(220 38 38);
+  }
+`;
+
+const CloseBtn = styled(Button)`
+  height: 1.75rem;
+  width: 1.75rem;
+  margin-left: 0.25rem;
+  border-left: 1px solid hsl(var(--border));
+
+  &:hover {
+    background-color: rgb(243 244 246);
+  }
+`;
+
+const MenuIcon = styled(MoreVertical)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const PinIcon = styled(Pin)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const PinOffIcon = styled(PinOff)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: #22c55e;
+`;
+
+const BellIcon = styled(Bell)`
+  height: 0.75rem;
+  width: 0.75rem;
+  color: #22c55e;
+`;
+
+const BellOffIcon = styled(BellOff)`
+  height: 0.75rem;
+  width: 0.75rem;
+`;
+
+const ArchiveIcon = styled(Archive)`
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.5rem;
+`;
+
+const TrashIcon = styled(Trash2)`
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.5rem;
+`;
 
 interface ContactListItemProps {
   contact: Contact;
@@ -46,12 +289,10 @@ export function ContactListItem({
   const [localContact, setLocalContact] = useState(contact);
   const itemRef = useRef<HTMLDivElement>(null);
 
-  // 同步外部contact变化
   useEffect(() => {
     setLocalContact(contact);
   }, [contact]);
 
-  // 长按检测
   const longPressEvents = useLongPress({
     onLongPress: () => {
       setShowActions(true);
@@ -67,7 +308,6 @@ export function ContactListItem({
     delay: 500,
   });
 
-  // 处理点击外部关闭操作菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (itemRef.current && !itemRef.current.contains(event.target as Node)) {
@@ -95,161 +335,118 @@ export function ContactListItem({
   }, [showMenu]);
 
   const handleQuickAction = (action: string) => {
-    // 立即更新本地状态以提供即时反馈
     if (action === "pin") {
       setLocalContact((prev) => ({ ...prev, pinned: !prev.pinned }));
     } else if (action === "mute") {
       setLocalContact((prev) => ({ ...prev, muted: !prev.muted }));
     }
-
-    // 调用父组件的处理函数
     onAction(action, localContact);
     setShowActions(false);
   };
 
   return (
-    <div
+    <ContactRow
       ref={itemRef}
-      className={`flex items-center gap-3 p-3 cursor-pointer border-b border-gray-100 relative transition-all duration-200 select-none ${
-        isSelected ? "bg-gray-100" : "hover:bg-gray-50"
-      } ${showActions ? "bg-blue-50 shadow-md" : ""} ${longPressEvents.isLongPressing ? "scale-95" : ""}`}
+      $isSelected={isSelected}
+      $showActions={showActions}
+      $isLongPressing={longPressEvents.isLongPressing}
       onMouseDown={longPressEvents.onMouseDown}
       onMouseUp={longPressEvents.onMouseUp}
       onMouseLeave={longPressEvents.onMouseLeave}
       onTouchStart={longPressEvents.onTouchStart}
       onTouchEnd={longPressEvents.onTouchEnd}
     >
-      {/* 置顶指示器 */}
-      {localContact.pinned && (
-        <Pin className="absolute top-2 right-2 h-3 w-3 text-green-500" />
-      )}
+      {localContact.pinned && <PinBadge />}
 
-      <div className="relative">
-        <Avatar className="h-12 w-12">
+      <AvatarWrap>
+        <AvatarSized>
           <AvatarImage src={localContact.avatar || "/placeholder.svg"} />
           <AvatarFallback>{localContact.name[0]}</AvatarFallback>
-        </Avatar>
-        {localContact.isOnline && (
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-        )}
-      </div>
+        </AvatarSized>
+        {localContact.isOnline && <OnlineDot />}
+      </AvatarWrap>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <h3 className="font-medium text-sm truncate">
-              {localContact.name}
-            </h3>
-            {localContact.isGroup && (
-              <Users className="h-3 w-3 text-gray-500" />
-            )}
-            {localContact.muted && (
-              <BellOff className="h-3 w-3 text-gray-400" />
-            )}
-          </div>
-          <span className="text-xs text-gray-500">
-            {localContact.timestamp}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600 truncate">
-            {localContact.lastMessage}
-          </p>
-          <div className="flex items-center gap-1">
+      <MainContent>
+        <TopRow>
+          <NameBlock>
+            <Name>{localContact.name}</Name>
+            {localContact.isGroup && <MetaIcon />}
+            {localContact.muted && <MuteIcon />}
+          </NameBlock>
+          <TimeText>{localContact.timestamp}</TimeText>
+        </TopRow>
+        <BottomRow>
+          <LastMessage>{localContact.lastMessage}</LastMessage>
+          <BadgeRow>
             {localContact.isGroup && localContact.memberCount && (
-              <span className="text-xs text-gray-400">
-                {localContact.memberCount}人
-              </span>
+              <MutedMeta>{localContact.memberCount}人</MutedMeta>
             )}
-            {/* 免打扰时显示小圆点而不是数字 */}
             {localContact.unreadCount > 0 && localContact.muted ? (
-              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <MutedDot />
             ) : localContact.unreadCount > 0 && !localContact.muted ? (
-              <Badge className="bg-green-500 text-white text-xs">
-                {localContact.unreadCount}
-              </Badge>
+              <UnreadBadge>{localContact.unreadCount}</UnreadBadge>
             ) : null}
-          </div>
-        </div>
-      </div>
+          </BadgeRow>
+        </BottomRow>
+      </MainContent>
 
-      {/* 长按提示 */}
       {longPressEvents.isLongPressing && (
-        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-20 animate-in fade-in-0 duration-200">
-          松开显示选项
-        </div>
+        <LongPressHint>松开显示选项</LongPressHint>
       )}
 
-      {/* 快速操作按钮 */}
       {showActions && (
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-lg shadow-lg border p-1 flex items-center gap-1 z-10 animate-in slide-in-from-right-2 duration-200">
-          <Button
+        <ActionsPanel>
+          <ActionBtn
             variant="ghost"
             size="icon"
-            className="h-7 w-7 hover:bg-gray-100"
             onClick={(e) => {
               e.stopPropagation();
               handleQuickAction("pin");
             }}
             title={localContact.pinned ? "取消置顶" : "置顶"}
           >
-            {localContact.pinned ? (
-              <PinOff className="h-3 w-3 text-green-500" />
-            ) : (
-              <Pin className="h-3 w-3" />
-            )}
-          </Button>
+            {localContact.pinned ? <PinOffIcon /> : <PinIcon />}
+          </ActionBtn>
 
-          <Button
+          <ActionBtn
             variant="ghost"
             size="icon"
-            className="h-7 w-7 hover:bg-gray-100"
             onClick={(e) => {
               e.stopPropagation();
               handleQuickAction("mute");
             }}
             title={localContact.muted ? "取消静音" : "静音"}
           >
-            {localContact.muted ? (
-              <Bell className="h-3 w-3 text-green-500" />
-            ) : (
-              <BellOff className="h-3 w-3" />
-            )}
-          </Button>
+            {localContact.muted ? <BellIcon /> : <BellOffIcon />}
+          </ActionBtn>
 
           <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
             <DropdownMenuTrigger asChild>
-              <Button
+              <ActionBtn
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 hover:bg-gray-100"
                 onClick={(e) => e.stopPropagation()}
                 title="更多选项"
               >
-                <MoreVertical className="h-3 w-3" />
-              </Button>
+                <MenuIcon />
+              </ActionBtn>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleQuickAction("archive")}>
-                <Archive className="h-4 w-4 mr-2" />
+                <ArchiveIcon />
                 归档聊天
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleQuickAction("delete")}
-                className="text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
+              <DeleteItem onClick={() => handleQuickAction("delete")}>
+                <TrashIcon />
                 删除聊天
-              </DropdownMenuItem>
+              </DeleteItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* 关闭按钮 */}
-          <Button
+          <CloseBtn
             variant="ghost"
             size="icon"
-            className="h-7 w-7 hover:bg-gray-100 ml-1 border-l"
             onClick={(e) => {
               e.stopPropagation();
               setShowActions(false);
@@ -257,9 +454,9 @@ export function ContactListItem({
             title="关闭"
           >
             ✕
-          </Button>
-        </div>
+          </CloseBtn>
+        </ActionsPanel>
       )}
-    </div>
+    </ContactRow>
   );
 }

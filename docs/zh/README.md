@@ -124,7 +124,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 - **组件层**：聊天界面、侧边栏、通话界面、消息组件
 - **Hook层**：认证、聊天、通话、语音录制、搜索、对话框、导航等状态管理
 - **服务层**：WebSocket、WebRTC、存储、搜索、触觉反馈
-- **状态管理**：Zustand状态存储（消息、联系人、通话、设置）
+- **状态管理**：Redux Toolkit + React Redux（消息、联系人、通话、设置）
 - **工具层**：消息处理工具、模拟数据管理
 
 ### 4. 移动应用组件图 (Mobile Component Diagram)
@@ -151,7 +151,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
   - 页面层 (app/): Next.js页面和布局
   - 组件层 (components/): React组件（已重构优化）
   - Hooks层 (hooks/): 自定义Hook（useMessages、useSearch、useDialogs、useNavigation）
-  - 状态管理 (stores/): Zustand状态存储
+  - 状态管理 (state/): Redux Toolkit切片（calls、contacts、messages 等）
   - 工具库 (lib/): 核心服务和工具函数（message-utils）
   - 类型定义 (types/): TypeScript类型
   - 数据层 (data/): 模拟数据集中管理

@@ -28,7 +28,16 @@ package "Client Applications" {
     - React 19
     - TypeScript
     - Tailwind CSS
-    - Zustand state management
+    - Redux Toolkit + React Redux
+  end note
+  
+  component [Admin App] as AdminApp #LightGray
+  note right of AdminApp
+    Tech stack:
+    - Next.js 15
+    - React 19
+    - TypeScript
+    - Emotion (styled)
   end note
   
   component [Mobile App] as MobileApp #LightGreen
@@ -37,11 +46,16 @@ package "Client Applications" {
     - React Native
     - Expo
     - TypeScript
-    - Zustand state management
+    - Emotion (@emotion/native)
+    - Redux Toolkit + React Redux
+    - i18next (en/zh)
+    - Theme (light/dark/system)
+    - iOS-style Settings (grouped cards)
   end note
 }
 
 WebApp --> DomainPkg : uses types
+AdminApp --> DomainPkg : uses types
 MobileApp --> DomainPkg : uses types
 
 package "API Gateway Layer" {
@@ -90,6 +104,7 @@ package "Infrastructure Services" {
 WebApp --> RestGateway : HTTP/REST
 WebApp --> WsGateway : WebSocket
 WebApp --> WebRTCGateway : WebRTC signaling
+AdminApp --> RestGateway : HTTP/REST
 MobileApp --> RestGateway : HTTP/REST
 MobileApp --> WsGateway : WebSocket
 MobileApp --> WebRTCGateway : WebRTC signaling

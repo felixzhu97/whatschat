@@ -1,36 +1,76 @@
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/shared/utils/utils";
+import { styled } from "@/src/shared/utils/emotion";
 
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  );
+  extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: BadgeVariant;
 }
 
-export { Badge, badgeVariants };
+const StyledBadge = styled.div<BadgeProps>`
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow:
+      0 0 0 2px hsl(var(--ring)),
+      0 0 0 4px hsl(var(--background));
+  }
+
+  ${({ variant = "default" }) => {
+    switch (variant) {
+      case "secondary":
+        return `
+          border-color: transparent;
+          background-color: hsl(var(--secondary));
+          color: hsl(var(--secondary-foreground));
+
+          &:hover {
+            background-color: hsl(var(--secondary) / 0.8);
+          }
+        `;
+      case "destructive":
+        return `
+          border-color: transparent;
+          background-color: hsl(var(--destructive));
+          color: hsl(var(--destructive-foreground));
+
+          &:hover {
+            background-color: hsl(var(--destructive) / 0.8);
+          }
+        `;
+      case "outline":
+        return `
+          border-color: hsl(var(--border));
+          background-color: transparent;
+          color: hsl(var(--foreground));
+        `;
+      default:
+        return `
+          border-color: transparent;
+          background-color: hsl(var(--primary));
+          color: hsl(var(--primary-foreground));
+
+          &:hover {
+            background-color: hsl(var(--primary) / 0.8);
+          }
+        `;
+    }
+  }}
+`;
+
+function Badge(props: BadgeProps) {
+  return <StyledBadge {...props} />;
+}
+
+export { Badge };

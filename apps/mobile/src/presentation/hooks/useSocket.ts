@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useSocketStore } from '@/src/presentation/stores';
-import { useAuthStore } from '@/src/presentation/stores';
+import { useSocketStore, useAuthStore, useAppDispatch, connectSocket, disconnectSocket } from '@/src/presentation/stores';
 import { mapServerMessagePayload } from '@/src/application/services/MessageService';
 import { Message } from '@/src/domain/entities';
 
@@ -11,20 +10,19 @@ export function useSocket(
   onMessageReceived?: OnMessageReceived,
   onMessageSent?: OnMessageSent
 ) {
+  const dispatch = useAppDispatch();
   const token = useAuthStore((s) => s.token);
   const socket = useSocketStore((s) => s.socket);
   const connected = useSocketStore((s) => s.connected);
-  const connect = useSocketStore((s) => s.connect);
-  const disconnect = useSocketStore((s) => s.disconnect);
   const onReceivedRef = useRef(onMessageReceived);
   const onSentRef = useRef(onMessageSent);
   onReceivedRef.current = onMessageReceived;
   onSentRef.current = onMessageSent;
 
   useEffect(() => {
-    if (token) connect(token);
-    else disconnect();
-  }, [token, connect, disconnect]);
+    if (token) dispatch(connectSocket(token));
+    else dispatch(disconnectSocket());
+  }, [token, dispatch]);
 
   useEffect(() => {
     if (!socket) return;

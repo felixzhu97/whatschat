@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/src/presentation/components/ui/button"
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/presentation/components/ui/tabs"
-import { Input } from "@/src/presentation/components/ui/input"
-import { Search, Clock, Smile, Heart, Star, X } from "lucide-react"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/src/presentation/components/ui/button";
+import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/presentation/components/ui/tabs";
+import { Input } from "@/src/presentation/components/ui/input";
+import { Search, Clock, Smile, Heart, Star, X } from "lucide-react";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface EmojiPickerProps {
-  isOpen: boolean
-  onClose: () => void
-  onEmojiSelect: (emoji: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onEmojiSelect: (emoji: string) => void;
 }
 
 const emojiCategories = {
@@ -39,176 +40,298 @@ const emojiCategories = {
     icon: Star,
     emojis: ["🎉", "🎊", "🎈", "🎁", "🏆", "🥇", "🎯", "⚽", "🏀", "🎮"],
   },
-}
+};
+
+const Root = styled.div`
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border));
+  width: 20rem;
+  height: 24rem;
+  z-index: 50;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+`;
+
+const HeaderTitle = styled.h3`
+  font-weight: 500;
+  color: rgb(17 24 31);
+`;
+
+const CloseBtn = styled(Button)`
+  height: 1.5rem;
+  width: 1.5rem;
+`;
+
+const XIcon = styled(X)`
+  height: 1rem;
+  width: 1rem;
+`;
+
+const SearchSection = styled.div`
+  padding: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+`;
+
+const SearchWrap = styled.div`
+  position: relative;
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1rem;
+  width: 1rem;
+  color: rgb(156 163 175);
+`;
+
+const SearchInput = styled(Input)`
+  padding-left: 2.5rem;
+  height: 2rem;
+`;
+
+const ScrollSearch = styled(ScrollArea)`
+  height: 20rem;
+  padding: 0.75rem;
+`;
+
+const EmojiGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.25rem;
+`;
+
+const EmojiBtn = styled(Button)`
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+
+  &:hover {
+    background-color: rgb(243 244 246);
+  }
+`;
+
+const EmojiSpan = styled.span`
+  font-size: 1.125rem;
+`;
+
+const EmptySearch = styled.div`
+  text-align: center;
+  color: rgb(107 114 128);
+  padding: 2rem 0;
+`;
+
+const TabsRoot = styled(Tabs)`
+  height: 20rem;
+`;
+
+const TabsListStyled = styled(TabsList)`
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(7, 1fr);
+  height: 2.5rem;
+  margin: 0 0.75rem 0.5rem;
+`;
+
+const TabsTriggerStyled = styled(TabsTrigger)`
+  padding: 0.25rem;
+`;
+
+const TabsContentStyled = styled(TabsContent)`
+  height: 16rem;
+  margin-top: 0.5rem;
+`;
+
+const ScrollTabs = styled(ScrollArea)`
+  height: 100%;
+  padding: 0.75rem;
+`;
+
+const TabEmojiBtn = styled(Button)`
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+
+  &:hover {
+    background-color: rgb(243 244 246);
+  }
+`;
+
+const EmptyRecent = styled.div`
+  text-align: center;
+  color: rgb(107 114 128);
+  padding: 2rem 0;
+`;
+
+const EmptyClock = styled(Clock)`
+  height: 2rem;
+  width: 2rem;
+  margin: 0 auto 0.5rem;
+  color: rgb(209 213 219);
+`;
+
+const Preview = styled.div`
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgb(31 41 55);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+`;
 
 export function EmojiPicker({ isOpen, onClose, onEmojiSelect }: EmojiPickerProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [recentEmojis, setRecentEmojis] = useState<string[]>([])
-  const [hoveredEmoji, setHoveredEmoji] = useState<string | null>(null)
-  const pickerRef = useRef<HTMLDivElement>(null)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [hoveredEmoji, setHoveredEmoji] = useState<string | null>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
-  // 初始化最近使用的表情
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("recentEmojis")
-      if (saved) {
-        setRecentEmojis(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error("Failed to load recent emojis:", error)
-      setRecentEmojis([])
+      const saved = localStorage.getItem("recentEmojis");
+      if (saved) setRecentEmojis(JSON.parse(saved));
+    } catch {
+      setRecentEmojis([]);
     }
-  }, [])
+  }, []);
 
-  // 点击外部关闭
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        onClose()
+        onClose();
       }
-    }
-
+    };
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => document.removeEventListener("mousedown", handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose]);
 
-  // ESC 键关闭
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose()
-      }
-    }
-
+      if (event.key === "Escape") onClose();
+    };
     if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown)
-      return () => document.removeEventListener("keydown", handleKeyDown)
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleEmojiClick = (emoji: string) => {
-    onEmojiSelect(emoji)
-
-    // 更新最近使用的表情
-    const updatedRecent = [emoji, ...recentEmojis.filter((e) => e !== emoji)].slice(0, 24)
-    setRecentEmojis(updatedRecent)
+    onEmojiSelect(emoji);
+    const updatedRecent = [emoji, ...recentEmojis.filter((e) => e !== emoji)].slice(0, 24);
+    setRecentEmojis(updatedRecent);
     try {
-      localStorage.setItem("recentEmojis", JSON.stringify(updatedRecent))
-    } catch (error) {
-      console.error("Failed to save recent emojis:", error)
-    }
-
-    // 选择表情后不关闭面板，让用户可以连续选择
-    // onClose() // 注释掉这行，让用户可以连续选择表情
-  }
+      localStorage.setItem("recentEmojis", JSON.stringify(updatedRecent));
+    } catch {}
+  };
 
   const filteredEmojis = searchQuery
     ? Object.values(emojiCategories).flatMap((category) =>
-        category.emojis.filter((emoji) => emoji.includes(searchQuery)),
+        category.emojis.filter((emoji) => emoji.includes(searchQuery))
       )
-    : []
+    : [];
 
   return (
-    <div
-      ref={pickerRef}
-      className="absolute bottom-full left-0 mb-2 bg-white rounded-lg shadow-xl border w-80 h-96 z-50 animate-in slide-in-from-bottom-2 duration-200"
-    >
-      {/* 头部 */}
-      <div className="flex items-center justify-between p-3 border-b">
-        <h3 className="font-medium text-gray-900">表情符号</h3>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+    <Root ref={pickerRef}>
+      <Header>
+        <HeaderTitle>表情符号</HeaderTitle>
+        <CloseBtn variant="ghost" size="icon" onClick={onClose}>
+          <XIcon />
+        </CloseBtn>
+      </Header>
 
-      {/* 搜索框 */}
-      <div className="p-3 border-b">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
+      <SearchSection>
+        <SearchWrap>
+          <SearchIcon />
+          <SearchInput
             placeholder="搜索表情符号..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-8"
           />
-        </div>
-      </div>
+        </SearchWrap>
+      </SearchSection>
 
       {searchQuery ? (
-        /* 搜索结果 */
-        <ScrollArea className="h-80 p-3">
-          <div className="grid grid-cols-8 gap-1">
+        <ScrollSearch>
+          <EmojiGrid>
             {filteredEmojis.map((emoji, index) => (
-              <Button
+              <EmojiBtn
                 key={index}
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-gray-100 transition-all duration-150 hover:scale-110"
                 onClick={() => handleEmojiClick(emoji)}
                 onMouseEnter={() => setHoveredEmoji(emoji)}
                 onMouseLeave={() => setHoveredEmoji(null)}
               >
-                <span className="text-lg">{emoji}</span>
-              </Button>
+                <EmojiSpan>{emoji}</EmojiSpan>
+              </EmojiBtn>
             ))}
-          </div>
-          {filteredEmojis.length === 0 && <div className="text-center text-gray-500 py-8">没有找到匹配的表情符号</div>}
-        </ScrollArea>
+          </EmojiGrid>
+          {filteredEmojis.length === 0 && (
+            <EmptySearch>没有找到匹配的表情符号</EmptySearch>
+          )}
+        </ScrollSearch>
       ) : (
-        /* 分类浏览 */
-        <Tabs defaultValue="recent" className="h-80">
-          <TabsList className="grid w-full grid-cols-7 h-10 mx-3 mt-2">
+        <TabsRoot defaultValue="recent">
+          <TabsListStyled>
             {Object.entries(emojiCategories).map(([key, category]) => {
-              const IconComponent = category.icon
+              const IconComponent = category.icon;
               return (
-                <TabsTrigger key={key} value={key} className="p-1" title={category.name}>
-                  <IconComponent className="h-4 w-4" />
-                </TabsTrigger>
-              )
+                <TabsTriggerStyled key={key} value={key} title={category.name}>
+                  <IconComponent size={16} />
+                </TabsTriggerStyled>
+              );
             })}
-          </TabsList>
-
+          </TabsListStyled>
           {Object.entries(emojiCategories).map(([key, category]) => (
-            <TabsContent key={key} value={key} className="h-64 mt-2">
-              <ScrollArea className="h-full p-3">
-                <div className="grid grid-cols-8 gap-1">
+            <TabsContentStyled key={key} value={key}>
+              <ScrollTabs>
+                <EmojiGrid>
                   {(key === "recent" ? recentEmojis : category.emojis).map((emoji, index) => (
-                    <Button
+                    <TabEmojiBtn
                       key={index}
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 hover:bg-gray-100"
                       onClick={() => handleEmojiClick(emoji)}
                       onMouseEnter={() => setHoveredEmoji(emoji)}
                       onMouseLeave={() => setHoveredEmoji(null)}
                       title={emoji}
                     >
-                      <span className="text-lg">{emoji}</span>
-                    </Button>
+                      <EmojiSpan>{emoji}</EmojiSpan>
+                    </TabEmojiBtn>
                   ))}
-                </div>
+                </EmojiGrid>
                 {key === "recent" && recentEmojis.length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
-                    <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <EmptyRecent>
+                    <EmptyClock />
                     <p>暂无最近使用的表情</p>
-                  </div>
+                  </EmptyRecent>
                 )}
-              </ScrollArea>
-            </TabsContent>
+              </ScrollTabs>
+            </TabsContentStyled>
           ))}
-        </Tabs>
+        </TabsRoot>
       )}
 
-      {/* 悬停预览 */}
-      {hoveredEmoji && (
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs">
-          {hoveredEmoji}
-        </div>
-      )}
-    </div>
-  )
+      {hoveredEmoji && <Preview>{hoveredEmoji}</Preview>}
+    </Root>
+  );
 }

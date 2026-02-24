@@ -6,6 +6,7 @@ import { ChatHeader } from "./chat-header";
 import { MessageArea } from "./message-area";
 import { MessageInput } from "./message-input";
 import type { Contact, Message } from "../../../types";
+import { styled } from "@/src/shared/utils/emotion";
 
 interface ChatAreaProps {
   selectedContact: Contact;
@@ -42,6 +43,19 @@ interface ChatAreaProps {
   onRecordingChange: (isRecording: boolean) => void;
 }
 
+const ChatAreaRoot = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: hsl(var(--background));
+`;
+
+const TypingIndicator = styled.div`
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+`;
+
 export function ChatArea({
   selectedContact,
   messages,
@@ -74,8 +88,7 @@ export function ChatArea({
   onRecordingChange,
 }: ChatAreaProps) {
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Chat Header */}
+    <ChatAreaRoot>
       <ChatHeader
         contact={selectedContact}
         isTyping={isTyping}
@@ -85,7 +98,6 @@ export function ChatArea({
         onShowInfo={onShowInfo}
       />
 
-      {/* Messages Area */}
       <MessageArea
         messages={messages}
         selectedContact={selectedContact}
@@ -114,14 +126,10 @@ export function ChatArea({
         onInfo={onInfo}
       />
 
-      {/* Typing indicator */}
       {isTyping && (
-        <div className="px-4 py-2 text-sm text-gray-500">
-          {selectedContact.name} 正在输入...
-        </div>
+        <TypingIndicator>{selectedContact.name} 正在输入...</TypingIndicator>
       )}
 
-      {/* Message Input */}
       <MessageInput
         messageText={messageText}
         showEmojiPicker={showEmojiPicker}
@@ -139,6 +147,6 @@ export function ChatArea({
         onCancelEdit={onCancelEdit}
         onRecordingChange={onRecordingChange}
       />
-    </div>
+    </ChatAreaRoot>
   );
 }

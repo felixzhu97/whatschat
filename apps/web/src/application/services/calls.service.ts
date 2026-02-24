@@ -1,39 +1,19 @@
 import { ICallsService } from "../../domain/interfaces/services/calls.service.interface";
 import { Call } from "../../domain/entities/call.entity";
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { getStorageAdapter } from "../../infrastructure/adapters/storage/storage.adapter";
-
-interface CallsState {
-  calls: Call[];
-  activeCall: Call | null;
-  incomingCall: Call | null;
-  callHistory: Call[];
-}
-
-const storageAdapter = getStorageAdapter();
-
-const useCallsStore = create<CallsState>()(
-  persist(
-    (set, get) => ({
-      calls: [],
-      activeCall: null,
-      incomingCall: null,
-      callHistory: [],
-    }),
-    {
-      name: "calls-storage",
-      storage: createJSONStorage(() => ({
-        getItem: (name) => storageAdapter.load(name, null),
-        setItem: (name, value) => storageAdapter.save(name, value),
-        removeItem: (name) => storageAdapter.remove(name),
-      })),
-    }
-  )
-);
+import { store } from "../../infrastructure/adapters/state/store";
+import {
+  addCall,
+  updateCall,
+  setActiveCall,
+  setIncomingCall,
+  setActiveCallNull,
+  setIncomingCallNull,
+} from "../../infrastructure/adapters/state/slices/callsSlice";
 
 export class CallsService implements ICallsService {
-  private store = useCallsStore.getState();
+  private getState() {
+    return store.getState().calls;
+  }
 
   async startCall(
     contactId: string,
@@ -49,78 +29,57 @@ export class CallsService implements ICallsService {
       startTime: new Date().toISOString(),
     });
 
-    useCallsStore.setState({
-      activeCall: call,
-      calls: [...this.store.calls, call],
-      callHistory: [...this.store.callHistory, call],
-    });
+    store.dispatch(addCall(call));
+    store.dispatch(setActiveCall(call));
 
     return call;
   }
 
   endCall(callId: string, duration: number): void {
-    const call = this.store.calls.find((c) => c.id === callId);
+    const state = this.getState();
+    const call = state.calls.find((c) => c.id === callId);
     if (call) {
       const endedCall = call.end(new Date().toISOString(), duration);
-      useCallsStore.setState({
-        activeCall: null,
-        calls: this.store.calls.map((c) =>
-          c.id === callId ? endedCall : c
-        ),
-        callHistory: this.store.callHistory.map((c) =>
-          c.id === callId ? endedCall : c
-        ),
-      });
+      store.dispatch(updateCall({ callId, call: endedCall }));
+      store.dispatch(setActiveCallNull());
     }
   }
 
   answerCall(callId: string): void {
-    const call = this.store.calls.find((c) => c.id === callId);
+    const state = this.getState();
+    const call = state.calls.find((c) => c.id === callId);
     if (call) {
       const answeredCall = call.answer();
-      useCallsStore.setState({
-        activeCall: answeredCall,
-        incomingCall: null,
-        calls: this.store.calls.map((c) =>
-          c.id === callId ? answeredCall : c
-        ),
-        callHistory: this.store.callHistory.map((c) =>
-          c.id === callId ? answeredCall : c
-        ),
-      });
+      store.dispatch(updateCall({ callId, call: answeredCall }));
+      store.dispatch(setActiveCall(answeredCall));
+      store.dispatch(setIncomingCallNull());
     }
   }
 
   declineCall(callId: string): void {
-    const call = this.store.calls.find((c) => c.id === callId);
+    const state = this.getState();
+    const call = state.calls.find((c) => c.id === callId);
     if (call) {
       const missedCall = call.markAsMissed();
-      useCallsStore.setState({
-        incomingCall: null,
-        calls: this.store.calls.map((c) =>
-          c.id === callId ? missedCall : c
-        ),
-        callHistory: this.store.callHistory.map((c) =>
-          c.id === callId ? missedCall : c
-        ),
-      });
+      store.dispatch(updateCall({ callId, call: missedCall }));
+      store.dispatch(setIncomingCallNull());
     }
   }
 
   getCallById(callId: string): Call | null {
-    return this.store.calls.find((c) => c.id === callId) || null;
+    return this.getState().calls.find((c) => c.id === callId) || null;
   }
 
   getCallsForContact(contactId: string): Call[] {
-    return this.store.calls.filter((c) => c.contactId === contactId);
+    return this.getState().calls.filter((c) => c.contactId === contactId);
   }
 
   getMissedCalls(): Call[] {
-    return this.store.calls.filter((c) => c.status === "missed");
+    return this.getState().calls.filter((c) => c.status === "missed");
   }
 
   getRecentCalls(limit: number = 50): Call[] {
-    return this.store.callHistory
+    return [...this.getState().callHistory]
       .sort(
         (a, b) =>
           new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
@@ -135,7 +94,7 @@ export class CallsService implements ICallsService {
     totalDuration: number;
     averageDuration: number;
   } {
-    const calls = this.store.calls;
+    const calls = this.getState().calls;
     const total = calls.length;
     const missed = calls.filter((c) => c.status === "missed").length;
     const answered = calls.filter(
@@ -157,7 +116,6 @@ export class CallsService implements ICallsService {
   }
 }
 
-// 创建单例实例
 let callsServiceInstance: CallsService | null = null;
 
 export const getCallsService = (): ICallsService => {
@@ -166,4 +124,3 @@ export const getCallsService = (): ICallsService => {
   }
   return callsServiceInstance;
 };
-

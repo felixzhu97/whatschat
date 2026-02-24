@@ -6,8 +6,8 @@ import useEmblaCarousel, {
 } from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-import { cn } from "@/shared/utils/utils";
 import { Button } from "@/src/presentation/components/ui/button";
+import { styled } from "@/src/shared/utils/emotion";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -31,6 +31,37 @@ type CarouselContextProps = {
 } & CarouselProps;
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
+
+const CarouselRoot = styled.div`
+  position: relative;
+`;
+
+const CarouselViewport = styled.div`
+  overflow: hidden;
+`;
+
+type Orientation = "horizontal" | "vertical";
+
+const CarouselTrack = styled.div<{ $orientation: Orientation }>`
+  display: flex;
+  flex-direction: ${({ $orientation }) =>
+    $orientation === "horizontal" ? "row" : "column"};
+  margin-left: ${({ $orientation }) =>
+    $orientation === "horizontal" ? "-1rem" : "0"};
+  margin-top: ${({ $orientation }) =>
+    $orientation === "vertical" ? "-1rem" : "0"};
+`;
+
+const CarouselSlide = styled.div<{ $orientation: Orientation }>`
+  min-width: 0;
+  flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: 100%;
+  padding-left: ${({ $orientation }) =>
+    $orientation === "horizontal" ? "1rem" : "0"};
+  padding-top: ${({ $orientation }) =>
+    $orientation === "vertical" ? "1rem" : "0"};
+`;
 
 function useCarousel() {
   const context = React.useContext(CarouselContext);
@@ -134,16 +165,16 @@ const Carousel = React.forwardRef<
           canScrollNext,
         }}
       >
-        <div
+        <CarouselRoot
           ref={ref}
           onKeyDownCapture={handleKeyDown}
-          className={cn("relative", className)}
+          className={className}
           role="region"
           aria-roledescription="carousel"
           {...props}
         >
           {children}
-        </div>
+        </CarouselRoot>
       </CarouselContext.Provider>
     );
   }
@@ -157,17 +188,14 @@ const CarouselContent = React.forwardRef<
   const { carouselRef, orientation } = useCarousel();
 
   return (
-    <div ref={carouselRef} className="overflow-hidden">
-      <div
+    <CarouselViewport ref={carouselRef}>
+      <CarouselTrack
         ref={ref}
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
-        )}
+        $orientation={orientation ?? "horizontal"}
+        className={className}
         {...props}
       />
-    </div>
+    </CarouselViewport>
   );
 });
 CarouselContent.displayName = "CarouselContent";
@@ -179,15 +207,12 @@ const CarouselItem = React.forwardRef<
   const { orientation } = useCarousel();
 
   return (
-    <div
+    <CarouselSlide
       ref={ref}
       role="group"
       aria-roledescription="slide"
-      className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
-        orientation === "horizontal" ? "pl-4" : "pt-4",
-        className
-      )}
+      $orientation={orientation ?? "horizontal"}
+      className={className}
       {...props}
     />
   );
@@ -205,18 +230,12 @@ const CarouselPrevious = React.forwardRef<
       ref={ref}
       variant={variant}
       size={size}
-      className={cn(
-        "absolute  h-8 w-8 rounded-full",
-        orientation === "horizontal"
-          ? "-left-12 top-1/2 -translate-y-1/2"
-          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
-      )}
+      className={className}
       disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeft className="h-4 w-4" />
+      <ArrowLeft size={16} />
       <span className="sr-only">Previous slide</span>
     </Button>
   );
@@ -234,18 +253,12 @@ const CarouselNext = React.forwardRef<
       ref={ref}
       variant={variant}
       size={size}
-      className={cn(
-        "absolute h-8 w-8 rounded-full",
-        orientation === "horizontal"
-          ? "-right-12 top-1/2 -translate-y-1/2"
-          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
-      )}
+      className={className}
       disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight className="h-4 w-4" />
+      <ArrowRight size={16} />
       <span className="sr-only">Next slide</span>
     </Button>
   );

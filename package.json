@@ -28,6 +28,7 @@
     "start:mobile:android": "pnpm --filter react-native-app android",
     "start:prod": "bash scripts/app/start.sh prod",
     "start:web": "pnpm --filter whatschat-web dev",
+    "start:admin": "pnpm --filter whatschat-admin dev",
     "stop": "./scripts/app/stop.sh dev",
     "stop:prod": "./scripts/app/stop.sh prod",
     "test": "turbo run test",

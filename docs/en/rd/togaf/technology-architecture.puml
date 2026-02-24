@@ -30,16 +30,25 @@ package "Client Technology Stack" {
     component [React 19] as React
     component [TypeScript] as TypeScript
     component [Tailwind CSS] as TailwindCSS
-    component [Zustand] as Zustand
+    component [Redux Toolkit + React Redux] as WebState
     component [WebSocket Client] as WsClient
     component [WebRTC Client] as WebRTCClient
+  }
+  
+  package "Admin Technology" {
+    component [Next.js 15] as AdminNextJS
+    component [React 19] as AdminReact
+    component [TypeScript] as AdminTS
+    component [Emotion] as Emotion
   }
   
   package "Mobile Technology" {
     component [React Native] as ReactNative
     component [Expo] as Expo
     component [TypeScript] as MobileTS
-    component [Zustand] as MobileZustand
+    component [Emotion @emotion/native] as MobileEmotion
+    component [Redux Toolkit + React Redux] as MobileState
+    component [i18next] as i18n
     component [WebSocket Client] as MobileWs
     component [WebRTC Client] as MobileRTC
   }
@@ -161,6 +170,7 @@ package "Deployment Infrastructure" {
 
 \' Shared packages used by clients and server
 NextJS --> DomainPkg : types
+AdminNextJS --> DomainPkg : types
 ReactNative --> DomainPkg : types
 NestJS --> DomainPkg : types
 NestJS --> AwsPkg : AWS services
@@ -169,6 +179,7 @@ NestJS --> AwsPkg : AWS services
 WebBrowser --> NextJS : HTTP/HTTPS
 WebBrowser --> SocketIO : WebSocket
 WebBrowser --> WebRTCSignal : WebRTC signaling
+WebBrowser --> AdminNextJS : HTTP/HTTPS (admin)
 MobileDevice --> ReactNative : native app
 ReactNative --> RestAPI : HTTP/HTTPS
 ReactNative --> MobileWs : WebSocket
@@ -177,13 +188,19 @@ ReactNative --> MobileRTC : WebRTC
 NextJS --> React : 框架
 NextJS --> TypeScript : language
 NextJS --> TailwindCSS : styling
-NextJS --> Zustand : state management
+NextJS --> WebState : state management (Redux Toolkit + React Redux)
 NextJS --> WsClient : realtime transport
 NextJS --> WebRTCClient : audio/video
 
+AdminNextJS --> AdminReact : framework
+AdminNextJS --> AdminTS : language
+AdminNextJS --> Emotion : styling
+
 ReactNative --> Expo : framework
 ReactNative --> MobileTS : language
-ReactNative --> MobileZustand : state management
+ReactNative --> MobileEmotion : styling
+ReactNative --> MobileState : state management (Redux Toolkit + React Redux)
+ReactNative --> i18n : i18n (en/zh)
 ReactNative --> MobileWs : realtime transport
 ReactNative --> MobileRTC : audio/video
 
@@ -225,11 +242,12 @@ Docker --> Redis : containerized
 rectangle "Tech Stack Summary" {
   note as N1
     **Frontend stack**
-    - Web: Next.js + React + TypeScript
-    - Mobile: React Native + Expo + TypeScript
-    - State management: Zustand (Web & Mobile)
-    - UI: Tailwind CSS (Web) / React Native UI (Mobile)
-    - Realtime: WebSocket + WebRTC
+    - Web: Next.js + React + TypeScript + Tailwind CSS
+    - Admin: Next.js + React + TypeScript + Emotion
+    - Mobile: React Native + Expo + TypeScript + Emotion (@emotion/native) + i18next
+    - State management: Redux Toolkit + React Redux (Web & Mobile)
+    - UI: Tailwind CSS (Web) / Emotion (Admin & Mobile) / theme (light/dark/system on Mobile)
+    - Realtime: WebSocket + WebRTC (Web & Mobile)
   end note
   
   note as N2
@@ -258,7 +276,7 @@ note bottom
   
   WhatsChat adopts a modern technology stack:
   
-  1. **Clients** – Web app uses Next.js + React; mobile app uses React Native + Expo for cross‑platform support
+  1. **Clients** – Web app (Next.js + React); admin app (Next.js + React + Emotion); mobile app (React Native + Expo + Emotion + i18next, theme)
   2. **Server** – NestJS framework provides modular, extensible backend services
   3. **Data layer** – PostgreSQL as the primary database; Redis for caching and message brokering
   4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video

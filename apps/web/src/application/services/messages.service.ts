@@ -1,16 +1,38 @@
 import { IMessagesService } from "../../domain/interfaces/services/messages.service.interface";
 import { Message } from "../../domain/entities/message.entity";
-import { useMessagesStore } from "../../infrastructure/adapters/state/messages-state.adapter";
+import { store } from "../../infrastructure/adapters/state/store";
+import {
+  addMessage,
+  updateMessage,
+  deleteMessage,
+  deleteMessages,
+  setTyping,
+  setReplyingTo,
+  setEditingMessage,
+  setSearchResults,
+  toggleStarMessage as toggleStarMessageAction,
+  generateMessageId,
+  canEditMessage,
+  getMessagesForContact as selectMessagesForContact,
+  getMessageById as selectMessageById,
+  getLastMessage as selectLastMessage,
+  getUnreadCount as selectUnreadCount,
+  isUserTyping as selectIsUserTyping,
+  getStarredMessages as selectStarredMessages,
+  searchMessages as selectSearchMessages,
+} from "../../infrastructure/adapters/state/slices/messagesSlice";
 
 export class MessagesService implements IMessagesService {
-  private store = useMessagesStore.getState();
+  private getState() {
+    return store.getState().messages;
+  }
 
   getMessagesForContact(contactId: string): Message[] {
-    return this.store.getMessagesForContact(contactId);
+    return selectMessagesForContact(this.getState(), contactId);
   }
 
   addMessage(contactId: string, message: Message): void {
-    this.store.addMessage(contactId, message);
+    store.dispatch(addMessage({ contactId, message }));
   }
 
   updateMessage(
@@ -18,15 +40,15 @@ export class MessagesService implements IMessagesService {
     messageId: string,
     updates: Partial<Message>
   ): void {
-    this.store.updateMessage(contactId, messageId, updates);
+    store.dispatch(updateMessage({ contactId, messageId, updates }));
   }
 
   deleteMessage(contactId: string, messageId: string): void {
-    this.store.deleteMessage(contactId, messageId);
+    store.dispatch(deleteMessage({ contactId, messageId }));
   }
 
   deleteMessages(contactId: string, messageIds: string[]): void {
-    this.store.deleteMessages(contactId, messageIds);
+    store.dispatch(deleteMessages({ contactId, messageIds }));
   }
 
   async sendMessage(
@@ -34,9 +56,10 @@ export class MessagesService implements IMessagesService {
     content: string,
     type: Message["type"] = "text"
   ): Promise<void> {
+    const state = this.getState();
     const message = Message.create({
-      id: this.store.generateMessageId(),
-      senderId: this.store.currentUserId,
+      id: generateMessageId(),
+      senderId: state.currentUserId,
       senderName: "我",
       content,
       timestamp: new Date().toISOString(),
@@ -44,15 +67,20 @@ export class MessagesService implements IMessagesService {
       status: "sending",
     });
 
-    this.store.addMessage(contactId, message);
+    store.dispatch(addMessage({ contactId, message }));
 
-    // 模拟发送过程
     setTimeout(() => {
-      this.store.updateMessage(contactId, message.id, { status: "sent" });
+      store.dispatch(
+        updateMessage({ contactId, messageId: message.id, updates: { status: "sent" } })
+      );
       setTimeout(() => {
-        this.store.updateMessage(contactId, message.id, {
-          status: "delivered",
-        });
+        store.dispatch(
+          updateMessage({
+            contactId,
+            messageId: message.id,
+            updates: { status: "delivered" },
+          })
+        );
       }, 1000);
     }, 500);
   }
@@ -62,24 +90,32 @@ export class MessagesService implements IMessagesService {
     messageId: string,
     newContent: string
   ): void {
-    const message = this.store.getMessageById(contactId, messageId);
-    if (message && this.store.canEditMessage(message)) {
+    const state = this.getState();
+    const message = selectMessageById(state, contactId, messageId);
+    if (message && canEditMessage(message, state.currentUserId)) {
       const editedMessage = message.edit(newContent);
-      this.store.updateMessage(contactId, messageId, {
-        content: editedMessage.content,
-        isEdited: editedMessage.isEdited,
-        editedAt: editedMessage.editedAt,
-      });
-      this.store.setEditingMessage(null);
+      store.dispatch(
+        updateMessage({
+          contactId,
+          messageId,
+          updates: {
+            content: editedMessage.content,
+            isEdited: editedMessage.isEdited,
+            editedAt: editedMessage.editedAt,
+          },
+        })
+      );
+      store.dispatch(setEditingMessage(null));
     }
   }
 
   forwardMessage(messageId: string, targetContactIds: string[]): void {
-    const { messages } = this.store;
+    const state = this.getState();
     let originalMessage: Message | undefined;
-
-    for (const contactId in messages) {
-      const found = messages[contactId].find((msg) => msg.id === messageId);
+    for (const contactId in state.messages) {
+      const found = (state.messages[contactId] || []).find(
+        (msg) => msg.id === messageId
+      );
       if (found) {
         originalMessage = found;
         break;
@@ -90,22 +126,23 @@ export class MessagesService implements IMessagesService {
       targetContactIds.forEach((contactId) => {
         const forwardedMessage = Message.create({
           ...originalMessage!,
-          id: this.store.generateMessageId(),
-          senderId: this.store.currentUserId,
+          id: generateMessageId(),
+          senderId: state.currentUserId,
           senderName: "我",
           timestamp: new Date().toISOString(),
           status: "sending",
           isForwarded: true,
         });
-        this.store.addMessage(contactId, forwardedMessage);
+        store.dispatch(addMessage({ contactId, message: forwardedMessage }));
       });
     }
   }
 
   replyToMessage(contactId: string, replyTo: Message, content: string): void {
+    const state = this.getState();
     const message = Message.create({
-      id: this.store.generateMessageId(),
-      senderId: this.store.currentUserId,
+      id: generateMessageId(),
+      senderId: state.currentUserId,
       senderName: "我",
       content,
       timestamp: new Date().toISOString(),
@@ -114,23 +151,30 @@ export class MessagesService implements IMessagesService {
       replyTo: replyTo.id,
     });
 
-    this.store.addMessage(contactId, message);
-    this.store.setReplyingTo(null);
+    store.dispatch(addMessage({ contactId, message }));
+    store.dispatch(setReplyingTo(null));
   }
 
   markAsRead(contactId: string, messageIds: string[]): void {
     messageIds.forEach((messageId) => {
-      this.store.updateMessage(contactId, messageId, { status: "read" });
+      store.dispatch(
+        updateMessage({ contactId, messageId, updates: { status: "read" } })
+      );
     });
   }
 
   markAsDelivered(contactId: string, messageIds: string[]): void {
+    const state = this.getState();
     messageIds.forEach((messageId) => {
-      const message = this.store.getMessageById(contactId, messageId);
+      const message = selectMessageById(state, contactId, messageId);
       if (message && message.status === "sent") {
-        this.store.updateMessage(contactId, messageId, {
-          status: "delivered",
-        });
+        store.dispatch(
+          updateMessage({
+            contactId,
+            messageId,
+            updates: { status: "delivered" },
+          })
+        );
       }
     });
   }
@@ -140,49 +184,59 @@ export class MessagesService implements IMessagesService {
     messageId: string,
     status: Message["status"]
   ): void {
-    this.store.updateMessage(contactId, messageId, { status });
+    store.dispatch(
+      updateMessage({ contactId, messageId, updates: { status } })
+    );
   }
 
   toggleStarMessage(contactId: string, messageId: string): void {
-    const message = this.store.getMessageById(contactId, messageId);
+    const state = this.getState();
+    const message = selectMessageById(state, contactId, messageId);
     if (message) {
       const starredMessage = message.toggleStar();
-      this.store.updateMessage(contactId, messageId, {
-        isStarred: starredMessage.isStarred,
-      });
+      store.dispatch(
+        updateMessage({
+          contactId,
+          messageId,
+          updates: { isStarred: starredMessage.isStarred },
+        })
+      );
+      store.dispatch(toggleStarMessageAction({ contactId, messageId }));
     }
   }
 
   getStarredMessages(): Message[] {
-    return this.store.getStarredMessages();
+    return selectStarredMessages(this.getState());
   }
 
   searchMessages(query: string, contactId?: string): Message[] {
-    return this.store.searchMessages(query, contactId);
+    const state = this.getState();
+    const results = selectSearchMessages(state, query, contactId);
+    store.dispatch(setSearchResults(results));
+    return results;
   }
 
   getMessageById(contactId: string, messageId: string): Message | undefined {
-    return this.store.getMessageById(contactId, messageId);
+    return selectMessageById(this.getState(), contactId, messageId);
   }
 
   getLastMessage(contactId: string): Message | undefined {
-    return this.store.getLastMessage(contactId);
+    return selectLastMessage(this.getState(), contactId);
   }
 
   getUnreadCount(contactId: string): number {
-    return this.store.getUnreadCount(contactId);
+    return selectUnreadCount(this.getState(), contactId);
   }
 
   setTyping(contactId: string, isTyping: boolean): void {
-    this.store.setTyping(contactId, isTyping);
+    store.dispatch(setTyping({ contactId, isTyping }));
   }
 
   isUserTyping(contactId: string): boolean {
-    return this.store.isUserTyping(contactId);
+    return selectIsUserTyping(this.getState(), contactId);
   }
 }
 
-// 创建单例实例
 let messagesServiceInstance: MessagesService | null = null;
 
 export const getMessagesService = (): IMessagesService => {
@@ -191,4 +245,3 @@ export const getMessagesService = (): IMessagesService => {
   }
   return messagesServiceInstance;
 };
-
