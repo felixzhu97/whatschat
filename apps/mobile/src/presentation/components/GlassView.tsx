@@ -18,6 +18,7 @@ interface GlassViewProps {
   style?: ViewStyle;
   borderRadius?: number;
   liquid?: boolean;
+  noRadius?: boolean;
 }
 
 const LIQUID_RADIUS = 20;
@@ -32,10 +33,11 @@ export const GlassView: React.FC<GlassViewProps> = ({
   style,
   borderRadius = 0,
   liquid = false,
+  noRadius = false,
 }) => {
   const { isDark } = useTheme();
   const tint = isDark ? 'dark' : 'light';
-  const radius = liquid ? LIQUID_RADIUS : borderRadius;
+  const radius = noRadius ? 0 : liquid ? LIQUID_RADIUS : borderRadius;
   const blurIntensity = liquid ? 80 : intensity;
   const vibrancy = isDark ? VIBRANCY_DARK : VIBRANCY_LIGHT;
 

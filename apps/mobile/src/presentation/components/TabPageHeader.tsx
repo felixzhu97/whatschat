@@ -47,15 +47,7 @@ export function TabPageHeader({ title }: TabPageHeaderProps) {
 
   return (
     <HeaderGlassWrap>
-      <GlassView
-        liquid
-        style={{
-          borderTopLeftRadius: 0,
-          borderTopRightRadius: 0,
-          borderBottomLeftRadius: 0,
-          borderBottomRightRadius: 0,
-        }}
-      >
+      <GlassView liquid noRadius>
         <HeaderBar>
           <HeaderTitle>{title}</HeaderTitle>
           <HeaderIcons>

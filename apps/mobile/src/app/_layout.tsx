@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { CallOverlay } from '@/src/presentation/components';
 import { StoreProvider } from '@/src/presentation/store/StoreProvider';
 import { styled } from '@/src/presentation/shared/emotion';
+import { applyStoredLanguage } from '@/src/presentation/shared/i18n';
 import '@/src/presentation/shared/i18n/i18n';
 
 const OverlayWrap = styled.View`
@@ -18,6 +19,9 @@ const OverlayWrap = styled.View`
 
 function ThemeAwareLayout() {
   const { colors, isDark } = useTheme();
+  React.useEffect(() => {
+    applyStoredLanguage();
+  }, []);
   return (
     <>
       <StatusBar

@@ -131,15 +131,7 @@ export default function ChatsScreen() {
     <SafeAreaView edges={['top']} style={{ flex: 1 }}>
       <Page>
         <HeaderGlassWrap>
-          <GlassView
-            liquid
-            style={{
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
-            }}
-          >
+          <GlassView liquid noRadius>
             <HeaderBar>
               <HeaderTitle>{t('chats.title')}</HeaderTitle>
               <HeaderIcons>
