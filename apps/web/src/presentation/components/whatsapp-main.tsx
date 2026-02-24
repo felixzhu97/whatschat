@@ -17,8 +17,10 @@ import { SettingsPage } from "./settings-page";
 import { CreateGroupDialog } from "./create-group-dialog";
 import { AddFriendDialog } from "./add-friend-dialog";
 import { AdvancedSearchDialog } from "./advanced-search-dialog";
-import { CallMiniWindow } from "./call-mini-window";
-import { useCall } from "../hooks/use-call";
+import { RealIncomingCall } from "./real-incoming-call";
+import { RealCallInterface } from "./real-call-interface";
+import { useRealCall } from "../hooks/use-real-call";
+import { getWebRTCManager } from "@/src/lib/webrtc";
 import { useMessages } from "../hooks/use-messages";
 import { useSearch } from "../hooks/use-search";
 import { useDialogs } from "../hooks/use-dialogs";
@@ -143,8 +145,6 @@ export function WhatsAppMain() {
   };
 
   const isConnected = chatsWithLive.isConnected;
-
-  // Use the call hook
   const {
     callState,
     localStream,
@@ -155,20 +155,13 @@ export function WhatsAppMain() {
     toggleMute,
     toggleVideo,
     toggleSpeaker,
-    switchCamera,
-    switchVideoLayout,
-    toggleBeautyMode,
-    applyFilter,
-    startScreenShare,
-    stopScreenShare,
-    startRecording,
-    stopRecording,
-    minimizeCall,
-    maximizeCall,
-    showControls,
-    simulateIncomingCall,
     formatDuration,
-  } = useCall();
+    error: callError,
+  } = useRealCall();
+
+  useEffect(() => {
+    getWebRTCManager().setSimulatedMode(!isConnected);
+  }, [isConnected]);
 
   // Filter contacts based on search
   const filteredContacts = filterContacts(contactsForList, searchQuery);
@@ -194,33 +187,16 @@ export function WhatsAppMain() {
     handleSearchSuggestion(suggestion, mockContacts, handleContactSelect);
   };
 
-  // Call handlers
   const handleVoiceCall = () => {
     if (selectedContact) {
-      console.log("Starting voice call with:", selectedContact.name);
-      startCall(
-        selectedContact.id,
-        selectedContact.name,
-        selectedContact.avatar || "",
-        "voice"
-      );
+      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar || "", "voice");
     }
   };
 
   const handleVideoCall = () => {
     if (selectedContact) {
-      console.log("Starting video call with:", selectedContact.name);
-      startCall(
-        selectedContact.id,
-        selectedContact.name,
-        selectedContact.avatar || "",
-        "video"
-      );
+      startCall(selectedContact.id, selectedContact.name, selectedContact.avatar || "", "video");
     }
-  };
-
-  const handleCallEnd = () => {
-    endCall();
   };
 
   // Create group handler
@@ -277,27 +253,16 @@ export function WhatsAppMain() {
 
   // Render current page
   const renderCurrentPage = () => {
-    // If there's an active call and it's not minimized, show call interface
-    if (callState?.isActive && !callState.isMinimized) {
+    if (callState?.isActive) {
       return (
-        <CallInterface
+        <RealCallInterface
           callState={callState}
           localStream={localStream}
           remoteStream={remoteStream}
-          onEndCall={handleCallEnd}
+          onEndCall={endCall}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
           onToggleSpeaker={toggleSpeaker}
-          onSwitchCamera={switchCamera}
-          onSwitchVideoLayout={switchVideoLayout}
-          onToggleBeautyMode={toggleBeautyMode}
-          onApplyFilter={(filter) => applyFilter(filter ?? "none")}
-          onStartScreenShare={startScreenShare}
-          onStopScreenShare={stopScreenShare}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          onMinimize={minimizeCall}
-          onShowControls={showControls}
           formatDuration={formatDuration}
         />
       );
@@ -409,26 +374,16 @@ export function WhatsAppMain() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">{renderCurrentPage()}</div>
 
-      {/* Picture-in-Picture Call Window */}
-      {callState?.isActive && callState.isMinimized && (
-        <CallMiniWindow
-          callState={callState}
-          localStream={localStream}
-          onEndCall={endCall}
-          onMaximize={maximizeCall}
-          formatDuration={formatDuration}
-        />
-      )}
-
-      {/* Incoming Call - only show if call is ringing */}
+      {/* Incoming call */}
       {callState?.status === "ringing" && (
         <div className="fixed inset-0 z-50">
-          <IncomingCall
-            callState={callState}
-            onAnswer={answerCall}
-            onDecline={endCall}
-            onQuickReply={(msg) => console.log("quick reply:", msg)}
-          />
+          <RealIncomingCall callState={callState} onAnswer={answerCall} onDecline={endCall} />
+        </div>
+      )}
+
+      {callError && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 rounded-lg bg-red-100 p-3 text-sm text-red-800">
+          {callError}
         </div>
       )}
 

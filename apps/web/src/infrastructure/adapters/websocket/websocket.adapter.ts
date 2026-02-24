@@ -250,6 +250,15 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.emit(message.type, message);
   }
 
+  /**
+   * Send via Socket.IO: emit event name as message.type, payload as message.data or full message.
+   */
+  private sendViaSocketIo(message: WebSocketMessage) {
+    if (!this.ioSocket?.connected) return;
+    const payload = message.data !== undefined ? message.data : { ...message };
+    this.ioSocket.emit(message.type, payload);
+  }
+
   private sendMessage(message: WebSocketMessage) {
     // If using Socket.IO, map high-level events to backend events
     if (this.mode === "socketio" && this.ioSocket && this.ioSocket.connected) {
@@ -371,6 +380,28 @@ export class WebSocketAdapter implements IWebSocketAdapter {
           });
         },
       );
+
+      // Call signaling events (audio/video) – forward to listeners for WebRTC manager
+      const callEvents = [
+        "call:incoming",
+        "call:answer",
+        "call:reject",
+        "call:offer",
+        "call:webrtc-answer",
+        "call:ice-candidate",
+        "call:end",
+      ] as const;
+      callEvents.forEach((event) => {
+        this.ioSocket!.on(event, (payload: any) => {
+          logSocket("Socket.IO event", event, payload);
+          this.handleMessage({
+            type: event,
+            from: payload.userId ?? payload.initiatorId,
+            data: payload,
+            timestamp: Date.now(),
+          });
+        });
+      });
 
       return;
     }

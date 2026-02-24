@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getWebRTCManager } from "../lib/webrtc"
-import type { RTCCallState } from "../lib/webrtc"
+import { getWebRTCManager } from "@/src/lib/webrtc"
+import type { RTCCallState } from "@/src/lib/webrtc"
 
 export function useRealCall() {
   const [callState, setCallState] = useState<RTCCallState>({

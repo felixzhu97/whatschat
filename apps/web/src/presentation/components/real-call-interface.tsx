@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react"
 import { PhoneOff, Mic, MicOff, Video, VideoOff, Volume2, VolumeX } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
 import { Button } from "@/src/presentation/components/ui/button"
-import type { RTCCallState } from "../../../lib/webrtc"
+import type { RTCCallState } from "@/src/lib/webrtc"
 
 interface RealCallInterfaceProps {
   callState: RTCCallState
