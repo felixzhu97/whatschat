@@ -12,6 +12,11 @@ import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "../../infrastructure/config/config.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { ApiGatewayWebSocketService } from "../../infrastructure/services/apigateway/apigateway-websocket.service";
+import {
+  OfflineMessageQueueService,
+  QueuedMessagePayload,
+} from "../../application/services/offline-message-queue.service";
+import { toMessageType } from "@/shared/utils/message-type";
 import logger from "@/shared/utils/logger";
 
 interface AuthenticatedSocket extends Socket {
@@ -39,6 +44,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly offlineQueue: OfflineMessageQueueService,
     private readonly apiGatewayWebSocketService?: ApiGatewayWebSocketService
   ) {
     this.config = ConfigService.loadConfig();
@@ -97,13 +103,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Notify other users that this user is online
       socket.broadcast.emit("user:online", { userId: user.id });
 
-      // Send connection confirmation
       socket.emit("user:connect", { userId: user.id });
+
+      const pending = await this.offlineQueue.getAndClear(user.id);
+      for (const msg of pending) {
+        socket.emit("message:received", msg);
+      }
 
       logger.info(`User connected: ${user.username} (${user.id})`);
     } catch (error) {
       logger.error(`Socket authentication failed: ${error}`);
       socket.disconnect();
+    }
+  }
+
+  async deliverToParticipants(
+    message: QueuedMessagePayload,
+    chatId: string,
+    senderId: string
+  ): Promise<void> {
+    const participants = await this.prisma.chatParticipant.findMany({
+      where: { chatId },
+      select: { userId: true },
+    });
+    const recipientIds = participants
+      .map((p: { userId: string }) => p.userId)
+      .filter((id: string) => id !== senderId);
+
+    if (this.useApiGateway && this.apiGatewayWebSocketService) {
+      for (const userId of recipientIds) {
+        const result = await this.apiGatewayWebSocketService.sendToUser(userId, {
+          type: "message:received",
+          data: message,
+        });
+        if (result.succeeded.length === 0) {
+          this.offlineQueue.enqueue(userId, message);
+        }
+      }
+    } else {
+      for (const userId of recipientIds) {
+        const socketId = onlineUsers.get(userId);
+        if (socketId) {
+          this.server.to(socketId).emit("message:received", message);
+        } else {
+          this.offlineQueue.enqueue(userId, message);
+        }
+      }
     }
   }
 
@@ -163,12 +208,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // Create message
       const message = await this.prisma.message.create({
         data: {
           chatId,
           senderId: socket.userId,
-          type: type as any,
+          type: toMessageType(type ?? "text"),
           content,
           ...(mediaUrl && { mediaUrl }),
           ...(replyToMessageId && { replyToMessageId }),
@@ -184,36 +228,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // Get chat participants
-      const participants = await this.prisma.chatParticipant.findMany({
-        where: { chatId },
-        select: { userId: true },
-      });
+      await this.deliverToParticipants(
+        message as QueuedMessagePayload,
+        chatId,
+        socket.userId
+      );
 
-      // Send message to all participants
-      if (this.useApiGateway && this.apiGatewayWebSocketService) {
-        // Use API Gateway WebSocket to send message
-        const userIds = participants
-          .map((p) => p.userId)
-          .filter((userId) => userId !== socket.userId);
-        
-        if (userIds.length > 0) {
-          await this.apiGatewayWebSocketService.broadcastToUsers(userIds, {
-            type: "message:received",
-            data: message,
-          });
-        }
-      } else {
-        // Use Socket.IO to send message
-        participants.forEach(({ userId }: { userId: string }) => {
-          const participantSocketId = onlineUsers.get(userId);
-          if (participantSocketId && participantSocketId !== socket.id) {
-            this.server.to(participantSocketId).emit("message:received", message);
-          }
-        });
-      }
-
-      // Confirm message sent successfully
       socket.emit("message:sent", message);
 
       logger.info(`Message sent: ${socket.userId} -> ${chatId}`);

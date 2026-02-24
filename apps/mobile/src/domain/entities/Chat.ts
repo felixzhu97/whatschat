@@ -1,30 +1,22 @@
+import type { Chat as DomainChat } from "@whatschat/domain";
+
 export enum ChatType {
-  Individual = 'individual',
-  Group = 'group',
-  Broadcast = 'broadcast',
+  Individual = "individual",
+  Group = "group",
+  Broadcast = "broadcast",
 }
 
-export interface Chat {
-  id: string;
-  name: string;
-  description?: string;
+export interface Chat extends Omit<DomainChat, "type"> {
   type: ChatType;
+  name: string;
   participantIds: string[];
-  groupImage?: string;
-  lastMessageId?: string;
-  lastMessageContent?: string;
-  lastMessageTime?: Date;
-  lastMessageSender?: string;
   unreadCount: number;
   isMuted: boolean;
-  mutedUntil?: Date;
   isPinned: boolean;
   isArchived: boolean;
-  adminId?: string;
   adminIds: string[];
   createdAt: Date;
   updatedAt: Date;
-  settings?: Record<string, any>;
 }
 
 export class ChatEntity implements Chat {
@@ -47,7 +39,7 @@ export class ChatEntity implements Chat {
   adminIds: string[];
   createdAt: Date;
   updatedAt: Date;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 
   constructor(data: Chat) {
     this.id = data.id;
@@ -97,7 +89,7 @@ export class ChatEntity implements Chat {
     });
   }
 
-  toMap(): Record<string, any> {
+  toMap(): Record<string, unknown> {
     return {
       id: this.id,
       name: this.name,
@@ -122,7 +114,7 @@ export class ChatEntity implements Chat {
     };
   }
 
-  static fromMap(map: Record<string, any>): ChatEntity {
+  static fromMap(map: Record<string, unknown>): ChatEntity {
     const chatTypeMap: Record<number, ChatType> = {
       0: ChatType.Individual,
       1: ChatType.Group,
@@ -130,26 +122,26 @@ export class ChatEntity implements Chat {
     };
 
     return new ChatEntity({
-      id: map.id ?? '',
-      name: map.name ?? '',
-      description: map.description,
-      type: chatTypeMap[map.type ?? 0] ?? ChatType.Individual,
-      participantIds: Array.isArray(map.participantIds) ? map.participantIds : [],
-      groupImage: map.groupImage,
-      lastMessageId: map.lastMessageId,
-      lastMessageContent: map.lastMessageContent,
-      lastMessageTime: map.lastMessageTime ? new Date(map.lastMessageTime) : undefined,
-      lastMessageSender: map.lastMessageSender,
-      unreadCount: map.unreadCount ?? 0,
-      isMuted: map.isMuted ?? false,
-      mutedUntil: map.mutedUntil ? new Date(map.mutedUntil) : undefined,
-      isPinned: map.isPinned ?? false,
-      isArchived: map.isArchived ?? false,
-      adminId: map.adminId,
-      adminIds: Array.isArray(map.adminIds) ? map.adminIds : [],
-      createdAt: new Date(map.createdAt),
-      updatedAt: new Date(map.updatedAt),
-      settings: map.settings,
+      id: (map.id as string) ?? "",
+      name: (map.name as string) ?? "",
+      description: map.description as string | undefined,
+      type: chatTypeMap[(map.type as number) ?? 0] ?? ChatType.Individual,
+      participantIds: Array.isArray(map.participantIds) ? (map.participantIds as string[]) : [],
+      groupImage: map.groupImage as string | undefined,
+      lastMessageId: map.lastMessageId as string | undefined,
+      lastMessageContent: map.lastMessageContent as string | undefined,
+      lastMessageTime: map.lastMessageTime ? new Date(map.lastMessageTime as number) : undefined,
+      lastMessageSender: map.lastMessageSender as string | undefined,
+      unreadCount: (map.unreadCount as number) ?? 0,
+      isMuted: (map.isMuted as boolean) ?? false,
+      mutedUntil: map.mutedUntil ? new Date(map.mutedUntil as number) : undefined,
+      isPinned: (map.isPinned as boolean) ?? false,
+      isArchived: (map.isArchived as boolean) ?? false,
+      adminId: map.adminId as string | undefined,
+      adminIds: Array.isArray(map.adminIds) ? (map.adminIds as string[]) : [],
+      createdAt: new Date(map.createdAt as number),
+      updatedAt: new Date(map.updatedAt as number),
+      settings: map.settings as Record<string, unknown> | undefined,
     });
   }
 
@@ -173,4 +165,3 @@ export class ChatEntity implements Chat {
     return this.id === other.id;
   }
 }
-

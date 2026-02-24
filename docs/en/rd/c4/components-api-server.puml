@@ -1,0 +1,47 @@
+@startuml
+!global RELATIVE_INCLUDE = 1
+!include ../../../c4-lib/C4-PlantUML/C4_Component.puml
+
+title C4 Level 3 - Components: API Server (NestJS)
+
+Container_Boundary(api_server, "API Server") {
+  Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files")
+  Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing")
+  Component(auth_svc, "Auth Service", "NestJS", "Login, JWT, refresh, password")
+  Component(user_svc, "User Service", "NestJS", "Profile, search")
+  Component(message_svc, "Message Service", "NestJS", "Send, list, reactions")
+  Component(chat_svc, "Chat Service", "NestJS", "Chat list, create, participants")
+  Component(call_svc, "Call Service", "NestJS", "Call signaling, Chime/SDK")
+  Component(file_svc, "File Service", "NestJS", "Upload, presign, @whatschat/aws-integration")
+  ComponentDb(repo, "Repositories", "Prisma", "Data access, @whatschat/domain types")
+}
+
+Container_Ext(web_app, "Web App", "Next.js", "Browser client")
+Container_Ext(mobile_app, "Mobile App", "Expo", "Mobile client")
+ContainerDb_Ext(postgres, "PostgreSQL", "Database", "Persistent storage")
+Container_Ext(redis, "Redis", "Cache", "Session, Pub/Sub")
+Container_Ext(s3, "S3", "Object Storage", "Files")
+
+Rel(web_app, controllers, "REST, WebSocket")
+Rel(mobile_app, controllers, "REST, WebSocket")
+Rel(controllers, auth_svc, "Uses")
+Rel(controllers, user_svc, "Uses")
+Rel(controllers, message_svc, "Uses")
+Rel(controllers, chat_svc, "Uses")
+Rel(controllers, call_svc, "Uses")
+Rel(controllers, file_svc, "Uses")
+Rel(controllers, websocket, "Uses")
+Rel(websocket, message_svc, "Uses")
+Rel(auth_svc, repo, "Uses")
+Rel(user_svc, repo, "Uses")
+Rel(message_svc, repo, "Uses")
+Rel(chat_svc, repo, "Uses")
+Rel(call_svc, repo, "Uses")
+Rel(file_svc, repo, "Uses")
+Rel(repo, postgres, "Prisma")
+Rel(auth_svc, redis, "Session")
+Rel(websocket, redis, "Pub/Sub")
+Rel(file_svc, s3, "Upload/Download")
+
+SHOW_LEGEND()
+@enduml

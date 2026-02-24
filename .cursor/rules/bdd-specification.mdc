@@ -9,7 +9,7 @@ alwaysApply: false
 1. **可读性优先**：测试即文档，测试代码应该清晰表达业务意图
 2. **单一职责**：每个测试用例只验证一个行为
 3. **Given-When-Then**：使用行为描述组织测试结构
-4. **工具统一**：使用 `@whatschat/test-utils` 提供的测试工具
+4. **工具统一**：使用 Vitest（`vi.fn`、`vi.mocked`）与 Testing Library 编写测试
 
 ## 文件命名与组织
 
@@ -26,24 +26,16 @@ alwaysApply: false
 
 ```typescript
 import { describe, it, expect, beforeEach } from "vitest";
-import { createMockFunction, deviceFactory } from "@whatschat/test-utils";
 
 describe("FeatureModule", () => {
   describe("specific feature/scenario", () => {
-    // Given: 准备阶段
     beforeEach(() => {
       // 初始化测试数据
     });
 
-    // When-Then: 测试用例
     it("should perform some behavior when condition is met", () => {
-      // Arrange (Given)
-      const input = deviceFactory();
-
-      // Act (When)
+      const input = { id: "1", name: "test" };
       const result = functionToTest(input);
-
-      // Assert (Then)
       expect(result).toBeDefined();
     });
   });
@@ -55,32 +47,24 @@ describe("FeatureModule", () => {
 ### Mock 函数
 
 ```typescript
-import {
-  createMockFunction,
-  createAsyncMockFunction,
-} from "@whatschat/test-utils";
+import { vi } from "vitest";
 
-// 同步函数Mock
-const mockFn = createMockFunction<(id: string) => Device>();
-mockFn.mockReturnValue(deviceFactory());
+const mockFn = vi.fn((id: string) => ({ id, name: "device" }));
+mockFn.mockReturnValue({ id: "1", name: "test" });
 
-// 异步函数Mock
-const mockAsyncFn = createAsyncMockFunction<(id: string) => Promise<Device>>();
-mockAsyncFn.mockResolvedValue(deviceFactory());
+const mockAsyncFn = vi.fn().mockResolvedValue({ id: "1", name: "test" });
 ```
 
 ### Mock 对象
 
 ```typescript
-import { createMockObject, spyOnMethod } from "@whatschat/test-utils";
+import { vi } from "vitest";
 
-const mockApi = createMockObject<ApiClient>({
-  get: createMockFunction(),
-  post: createAsyncMockFunction(),
-});
-
-// 或者Spy现有对象
-const spy = spyOnMethod(apiClient, "getDevice");
+const mockApi = {
+  get: vi.fn(),
+  post: vi.fn().mockResolvedValue({}),
+};
+vi.mocked(mockApi.get).mockReturnValue({ id: "1" });
 ```
 
 ## 测试数据生成
@@ -88,29 +72,11 @@ const spy = spyOnMethod(apiClient, "getDevice");
 ### 使用工厂函数
 
 ```typescript
-import {
-  deviceFactory,
-  createFactory,
-  createMany,
-} from "@whatschat/test-utils";
+const deviceFactory = (overrides = {}) => ({ id: "1", name: "device", ...overrides });
 
-// 单个数据
 const device = deviceFactory();
-
-// 自定义数据
-const customDevice = deviceFactory({
-  name: "Custom Device",
-  status: "offline",
-});
-
-// 批量生成
-const devices = createMany(deviceFactory, 5);
-
-// 自定义工厂
-const customFactory = createFactory(() => ({
-  id: "test-id",
-  value: 42,
-}));
+const customDevice = deviceFactory({ name: "Custom Device", status: "offline" });
+const devices = Array.from({ length: 5 }, (_, i) => deviceFactory({ id: String(i) }));
 ```
 
 ## 断言规范
@@ -119,20 +85,11 @@ const customFactory = createFactory(() => ({
 
 ```typescript
 import { expect } from "vitest";
-import {
-  expectArrayToContainEqual,
-  expectObjectToContain,
-  expectToBeInRange,
-} from "@whatschat/test-utils";
 
-// 数组包含
-expectArrayToContainEqual(items, expectedItem);
-
-// 对象包含属性
-expectObjectToContain(actual, { key: "value" });
-
-// 数值范围
-expectToBeInRange(value, 0, 100);
+expect(items).toEqual(expect.arrayContaining([expect.objectContaining(expectedItem)]));
+expect(actual).toMatchObject({ key: "value" });
+expect(value).toBeGreaterThanOrEqual(0);
+expect(value).toBeLessThanOrEqual(100);
 ```
 
 ## React 组件测试
@@ -140,22 +97,12 @@ expectToBeInRange(value, 0, 100);
 ### 渲染组件
 
 ```typescript
-import { renderWithProviders } from "@whatschat/test-utils";
 import { render, screen } from "@testing-library/react";
 
 describe("ComponentName", () => {
   it("should render correctly", () => {
-    // Given
-    const props = {
-      /* ... */
-    };
-
-    // When
-    const { container } = renderWithProviders(<Component {...props} />, {
-      providers: [ThemeProvider], // 可选
-    });
-
-    // Then
+    const props = { /* ... */ };
+    render(<Component {...props} />);
     expect(screen.getByText("Expected Text")).toBeInTheDocument();
   });
 });
@@ -166,27 +113,11 @@ describe("ComponentName", () => {
 ### 等待和超时
 
 ```typescript
-import { waitFor, delay, timeout, retry } from "@whatschat/test-utils";
+import { waitFor } from "@testing-library/react";
 
-// 等待条件满足
-await waitFor(
-  () => {
-    expect(element).toBeInTheDocument();
-  },
-  { timeout: 5000 }
-);
-
-// 延迟
-await delay(1000);
-
-// 带超时的Promise
-const result = await timeout(fetchData(), 5000, "Timeout error");
-
-// 重试
-const result = await retry(() => fetchData(), {
-  maxAttempts: 3,
-  delay: 1000,
-});
+await waitFor(() => {
+  expect(element).toBeInTheDocument();
+}, { timeout: 5000 });
 ```
 
 ## 测试组织

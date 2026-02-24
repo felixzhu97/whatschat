@@ -10,6 +10,7 @@ import type { Contact, Message } from "../../../types";
 interface ChatAreaProps {
   selectedContact: Contact;
   messages: Message[];
+  currentUserId?: string | null;
   messageText: string;
   showEmojiPicker: boolean;
   replyingTo: Message | null;
@@ -18,7 +19,7 @@ interface ChatAreaProps {
   isTyping: boolean;
   isConnected: boolean;
   onMessageChange: (text: string) => void;
-  onKeyPress: (e: React.KeyboardEvent) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
   onSendMessage: (
     content: string,
     type?: "text" | "image" | "video" | "audio" | "file"
@@ -44,6 +45,7 @@ interface ChatAreaProps {
 export function ChatArea({
   selectedContact,
   messages,
+  currentUserId = null,
   messageText,
   showEmojiPicker,
   replyingTo,
@@ -52,7 +54,7 @@ export function ChatArea({
   isTyping,
   isConnected,
   onMessageChange,
-  onKeyPress,
+  onKeyDown,
   onSendMessage,
   onEmojiSelect,
   onToggleEmojiPicker,
@@ -87,6 +89,7 @@ export function ChatArea({
       <MessageArea
         messages={messages}
         selectedContact={selectedContact}
+        currentUserId={currentUserId}
         isGroup={selectedContact.isGroup}
         onReply={onReply}
         onEdit={(messageId: string, text: string) => {
@@ -126,7 +129,7 @@ export function ChatArea({
         editingMessage={editingMessage}
         isRecordingVoice={isRecordingVoice}
         onMessageChange={onMessageChange}
-        onKeyPress={onKeyPress}
+        onKeyDown={onKeyDown}
         onSendMessage={() => onSendMessage(messageText)}
         onEmojiSelect={onEmojiSelect}
         onToggleEmojiPicker={onToggleEmojiPicker}

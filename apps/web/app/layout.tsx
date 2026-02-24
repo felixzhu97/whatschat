@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
 
 export const metadata: Metadata = {
   title: "whats chat",
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GrowthBookProviderWrapper>{children}</GrowthBookProviderWrapper>
+      </body>
     </html>
   );
 }

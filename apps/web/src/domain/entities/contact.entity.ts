@@ -1,9 +1,6 @@
-export interface GroupMember {
-  id: string;
-  name: string;
-  avatar: string;
-  role: "member" | "admin" | "owner";
-}
+import type { ContactGroupMember } from "@whatschat/domain";
+
+export type { ContactGroupMember };
 
 export class Contact {
   constructor(
@@ -23,7 +20,7 @@ export class Contact {
     public readonly pinned?: boolean,
     public readonly muted?: boolean,
     public readonly blocked?: boolean,
-    public readonly members?: GroupMember[],
+    public readonly members?: ContactGroupMember[],
     public readonly memberCount?: number,
     public readonly description?: string,
     public readonly admin?: string[]
@@ -46,7 +43,7 @@ export class Contact {
     pinned?: boolean;
     muted?: boolean;
     blocked?: boolean;
-    members?: GroupMember[];
+    members?: ContactGroupMember[];
     memberCount?: number;
     description?: string;
     admin?: string[];

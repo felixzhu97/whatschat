@@ -1,14 +1,9 @@
-export interface User {
-  id: string;
+import type { User as DomainUser } from "@whatschat/domain";
+
+export interface User extends DomainUser {
   name: string;
   phoneNumber: string;
-  profilePicture?: string;
-  about?: string;
-  lastSeen?: Date;
-  isOnline: boolean;
   isTyping: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export class UserEntity implements User {
@@ -28,7 +23,7 @@ export class UserEntity implements User {
     this.name = data.name;
     this.phoneNumber = data.phoneNumber;
     this.profilePicture = data.profilePicture;
-    this.about = data.about ?? '嗨，我正在使用 WhatsChat！';
+    this.about = data.about ?? "嗨，我正在使用 WhatsChat！";
     this.lastSeen = data.lastSeen;
     this.isOnline = data.isOnline ?? false;
     this.isTyping = data.isTyping ?? false;
@@ -51,7 +46,7 @@ export class UserEntity implements User {
     });
   }
 
-  toMap(): Record<string, any> {
+  toMap(): Record<string, unknown> {
     return {
       id: this.id,
       name: this.name,
@@ -66,18 +61,18 @@ export class UserEntity implements User {
     };
   }
 
-  static fromMap(map: Record<string, any>): UserEntity {
+  static fromMap(map: Record<string, unknown>): UserEntity {
     return new UserEntity({
-      id: map.id ?? '',
-      name: map.name ?? '',
-      phoneNumber: map.phoneNumber ?? '',
-      profilePicture: map.profilePicture,
-      about: map.about,
-      lastSeen: map.lastSeen ? new Date(map.lastSeen) : undefined,
-      isOnline: map.isOnline ?? false,
-      isTyping: map.isTyping ?? false,
-      createdAt: new Date(map.createdAt),
-      updatedAt: new Date(map.updatedAt),
+      id: (map.id as string) ?? "",
+      name: (map.name as string) ?? "",
+      phoneNumber: (map.phoneNumber as string) ?? "",
+      profilePicture: map.profilePicture as string | undefined,
+      about: map.about as string | undefined,
+      lastSeen: map.lastSeen ? new Date(map.lastSeen as number) : undefined,
+      isOnline: (map.isOnline as boolean) ?? false,
+      isTyping: (map.isTyping as boolean) ?? false,
+      createdAt: new Date(map.createdAt as number),
+      updatedAt: new Date(map.updatedAt as number),
     });
   }
 
@@ -89,4 +84,3 @@ export class UserEntity implements User {
     return this.id === other.id;
   }
 }
-

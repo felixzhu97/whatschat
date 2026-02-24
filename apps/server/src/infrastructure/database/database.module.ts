@@ -1,11 +1,12 @@
 import { Module, Global, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { RedisService } from './redis.service';
+import { CacheService } from '../cache/cache.service';
 
 @Global()
 @Module({
-  providers: [PrismaService, RedisService],
-  exports: [PrismaService, RedisService],
+  providers: [PrismaService, RedisService, CacheService],
+  exports: [PrismaService, RedisService, CacheService],
 })
 export class DatabaseModule implements OnModuleInit, OnModuleDestroy {
   constructor(

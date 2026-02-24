@@ -55,7 +55,10 @@ export function MessageBubble({
   onInfo,
 }: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false);
-  const isSent = message.senderId === "current-user";
+  const isSent =
+    isOwn !== undefined
+      ? isOwn
+      : message.senderId === "current-user" || message.senderId === "me";
 
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString("zh-CN", {

@@ -3,7 +3,11 @@ import { PrismaClient } from "@prisma/client";
 import { ConfigService } from "../infrastructure/config/config.service";
 import logger from "@/shared/utils/logger";
 
-// 创建独立的Prisma客户端实例用于seed脚本
+if (!process.env["DATABASE_URL"]) {
+  process.env["DATABASE_URL"] =
+    "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public";
+}
+
 const prisma = new PrismaClient({
   log:
     process.env["NODE_ENV"] === "development"
@@ -11,244 +15,405 @@ const prisma = new PrismaClient({
       : ["error"],
 });
 
-// 加载配置
 const config = ConfigService.loadConfig();
+
+const PERSON_DATA: { username: string; name: string; status: string }[] = [
+  { username: "serena", name: "Serena", status: "On the court." },
+  { username: "beyonce", name: "Beyonce", status: "On tour." },
+  { username: "messi", name: "Messi", status: "Training." },
+  { username: "adele", name: "Adele", status: "In the studio." },
+  { username: "leonardo", name: "Leonardo", status: "On set." },
+  { username: "gisele", name: "Gisele", status: "At the shoot." },
+  { username: "roger", name: "Roger", status: "Back on court." },
+  { username: "rafa", name: "Rafa", status: "Roland Garros." },
+  { username: "venus", name: "Venus", status: "Playing today." },
+  { username: "tiger", name: "Tiger", status: "On the green." },
+  { username: "kobe", name: "Kobe", status: "Mamba mentality." },
+  { username: "shaq", name: "Shaq", status: "Big diesel." },
+  { username: "bolt", name: "Bolt", status: "Lightning." },
+  { username: "cristiano", name: "Cristiano", status: "SIUUU." },
+  { username: "neymar", name: "Neymar", status: "Joga bonito." },
+  { username: "zlatan", name: "Zlatan", status: "I am Zlatan." },
+  { username: "rihanna", name: "Rihanna", status: "Fenty." },
+  { username: "taylor", name: "Taylor", status: "Eras tour." },
+  { username: "drake", name: "Drake", status: "OVO." },
+  { username: "weeknd", name: "Weeknd", status: "After hours." },
+  { username: "ariana", name: "Ariana", status: "Thank u next." },
+  { username: "bruno", name: "Bruno", status: "In the room." },
+  { username: "edsheeran", name: "Ed", status: "Writing." },
+  { username: "justin", name: "Justin", status: "Purpose." },
+  { username: "ladygaga", name: "Lady Gaga", status: "Chromatica." },
+  { username: "madonna", name: "Madonna", status: "Queen." },
+  { username: "elvis", name: "Elvis", status: "King." },
+  { username: "michaelj", name: "Michael", status: "Thriller." },
+  { username: "freddie", name: "Freddie", status: "Bohemian." },
+  { username: "davidb", name: "David", status: "Bowie." },
+  { username: "stevie", name: "Stevie", status: "Wonder." },
+  { username: "jenniferl", name: "Jennifer", status: "J.Lo." },
+  { username: "brad", name: "Brad", status: "On set." },
+  { username: "tomh", name: "Tom H", status: "Forrest." },
+  { username: "will", name: "Will", status: "Fresh prince." },
+  { username: "denzel", name: "Denzel", status: "Training day." },
+  { username: "samuel", name: "Samuel", status: "Pulp." },
+  { username: "morgan", name: "Morgan", status: "Voice." },
+  { username: "robertd", name: "Robert", status: "Downey." },
+  { username: "alpacino", name: "Al", status: "Scarface." },
+  { username: "angelina", name: "Angelina", status: "Tomb raider." },
+  { username: "julia", name: "Julia", status: "Pretty woman." },
+  { username: "nicole", name: "Nicole", status: "Moulin." },
+  { username: "sandra", name: "Sandra", status: "Oscar." },
+  { username: "charlize", name: "Charlize", status: "Fury road." },
+  { username: "natalie", name: "Natalie", status: "Black swan." },
+  { username: "scarlett", name: "Scarlett", status: "Avenger." },
+  { username: "emma", name: "Emma", status: "Hermione." },
+  { username: "anneh", name: "Anne H", status: "Devil wears." },
+  { username: "katew", name: "Kate W", status: "Winslet." },
+  { username: "margot", name: "Margot", status: "Barbie." },
+  { username: "gal", name: "Gal", status: "Wonder." },
+  { username: "cara", name: "Cara", status: "Runway." },
+  { username: "kendall", name: "Kendall", status: "Runway." },
+  { username: "gigi", name: "Gigi", status: "Runway." },
+  { username: "naomi", name: "Naomi", status: "Super." },
+  { username: "cindy", name: "Cindy", status: "Super." },
+  { username: "linda", name: "Linda", status: "Super." },
+  { username: "heidi", name: "Heidi", status: "Runway." },
+  { username: "tyra", name: "Tyra", status: "ANTM." },
+  { username: "kateb", name: "Kate B", status: "Vogue." },
+  { username: "chrissy", name: "Chrissy", status: "Sports." },
+  { username: "emily", name: "Emily", status: "Paris." },
+  { username: "zendaya", name: "Zendaya", status: "Euphoria." },
+  { username: "timothee", name: "Timothee", status: "Dune." },
+  { username: "austin", name: "Austin", status: "Elvis." },
+  { username: "florence", name: "Florence", status: "Florence." },
+  { username: "adam", name: "Adam", status: "Driver." },
+  { username: "oscar", name: "Oscar", status: "Isaac." },
+  { username: "pedro", name: "Pedro", status: "Pascal." },
+  { username: "idris", name: "Idris", status: "Luther." },
+  { username: "michaelb", name: "Michael B", status: "Jordan." },
+  { username: "chadwick", name: "Chadwick", status: "Wakanda." },
+  { username: "viola", name: "Viola", status: "Davis." },
+  { username: "lupita", name: "Lupita", status: "Oscar." },
+  { username: "octavia", name: "Octavia", status: "Spencer." },
+  { username: "reese", name: "Reese", status: "Witherspoon." },
+  { username: "sandrao", name: "Sandra O", status: "Killing." },
+  { username: "nicolek", name: "Nicole K", status: "Big little." },
+  { username: "mindy", name: "Mindy", status: "Kaling." },
+  { username: "priyanka", name: "Priyanka", status: "Jonas." },
+  { username: "deepika", name: "Deepika", status: "Bollywood." },
+  { username: "jackie", name: "Jackie", status: "Chan." },
+  { username: "jet", name: "Jet", status: "Li." },
+  { username: "donnie", name: "Donnie", status: "Yen." },
+  { username: "keanu", name: "Keanu", status: "Neo." },
+  { username: "johnny", name: "Johnny", status: "Depp." },
+  { username: "javier", name: "Javier", status: "Bardem." },
+  { username: "penelope", name: "Penelope", status: "Cruz." },
+  { username: "salma", name: "Salma", status: "Hayek." },
+  { username: "eva", name: "Eva", status: "Longoria." },
+  { username: "sofia", name: "Sofia", status: "Vergara." },
+  { username: "shakira", name: "Shakira", status: "Hips." },
+  { username: "jlo", name: "J.Lo", status: "Jenny." },
+  { username: "selena", name: "Selena", status: "Gomez." },
+  { username: "demi", name: "Demi", status: "Lovato." },
+  { username: "miley", name: "Miley", status: "Cyrus." },
+  { username: "kelly", name: "Kelly", status: "Clarkson." },
+  { username: "christina", name: "Christina", status: "Aguilera." },
+  { username: "britney", name: "Britney", status: "Spears." },
+  { username: "mariah", name: "Mariah", status: "Carey." },
+  { username: "whitney", name: "Whitney", status: "Houston." },
+  { username: "celinedion", name: "Celine", status: "Dion." },
+  { username: "barbra", name: "Barbra", status: "Streisand." },
+  { username: "diana", name: "Diana", status: "Ross." },
+  { username: "tina", name: "Tina", status: "Turner." },
+  { username: "janet", name: "Janet", status: "Jackson." },
+  { username: "prince", name: "Prince", status: "Purple." },
+  { username: "lenny", name: "Lenny", status: "Kravitz." },
+  { username: "john", name: "John", status: "Legend." },
+  { username: "pharrell", name: "Pharrell", status: "Happy." },
+  { username: "kanye", name: "Kanye", status: "West." },
+  { username: "jayz", name: "Jay-Z", status: "Empire." },
+  { username: "eminem", name: "Eminem", status: "Slim." },
+  { username: "snoop", name: "Snoop", status: "Dogg." },
+  { username: "kendrick", name: "Kendrick", status: "Lamar." },
+  { username: "travis", name: "Travis", status: "Scott." },
+  { username: "post", name: "Post", status: "Malone." },
+  { username: "billie", name: "Billie", status: "Eilish." },
+  { username: "dua", name: "Dua", status: "Lipa." },
+  { username: "olivia", name: "Olivia", status: "Rodrigo." },
+  { username: "doja", name: "Doja", status: "Cat." },
+  { username: "megan", name: "Megan", status: "Thee Stallion." },
+  { username: "lizzo", name: "Lizzo", status: "Good as hell." },
+  { username: "harry", name: "Harry", status: "Styles." },
+  { username: "liam", name: "Liam", status: "Payne." },
+  { username: "louis", name: "Louis", status: "Tomlinson." },
+  { username: "niall", name: "Niall", status: "Horan." },
+  { username: "zayn", name: "Zayn", status: "Malik." },
+];
 
 export async function main() {
   logger.info("开始数据库种子...");
 
+  PERSON_DATA.sort((a, b) => a.name.localeCompare(b.name, "en"));
+
   try {
-    // 清理现有数据（开发环境）
     if (config.server.isDevelopment) {
-      logger.info("清理现有数据...");
-      await prisma.messageReaction.deleteMany();
-      await prisma.messageRead.deleteMany();
-      await prisma.message.deleteMany();
-      await prisma.chatParticipant.deleteMany();
-      await prisma.chat.deleteMany();
-      await prisma.callParticipant.deleteMany();
-      await prisma.call.deleteMany();
-      await prisma.statusView.deleteMany();
-      await prisma.status.deleteMany();
-      await prisma.groupParticipant.deleteMany();
-      await prisma.group.deleteMany();
-      await prisma.contact.deleteMany();
-      await prisma.blockedUser.deleteMany();
-      await prisma.notification.deleteMany();
-      await prisma.fileUpload.deleteMany();
-      await prisma.userSettings.deleteMany();
-      await prisma.user.deleteMany();
+      try {
+        logger.info("清理现有数据...");
+        await prisma.messageReaction.deleteMany();
+        await prisma.messageRead.deleteMany();
+        await prisma.message.deleteMany();
+        await prisma.chatParticipant.deleteMany();
+        await prisma.chat.deleteMany();
+        await prisma.callParticipant.deleteMany();
+        await prisma.call.deleteMany();
+        await prisma.statusView.deleteMany();
+        await prisma.status.deleteMany();
+        await prisma.groupParticipant.deleteMany();
+        await prisma.group.deleteMany();
+        await prisma.contact.deleteMany();
+        await prisma.blockedUser.deleteMany();
+        await prisma.notification.deleteMany();
+        await prisma.fileUpload.deleteMany();
+        await prisma.userSettings.deleteMany();
+        await prisma.user.deleteMany();
+      } catch (e) {
+        logger.warn(
+          "清理失败（可能是权限或未使用 Docker 数据库），请先执行 pnpm start 再执行 db:seed。跳过清理继续..."
+        );
+      }
     }
 
-    // 创建测试用户
     const saltRounds = config.security.bcrypt.saltRounds;
     const hashedPassword = await bcrypt.hash("123456", saltRounds);
 
-    const users = await Promise.all([
-      prisma.user.create({
+    const users: Awaited<ReturnType<typeof prisma.user.create>>[] = [];
+    for (let i = 0; i < PERSON_DATA.length; i++) {
+      const p = PERSON_DATA[i]!;
+      const initial = p.username[0]!.toUpperCase();
+      const user = await prisma.user.create({
         data: {
-          username: "admin",
-          email: "admin@whatschat.com",
-          phone: "+86 138 0000 0001",
+          username: p.username,
+          email: `${p.username}@whatschat.com`,
+          phone: `+1 555 ${String(i).padStart(3, "0")} ${String(i).padStart(4, "0")}`,
           password: hashedPassword,
-          avatar: "/placeholder.svg?height=40&width=40&text=A",
-          status: "我是管理员",
-          isOnline: true,
+          avatar: `/placeholder.svg?height=40&width=40&text=${initial}`,
+          status: p.status,
+          isOnline: i % 3 !== 0,
         },
-      }),
-      prisma.user.create({
-        data: {
-          username: "alice",
-          email: "alice@example.com",
-          phone: "+86 138 0000 0002",
-          password: hashedPassword,
-          avatar: "/placeholder.svg?height=40&width=40&text=A",
-          status: "嗨，我正在使用 WhatsChat！",
-          isOnline: true,
-        },
-      }),
-      prisma.user.create({
-        data: {
-          username: "bob",
-          email: "bob@example.com",
-          phone: "+86 138 0000 0003",
-          password: hashedPassword,
-          avatar: "/placeholder.svg?height=40&width=40&text=B",
-          status: "忙碌中...",
-          isOnline: false,
-        },
-      }),
-      prisma.user.create({
-        data: {
-          username: "charlie",
-          email: "charlie@example.com",
-          phone: "+86 138 0000 0004",
-          password: hashedPassword,
-          avatar: "/placeholder.svg?height=40&width=40&text=C",
-          status: "在线",
-          isOnline: true,
-        },
-      }),
-    ]);
+      });
+      users.push(user);
+    }
 
     logger.info(`创建了 ${users.length} 个用户`);
 
-    // 为每个用户创建默认设置
     for (const user of users) {
-      await prisma.userSettings.create({
-        data: {
-          userId: user.id,
-        },
-      });
+      await prisma.userSettings.create({ data: { userId: user.id } });
     }
-
     logger.info("创建了用户设置");
 
-    // 创建私人聊天
-    const privateChat = await prisma.chat.create({
+    const privateChat1 = await prisma.chat.create({
       data: {
         type: "PRIVATE",
         participants: {
           create: [
-            {
-              userId: users[0].id,
-              role: "MEMBER",
-            },
-            {
-              userId: users[1].id,
-              role: "MEMBER",
-            },
+            { userId: users[0]!.id, role: "MEMBER" },
+            { userId: users[1]!.id, role: "MEMBER" },
           ],
         },
       },
     });
 
-    logger.info("创建了私人聊天");
-
-    // 创建群组聊天
     const groupChat = await prisma.chat.create({
       data: {
         type: "GROUP",
-        name: "开发团队",
-        avatar: "/placeholder.svg?height=40&width=40&text=团队",
+        name: "All Stars",
+        avatar: "/placeholder.svg?height=40&width=40&text=A",
+        participants: {
+          create: users.map((u, i) => ({
+            userId: u.id,
+            role: i === 0 ? "ADMIN" : "MEMBER",
+          })),
+        },
+      },
+    });
+
+    const privateChat2 = await prisma.chat.create({
+      data: {
+        type: "PRIVATE",
         participants: {
           create: [
-            {
-              userId: users[0].id,
-              role: "ADMIN",
-            },
-            {
-              userId: users[1].id,
-              role: "MEMBER",
-            },
-            {
-              userId: users[2].id,
-              role: "MEMBER",
-            },
-            {
-              userId: users[3].id,
-              role: "MEMBER",
-            },
+            { userId: users[4]!.id, role: "MEMBER" },
+            { userId: users[5]!.id, role: "MEMBER" },
           ],
         },
       },
     });
 
-    logger.info("创建了群组聊天");
+    const ladyGagaUser = users.find((_, i) => PERSON_DATA[i]?.username === "ladygaga");
+    const cristianoUser = users.find((_, i) => PERSON_DATA[i]?.username === "cristiano");
+    if (ladyGagaUser && cristianoUser) {
+      const pc = await prisma.chat.create({
+        data: {
+          type: "PRIVATE",
+          participants: {
+            create: [
+              { userId: ladyGagaUser.id, role: "MEMBER" },
+              { userId: cristianoUser.id, role: "MEMBER" },
+            ],
+          },
+        },
+      });
+      await prisma.message.create({
+        data: {
+          chatId: pc.id,
+          senderId: cristianoUser.id,
+          type: "TEXT",
+          content: "Hey Lady Gaga!",
+        },
+      });
+    }
+    const ladyGagaIdx = PERSON_DATA.findIndex((p) => p.username === "ladygaga");
+    if (ladyGagaIdx >= 0) {
+      const others = [0, 1, 16, 17, 22, 24].filter((i) => i !== ladyGagaIdx && i < users.length);
+      for (const otherIdx of others) {
+        if (otherIdx === ladyGagaIdx) continue;
+        const pc = await prisma.chat.create({
+          data: {
+            type: "PRIVATE",
+            participants: {
+              create: [
+                { userId: users[ladyGagaIdx]!.id, role: "MEMBER" },
+                { userId: users[otherIdx]!.id, role: "MEMBER" },
+              ],
+            },
+          },
+        });
+        await prisma.message.create({
+          data: {
+            chatId: pc.id,
+            senderId: users[otherIdx]!.id,
+            type: "TEXT",
+            content: `Hey ${PERSON_DATA[ladyGagaIdx]!.name}!`,
+          },
+        });
+      }
+    }
 
-    // 创建一些测试消息
-    const messages = await Promise.all([
-      prisma.message.create({
-        data: {
-          chatId: privateChat.id,
-          senderId: users[0].id,
-          type: "TEXT",
-          content: "你好！欢迎使用 WhatsChat！",
-        },
-      }),
-      prisma.message.create({
-        data: {
-          chatId: privateChat.id,
-          senderId: users[1].id,
-          type: "TEXT",
-          content: "谢谢！这个应用看起来很棒！",
-        },
-      }),
-      prisma.message.create({
+    logger.info("创建了聊天");
+
+    const groupMessages = [
+      { senderIdx: 0, content: "Welcome to All Stars!" },
+      { senderIdx: 1, content: "Happy to be here." },
+      { senderIdx: 2, content: "Thanks for the add." },
+      { senderIdx: 3, content: "Hello everyone!" },
+      { senderIdx: 4, content: "Great group." },
+      { senderIdx: 5, content: "Hi all!" },
+    ];
+    for (let i = 6; i < Math.min(30, users.length); i++) {
+      groupMessages.push({
+        senderIdx: i,
+        content: `Hey from ${PERSON_DATA[i]!.name}!`,
+      });
+    }
+
+    await prisma.message.create({
+      data: {
+        chatId: privateChat1.id,
+        senderId: users[0]!.id,
+        type: "TEXT",
+        content: "Hey! Welcome to WhatsChat.",
+      },
+    });
+    await prisma.message.create({
+      data: {
+        chatId: privateChat1.id,
+        senderId: users[1]!.id,
+        type: "TEXT",
+        content: "Thanks! This app is great.",
+      },
+    });
+    await prisma.message.create({
+      data: {
+        chatId: privateChat2.id,
+        senderId: users[4]!.id,
+        type: "TEXT",
+        content: "See you at the premiere.",
+      },
+    });
+    await prisma.message.create({
+      data: {
+        chatId: privateChat2.id,
+        senderId: users[5]!.id,
+        type: "TEXT",
+        content: "Can't wait!",
+      },
+    });
+    for (const m of groupMessages) {
+      await prisma.message.create({
         data: {
           chatId: groupChat.id,
-          senderId: users[0].id,
+          senderId: users[m.senderIdx]!.id,
           type: "TEXT",
-          content: "欢迎大家加入开发团队群组！",
+          content: m.content,
         },
-      }),
-      prisma.message.create({
-        data: {
-          chatId: groupChat.id,
-          senderId: users[1].id,
-          type: "TEXT",
-          content: "很高兴能参与这个项目！",
-        },
-      }),
-    ]);
+      });
+    }
+    logger.info(`创建了 ${4 + groupMessages.length} 条消息`);
 
-    logger.info(`创建了 ${messages.length} 条消息`);
-
-    // 创建联系人关系
-    await Promise.all([
-      prisma.contact.create({
+    const contactPairs = [
+      [0, 1], [1, 0], [0, 2], [2, 0], [4, 5], [5, 4],
+    ];
+    const cristianoIdx = PERSON_DATA.findIndex((p) => p.username === "cristiano");
+    if (ladyGagaIdx >= 0) {
+      for (const otherIdx of [0, 1, 2, 16, 17, 22, 24, 25]) {
+        if (otherIdx >= users.length || otherIdx === ladyGagaIdx) continue;
+        contactPairs.push([ladyGagaIdx, otherIdx], [otherIdx, ladyGagaIdx]);
+      }
+    }
+    if (cristianoIdx >= 0 && ladyGagaIdx >= 0) {
+      contactPairs.push([cristianoIdx, ladyGagaIdx], [ladyGagaIdx, cristianoIdx]);
+    }
+    for (let i = 0; i < Math.min(20, users.length - 1); i += 2) {
+      const a = i;
+      const b = i + 1;
+      if (!contactPairs.some(([x, y]) => x === a && y === b)) {
+        contactPairs.push([a, b], [b, a]);
+      }
+    }
+    for (const pair of contactPairs) {
+      const ownerIdx = pair[0]!;
+      const targetIdx = pair[1]!;
+      if (ownerIdx >= users.length || targetIdx >= users.length) continue;
+      const owner = users[ownerIdx]!;
+      const target = users[targetIdx]!;
+      await prisma.contact.create({
         data: {
-          ownerId: users[0].id,
-          name: "Alice",
-          phone: users[1].phone,
-          email: users[1].email,
-          avatar: users[1].avatar,
+          ownerId: owner.id,
+          name: PERSON_DATA[targetIdx]!.name,
+          phone: target.phone,
+          email: target.email,
+          avatar: target.avatar,
         },
-      }),
-      prisma.contact.create({
-        data: {
-          ownerId: users[1].id,
-          name: "Admin",
-          phone: users[0].phone,
-          email: users[0].email,
-          avatar: users[0].avatar,
-        },
-      }),
-    ]);
-
+      });
+    }
     logger.info("创建了联系人关系");
 
-    // 创建一些状态更新
     const statusExpiresAt = new Date();
-    statusExpiresAt.setHours(statusExpiresAt.getHours() + 24); // 24小时后过期
-
-    await Promise.all([
-      prisma.status.create({
+    statusExpiresAt.setHours(statusExpiresAt.getHours() + 24);
+    for (let i = 0; i < users.length; i++) {
+      await prisma.status.create({
         data: {
-          userId: users[0].id,
+          userId: users[i]!.id,
           type: "TEXT",
-          content: "今天是美好的一天！",
+          content: PERSON_DATA[i]!.status,
           expiresAt: statusExpiresAt,
         },
-      }),
-      prisma.status.create({
-        data: {
-          userId: users[1].id,
-          type: "TEXT",
-          content: "正在开发新功能...",
-          expiresAt: statusExpiresAt,
-        },
-      }),
-    ]);
-
+      });
+    }
     logger.info("创建了状态更新");
 
     logger.info("数据库种子完成！");
-    logger.info("测试账户:");
-    logger.info("- admin@whatschat.com / 123456");
-    logger.info("- alice@example.com / 123456");
-    logger.info("- bob@example.com / 123456");
-    logger.info("- charlie@example.com / 123456");
+    logger.info(`共 ${users.length} 个测试账户，密码均为: 123456`);
+    logger.info("示例: cristiano@whatschat.com (Web默认), ladygaga@whatschat.com (Mobile默认) ...");
   } catch (error) {
     logger.error("数据库种子失败:", error);
     throw error;

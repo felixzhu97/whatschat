@@ -24,7 +24,7 @@ and value streams.
 - Processes: user registration/login, send message, start call, create group,
   share status, upload file, add contact
 
-**Diagram** – `docs/architecture/togaf/business-architecture.puml`
+**Diagram** – `docs/en/rd/togaf/business-architecture.puml`
 
 ### Application Architecture
 
@@ -42,7 +42,7 @@ and their interactions.
 - Data access layer: data repository, cache service
 - Infrastructure services: PostgreSQL, Redis, file storage, search service
 
-**Diagram** – `docs/architecture/togaf/application-architecture.puml`
+**Diagram** – `docs/en/rd/togaf/application-architecture.puml`
 
 **Code mapping**:
 
@@ -63,7 +63,7 @@ and their interactions.
   MinIO/S3 file storage
 - Data flows: write flows, read flows, realtime flows (Redis Pub/Sub + WebSocket)
 
-**Diagram** – `docs/architecture/togaf/data-architecture.puml`
+**Diagram** – `docs/en/rd/togaf/data-architecture.puml`
 
 **Code mapping**:
 
@@ -87,7 +87,7 @@ and deployment architecture.
 - Message queue: Redis Pub/Sub, Bull Queue
 - Deployment: Docker, Docker Compose, Nginx, load balancing
 
-**Diagram** – `docs/architecture/togaf/technology-architecture.puml`
+**Diagram** – `docs/en/rd/togaf/technology-architecture.puml`
 
 ## ADM Core Flow
 
@@ -197,7 +197,7 @@ ADM is TOGAF’s architecture development method, with 9 phases (simplified view
 ### Architecture Documents
 
 ```text
-docs/architecture/togaf/
+docs/en/rd/togaf/
 ├── overview.puml                  # Overall architecture overview
 ├── business-architecture.puml     # Business architecture
 ├── application-architecture.puml  # Application architecture
@@ -276,5 +276,5 @@ Business Architecture → Application Architecture → Data Architecture → Tec
 ## References
 
 - [TOGAF official documentation](https://www.opengroup.org/togaf)
-- [Project TOGAF diagrams](../../docs/architecture/togaf/README.md)
-- [Architecture overview diagram](../../docs/architecture/togaf/overview.puml)
+- [Project TOGAF diagrams](../../docs/en/rd/togaf/README.md)
+- [Architecture overview diagram](../../docs/en/rd/togaf/overview.puml)

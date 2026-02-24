@@ -14,6 +14,11 @@ export interface AppConfig {
   redis: {
     url: string;
     password?: string;
+    cacheTtlSeconds: number;
+  };
+  kafka: {
+    brokers: string[];
+    topicOfflineMessages: string;
   };
   jwt: {
     secret: string;
@@ -131,13 +136,19 @@ export class ConfigService {
       database: {
         url:
           process.env["DATABASE_URL"] ||
-          "postgresql://username:password@localhost:5432/whatschat?schema=public",
+          "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public",
       },
       redis: {
         url: process.env["REDIS_URL"] || "redis://localhost:6379",
+        cacheTtlSeconds: parseInt(process.env["REDIS_CACHE_TTL"] || "300", 10),
         ...(process.env["REDIS_PASSWORD"] && {
           password: process.env["REDIS_PASSWORD"],
         }),
+      },
+      kafka: {
+        brokers: (process.env["KAFKA_BROKERS"] || "localhost:9092").split(","),
+        topicOfflineMessages:
+          process.env["KAFKA_TOPIC_OFFLINE_MESSAGES"] || "offline-messages",
       },
       jwt: {
         secret: process.env["JWT_SECRET"] || "your-super-secret-jwt-key-here",

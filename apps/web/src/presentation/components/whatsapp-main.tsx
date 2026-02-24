@@ -23,7 +23,8 @@ import { useMessages } from "../hooks/use-messages";
 import { useSearch } from "../hooks/use-search";
 import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
-import { getWebSocketAdapter } from "@/src/infrastructure/adapters/websocket";
+import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
+import { useAuth } from "../hooks/use-auth";
 import {
   mockContacts,
   mockMessages,
@@ -39,28 +40,23 @@ export function WhatsAppMain() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
-  const [isConnected, setIsConnected] = useState(false);
 
-  // Initialize WebSocket adapter once on mount and keep connection state in sync
-  useEffect(() => {
-    const ws = getWebSocketAdapter();
+  const { user: currentUser } = useAuth();
 
-    const handleConnected = () => setIsConnected(true);
-    const handleDisconnected = () => setIsConnected(false);
+  const chatsWithLive = useChatsWithLiveMessages(
+    selectedContactId,
+    currentUser?.id
+  );
 
-    ws.on("connected", handleConnected);
-    ws.on("disconnected", handleDisconnected);
+  const contactsForList =
+    chatsWithLive.apiChats.length > 0
+      ? chatsWithLive.apiChats
+      : (mockContacts as Contact[]);
+  const selectedContact =
+    selectedContactId != null
+      ? contactsForList.find((c) => c.id === selectedContactId) ?? null
+      : null;
 
-    // Set initial state based on current connection
-    setIsConnected(ws.isConnected());
-
-    return () => {
-      ws.off("connected", handleConnected);
-      ws.off("disconnected", handleDisconnected);
-    };
-  }, []);
-
-  // Custom hooks
   const {
     currentPage,
     handleProfileClick,
@@ -98,9 +94,12 @@ export function WhatsAppMain() {
     closeAdvancedSearchDialog,
   } = useDialogs();
 
-  const selectedContact = selectedContactId
-    ? mockContacts.find((c) => c.id === selectedContactId)
-    : null;
+  const messagesForSelected =
+    chatsWithLive.isApiChat
+      ? chatsWithLive.messagesForSelected
+      : selectedContact
+        ? [...getMessagesForContact(selectedContact.id, mockMessages)]
+        : [];
 
   const {
     messageText,
@@ -110,7 +109,7 @@ export function WhatsAppMain() {
     isRecordingVoice,
     isTyping,
     handleMessageChange,
-    handleKeyPress,
+    handleKeyDown,
     handleSendMessage,
     handleEmojiSelect,
     handleToggleEmojiPicker,
@@ -125,10 +124,25 @@ export function WhatsAppMain() {
     handleCancelReply,
     handleCancelEdit,
     handleRecordingChange,
+    clearInput,
   } = useMessages({
     selectedContactId,
     selectedContact: selectedContact ?? null,
   });
+
+  const handleSendMessageWrapper = (
+    content: string,
+    type: "text" | "image" | "video" | "audio" | "file" = "text"
+  ) => {
+    if (chatsWithLive.isApiChat) {
+      chatsWithLive.handleSendMessage(content, type);
+      clearInput();
+    } else {
+      handleSendMessage(content, type);
+    }
+  };
+
+  const isConnected = chatsWithLive.isConnected;
 
   // Use the call hook
   const {
@@ -157,7 +171,7 @@ export function WhatsAppMain() {
   } = useCall();
 
   // Filter contacts based on search
-  const filteredContacts = filterContacts(mockContacts, searchQuery);
+  const filteredContacts = filterContacts(contactsForList, searchQuery);
 
   // Handle contact selection
   const handleContactSelect = (contact: Contact) => {
@@ -326,7 +340,8 @@ export function WhatsAppMain() {
         return selectedContact ? (
           <ChatArea
             selectedContact={selectedContact}
-            messages={getMessagesForContact(selectedContact.id, mockMessages)}
+            messages={messagesForSelected}
+            currentUserId={currentUser?.id}
             messageText={messageText}
             showEmojiPicker={showEmojiPicker}
             replyingTo={replyingTo}
@@ -335,8 +350,8 @@ export function WhatsAppMain() {
             isTyping={isTyping}
             isConnected={isConnected}
             onMessageChange={handleMessageChange}
-            onKeyPress={handleKeyPress}
-            onSendMessage={handleSendMessage}
+            onKeyDown={handleKeyDown}
+            onSendMessage={handleSendMessageWrapper}
             onEmojiSelect={handleEmojiSelect}
             onToggleEmojiPicker={handleToggleEmojiPicker}
             onFileSelect={handleFileSelect}

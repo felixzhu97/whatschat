@@ -15,7 +15,18 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.getChats();
       if (response.success && response.data) {
-        return response.data.map((chat: any) => Contact.create(chat));
+        return (response.data as any[]).map((chat: any) =>
+          Contact.create({
+            id: chat.id,
+            name: chat.name || "Chat",
+            avatar: chat.avatar || "",
+            lastMessage: chat.lastMessage?.content ?? "",
+            timestamp: chat.updatedAt ?? "",
+            unreadCount: 0,
+            isOnline: chat.participants?.some((p: any) => p.isOnline) ?? false,
+            isGroup: chat.type === "GROUP",
+          })
+        );
       }
       return [];
     } catch (error) {
@@ -61,7 +72,20 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.getChatMessages(chatId, params);
       if (response.success && response.data) {
-        return response.data.map((msg: any) => Message.create(msg));
+        return (response.data as any[]).map((msg: any) =>
+          Message.create({
+            id: msg.id,
+            senderId: msg.senderId,
+            senderName: msg.sender?.username ?? "",
+            content: msg.content,
+            timestamp:
+              typeof msg.timestamp === "string"
+                ? msg.timestamp
+                : msg.createdAt ?? new Date().toISOString(),
+            type: (msg.type?.toLowerCase() ?? "text") as Message["type"],
+            status: "delivered",
+          })
+        );
       }
       return [];
     } catch (error) {

@@ -63,8 +63,8 @@ pnpm install
 # 配置环境变量
 cp env.example .env
 
-# 启动数据库服务（使用Docker）
-./docker-start.sh dev
+# 启动数据库服务（使用 Docker，由项目根 scripts 统一启动）
+# 在项目根目录执行: pnpm start
 
 # 生成 Prisma 客户端
 pnpm db:generate

@@ -1,0 +1,272 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF Technology Architecture - WhatsChat Messaging System
+
+package "Shared Packages (Monorepo)" {
+  component [@whatschat/domain] as DomainPkg #LightYellow
+  component [@whatschat/aws-integration] as AwsPkg #LightYellow
+  note right of DomainPkg
+    Shared TypeScript types:
+    User, Message, Chat,
+    Contact, Group, Call
+  end note
+  note right of AwsPkg
+    AWS SDK wrappers:
+    S3, SES, SNS, SQS,
+    Lambda, Cognito, Chime,
+    CloudWatch, API GW
+  end note
+}
+
+package "Client Technology Stack" {
+  component [Web Browser] as WebBrowser
+  component [Mobile Device] as MobileDevice
+  
+  package "Web Technology" {
+    component [Next.js 15] as NextJS
+    component [React 19] as React
+    component [TypeScript] as TypeScript
+    component [Tailwind CSS] as TailwindCSS
+    component [Zustand] as Zustand
+    component [WebSocket Client] as WsClient
+    component [WebRTC Client] as WebRTCClient
+  }
+  
+  package "Mobile Technology" {
+    component [React Native] as ReactNative
+    component [Expo] as Expo
+    component [TypeScript] as MobileTS
+    component [Zustand] as MobileZustand
+    component [WebSocket Client] as MobileWs
+    component [WebRTC Client] as MobileRTC
+  }
+}
+
+package "Application Server" {
+  component [NestJS 10] as NestJS #LightBlue
+  note right of NestJS
+    Backend framework
+    - Modular architecture
+    - Dependency injection
+    - Middleware support
+    - Decorator pattern
+  end note
+  
+  package "Core Framework" {
+    component [Express] as Express
+    component [TypeScript] as ServerTS
+    component [Node.js 18+] as NodeJS
+  }
+  
+  package "Communication Protocols" {
+    component [REST API] as RestAPI
+    component [WebSocket\n(Socket.IO)] as SocketIO
+    component [WebRTC Signaling] as WebRTCSignal
+  }
+  
+  package "Authentication & Security" {
+    component [JWT] as JWT
+    component [Passport] as Passport
+    component [bcrypt] as Bcrypt
+    component [Helmet] as Helmet
+    component [CORS] as CORS
+  }
+}
+
+package "Data Persistence" {
+  database [PostgreSQL 13+] as PostgreSQL #LightBlue
+  note right of PostgreSQL
+    Relational database
+    - ACID transactions
+    - Foreign‑key constraints
+    - Full‑text search
+    - JSON support
+  end note
+  
+  component [Prisma ORM] as Prisma
+  note right of Prisma
+    Database ORM
+    - Type‑safe
+    - Migration management
+    - Query optimization
+    - Schema definition
+  end note
+  
+  database [Redis 6+] as Redis #LightCoral
+  note right of Redis
+    Cache & message broker
+    - In‑memory storage
+    - Pub/Sub
+    - Session store
+    - Hot data cache
+  end note
+}
+
+package "File Storage" {
+  component [MinIO/S3] as S3 #LightGreen
+  note right of S3
+    Object storage
+    - File upload/download
+    - CDN acceleration
+    - Versioning
+  end note
+  
+  component [Sharp] as Sharp
+  note right of Sharp
+    Image processing
+    - Thumbnail generation
+    - Format conversion
+    - Resizing
+  end note
+}
+
+package "Search Service" {
+  database [Elasticsearch] as Elasticsearch #LightYellow
+  note right of Elasticsearch
+    Full‑text search engine
+    - Message search
+    - User search
+    - Fuzzy matching
+  end note
+}
+
+package "Message Queue" {
+  component [Redis Pub/Sub] as RedisPubSub
+  component [Bull Queue] as BullQueue
+}
+
+package "Monitoring & Logging" {
+  component [Winston] as Winston
+  component [Health Check] as HealthCheck
+  component [Log Rotation] as LogRotate
+}
+
+package "Deployment Infrastructure" {
+  component [Docker] as Docker #LightCyan
+  note right of Docker
+    Containerized deployment
+    - Application containers
+    - Database containers
+    - Redis containers
+    - Orchestration
+  end note
+  
+  component [Docker Compose] as DockerCompose
+  component [Nginx] as Nginx
+  component [Load Balancer] as LoadBalancer
+}
+
+\' Shared packages used by clients and server
+NextJS --> DomainPkg : types
+ReactNative --> DomainPkg : types
+NestJS --> DomainPkg : types
+NestJS --> AwsPkg : AWS services
+
+\' Client to server connections
+WebBrowser --> NextJS : HTTP/HTTPS
+WebBrowser --> SocketIO : WebSocket
+WebBrowser --> WebRTCSignal : WebRTC signaling
+MobileDevice --> ReactNative : native app
+ReactNative --> RestAPI : HTTP/HTTPS
+ReactNative --> MobileWs : WebSocket
+ReactNative --> MobileRTC : WebRTC
+
+NextJS --> React : 框架
+NextJS --> TypeScript : language
+NextJS --> TailwindCSS : styling
+NextJS --> Zustand : state management
+NextJS --> WsClient : realtime transport
+NextJS --> WebRTCClient : audio/video
+
+ReactNative --> Expo : framework
+ReactNative --> MobileTS : language
+ReactNative --> MobileZustand : state management
+ReactNative --> MobileWs : realtime transport
+ReactNative --> MobileRTC : audio/video
+
+\' Server‑side connections
+NestJS --> Express : built on
+NestJS --> ServerTS : language
+NestJS --> NodeJS : runtime
+NestJS --> RestAPI : exposes
+NestJS --> SocketIO : exposes
+NestJS --> WebRTCSignal : exposes
+
+NestJS --> JWT : uses
+NestJS --> Passport : uses
+NestJS --> Bcrypt : uses
+NestJS --> Helmet : uses
+NestJS --> CORS : uses
+
+\' Data‑layer connections
+NestJS --> Prisma : uses
+Prisma --> PostgreSQL : connects to
+NestJS --> Redis : connects to
+NestJS --> RedisPubSub : uses
+NestJS --> BullQueue : uses
+
+\' Service connections
+NestJS --> S3 : file storage
+NestJS --> Sharp : image processing
+NestJS --> Elasticsearch : search
+NestJS --> Winston : logging
+NestJS --> HealthCheck : monitoring
+
+\' Deployment connections
+Docker --> DockerCompose : orchestrated by
+Nginx --> LoadBalancer : participates in
+Nginx --> NestJS : reverse proxy
+Docker --> PostgreSQL : containerized
+Docker --> Redis : containerized
+
+rectangle "Tech Stack Summary" {
+  note as N1
+    **Frontend stack**
+    - Web: Next.js + React + TypeScript
+    - Mobile: React Native + Expo + TypeScript
+    - State management: Zustand (Web & Mobile)
+    - UI: Tailwind CSS (Web) / React Native UI (Mobile)
+    - Realtime: WebSocket + WebRTC
+  end note
+  
+  note as N2
+    **Backend stack**
+    - Framework: NestJS (Node.js)
+    - Language: TypeScript
+    - Database: PostgreSQL + Prisma ORM
+    - Cache: Redis
+    - Auth: JWT + Passport
+    - Realtime: Socket.IO + WebRTC
+  end note
+  
+  note as N3
+    **Infrastructure**
+    - Containerization: Docker + Docker Compose
+    - Reverse proxy: Nginx
+    - Load balancing: Nginx/cloud provider
+    - File storage: MinIO/S3
+    - Search: Elasticsearch
+    - Logging: Winston
+  end note
+}
+
+note bottom
+  **Technology architecture description**
+  
+  WhatsChat adopts a modern technology stack:
+  
+  1. **Clients** – Web app uses Next.js + React; mobile app uses React Native + Expo for cross‑platform support
+  2. **Server** – NestJS framework provides modular, extensible backend services
+  3. **Data layer** – PostgreSQL as the primary database; Redis for caching and message brokering
+  4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video
+  5. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
+  6. **Storage** – MinIO/S3 for file/object storage, Elasticsearch for full‑text search
+  7. **Deployment** – Docker‑based containerization across development, test, and production
+  
+  The technology choices emphasize performance, scalability, security, and developer productivity.
+end note
+
+@enduml

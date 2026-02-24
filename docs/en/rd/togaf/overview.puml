@@ -1,0 +1,72 @@
+@startuml togaf-overview
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title TOGAF Architecture Overview - WhatsChat Messaging System
+
+package "Business Architecture" as BA {
+  component [Business Actors] as Actors
+  component [Business Capabilities] as Capabilities
+  component [Business Processes] as Processes
+  component [Business Value] as Value
+  note right of BA
+    **business-architecture.puml**
+    User management, instant messaging,
+    voice & video calls, file sharing,
+    groups, contacts, notifications
+  end note
+}
+
+package "Application Architecture" as AA {
+  component [Client Applications] as Clients
+  component [API Gateways] as Gateways
+  component [Application Services] as Services
+  component [Data Access] as DataAccess
+  note right of AA
+    **application-architecture.puml**
+    Web/Mobile, REST/WebSocket/WebRTC,
+    NestJS services, PostgreSQL/Redis.
+    Shared packages: @whatschat/domain,
+    @whatschat/aws-integration.
+  end note
+}
+
+package "Data Architecture" as DA {
+  component [Data Entities] as Entities
+  component [Association Entities] as Associations
+  component [Data Storage] as Storage
+  note right of DA
+    **data-architecture.puml**
+    User/Chat/Message/Group/Call/Status,
+    Contact/Notification/FileUpload,
+    PostgreSQL, Redis, S3
+  end note
+}
+
+package "Technology Architecture" as TA {
+  component [Client Technology Stack] as ClientTech
+  component [Server Technology Stack] as ServerTech
+  component [Data Persistence] as Persistence
+  component [Deployment Infrastructure] as Deploy
+  note right of TA
+    **technology-architecture.puml**
+    Next.js, React Native, NestJS,
+    Prisma, JWT, Docker
+  end note
+}
+
+BA -down-> AA : drives
+AA -down-> DA : depends on
+DA -down-> TA : supported by
+
+note bottom
+  **TOGAF Four Architecture Domains**
+  Business architecture defines WhatsChat business capabilities and processes;
+  application architecture implements Web/Mobile clients and backend services;
+  data architecture describes entities, storage, and data flows;
+  technology architecture defines the technology stack and deployment.
+  See each domain's .puml diagram for details.
+end note
+
+@enduml

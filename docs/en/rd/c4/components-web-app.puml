@@ -1,0 +1,40 @@
+@startuml
+!global RELATIVE_INCLUDE = 1
+!include ../../../c4-lib/C4-PlantUML/C4_Component.puml
+
+title C4 Level 3 - Components: Web Application (Next.js)
+
+Container_Boundary(web_app, "Web Application") {
+  Component(pages, "Pages", "Next.js App Router", "Login, Register, Main chat, Settings")
+  Component(chat_ui, "Chat UI", "React", "Message list, input, bubbles, sidebar")
+  Component(call_ui, "Call UI", "React, Chime/WebRTC", "Voice/video call controls")
+  Component(auth_hooks, "Auth Hooks", "Zustand", "Login state, token refresh")
+  Component(message_hooks, "Message Hooks", "Zustand", "Messages, send, live updates")
+  Component(ab_feature, "A/B & Feature Flags", "GrowthBook React", "useFeatureIsOn, useAbTest, experiments")
+  Component(api_client, "API Client", "Fetch/axios", "REST calls to API Server")
+  Component(ws_client, "WebSocket Client", "Socket.IO", "Realtime connection")
+  Component(domain_types, "Domain Types", "@whatschat/domain", "User, Message, Chat, Contact, Call")
+}
+
+Container_Ext(api_server, "API Server", "NestJS", "Backend API")
+Container_Ext(growthbook, "GrowthBook", "A/B & feature flags", "Optional")
+Person(user, "Web User", "Uses the app")
+
+Rel(user, pages, "Uses")
+Rel(pages, chat_ui, "Renders")
+Rel(pages, call_ui, "Renders")
+Rel(chat_ui, message_hooks, "Uses")
+Rel(chat_ui, auth_hooks, "Uses")
+Rel(chat_ui, ab_feature, "Uses")
+Rel(call_ui, auth_hooks, "Uses")
+Rel(message_hooks, api_client, "Calls")
+Rel(message_hooks, ws_client, "Subscribes")
+Rel(ab_feature, growthbook, "Flags, experiments", "HTTPS, optional")
+Rel(auth_hooks, api_client, "Calls")
+Rel(api_client, api_server, "HTTPS")
+Rel(ws_client, api_server, "WebSocket")
+Rel(message_hooks, domain_types, "Uses types")
+Rel(chat_ui, domain_types, "Uses types")
+
+SHOW_LEGEND()
+@enduml

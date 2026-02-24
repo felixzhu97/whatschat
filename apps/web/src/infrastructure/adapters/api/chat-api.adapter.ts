@@ -28,7 +28,7 @@ export class ChatApiAdapter {
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.limit) queryParams.append("limit", params.limit.toString());
 
-    const endpoint = `/chats/${chatId}/messages${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const endpoint = `/messages/${chatId}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
     return this.apiClient.get(endpoint);
   }
 
@@ -40,7 +40,7 @@ export class ChatApiAdapter {
       replyToMessageId?: string;
     }
   ): Promise<ApiResponse> {
-    return this.apiClient.post(`/chats/${chatId}/messages`, messageData);
+    return this.apiClient.post("/messages", { ...messageData, chatId });
   }
 
   async markMessageAsRead(

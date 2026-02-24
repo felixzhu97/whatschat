@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Chat, ChatType, ChatEntity } from '@/src/domain/entities';
+import { Chat, ChatType } from '@/src/domain/entities';
 import { ChatListItem } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { chatService } from '@/src/application/services';
 
 interface ChatListScreenProps {
   navigation: any;
@@ -16,59 +26,30 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
   const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadChats = useCallback(async () => {
+    try {
+      const list = await chatService.getChats();
+      setChats(list);
+      setFilteredChats(list);
+    } catch {
+      setChats([]);
+      setFilteredChats([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadChats();
-  }, []);
+  }, [loadChats]);
 
   useEffect(() => {
     filterChats();
   }, [searchQuery, selectedCategory, chats]);
-
-  const loadChats = () => {
-    const now = new Date();
-    const mockChats: Chat[] = [
-      new ChatEntity({
-        id: '1',
-        name: 'Jenny',
-        type: ChatType.Individual,
-        participantIds: ['user1', 'user2'],
-        lastMessageContent: 'You reacted 👍 to "That\'s good advice, Marty."',
-        lastMessageTime: new Date(now.getTime() - 114 * 60 * 1000),
-        lastMessageSender: 'Jenny',
-        unreadCount: 0,
-        isPinned: true,
-        createdAt: now,
-        updatedAt: now,
-      }),
-      new ChatEntity({
-        id: '2',
-        name: 'Mom',
-        type: ChatType.Individual,
-        participantIds: ['user1', 'user3'],
-        lastMessageContent: 'Mom is typing...',
-        lastMessageTime: new Date(now.getTime() - 15 * 60 * 1000),
-        lastMessageSender: 'Mom',
-        unreadCount: 1,
-        createdAt: now,
-        updatedAt: now,
-      }),
-      new ChatEntity({
-        id: '3',
-        name: 'Daddy',
-        type: ChatType.Individual,
-        participantIds: ['user1', 'user4'],
-        lastMessageContent: 'I mean he wrecked it! 😂',
-        lastMessageTime: new Date(now.getTime() - 18 * 60 * 1000),
-        lastMessageSender: 'Daddy',
-        unreadCount: 0,
-        createdAt: now,
-        updatedAt: now,
-      }),
-    ];
-    setChats(mockChats);
-    setFilteredChats(mockChats);
-  };
 
   const filterChats = () => {
     let filtered = [...chats];
@@ -144,22 +125,41 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
           />
         </View>
       </View>
-      <FlatList
-        data={filteredChats}
-        renderItem={({ item }) => (
-          <ChatListItem
-            chat={item}
-            onPress={() => navigation.navigate('ChatDetail', { chat: item })}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
-            <Text style={[styles.emptyText, { color: colors.secondaryText }]}>暂无聊天</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={[styles.emptyContainer, { justifyContent: 'center' }]}>
+          <ActivityIndicator size="large" color={colors.primaryGreen} />
+          <Text style={[styles.emptyText, { color: colors.secondaryText, marginTop: 16 }]}>
+            加载中...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredChats}
+          renderItem={({ item }) => (
+            <ChatListItem
+              chat={item}
+              onPress={() => navigation.navigate('ChatDetail', { chat: item })}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadChats();
+              }}
+              tintColor={colors.primaryGreen}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
+              <Text style={[styles.emptyText, { color: colors.secondaryText }]}>暂无聊天</Text>
+            </View>
+          }
+        />
+      )}
       <View style={[styles.footer, { backgroundColor: colors.background }]}>
         <Ionicons name="lock-closed" size={14} color={colors.secondaryText} />
         <Text style={[styles.footerText, { color: colors.secondaryText }]}>

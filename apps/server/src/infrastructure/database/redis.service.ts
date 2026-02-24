@@ -165,4 +165,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
+
+  async rpush(key: string, ...values: string[]): Promise<number> {
+    try {
+      return await this.client.rpush(key, ...values);
+    } catch (error) {
+      logger.error(`Redis RPUSH错误: ${error}`);
+      throw error;
+    }
+  }
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    try {
+      return await this.client.lrange(key, start, stop);
+    } catch (error) {
+      logger.error(`Redis LRANGE错误: ${error}`);
+      throw error;
+    }
+  }
 }
