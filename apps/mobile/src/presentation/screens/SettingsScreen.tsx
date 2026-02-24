@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/src/presentation/shared/theme';
-import { useAuthStore } from '@/src/presentation/stores';
+import { useAuthStore, useAppDispatch, logout as logoutThunk } from '@/src/presentation/stores';
 
 export const SettingsScreen: React.FC = () => {
   const { colors } = useTheme();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
 
   const handleLogout = () => {
     Alert.alert('退出登录', '确定要退出吗？', [
@@ -18,7 +18,7 @@ export const SettingsScreen: React.FC = () => {
         text: '退出',
         style: 'destructive',
         onPress: async () => {
-          await logout();
+          await dispatch(logoutThunk());
           router.replace('/login');
         },
       },

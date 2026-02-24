@@ -15,8 +15,8 @@ A modern instant messaging application built with React and TypeScript, supporti
 
 ## 🛠️ Tech Stack
 
-**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI, Zustand, **GrowthBook** (A/B testing & feature flags)  
-**Frontend Mobile**: React Native, Expo, TypeScript, Zustand  
+**Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, **Emotion** (styled/css), Radix UI, Zustand, **GrowthBook** (A/B testing & feature flags)  
+**Frontend Mobile**: React Native, Expo, TypeScript, **Emotion** (@emotion/native), Zustand  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
 **Communication**: WebSocket (Socket.IO or API Gateway) for realtime and call signaling; WebRTC (native) for media; optional Chime SDK  

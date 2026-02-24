@@ -1,5 +1,11 @@
 # 技术栈清单
 
+## Styling (Emotion)
+
+- **@emotion/native** + **@emotion/react**：组件级样式，支持 `styled()` 与 `css` prop。
+- **Babel**：`babel.config.js` 已配置 `@emotion/babel-plugin`，启用 `cssPropOptimization` 与 source map。
+- 工具入口：`src/presentation/shared/emotion.ts` 统一导出 `styled`、`css`，新组件可优先使用 Emotion 替代 `StyleSheet`，便于动态样式与主题一致。
+
 | 名称                                      | 版本     | 分类        | 官网                                                                 |
 | ----------------------------------------- | -------- | ----------- | -------------------------------------------------------------------- |
 | @emotion/native                           | ^11.11.0 | UI 组件     | https://emotion.sh/docs/@emotion/native                              |

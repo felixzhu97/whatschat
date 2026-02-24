@@ -14,13 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { useTheme } from '@/src/presentation/shared/theme';
-import { useAuthStore } from '@/src/presentation/stores';
+import { useAppDispatch, setAuth } from '@/src/presentation/stores';
 import { authService } from '@/src/application/services';
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +48,7 @@ export default function RegisterScreen() {
         email: trimmedEmail,
         password,
       });
-      await setAuth(data.token, data.refreshToken, data.user);
+      await dispatch(setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user })).unwrap();
       router.replace('/(tabs)/chats');
     } catch (err: unknown) {
       const message =

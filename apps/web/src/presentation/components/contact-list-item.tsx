@@ -27,6 +27,35 @@ import {
 } from "@/src/presentation/components/ui/dropdown-menu";
 import type { Contact } from "../../../types";
 import { useLongPress } from "../hooks/use-long-press";
+import { styled } from "@/src/shared/utils/emotion";
+
+const ContactRow = styled.div<{
+  $isSelected?: boolean;
+  $showActions?: boolean;
+  $isLongPressing?: boolean;
+}>`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgb(243 244 246);
+  position: relative;
+  transition: all 0.2s;
+  user-select: none;
+  background: ${(p) =>
+    p.$showActions
+      ? "rgb(239 246 255)"
+      : p.$isSelected
+        ? "rgb(243 244 246)"
+        : "transparent"};
+  box-shadow: ${(p) => (p.$showActions ? "0 4px 6px -1px rgb(0 0 0 / 0.1)" : "none")};
+  transform: ${(p) => (p.$isLongPressing ? "scale(0.95)" : "none")};
+  &:hover {
+    background: ${(p) =>
+      p.$showActions ? "rgb(239 246 255)" : p.$isSelected ? "rgb(243 244 246)" : "rgb(249 250 251)"};
+  }
+`;
 
 interface ContactListItemProps {
   contact: Contact;
@@ -108,11 +137,11 @@ export function ContactListItem({
   };
 
   return (
-    <div
+    <ContactRow
       ref={itemRef}
-      className={`flex items-center gap-3 p-3 cursor-pointer border-b border-gray-100 relative transition-all duration-200 select-none ${
-        isSelected ? "bg-gray-100" : "hover:bg-gray-50"
-      } ${showActions ? "bg-blue-50 shadow-md" : ""} ${longPressEvents.isLongPressing ? "scale-95" : ""}`}
+      $isSelected={isSelected}
+      $showActions={showActions}
+      $isLongPressing={longPressEvents.isLongPressing}
       onMouseDown={longPressEvents.onMouseDown}
       onMouseUp={longPressEvents.onMouseUp}
       onMouseLeave={longPressEvents.onMouseLeave}
@@ -260,6 +289,6 @@ export function ContactListItem({
           </Button>
         </div>
       )}
-    </div>
+    </ContactRow>
   );
 }

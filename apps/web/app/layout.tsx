@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { EmotionRegistry } from "./emotion-registry";
 import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <GrowthBookProviderWrapper>{children}</GrowthBookProviderWrapper>
+        <EmotionRegistry>
+          <GrowthBookProviderWrapper>{children}</GrowthBookProviderWrapper>
+        </EmotionRegistry>
       </body>
     </html>
   );

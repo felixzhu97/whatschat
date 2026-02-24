@@ -4,11 +4,13 @@ import { ThemeProvider } from '@/src/presentation/shared/theme';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { CallOverlay } from '@/src/presentation/components';
+import { StoreProvider } from '@/src/presentation/store/StoreProvider';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
+    <StoreProvider>
     <ThemeProvider>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <View style={{ flex: 1 }}>
@@ -34,5 +36,6 @@ export default function RootLayout() {
         </View>
       </View>
     </ThemeProvider>
+    </StoreProvider>
   );
 }

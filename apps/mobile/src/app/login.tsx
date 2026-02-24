@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { useTheme } from '@/src/presentation/shared/theme';
-import { useAuthStore } from '@/src/presentation/stores';
+import { useAuthStore, useAppDispatch, setAuth } from '@/src/presentation/stores';
 import { authService } from '@/src/application/services';
 
 const DEFAULT_DEV_USER = { email: 'ladygaga@whatschat.com', password: '123456' };
@@ -21,7 +21,7 @@ const DEFAULT_DEV_USER = { email: 'ladygaga@whatschat.com', password: '123456' }
 export default function LoginScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState(DEFAULT_DEV_USER.email);
   const [password, setPassword] = useState(DEFAULT_DEV_USER.password);
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const data = await authService.login({ email: trimmedEmail, password });
-      await setAuth(data.token, data.refreshToken, data.user);
+      await dispatch(setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user })).unwrap();
       router.replace('/(tabs)/chats');
     } catch (err: unknown) {
       const message =

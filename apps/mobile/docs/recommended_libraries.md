@@ -42,39 +42,55 @@
 
 ## 状态管理
 
-### Zustand (推荐)
+### Redux Toolkit (推荐)
 
-- **用途**: 极简的状态管理解决方案，Redux的现代替代品
+- **用途**: 官方推荐的 Redux 状态管理方案，内置 Immer、thunk、DevTools
 - **安装**:
   ```bash
-  yarn add zustand
+  yarn add @reduxjs/toolkit react-redux
   ```
 - **优势**:
-  - 只需1/10的Redux模板代码
-  - 不需要Context Provider包裹
-  - 简单直观的API，学习成本低
-- **代码节省**:
-  - 基础Store: 比Redux节省约50行代码(action/types/reducer)
-  - 中型应用: 平均节省200-300行样板代码
-  - 无需Provider: 节省约10行应用入口代码
+  - 内置 Immer，reducer 可写可变逻辑
+  -  createSlice 自动生成 actions
+  - 支持异步 thunk、持久化与中间件
 - **示例代码**:
 
   ```tsx
-  import create from "zustand";
+  import { configureStore, createSlice } from "@reduxjs/toolkit";
+  import { Provider, useSelector, useDispatch } from "react-redux";
 
-  const useStore = create((set) => ({
-    count: 0,
-    increment: () => set((state) => ({ count: state.count + 1 })),
-  }));
+  const counterSlice = createSlice({
+    name: "counter",
+    initialState: { count: 0 },
+    reducers: {
+      increment: (state) => {
+        state.count += 1;
+      },
+    },
+  });
+
+  const store = configureStore({ reducer: { counter: counterSlice.reducer } });
 
   function Counter() {
-    const { count, increment } = useStore();
-    return <Button onPress={increment}>计数: {count}</Button>;
+    const count = useSelector((s) => s.counter.count);
+    const dispatch = useDispatch();
+    return (
+      <Button onPress={() => dispatch(counterSlice.actions.increment())}>
+        计数: {count}
+      </Button>
+    );
+  }
+
+  export default function App() {
+    return (
+      <Provider store={store}>
+        <Counter />
+      </Provider>
+    );
   }
   ```
 
-- **性能**: 比Redux节省约90%的样板代码
-- **常见问题**: 适合中小型应用，超大型应用可考虑Jotai
+- **常见问题**: 需在根组件包裹 Provider；异步逻辑用 createAsyncThunk
 
 ## 表单处理
 
@@ -181,7 +197,7 @@
 1. **安装所有推荐库**:
 
    ```bash
-   yarn add react-native-paper zustand react-hook-form
+   yarn add react-native-paper @reduxjs/toolkit react-redux react-hook-form
    ```
 
 2. **配置主题(React Native Paper)**:
@@ -195,21 +211,23 @@
    }
    ```
 
-3. **初始化状态存储(Zustand)**:
+3. **初始化状态存储(Redux Toolkit)**:
 
    ```ts
-   // stores/useStore.ts
-   import create from "zustand";
+   // store/slices/userSlice.ts
+   import { createSlice } from "@reduxjs/toolkit";
 
-   interface AppState {
-     user: User | null;
-     setUser: (user: User) => void;
-   }
-
-   export const useStore = create<AppState>((set) => ({
-     user: null,
-     setUser: (user) => set({ user }),
-   }));
+   const userSlice = createSlice({
+     name: "user",
+     initialState: { user: null as User | null },
+     reducers: {
+       setUser: (state, action) => {
+         state.user = action.payload;
+       },
+     },
+   });
+   export const { setUser } = userSlice.actions;
+   export default userSlice.reducer;
    ```
 
 4. **配置表单(React Hook Form)**:
