@@ -24,6 +24,8 @@
     "setup:inline": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
     "start:server": "./scripts/app/start.sh dev",
     "start:mobile": "pnpm --filter react-native-app start",
+    "start:mobile:ios": "pnpm --filter react-native-app ios",
+    "start:mobile:android": "pnpm --filter react-native-app android",
     "start:prod": "./scripts/app/start.sh prod",
     "start:web": "pnpm --filter whatschat-web dev",
     "stop": "./scripts/app/stop.sh dev",

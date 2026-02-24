@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { ConfigService } from './infrastructure/config/config.service';
-import { ChimeModule } from './infrastructure/services/chime/chime.module';
 import { ApiGatewayWebSocketModule } from './infrastructure/services/apigateway/apigateway-websocket.module';
 import { AuthModule } from './presentation/auth/auth.module';
 import { HealthModule } from './presentation/health/health.module';
@@ -32,8 +31,6 @@ import { StatusModule } from './presentation/status/status.module';
     ]),
     // Database module
     DatabaseModule,
-    // AWS service modules
-    ChimeModule,
     ApiGatewayWebSocketModule,
     // Business modules
     AuthModule,

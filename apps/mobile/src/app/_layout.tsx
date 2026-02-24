@@ -1,7 +1,9 @@
+import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { ThemeProvider } from '@/src/presentation/shared/theme';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
+import { CallOverlay } from '@/src/presentation/components';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -9,23 +11,28 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen
-          name="chat-detail"
-          options={{
-            headerShown: true,
-            title: '聊天',
-            presentation: 'card',
+      <View style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
           }}
-        />
-      </Stack>
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen
+            name="chat-detail"
+            options={{
+              headerShown: true,
+              title: '聊天',
+              presentation: 'card',
+            }}
+          />
+        </Stack>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'box-none' }}>
+          <CallOverlay />
+        </View>
+      </View>
     </ThemeProvider>
   );
 }
