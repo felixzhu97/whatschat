@@ -7,6 +7,7 @@ import { Chat } from '@/src/domain/entities';
 import { ChatListItem, GlassView } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { chatService } from '@/src/application/services';
 
 const Page = styled.View`
@@ -77,8 +78,15 @@ const EmptyContainer = styled.View`
   padding-top: 100px;
 `;
 
-const EmptyContainerCentered = styled(EmptyContainer)`
+const LoadingWrap = styled.View`
+  flex: 1;
   justify-content: center;
+  align-items: center;
+  padding-top: ${HEADER_HEIGHT}px;
+`;
+
+const EmptyWrap = styled(EmptyContainer)`
+  padding-top: ${HEADER_HEIGHT + 40}px;
 `;
 
 const EmptyText = styled.Text`
@@ -89,6 +97,7 @@ const EmptyText = styled.Text`
 
 export default function ChatsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [chats, setChats] = React.useState<Chat[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -119,7 +128,7 @@ export default function ChatsScreen() {
   }, [loadChats]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+    <SafeAreaView edges={['top']} style={{ flex: 1 }}>
       <Page>
         <HeaderGlassWrap>
           <GlassView
@@ -132,7 +141,7 @@ export default function ChatsScreen() {
             }}
           >
             <HeaderBar>
-              <HeaderTitle>WhatsChat</HeaderTitle>
+              <HeaderTitle>{t('chats.title')}</HeaderTitle>
               <HeaderIcons>
                 <HeaderButton onPress={() => {}}>
                   <Ionicons name="camera-outline" size={24} color={colors.primaryText} />
@@ -146,7 +155,7 @@ export default function ChatsScreen() {
               <SearchBox>
                 <Ionicons name="sparkles" size={20} color="#8E8E93" />
                 <SearchInput
-                  placeholder="Ask Meta AI or Search"
+                  placeholder={t('chats.searchPlaceholder')}
                   placeholderTextColor="#8E8E93"
                   returnKeyType="search"
                 />
@@ -155,10 +164,10 @@ export default function ChatsScreen() {
           </GlassView>
         </HeaderGlassWrap>
         {loading ? (
-          <EmptyContainerCentered style={{ paddingTop: HEADER_HEIGHT }}>
+          <LoadingWrap>
             <ActivityIndicator size="large" color={colors.primaryGreen} />
-            <EmptyText>加载中...</EmptyText>
-          </EmptyContainerCentered>
+            <EmptyText>{t('common.loading')}</EmptyText>
+          </LoadingWrap>
         ) : (
           <FlatList
             data={chats}
@@ -178,10 +187,10 @@ export default function ChatsScreen() {
               />
             }
             ListEmptyComponent={
-              <EmptyContainer style={{ paddingTop: HEADER_HEIGHT + 40 }}>
+              <EmptyWrap>
                 <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
-                <EmptyText>暂无聊天</EmptyText>
-              </EmptyContainer>
+                <EmptyText>{t('chats.noChats')}</EmptyText>
+              </EmptyWrap>
             }
           />
         )}

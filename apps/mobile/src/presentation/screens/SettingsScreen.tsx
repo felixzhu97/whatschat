@@ -1,26 +1,151 @@
 import React from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ChatAvatar, TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore, useAppDispatch, logout as logoutThunk } from '@/src/presentation/stores';
+import { styled } from '@/src/presentation/shared/emotion';
+import { useTranslation } from '@/src/presentation/shared/i18n';
+import type { ThemeMode } from '@/src/presentation/shared/theme';
 
 const SECTION_RADIUS = 12;
-const ROW_HEIGHT = 52;
+
+const ScreenWrap = styled.View`
+  flex: 1;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+`;
+
+const Scroll = styled.ScrollView`
+  flex: 1;
+`;
+
+const SCROLL_PADDING_TOP = 24 + TAB_PAGE_HEADER_HEIGHT;
+
+const ScrollContent = styled.View`
+  padding-bottom: 100px;
+  padding-horizontal: 16px;
+`;
+
+const ProfileRow = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+  padding-vertical: 16px;
+  padding-horizontal: 16px;
+  border-radius: ${SECTION_RADIUS}px;
+  margin-bottom: 32px;
+`;
+
+const ProfileInfo = styled.View`
+  margin-left: 16px;
+  flex: 1;
+`;
+
+const ProfileName = styled.Text`
+  font-size: 20px;
+  font-weight: 600;
+  color: ${(p) => (p.theme as { colors?: { primaryText?: string } })?.colors?.primaryText};
+`;
+
+const ProfileEmail = styled.Text`
+  font-size: 15px;
+  color: ${(p) => (p.theme as { colors?: { secondaryText?: string } })?.colors?.secondaryText};
+  margin-top: 2px;
+`;
+
+const SectionTitle = styled.Text`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${(p) => (p.theme as { colors?: { secondaryText?: string } })?.colors?.secondaryText};
+  margin-bottom: 8px;
+  padding-horizontal: 4px;
+`;
+
+const SectionTitleWithTop = styled(SectionTitle)`
+  margin-top: 24px;
+`;
+
+const SectionBlock = styled.View`
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+  border-radius: ${SECTION_RADIUS}px;
+  overflow: hidden;
+`;
+
+const Row = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 14px;
+  padding-horizontal: 16px;
+`;
+
+const RowWithBorder = styled(Row)`
+  border-bottom-width: 0.5px;
+  border-bottom-color: ${(p) => (p.theme as { colors?: { separator?: string } })?.colors?.separator};
+`;
+
+const RowLabel = styled.Text`
+  font-size: 17px;
+  flex: 1;
+  color: ${(p) => (p.theme as { colors?: { primaryText?: string } })?.colors?.primaryText};
+`;
+
+const RowValue = styled.Text`
+  font-size: 17px;
+  margin-right: 8px;
+  color: ${(p) => (p.theme as { colors?: { secondaryText?: string } })?.colors?.secondaryText};
+`;
+
+const LogoutButton = styled.TouchableOpacity`
+  margin-top: 32px;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+  border-radius: ${SECTION_RADIUS}px;
+  padding-vertical: 16px;
+  align-items: center;
+`;
+
+const LogoutText = styled.Text`
+  font-size: 17px;
+  font-weight: 600;
+  color: ${(p) => (p.theme as { colors?: { iosRed?: string } })?.colors?.iosRed};
+`;
+
+const THEME_OPTIONS: { mode: ThemeMode; key: 'themeLight' | 'themeDark' | 'themeSystem' }[] = [
+  { mode: 'light', key: 'themeLight' },
+  { mode: 'dark', key: 'themeDark' },
+  { mode: 'system', key: 'themeSystem' },
+];
 
 export const SettingsScreen: React.FC = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { colors } = useTheme();
+  const { t } = useTranslation();
+  const { colors, themeMode, setThemeMode } = useTheme();
   const user = useAuthStore((s) => s.user);
 
+  const themeLabel =
+    themeMode === 'system'
+      ? t('settings.themeSystem')
+      : themeMode === 'dark'
+        ? t('settings.themeDark')
+        : t('settings.themeLight');
+
+  const handleThemePress = () => {
+    Alert.alert(t('settings.theme'), undefined, [
+      ...THEME_OPTIONS.map(({ mode, key }) => ({
+        text: t(`settings.${key}`),
+        onPress: () => setThemeMode(mode),
+      })),
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
+
   const handleLogout = () => {
-    Alert.alert('退出登录', '确定要退出吗？', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert(t('settings.logoutConfirmTitle'), t('settings.logoutConfirmMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '退出',
+        text: t('settings.logout'),
         style: 'destructive',
         onPress: async () => {
           await dispatch(logoutThunk());
@@ -32,158 +157,55 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-      <View style={{ flex: 1, backgroundColor: colors.secondaryBackground }}>
-        <TabPageHeader title="设置" />
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 24 + TAB_PAGE_HEADER_HEIGHT }}
-        showsVerticalScrollIndicator={false}
-      >
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: colors.secondaryBackground,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            borderRadius: SECTION_RADIUS,
-            marginBottom: 32,
-          }}
+      <ScreenWrap>
+        <TabPageHeader title={t('settings.title')} />
+        <Scroll
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: SCROLL_PADDING_TOP }}
         >
-          <ChatAvatar name={user?.username ?? 'User'} size={64} />
-          <View style={{ marginLeft: 16, flex: 1 }}>
-            <Text
-              style={{ fontSize: 20, fontWeight: '600', color: colors.primaryText }}
-              numberOfLines={1}
-            >
-              {user?.username ?? '未设置'}
-            </Text>
-            <Text
-              style={{ fontSize: 15, color: colors.secondaryText, marginTop: 2 }}
-              numberOfLines={1}
-            >
-              {user?.email ?? ''}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={22} color={colors.secondaryText} />
-        </TouchableOpacity>
+          <ScrollContent>
+            <ProfileRow activeOpacity={0.7}>
+              <ChatAvatar name={user?.username ?? 'User'} size={64} />
+              <ProfileInfo>
+                <ProfileName numberOfLines={1}>{user?.username ?? t('common.notSet')}</ProfileName>
+                <ProfileEmail numberOfLines={1}>{user?.email ?? ''}</ProfileEmail>
+              </ProfileInfo>
+              <Ionicons name="chevron-forward" size={22} color={colors.secondaryText} />
+            </ProfileRow>
 
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: colors.secondaryText,
-            marginBottom: 8,
-            paddingHorizontal: 4,
-          }}
-        >
-          账号
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.secondaryBackground,
-            borderRadius: SECTION_RADIUS,
-            overflow: 'hidden',
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-              borderBottomWidth: 0.5,
-              borderBottomColor: colors.separator,
-            }}
-          >
-            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>用户名</Text>
-            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }} numberOfLines={1}>
-              {user?.username ?? '—'}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>邮箱</Text>
-            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }} numberOfLines={1}>
-              {user?.email ?? '—'}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-          </TouchableOpacity>
-        </View>
+            <SectionTitle>{t('settings.account')}</SectionTitle>
+            <SectionBlock>
+              <RowWithBorder activeOpacity={0.7}>
+                <RowLabel>{t('settings.username')}</RowLabel>
+                <RowValue numberOfLines={1}>{user?.username ?? t('common.none')}</RowValue>
+                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+              </RowWithBorder>
+              <Row activeOpacity={0.7}>
+                <RowLabel>{t('settings.email')}</RowLabel>
+                <RowValue numberOfLines={1}>{user?.email ?? t('common.none')}</RowValue>
+                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+              </Row>
+            </SectionBlock>
 
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: colors.secondaryText,
-            marginTop: 24,
-            marginBottom: 8,
-            paddingHorizontal: 4,
-          }}
-        >
-          聊天
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.secondaryBackground,
-            borderRadius: SECTION_RADIUS,
-            overflow: 'hidden',
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-              borderBottomWidth: 0.5,
-              borderBottomColor: colors.separator,
-            }}
-          >
-            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>主题</Text>
-            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }}>浅色</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>聊天壁纸</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-          </TouchableOpacity>
-        </View>
+            <SectionTitleWithTop>{t('settings.chat')}</SectionTitleWithTop>
+            <SectionBlock>
+              <RowWithBorder activeOpacity={0.7} onPress={handleThemePress}>
+                <RowLabel>{t('settings.theme')}</RowLabel>
+                <RowValue>{themeLabel}</RowValue>
+                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+              </RowWithBorder>
+              <Row activeOpacity={0.7}>
+                <RowLabel>{t('settings.chatWallpaper')}</RowLabel>
+                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+              </Row>
+            </SectionBlock>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleLogout}
-          style={{
-            marginTop: 32,
-            backgroundColor: colors.secondaryBackground,
-            borderRadius: SECTION_RADIUS,
-            paddingVertical: 16,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.iosRed }}>退出登录</Text>
-        </TouchableOpacity>
-      </ScrollView>
-      </View>
+            <LogoutButton activeOpacity={0.7} onPress={handleLogout}>
+              <LogoutText>{t('settings.logout')}</LogoutText>
+            </LogoutButton>
+          </ScrollContent>
+        </Scroll>
+      </ScreenWrap>
     </SafeAreaView>
   );
 };

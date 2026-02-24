@@ -1,15 +1,20 @@
 import React from 'react';
-import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 
 const Page = styled.View`
   flex: 1;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
-  padding-bottom: 88;
+  padding-bottom: 88px;
+`;
+
+const ContentWrap = styled.View`
+  flex: 1;
+  padding-top: ${TAB_PAGE_HEADER_HEIGHT}px;
 `;
 
 const EmptyState = styled.View`
@@ -37,21 +42,22 @@ const EmptySubtitle = styled.Text`
 `;
 
 export const CommunitiesScreen: React.FC = () => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <TabPageHeader title="社区" />
-        <View style={{ flex: 1, paddingTop: TAB_PAGE_HEADER_HEIGHT }}>
+        <TabPageHeader title={t('communities.title')} />
+        <ContentWrap>
         <EmptyState>
           <EmptyIcon>
             <Ionicons name="people-outline" size={64} color={colors.secondaryText} />
           </EmptyIcon>
-          <EmptyTitle>暂无社区</EmptyTitle>
-          <EmptySubtitle>创建或加入社区，与多人一起交流</EmptySubtitle>
+          <EmptyTitle>{t('communities.noCommunities')}</EmptyTitle>
+          <EmptySubtitle>{t('communities.noCommunitiesHint')}</EmptySubtitle>
         </EmptyState>
-        </View>
+        </ContentWrap>
       </Page>
     </SafeAreaView>
   );

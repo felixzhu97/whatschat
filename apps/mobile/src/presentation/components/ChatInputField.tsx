@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 
 interface ChatInputFieldProps {
   value: string;
@@ -38,14 +39,31 @@ const AttachmentItem = styled.TouchableOpacity`
   min-width: 72px;
 `;
 
-const AttachmentIconWrap = styled.View`
+const AttachmentIconWrap = styled.View<{ bg?: string }>`
   width: 56px;
   height: 56px;
   border-radius: 28px;
   justify-content: center;
   align-items: center;
   margin-bottom: 8px;
+  background-color: ${(p) => p.bg ?? 'transparent'};
 `;
+
+const ModalContainer = styled.View`
+  flex: 1;
+  justify-content: flex-end;
+`;
+
+const ModalBackdrop = styled(Pressable)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+`;
+
+const ModalSheetWrap = styled.View``;
 
 const AttachmentLabel = styled.Text`
   font-size: 13px;
@@ -96,10 +114,10 @@ const VoiceButton = styled.TouchableOpacity`
 `;
 
 const ATTACHMENT_OPTIONS = [
-  { key: 'camera', icon: 'camera' as const, label: '相机', colorKey: 'iosBlue' },
-  { key: 'gallery', icon: 'images' as const, label: '相册', colorKey: 'iosGreen' },
-  { key: 'document', icon: 'document' as const, label: '文件', colorKey: 'iosPurple' },
-  { key: 'location', icon: 'location' as const, label: '位置', colorKey: 'iosRed' },
+  { key: 'camera', icon: 'camera' as const, labelKey: 'chatDetail.camera', colorKey: 'iosBlue' },
+  { key: 'gallery', icon: 'images' as const, labelKey: 'chatDetail.gallery', colorKey: 'iosGreen' },
+  { key: 'document', icon: 'document' as const, labelKey: 'chatDetail.document', colorKey: 'iosPurple' },
+  { key: 'location', icon: 'location' as const, labelKey: 'chatDetail.location', colorKey: 'iosRed' },
 ];
 
 export const ChatInputField: React.FC<ChatInputFieldProps> = ({
@@ -108,6 +126,7 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
   onSend,
   onCameraPress,
 }) => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
 
@@ -129,30 +148,23 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
         animationType="slide"
         onRequestClose={closeAttachmentMenu}
       >
-        <View style={styles.modalContainer}>
-          <Pressable
-            style={[StyleSheet.absoluteFill, styles.backdrop]}
-            onPress={closeAttachmentMenu}
-          />
-          <View style={styles.sheetContainer}>
+        <ModalContainer>
+          <ModalBackdrop onPress={closeAttachmentMenu} />
+          <ModalSheetWrap>
             <AttachmentSheet>
               <AttachmentGrid>
                 {ATTACHMENT_OPTIONS.map((opt) => (
                   <AttachmentItem key={opt.key} onPress={() => {}}>
-                    <AttachmentIconWrap
-                      style={{
-                        backgroundColor: (colors as Record<string, string>)[opt.colorKey],
-                      }}
-                    >
+                    <AttachmentIconWrap bg={(colors as unknown as Record<string, string>)[opt.colorKey]}>
                       <Ionicons name={opt.icon} size={26} color="#FFFFFF" />
                     </AttachmentIconWrap>
-                    <AttachmentLabel>{opt.label}</AttachmentLabel>
+                    <AttachmentLabel>{t(opt.labelKey)}</AttachmentLabel>
                   </AttachmentItem>
                 ))}
               </AttachmentGrid>
             </AttachmentSheet>
-          </View>
-        </View>
+          </ModalSheetWrap>
+        </ModalContainer>
       </Modal>
       <Bar>
         <Pill>
@@ -162,7 +174,7 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
           <Input
             value={value}
             onChangeText={onChangeText}
-            placeholder="Message"
+            placeholder={t('chatDetail.messagePlaceholder')}
             placeholderTextColor="#8E8E93"
             multiline
             maxLength={1000}
@@ -189,14 +201,3 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheetContainer: {},
-});

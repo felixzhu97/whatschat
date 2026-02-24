@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   Text,
   ActivityIndicator,
 } from 'react-native';
@@ -23,6 +21,7 @@ import {
 import { MessageBubble, ChatInputField, ChatAvatar } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAuthStore } from '@/src/presentation/stores';
 import { useSocket } from '@/src/presentation/hooks/useSocket';
 import { useCall } from '@/src/presentation/hooks/useCall';
@@ -49,9 +48,71 @@ const KeyboardView = styled(KeyboardAvoidingView)`
   flex: 1;
 `;
 
+const SafeWrap = styled(SafeAreaView)`
+  flex: 1;
+  background-color: ${(p) => (p.theme as { colors?: { chatBackground?: string } })?.colors?.chatBackground};
+`;
+
+const HeaderRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  padding-horizontal: 4px;
+`;
+
+const BackButton = styled.TouchableOpacity`
+  padding-vertical: 8px;
+  padding-horizontal: 12px;
+  border-radius: 20px;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+`;
+
+const HeaderCenter = styled.View`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  margin-horizontal: 12px;
+  min-width: 0;
+`;
+
+const HeaderAvatarBlock = styled.View`
+  margin-left: 12px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const HeaderName = styled.Text`
+  font-size: 17px;
+  font-weight: 600;
+  color: ${(p) => (p.theme as { colors?: { primaryText?: string } })?.colors?.primaryText};
+`;
+
+const HeaderSubtitle = styled.Text`
+  font-size: 13px;
+  font-weight: 400;
+  color: ${(p) => (p.theme as { colors?: { secondaryText?: string } })?.colors?.secondaryText};
+  margin-top: 2px;
+`;
+
+const HeaderActions = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 6px;
+  padding-horizontal: 8px;
+  border-radius: 20px;
+  background-color: ${(p) => (p.theme as { colors?: { secondaryBackground?: string } })?.colors?.secondaryBackground};
+  gap: 4px;
+`;
+
+const HeaderIconButton = styled.TouchableOpacity`
+  padding: 6px;
+`;
+
 export default function ChatDetailScreen() {
   const params = useLocalSearchParams<{ chatId: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const userId = useAuthStore((s) => s.user?.id);
   const [chat, setChat] = useState<Chat | null>(null);
@@ -160,7 +221,7 @@ export default function ChatDetailScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <Centered>
           <ActivityIndicator size="large" color={colors.primaryGreen} />
-          <LoadingText>加载中...</LoadingText>
+          <LoadingText>{t('common.loading')}</LoadingText>
         </Centered>
       </SafeAreaView>
     );
@@ -195,67 +256,29 @@ export default function ChatDetailScreen() {
   };
 
   const HeaderContent = () => (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        width: '100%',
-        paddingHorizontal: 4,
-      }}
-    >
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={{
-          paddingVertical: 8,
-          paddingHorizontal: 12,
-          borderRadius: 20,
-          backgroundColor: colors.secondaryBackground,
-        }}
-      >
+    <HeaderRow>
+      <BackButton onPress={() => router.back()}>
         <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
-      </TouchableOpacity>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          marginHorizontal: 12,
-          minWidth: 0,
-        }}
-      >
+      </BackButton>
+      <HeaderCenter>
         <ChatAvatar name={contactName} size={40} />
-        <View style={{ marginLeft: 12, flex: 1, minWidth: 0 }}>
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.primaryText }} numberOfLines={1}>
-            {contactName}
-          </Text>
-          <Text style={{ fontSize: 13, fontWeight: '400', color: colors.secondaryText, marginTop: 2 }}>
-            online
-          </Text>
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: 6,
-          paddingHorizontal: 8,
-          borderRadius: 20,
-          backgroundColor: colors.secondaryBackground,
-          gap: 4,
-        }}
-      >
-        <TouchableOpacity onPress={handleVideoCall} disabled={!otherUserId} style={{ padding: 6 }}>
+        <HeaderAvatarBlock>
+          <HeaderName numberOfLines={1}>{contactName}</HeaderName>
+          <HeaderSubtitle>{t('chatDetail.online')}</HeaderSubtitle>
+        </HeaderAvatarBlock>
+      </HeaderCenter>
+      <HeaderActions>
+        <HeaderIconButton onPress={handleVideoCall} disabled={!otherUserId}>
           <Ionicons name="videocam-outline" size={22} color={colors.primaryText} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleVoiceCall} disabled={!otherUserId} style={{ padding: 6 }}>
+        </HeaderIconButton>
+        <HeaderIconButton onPress={handleVoiceCall} disabled={!otherUserId}>
           <Ionicons name="call-outline" size={22} color={colors.primaryText} />
-        </TouchableOpacity>
-        <TouchableOpacity style={{ padding: 6 }}>
+        </HeaderIconButton>
+        <HeaderIconButton>
           <Ionicons name="ellipsis-vertical" size={20} color={colors.primaryText} />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </HeaderIconButton>
+      </HeaderActions>
+    </HeaderRow>
   );
 
   return (
@@ -278,12 +301,11 @@ export default function ChatDetailScreen() {
           headerTintColor: colors.primaryText,
         }}
       />
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.chatBackground }} edges={['bottom']}>
+      <SafeWrap edges={['bottom']}>
         <Container>
           <KeyboardView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            style={{ flex: 1 }}
           >
             <FlatList
               ref={flatListRef}
@@ -302,7 +324,7 @@ export default function ChatDetailScreen() {
             />
           </KeyboardView>
         </Container>
-      </SafeAreaView>
+      </SafeWrap>
     </>
   );
 }

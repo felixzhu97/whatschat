@@ -1,7 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { styled } from '@/src/presentation/shared/emotion';
+
+const Outer = styled.View`
+  overflow: hidden;
+`;
+
+const Content = styled.View`
+  background-color: transparent;
+`;
 
 interface GlassViewProps {
   children: React.ReactNode;
@@ -14,6 +23,8 @@ interface GlassViewProps {
 const LIQUID_RADIUS = 20;
 const VIBRANCY_LIGHT = 'rgba(255, 255, 255, 0.38)';
 const VIBRANCY_DARK = 'rgba(0, 0, 0, 0.18)';
+
+const absoluteFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 export const GlassView: React.FC<GlassViewProps> = ({
   children,
@@ -29,31 +40,19 @@ export const GlassView: React.FC<GlassViewProps> = ({
   const vibrancy = isDark ? VIBRANCY_DARK : VIBRANCY_LIGHT;
 
   return (
-    <View style={[styles.outer, { borderRadius: radius }, style]}>
+    <Outer style={[{ borderRadius: radius }, style]}>
       <BlurView
         intensity={blurIntensity}
         tint={tint}
-        style={[StyleSheet.absoluteFill, { borderRadius: radius }]}
+        style={[absoluteFill, { borderRadius: radius }]}
       />
       {liquid && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { borderRadius: radius, backgroundColor: vibrancy },
-          ]}
+        <Outer
+          style={[absoluteFill, { borderRadius: radius, backgroundColor: vibrancy }]}
           pointerEvents="none"
         />
       )}
-      <View style={[styles.content, { borderRadius: radius }]}>{children}</View>
-    </View>
+      <Content style={{ borderRadius: radius }}>{children}</Content>
+    </Outer>
   );
 };
-
-const styles = StyleSheet.create({
-  outer: {
-    overflow: 'hidden',
-  },
-  content: {
-    backgroundColor: 'transparent',
-  },
-});

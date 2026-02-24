@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LiquidGlassBar } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { styled } from '@/src/presentation/shared/emotion';
 
 const TabButton = styled.TouchableOpacity`
@@ -25,6 +26,7 @@ const Pill = styled.View`
 
 export default function TabsLayout() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -62,7 +64,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="status"
         options={{
-          title: '更新',
+          title: t('tabs.status'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'ellipse' : 'ellipse-outline'} size={size} color={color} />
           ),
@@ -71,7 +73,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="calls"
         options={{
-          title: '通话',
+          title: t('tabs.calls'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name="call" size={size} color={color} />
           ),
@@ -80,7 +82,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="communities"
         options={{
-          title: '社区',
+          title: t('tabs.communities'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -89,7 +91,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chats"
         options={{
-          title: '聊天',
+          title: t('tabs.chats'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
           ),
@@ -98,7 +100,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: '设置',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={color} />
           ),

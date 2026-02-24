@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAuthStore, useAppDispatch, setAuth } from '@/src/presentation/stores';
 import { authService } from '@/src/application/services';
 
@@ -106,6 +107,7 @@ const LinkText = styled.Text`
 `;
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -116,7 +118,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {
-      Alert.alert('提示', '请输入邮箱和密码');
+      Alert.alert(t('login.alertTitle'), t('login.fillEmailPassword'));
       return;
     }
     setLoading(true);
@@ -130,8 +132,8 @@ export default function LoginScreen() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : err instanceof Error
             ? err.message
-            : '登录失败';
-      Alert.alert('登录失败', String(message));
+            : t('login.fail');
+      Alert.alert(t('login.fail'), String(message));
     } finally {
       setLoading(false);
     }
@@ -143,12 +145,12 @@ export default function LoginScreen() {
         <Keyboard behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <Header>
             <HeaderTitle>WhatsChat</HeaderTitle>
-            <HeaderSubtitle>登录以继续</HeaderSubtitle>
+            <HeaderSubtitle>{t('login.subtitle')}</HeaderSubtitle>
           </Header>
           <Form>
-            <Label>邮箱</Label>
+            <Label>{t('login.email')}</Label>
             <Input
-              placeholder="your@email.com"
+              placeholder={t('login.emailPlaceholder')}
               placeholderTextColor={colors.tertiaryText}
               value={email}
               onChangeText={setEmail}
@@ -157,9 +159,9 @@ export default function LoginScreen() {
               autoCorrect={false}
               editable={!loading}
             />
-            <Label>密码</Label>
+            <Label>{t('login.password')}</Label>
             <Input
-              placeholder="至少 6 位"
+              placeholder={t('login.passwordPlaceholder')}
               placeholderTextColor={colors.tertiaryText}
               value={password}
               onChangeText={setPassword}
@@ -170,14 +172,14 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <PrimaryButtonText>登录</PrimaryButtonText>
+                <PrimaryButtonText>{t('login.submit')}</PrimaryButtonText>
               )}
             </PrimaryButton>
             <Footer>
-              <FooterText>还没有账号？</FooterText>
+              <FooterText>{t('login.noAccount')}</FooterText>
               <Link href="/register" asChild>
                 <TouchableOpacity disabled={loading}>
-                  <LinkText>创建账号</LinkText>
+                  <LinkText>{t('login.register')}</LinkText>
                 </TouchableOpacity>
               </Link>
             </Footer>

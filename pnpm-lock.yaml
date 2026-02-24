@@ -111,6 +111,9 @@ importers:
       expo-linking:
         specifier: ~55.0.0
         version: 55.0.6(expo@55.0.0-preview.12)(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
+      expo-localization:
+        specifier: ~55.0.0
+        version: 55.0.7(expo@55.0.0-preview.12)(react@19.2.0)
       expo-router:
         specifier: 55.0.0-preview.9
         version: 55.0.0-preview.9(4ca91b8b2c3ebdc78cf86e4c83e87291)
@@ -129,6 +132,9 @@ importers:
       expo-web-browser:
         specifier: ~55.0.0
         version: 55.0.8(expo@55.0.0-preview.12)(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))
+      i18next:
+        specifier: ^24.2.0
+        version: 24.2.3(typescript@5.8.2)
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -138,6 +144,9 @@ importers:
       react-dom:
         specifier: 19.2.0
         version: 19.2.0(react@19.2.0)
+      react-i18next:
+        specifier: ^15.1.0
+        version: 15.7.4(i18next@24.2.3(typescript@5.8.2))(react-dom@19.2.0(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
       react-native:
         specifier: 0.83.0
         version: 0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0)
@@ -6291,6 +6300,12 @@ packages:
       react: '*'
       react-native: '*'
 
+  expo-localization@55.0.7:
+    resolution: {integrity: sha512-ACzmVqXaNNdtE9wvOdApvfxiYCrBZOey2QdmYTl2ksbN9PVliETm0d9cUradEmhds+zCu/0QQLoK9yk30esvAg==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+
   expo-modules-autolinking@55.0.7:
     resolution: {integrity: sha512-SA2XKDWE7bVmr3j9EZs7gBnUdr9s2opk14TXHgm1piC46Pi99hBz8Zown66a5bEE5J7S9pW7/pBGb4SzhHOSrQ==}
     hasBin: true
@@ -6805,6 +6820,9 @@ packages:
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
 
+  html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
@@ -6831,6 +6849,14 @@ packages:
 
   hyphenate-style-name@1.1.0:
     resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
+
+  i18next@24.2.3:
+    resolution: {integrity: sha512-lfbf80OzkocvX7nmZtu7nSTNbrTYR52sLWxPtlXX1zAhVw8WEnFk4puUkCR4B1dNQwbSpEHHHemcZu//7EcB7A==}
+    peerDependencies:
+      typescript: ^5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -8530,6 +8556,22 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
 
+  react-i18next@15.7.4:
+    resolution: {integrity: sha512-nyU8iKNrI5uDJch0z9+Y5XEr34b0wkyYj3Rp+tfbahxtlswxSCjcUL9H0nqXo9IR3/t5Y5PKIA3fx3MfUyR9Xw==}
+    peerDependencies:
+      i18next: '>= 23.4.0'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -8857,6 +8899,9 @@ packages:
 
   rrweb-cssom@0.8.0:
     resolution: {integrity: sha512-guoltQEx+9aMf2gDZ0s62EcV8lsXR+0w8915TC3ITdn2YueuNjdAYh/levpU9nFaoChh9RUS5ZdQMrKfVEN9tw==}
+
+  rtl-detect@1.1.2:
+    resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
 
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
@@ -9907,6 +9952,10 @@ packages:
 
   vlq@1.0.1:
     resolution: {integrity: sha512-gQpnTgkubC6hQgdIcRdYGDSDc+SaujOdyesZQMv6JlfQee/9Mp0Qhnys6WxDWvQnL5WZdT7o2Ul187aSt0Rq+w==}
+
+  void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
+    engines: {node: '>=0.10.0'}
 
   w3c-xmlserializer@4.0.0:
     resolution: {integrity: sha512-d+BFHzbiCx6zGfz0HyQ6Rg69w9k19nviJspaj4yNscGjrHu94sVP+aRm75yEbCh+r2/yR+7q6hux9LVtbuTGBw==}
@@ -17468,6 +17517,12 @@ snapshots:
       - supports-color
       - typescript
 
+  expo-localization@55.0.7(expo@55.0.0-preview.12)(react@19.2.0):
+    dependencies:
+      expo: 55.0.0-preview.12(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.0-preview.9)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.15.0(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
+      react: 19.2.0
+      rtl-detect: 1.1.2
+
   expo-modules-autolinking@55.0.7(typescript@5.8.2):
     dependencies:
       '@expo/require-utils': 55.0.1(typescript@5.8.2)
@@ -18078,6 +18133,10 @@ snapshots:
 
   html-escaper@2.0.2: {}
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
   http-errors@2.0.1:
     dependencies:
       depd: 2.0.0
@@ -18118,6 +18177,12 @@ snapshots:
   human-signals@2.1.0: {}
 
   hyphenate-style-name@1.1.0: {}
+
+  i18next@24.2.3(typescript@5.8.2):
+    dependencies:
+      '@babel/runtime': 7.28.6
+    optionalDependencies:
+      typescript: 5.8.2
 
   iconv-lite@0.4.24:
     dependencies:
@@ -20309,6 +20374,17 @@ snapshots:
     dependencies:
       react: 19.2.0
 
+  react-i18next@15.7.4(i18next@24.2.3(typescript@5.8.2))(react-dom@19.2.0(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2):
+    dependencies:
+      '@babel/runtime': 7.28.6
+      html-parse-stringify: 3.0.1
+      i18next: 24.2.3(typescript@5.8.2)
+      react: 19.2.0
+    optionalDependencies:
+      react-dom: 19.2.0(react@19.2.0)
+      react-native: 0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0)
+      typescript: 5.8.2
+
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
@@ -20729,6 +20805,8 @@ snapshots:
   rrweb-cssom@0.7.1: {}
 
   rrweb-cssom@0.8.0: {}
+
+  rtl-detect@1.1.2: {}
 
   run-async@2.4.1: {}
 
@@ -21992,6 +22070,8 @@ snapshots:
       - terser
 
   vlq@1.0.1: {}
+
+  void-elements@3.1.0: {}
 
   w3c-xmlserializer@4.0.0:
     dependencies:

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAppDispatch, setAuth } from '@/src/presentation/stores';
 import { authService } from '@/src/application/services';
 
@@ -98,6 +99,7 @@ const LinkText = styled.Text`
 `;
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -110,15 +112,15 @@ export default function RegisterScreen() {
     const trimmedUsername = username.trim();
     const trimmedEmail = email.trim();
     if (!trimmedUsername || !trimmedEmail || !password) {
-      Alert.alert('提示', '请填写用户名、邮箱和密码');
+      Alert.alert(t('register.alertTitle'), t('register.fillAll'));
       return;
     }
     if (trimmedUsername.length < 2) {
-      Alert.alert('提示', '用户名至少 2 个字符');
+      Alert.alert(t('register.alertTitle'), t('register.usernameMin'));
       return;
     }
     if (password.length < 6) {
-      Alert.alert('提示', '密码至少 6 位');
+      Alert.alert(t('register.alertTitle'), t('register.passwordMin'));
       return;
     }
     setLoading(true);
@@ -136,8 +138,8 @@ export default function RegisterScreen() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : err instanceof Error
             ? err.message
-            : '注册失败';
-      Alert.alert('注册失败', String(message));
+            : t('register.fail');
+      Alert.alert(t('register.fail'), String(message));
     } finally {
       setLoading(false);
     }
@@ -149,22 +151,22 @@ export default function RegisterScreen() {
         <Keyboard behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <Header>
             <HeaderTitle>WhatsChat</HeaderTitle>
-            <HeaderSubtitle>创建账号</HeaderSubtitle>
+            <HeaderSubtitle>{t('register.subtitle')}</HeaderSubtitle>
           </Header>
           <FormScroll contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
             <FormContent>
-              <Label>用户名</Label>
+              <Label>{t('register.username')}</Label>
               <Input
-                placeholder="至少 2 个字符"
+                placeholder={t('register.usernamePlaceholder')}
                 placeholderTextColor={colors.tertiaryText}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
                 editable={!loading}
               />
-              <Label>邮箱</Label>
+              <Label>{t('register.email')}</Label>
               <Input
-                placeholder="your@email.com"
+                placeholder={t('register.emailPlaceholder')}
                 placeholderTextColor={colors.tertiaryText}
                 value={email}
                 onChangeText={setEmail}
@@ -173,9 +175,9 @@ export default function RegisterScreen() {
                 autoCorrect={false}
                 editable={!loading}
               />
-              <Label>密码</Label>
+              <Label>{t('register.password')}</Label>
               <Input
-                placeholder="至少 6 位"
+                placeholder={t('register.passwordPlaceholder')}
                 placeholderTextColor={colors.tertiaryText}
                 value={password}
                 onChangeText={setPassword}
@@ -186,14 +188,14 @@ export default function RegisterScreen() {
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <PrimaryButtonText>创建账号</PrimaryButtonText>
+                  <PrimaryButtonText>{t('register.submit')}</PrimaryButtonText>
                 )}
               </PrimaryButton>
               <Footer>
-                <FooterText>已有账号？</FooterText>
+                <FooterText>{t('register.hasAccount')}</FooterText>
                 <Link href="/login" asChild>
                   <TouchableOpacity disabled={loading}>
-                    <LinkText>登录</LinkText>
+                    <LinkText>{t('register.login')}</LinkText>
                   </TouchableOpacity>
                 </Link>
               </Footer>

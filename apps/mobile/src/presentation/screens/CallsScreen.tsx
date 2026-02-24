@@ -1,15 +1,20 @@
 import React from 'react';
-import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 
 const Page = styled.View`
   flex: 1;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
-  padding-bottom: 88;
+  padding-bottom: 88px;
+`;
+
+const ContentWrap = styled.View`
+  flex: 1;
+  padding-top: ${TAB_PAGE_HEADER_HEIGHT}px;
 `;
 
 const EmptyState = styled.View`
@@ -37,21 +42,22 @@ const EmptySubtitle = styled.Text`
 `;
 
 export const CallsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <TabPageHeader title="通话" />
-        <View style={{ flex: 1, paddingTop: TAB_PAGE_HEADER_HEIGHT }}>
+        <TabPageHeader title={t('calls.title')} />
+        <ContentWrap>
         <EmptyState>
           <EmptyIcon>
             <Ionicons name="call-outline" size={64} color={colors.secondaryText} />
           </EmptyIcon>
-          <EmptyTitle>暂无通话记录</EmptyTitle>
-          <EmptySubtitle>与联系人通话后，记录将显示在这里</EmptySubtitle>
+          <EmptyTitle>{t('calls.noCalls')}</EmptyTitle>
+          <EmptySubtitle>{t('calls.noCallsHint')}</EmptySubtitle>
         </EmptyState>
-        </View>
+        </ContentWrap>
       </Page>
     </SafeAreaView>
   );
