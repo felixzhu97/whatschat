@@ -5,7 +5,7 @@ A modern instant messaging application built with React and TypeScript, supporti
 ## ✨ Features
 
 - 🔥 **Real-time Chat** - Support for text, emoji, and voice messages
-- 📞 **Voice/Video Calls** - High-quality calls based on WebRTC and AWS Chime SDK
+- 📞 **Voice/Video Calls** - WebRTC (native) voice/video with WebSocket signaling; optional AWS Chime SDK
 - 📎 **File Sharing** - Support for images, documents, and other file types
 - 👥 **Contact Management** - Add, delete, and search contacts
 - 🔍 **Message Search** - Full-text search of chat history
@@ -19,7 +19,7 @@ A modern instant messaging application built with React and TypeScript, supporti
 **Frontend Mobile**: React Native, Expo, TypeScript, Zustand  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
-**Communication**: WebSocket (Socket.IO, AWS API Gateway WebSocket), WebRTC (Native, AWS Chime SDK)  
+**Communication**: WebSocket (Socket.IO or API Gateway) for realtime and call signaling; WebRTC (native) for media; optional Chime SDK  
 **AWS Services**: API Gateway WebSocket, Chime SDK, S3, SES, SNS, SQS, Lambda, Cognito, CloudWatch  
 **Testing**: Vitest, React Testing Library  
 **Tools**: PNPM workspaces, ESLint, Prettier  
@@ -57,11 +57,10 @@ whatschat/
 │   ├── domain/           # @whatschat/domain – shared domain types (User, Message, Chat, Contact, Group, Call)
 │   └── aws-integration/  # @whatschat/aws-integration – AWS services (S3, SES, SNS, SQS, Lambda, Cognito, Chime, etc.)
 ├── docs/                 # Documentation and architecture diagrams
-│   ├── api/              # API documentation
-│   ├── architecture/     # Architecture diagrams (TOGAF, distributed systems)
-│   ├── distributed-systems/ # Distributed systems diagrams
-│   ├── user-journey-map/ # User journey and persona maps
-│   └── wardley-map/      # Wardley maps
+│   ├── zh/               # 中文文档 (product, data, rd/c4, rd/togaf, rd/distributed-systems)
+│   ├── en/               # English docs (product, data, rd/c4, rd/togaf)
+│   ├── c4-lib/           # C4-PlantUML library (shared by rd/c4)
+│   └── README.md         # Doc index
 ├── turbo.json            # Turborepo configuration
 └── package.json          # Workspace configuration (pnpm workspaces)
 ```
@@ -201,11 +200,11 @@ Create a `.env.local` file:
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 
 # WebSocket Configuration (Optional)
-NEXT_PUBLIC_WEBSOCKET_MODE=socketio  # Options: socketio, apigateway, simulated
+NEXT_PUBLIC_WEBSOCKET_MODE=socketio  # Options: socketio, apigateway
 NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT=https://your-api-id.execute-api.us-east-1.amazonaws.com/production
 
 # WebRTC Configuration (Optional)
-NEXT_PUBLIC_WEBRTC_MODE=native  # Options: native, chime, simulated
+NEXT_PUBLIC_WEBRTC_MODE=native  # Options: native, chime
 
 # A/B Testing & Feature Flags (Optional – GrowthBook)
 # When unset, inline experiments still work; when set, flags are loaded from GrowthBook.
@@ -383,38 +382,6 @@ pnpm check-types
 
 View architecture diagrams and documentation: [中文 (zh)](docs/zh/README.md) | [English (en)](docs/en/README.md).
 
-### High-level architecture
-
-```mermaid
-flowchart LR
-  subgraph Users
-    U1[Web User]
-    U2[Mobile User]
-  end
-
-  subgraph WhatsChat["WhatsChat"]
-    WA[Web App\nNext.js, React]
-    MA[Mobile App\nReact Native]
-    API[API Server\nNestJS]
-    DB[(PostgreSQL)]
-    R[(Redis)]
-  end
-
-  subgraph External["External"]
-    S3[S3 / Storage]
-    GB[GrowthBook\nA/B & Feature Flags]
-  end
-
-  U1 --> WA
-  U2 --> MA
-  WA --> API
-  MA --> API
-  WA -.->|optional| GB
-  API --> DB
-  API --> R
-  API --> S3
-```
-
 ### C4 Model (PlantUML) · R&D
 
 - [C4 README](docs/en/rd/c4/README.md) – Overview and how to view
@@ -467,9 +434,8 @@ pnpm start:prod
 # Stop services
 pnpm run stop
 
-# Or use docker-compose directly
-docker-compose -f docker-compose.dev.yml up -d  # Development environment
-docker-compose -f docker-compose.prod.yml up -d # Production environment
+# Or use docker-compose directly (from repo root)
+cd apps/server && docker compose up -d postgres redis kafka
 ```
 
 For more Docker deployment information, see the [Documentation index](docs/README.md) (zh / en) for available documentation.

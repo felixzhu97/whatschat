@@ -128,7 +128,7 @@ export class ConfigService {
     const config: AppConfig = {
       server: {
         port: parseInt(process.env["PORT"] || "3001", 10),
-        host: process.env["HOST"] || "localhost",
+        host: process.env["HOST"] || "0.0.0.0",
         nodeEnv: process.env["NODE_ENV"] || "development",
         isProduction: process.env["NODE_ENV"] === "production",
         isDevelopment: process.env["NODE_ENV"] !== "production",
@@ -146,7 +146,13 @@ export class ConfigService {
         }),
       },
       kafka: {
-        brokers: (process.env["KAFKA_BROKERS"] || "localhost:9092").split(","),
+        // Set KAFKA_BROKERS= (empty) to disable Kafka and avoid connection errors in dev
+        brokers: (() => {
+          const raw = process.env["KAFKA_BROKERS"];
+          if (raw === undefined || raw === null) return ["localhost:9092"];
+          if (!raw.trim()) return [];
+          return raw.split(",").map((s) => s.trim()).filter(Boolean);
+        })(),
         topicOfflineMessages:
           process.env["KAFKA_TOPIC_OFFLINE_MESSAGES"] || "offline-messages",
       },

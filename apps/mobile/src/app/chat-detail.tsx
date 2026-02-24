@@ -25,6 +25,7 @@ import { MessageBubble, ChatInputField } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
 import { useSocket } from '@/src/presentation/hooks/useSocket';
+import { useCall } from '@/src/presentation/hooks/useCall';
 import { messageService } from '@/src/application/services/MessageService';
 import { chatService } from '@/src/application/services/ChatService';
 
@@ -69,6 +70,7 @@ export default function ChatDetailScreen() {
   );
 
   const { sendMessage, connected } = useSocket(onMessageReceived, onMessageSent);
+  const { startCall } = useCall();
 
   useEffect(() => {
     const chatId = params.chatId;
@@ -154,6 +156,14 @@ export default function ChatDetailScreen() {
     updatedAt: new Date(),
   });
 
+  const otherUserId = displayChat.participantIds?.find((id) => id !== userId) ?? null;
+  const handleVoiceCall = () => {
+    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'voice');
+  };
+  const handleVideoCall = () => {
+    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'video');
+  };
+
   return (
     <>
       <Stack.Screen
@@ -166,10 +176,10 @@ export default function ChatDetailScreen() {
           ),
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 16, gap: 16 }}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleVideoCall} disabled={!otherUserId}>
                 <Ionicons name="videocam" size={24} color={colors.primaryText} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleVoiceCall} disabled={!otherUserId}>
                 <Ionicons name="call" size={24} color={colors.primaryText} />
               </TouchableOpacity>
             </View>

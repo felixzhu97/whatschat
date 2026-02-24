@@ -3,9 +3,6 @@
 import { IWebRTCAdapter, RTCCallState } from "../../../domain/interfaces/adapters/webrtc.interface";
 import { IWebSocketAdapter } from "../../../domain/interfaces/adapters/websocket.interface";
 import { getWebSocketAdapter } from "./websocket.adapter";
-import { createChimeWebRTCAdapter } from "./chime-webrtc.adapter";
-
-type WebRTCMode = "native" | "chime" | "simulated";
 
 export class WebRTCAdapter implements IWebRTCAdapter {
   private peerConnection: RTCPeerConnection | null = null;
@@ -13,8 +10,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   private remoteStream: MediaStream | null = null;
   private wsManager: IWebSocketAdapter;
   private listeners: Map<string, Function[]> = new Map();
-  private mode: WebRTCMode = "simulated";
-  private chimeAdapter: IWebRTCAdapter | null = null;
   private callState: RTCCallState = {
     isActive: false,
     isIncoming: false,
@@ -32,38 +27,7 @@ export class WebRTCAdapter implements IWebRTCAdapter {
 
   constructor(wsManager?: IWebSocketAdapter) {
     this.wsManager = wsManager || getWebSocketAdapter();
-    
-    // Determine mode from environment or config
-    const webrtcMode = (process.env.NEXT_PUBLIC_WEBRTC_MODE || "simulated") as WebRTCMode;
-    this.mode = webrtcMode;
-    
-    // If Chime mode, delegate to Chime adapter
-    if (this.mode === "chime") {
-      try {
-        this.chimeAdapter = createChimeWebRTCAdapter(this.wsManager);
-        // Forward events from Chime adapter
-        this.chimeAdapter.on("callStateChanged", (state: RTCCallState) => {
-          this.emit("callStateChanged", state);
-        });
-        this.chimeAdapter.on("callEnded", () => {
-          this.emit("callEnded", null);
-        });
-        this.chimeAdapter.on("localStream", (stream: MediaStream) => {
-          this.emit("localStream", stream);
-        });
-        this.chimeAdapter.on("remoteStream", (stream: MediaStream) => {
-          this.emit("remoteStream", stream);
-        });
-        return; // Chime adapter handles everything
-      } catch (error) {
-        console.warn("Failed to initialize Chime adapter, falling back to native WebRTC:", error);
-        this.mode = "native";
-      }
-    }
-    
-    if (this.mode !== "chime") {
-      this.setupWebSocketListeners();
-    }
+    this.setupWebSocketListeners();
   }
 
   private setupWebSocketListeners() {
@@ -74,10 +38,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   private async createPeerConnection() {
-    if (this.mode === "simulated" || this.mode === "chime") {
-      return;
-    }
-
     try {
       const configuration: RTCConfiguration = {
         iceServers: [
@@ -131,49 +91,8 @@ export class WebRTCAdapter implements IWebRTCAdapter {
       return await navigator.mediaDevices.getUserMedia(constraints);
     } catch (error) {
       console.error("获取媒体设备失败:", error);
-
-      if (this.simulatedMode) {
-        return this.createSimulatedStream(video);
-      }
-
       throw new Error("无法访问摄像头或麦克风，请检查权限设置");
     }
-  }
-
-  private createSimulatedStream(video: boolean): MediaStream {
-    const canvas = document.createElement("canvas");
-    canvas.width = 640;
-    canvas.height = 480;
-    const ctx = canvas.getContext("2d")!;
-
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.font = "24px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("模拟视频流", canvas.width / 2, canvas.height / 2);
-
-    const stream = new MediaStream();
-
-    if (video) {
-      const videoTrack = canvas.captureStream(30).getVideoTracks()[0];
-      stream.addTrack(videoTrack);
-    }
-
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 0;
-    oscillator.connect(gainNode);
-
-    const destination = audioContext.createMediaStreamDestination();
-    gainNode.connect(destination);
-    oscillator.start();
-
-    const audioTrack = destination.stream.getAudioTracks()[0];
-    stream.addTrack(audioTrack);
-
-    return stream;
   }
 
   async startCall(
@@ -182,11 +101,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
     contactAvatar: string,
     callType: "voice" | "video"
   ): Promise<void> {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      return this.chimeAdapter.startCall(contactId, contactName, contactAvatar, callType);
-    }
-
     try {
       this.updateCallState({
         isActive: true,
@@ -199,46 +113,28 @@ export class WebRTCAdapter implements IWebRTCAdapter {
         isVideoOff: callType === "voice",
       });
 
-      if (this.mode === "simulated") {
-        this.localStream = await this.getUserMedia(callType === "video");
-        this.emit("localStream", this.localStream);
+      this.localStream = await this.getUserMedia(callType === "video");
+      this.emit("localStream", this.localStream);
 
-        setTimeout(
-          () => {
-            this.updateCallState({ status: "connected" });
-            this.startDurationTimer();
+      await this.createPeerConnection();
 
-            if (callType === "video") {
-              this.remoteStream = this.createSimulatedStream(true);
-              this.emit("remoteStream", this.remoteStream);
-            }
-          },
-          2000 + Math.random() * 3000
-        );
-      } else {
-        this.localStream = await this.getUserMedia(callType === "video");
-        this.emit("localStream", this.localStream);
+      this.localStream.getTracks().forEach((track) => {
+        this.peerConnection!.addTrack(track, this.localStream!);
+      });
 
-        await this.createPeerConnection();
+      const offer = await this.peerConnection!.createOffer();
+      await this.peerConnection!.setLocalDescription(offer);
 
-        this.localStream.getTracks().forEach((track) => {
-          this.peerConnection!.addTrack(track, this.localStream!);
-        });
-
-        const offer = await this.peerConnection!.createOffer();
-        await this.peerConnection!.setLocalDescription(offer);
-
-        this.wsManager.send({
-          type: "call_offer",
-          to: contactId,
-          data: {
-            offer,
-            callType,
-            callerName: "Me",
-            callerAvatar: "/placeholder.svg?height=40&width=40&text=我",
-          },
-        });
-      }
+      this.wsManager.send({
+        type: "call_offer",
+        to: contactId,
+        data: {
+          offer,
+          callType,
+          callerName: "Me",
+          callerAvatar: "/placeholder.svg?height=40&width=40&text=我",
+        },
+      });
     } catch (error) {
       console.error("发起通话失败:", error);
       this.endCall();
@@ -261,10 +157,8 @@ export class WebRTCAdapter implements IWebRTCAdapter {
         isVideoOff: callType === "voice",
       });
 
-      if (!this.simulatedMode) {
-        await this.createPeerConnection();
-        await this.peerConnection!.setRemoteDescription(offer);
-      }
+      await this.createPeerConnection();
+      await this.peerConnection!.setRemoteDescription(offer);
 
       this.emit("incomingCall", this.callState);
     } catch (error) {
@@ -274,54 +168,39 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   async answerCall(): Promise<void> {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      return this.chimeAdapter.answerCall();
-    }
-
     try {
       if (!this.callState.isIncoming) {
         throw new Error("没有来电可接听");
       }
 
-      if (this.mode === "simulated") {
-        this.localStream = await this.getUserMedia(
-          this.callState.callType === "video"
-        );
-        this.emit("localStream", this.localStream);
-
-        this.updateCallState({ status: "connected", isIncoming: false });
-        this.startDurationTimer();
-
-        if (this.callState.callType === "video") {
-          this.remoteStream = this.createSimulatedStream(true);
-          this.emit("remoteStream", this.remoteStream);
-        }
-      } else {
-        if (!this.peerConnection) {
-          throw new Error("通话连接未建立");
-        }
-
-        this.localStream = await this.getUserMedia(
-          this.callState.callType === "video"
-        );
-        this.emit("localStream", this.localStream);
-
-        this.localStream.getTracks().forEach((track) => {
-          this.peerConnection!.addTrack(track, this.localStream!);
-        });
-
-        const answer = await this.peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
-
-        this.wsManager.send({
-          type: "call_answer",
-          to: this.callState.contactId,
-          data: answer,
-        });
-
-        this.updateCallState({ status: "connected", isIncoming: false });
+      if (!this.peerConnection) {
+        throw new Error("通话连接未建立");
       }
+
+      this.localStream = await this.getUserMedia(
+        this.callState.callType === "video"
+      );
+      this.emit("localStream", this.localStream);
+
+      this.localStream.getTracks().forEach((track) => {
+        this.peerConnection!.addTrack(track, this.localStream!);
+      });
+
+      const state = this.peerConnection!.signalingState;
+      if (state !== "have-remote-offer" && state !== "have-local-pranswer") {
+        console.warn("answerCall: skip createAnswer, signalingState=", state);
+        return;
+      }
+      const answer = await this.peerConnection.createAnswer();
+      await this.peerConnection.setLocalDescription(answer);
+
+      this.wsManager.send({
+        type: "call_answer",
+        to: this.callState.contactId,
+        data: answer,
+      });
+
+      this.updateCallState({ status: "connected", isIncoming: false });
     } catch (error) {
       console.error("接听通话失败:", error);
       this.endCall();
@@ -357,12 +236,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   endCall(): void {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      this.chimeAdapter.endCall();
-      return;
-    }
-
     if (this.callState.isActive && this.callState.contactId) {
       this.wsManager.send({
         type: "call_end",
@@ -401,12 +274,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   toggleMute(): void {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      this.chimeAdapter.toggleMute();
-      return;
-    }
-
     if (this.localStream) {
       const audioTrack = this.localStream.getAudioTracks()[0];
       if (audioTrack) {
@@ -417,12 +284,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   toggleVideo(): void {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      this.chimeAdapter.toggleVideo();
-      return;
-    }
-
     if (this.localStream && this.callState.callType === "video") {
       const videoTrack = this.localStream.getVideoTracks()[0];
       if (videoTrack) {
@@ -433,12 +294,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   toggleSpeaker(): void {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      this.chimeAdapter.toggleSpeaker();
-      return;
-    }
-
     this.updateCallState({ isSpeakerOn: !this.callState.isSpeakerOn });
   }
 
@@ -454,26 +309,14 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   }
 
   getCallState(): RTCCallState {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      return this.chimeAdapter.getCallState();
-    }
     return { ...this.callState };
   }
 
   getLocalStream(): MediaStream | null {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      return this.chimeAdapter.getLocalStream();
-    }
     return this.localStream;
   }
 
   getRemoteStream(): MediaStream | null {
-    // Delegate to Chime adapter if in Chime mode
-    if (this.mode === "chime" && this.chimeAdapter) {
-      return this.chimeAdapter.getRemoteStream();
-    }
     return this.remoteStream;
   }
 
@@ -501,28 +344,6 @@ export class WebRTCAdapter implements IWebRTCAdapter {
     }
   }
 
-  setSimulatedMode(enabled: boolean): void {
-    this.mode = enabled ? "simulated" : "native";
-    if (this.chimeAdapter) {
-      this.chimeAdapter.setSimulatedMode(enabled);
-    }
-  }
-
-  setMode(mode: WebRTCMode): void {
-    this.mode = mode;
-    if (mode === "chime" && !this.chimeAdapter) {
-      try {
-        this.chimeAdapter = createChimeWebRTCAdapter(this.wsManager);
-      } catch (error) {
-        console.error("Failed to initialize Chime adapter:", error);
-        this.mode = "native";
-      }
-    }
-  }
-
-  getMode(): WebRTCMode {
-    return this.mode;
-  }
 }
 
 // 单例模式

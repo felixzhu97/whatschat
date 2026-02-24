@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react"
 import { PhoneOff, Mic, MicOff, Video, VideoOff, Volume2, VolumeX } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar"
 import { Button } from "@/src/presentation/components/ui/button"
-import type { RTCCallState } from "../../../lib/webrtc"
+import type { RTCCallState } from "@/src/lib/webrtc"
 
 interface RealCallInterfaceProps {
   callState: RTCCallState
@@ -59,124 +59,116 @@ export function RealCallInterface({
     }
   }
 
+  const controlBtnBase =
+    "h-14 w-14 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+  const controlBtnActive = "bg-[#25D366] hover:bg-[#20BD5C] text-white"
+  const controlBtnOff = "bg-white/20 hover:bg-red-500/80 text-white"
+
   return (
-    <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
-      {/* 头部信息 */}
-      <div className="flex items-center justify-center p-6 text-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0B141A]">
+      {/* 顶部条：联系人 + 状态/时长 */}
+      <div className="flex shrink-0 items-center justify-center gap-3 px-4 py-3 text-white">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
+          <AvatarFallback className="text-sm bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
+        </Avatar>
         <div className="text-center">
-          <Avatar className="h-24 w-24 mx-auto mb-4">
-            <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-            <AvatarFallback className="text-2xl">{callState.contactName[0]}</AvatarFallback>
-          </Avatar>
-          <h2 className="text-2xl font-light mb-2">{callState.contactName}</h2>
-          <p className="text-gray-300 text-lg">{getStatusText()}</p>
-          <p className="text-gray-400 text-sm mt-1">{callState.callType === "video" ? "视频通话" : "语音通话"}</p>
+          <p className="text-base font-medium">{callState.contactName}</p>
+          <p className="text-sm text-[#8696A0]">
+            {getStatusText()}
+            {callState.callType === "video" && " · 视频通话"}
+            {callState.callType === "voice" && " · 语音通话"}
+          </p>
         </div>
       </div>
 
-      {/* 视频区域 */}
-      <div className="flex-1 relative">
+      {/* 视频/语音主体 */}
+      <div className="flex-1 relative min-h-0">
         {callState.callType === "video" ? (
           <>
-            {/* 远程视频 */}
-            <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center bg-[#0B141A]">
               {remoteStream ? (
-                <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-contain" />
               ) : (
-                <div className="text-center">
-                  <Avatar className="h-32 w-32 mx-auto mb-4">
+                <div className="flex flex-col items-center text-white">
+                  <Avatar className="h-24 w-24 mb-4 border-2 border-white/20">
                     <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-                    <AvatarFallback className="text-4xl">{callState.contactName[0]}</AvatarFallback>
+                    <AvatarFallback className="text-3xl bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
                   </Avatar>
-                  <p className="text-white text-xl">{callState.contactName}</p>
-                  <p className="text-gray-300">等待视频连接...</p>
+                  <p className="text-lg font-medium">{callState.contactName}</p>
+                  <p className="text-sm text-[#8696A0]">等待视频连接...</p>
                 </div>
               )}
             </div>
 
-            {/* 本地视频（小窗口） */}
             {localStream && !callState.isVideoOff && (
-              <div className="absolute top-4 right-4 w-32 h-24 bg-gray-700 rounded-lg overflow-hidden border-2 border-white">
+              <div className="absolute right-4 top-4 h-36 w-28 overflow-hidden rounded-xl border border-white/20 bg-black shadow-lg">
                 <video
                   ref={localVideoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                   style={{ transform: "scaleX(-1)" }}
                 />
               </div>
             )}
 
-            {/* 视频关闭提示 */}
             {callState.isVideoOff && (
-              <div className="absolute top-4 right-4 w-32 h-24 bg-gray-700 rounded-lg flex items-center justify-center border-2 border-white">
-                <VideoOff className="h-8 w-8 text-white" />
+              <div className="absolute right-4 top-4 flex h-36 w-28 items-center justify-center rounded-xl border border-white/20 bg-[#2A3942]">
+                <VideoOff className="h-10 w-10 text-white/70" />
               </div>
             )}
           </>
         ) : (
-          /* 语音通话界面 */
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <Avatar className="h-48 w-48 mx-auto mb-8">
-                <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
-                <AvatarFallback className="text-6xl">{callState.contactName[0]}</AvatarFallback>
-              </Avatar>
-            </div>
+          <div className="flex h-full items-center justify-center">
+            <Avatar className="h-32 w-32 border-2 border-white/20">
+              <AvatarImage src={callState.contactAvatar || "/placeholder.svg"} />
+              <AvatarFallback className="text-4xl bg-[#2A3942]">{callState.contactName[0]}</AvatarFallback>
+            </Avatar>
           </div>
         )}
       </div>
 
-      {/* 控制按钮 */}
-      <div className="p-8">
-        <div className="flex items-center justify-center gap-8">
-          {/* 静音按钮 */}
+      {/* 底部控制栏 - WhatsApp 风格 */}
+      <div className="shrink-0 pb-10 pt-6">
+        <div className="flex items-center justify-center gap-6">
           <Button
             variant="ghost"
             size="icon"
-            className={`h-16 w-16 rounded-full ${
-              callState.isMuted ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-600"
-            } text-white`}
+            className={`${controlBtnBase} ${callState.isMuted ? controlBtnOff : ""}`}
             onClick={onToggleMute}
           >
-            {callState.isMuted ? <MicOff className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
+            {callState.isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
           </Button>
 
-          {/* 扬声器按钮 */}
           <Button
             variant="ghost"
             size="icon"
-            className={`h-16 w-16 rounded-full ${
-              callState.isSpeakerOn ? "bg-green-600 hover:bg-green-700" : "bg-gray-700 hover:bg-gray-600"
-            } text-white`}
+            className={`${controlBtnBase} ${callState.isSpeakerOn ? controlBtnActive : ""}`}
             onClick={onToggleSpeaker}
           >
-            {callState.isSpeakerOn ? <Volume2 className="h-8 w-8" /> : <VolumeX className="h-8 w-8" />}
+            {callState.isSpeakerOn ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
           </Button>
 
-          {/* 视频按钮（仅视频通话时显示） */}
           {callState.callType === "video" && (
             <Button
               variant="ghost"
               size="icon"
-              className={`h-16 w-16 rounded-full ${
-                callState.isVideoOff ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-600"
-              } text-white`}
+              className={`${controlBtnBase} ${callState.isVideoOff ? controlBtnOff : ""}`}
               onClick={onToggleVideo}
             >
-              {callState.isVideoOff ? <VideoOff className="h-8 w-8" /> : <Video className="h-8 w-8" />}
+              {callState.isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
             </Button>
           )}
 
-          {/* 挂断按钮 */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-16 w-16 rounded-full bg-red-600 hover:bg-red-700 text-white"
+            className="h-14 w-14 rounded-full bg-[#E53935] hover:bg-[#D32F2F] text-white flex items-center justify-center"
             onClick={onEndCall}
           >
-            <PhoneOff className="h-8 w-8" />
+            <PhoneOff className="h-6 w-6" />
           </Button>
         </div>
       </div>

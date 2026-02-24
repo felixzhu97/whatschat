@@ -23,8 +23,7 @@ export class HealthController {
   @ApiOperation({ summary: '健康检查' })
   check() {
     return this.health.check([
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
-      () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024),
+      () => this.memory.checkHeap('memory_heap', 300 * 1024 * 1024),
       () =>
         this.disk.checkStorage('storage', { path: '/', thresholdPercent: 0.9 }),
     ]);

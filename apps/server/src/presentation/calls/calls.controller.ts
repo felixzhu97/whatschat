@@ -38,7 +38,7 @@ export class CallsController {
     @Body()
     createCallDto: {
       type: "AUDIO" | "VIDEO";
-      targetUserId: string;
+      targetUserId?: string;
       chatId?: string;
     }
   ) {

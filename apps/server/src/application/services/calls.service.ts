@@ -3,7 +3,9 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 export interface CreateCallData {
   type: 'AUDIO' | 'VIDEO';
-  targetUserId: string;
+  /** Target user id (use when you have the peer user id). */
+  targetUserId?: string;
+  /** Chat id for 1:1 call; server will resolve the other participant. Use when contact id is the chat id (e.g. web). */
   chatId?: string;
 }
 
@@ -50,26 +52,34 @@ export class CallsService {
   }
 
   async createCall(userId: string, data: CreateCallData) {
-    const { type, targetUserId, chatId } = data;
+    const { type, targetUserId: providedTargetUserId, chatId } = data;
 
-    // 检查目标用户是否存在
-    const targetUser = await this.prisma.user.findUnique({
-      where: { id: targetUserId },
-    });
+    let targetUserId = providedTargetUserId;
 
-    if (!targetUser) {
-      throw new NotFoundException('目标用户不存在');
-    }
-
-    // 如果提供了chatId，检查聊天是否存在
-    if (chatId) {
+    if (!targetUserId && chatId) {
       const chat = await this.prisma.chat.findUnique({
         where: { id: chatId },
+        include: { participants: { select: { userId: true } } },
       });
-
       if (!chat) {
         throw new NotFoundException('聊天不存在');
       }
+      const other = chat.participants.find((p) => p.userId !== userId);
+      if (!other) {
+        throw new BadRequestException('无法从聊天中确定通话对象');
+      }
+      targetUserId = other.userId;
+    }
+
+    if (!targetUserId) {
+      throw new BadRequestException('请提供 targetUserId 或 chatId');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+    if (!targetUser) {
+      throw new NotFoundException('目标用户不存在');
     }
 
     const callData: any = {

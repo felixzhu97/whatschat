@@ -6,12 +6,12 @@ title C4 Level 3 - Components: API Server (NestJS)
 
 Container_Boundary(api_server, "API Server") {
   Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files")
-  Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing")
+  Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing, call signaling")
   Component(auth_svc, "Auth Service", "NestJS", "Login, JWT, refresh, password")
   Component(user_svc, "User Service", "NestJS", "Profile, search")
   Component(message_svc, "Message Service", "NestJS", "Send, list, reactions")
   Component(chat_svc, "Chat Service", "NestJS", "Chat list, create, participants")
-  Component(call_svc, "Call Service", "NestJS", "Call signaling, Chime/SDK")
+  Component(call_svc, "Call Service", "NestJS", "Call signaling (WebSocket); optional Chime SDK")
   Component(file_svc, "File Service", "NestJS", "Upload, presign, @whatschat/aws-integration")
   ComponentDb(repo, "Repositories", "Prisma", "Data access, @whatschat/domain types")
 }
