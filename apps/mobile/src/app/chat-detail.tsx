@@ -20,7 +20,7 @@ import {
   ChatEntity,
   ChatType,
 } from '@/src/domain/entities';
-import { MessageBubble, ChatInputField } from '@/src/presentation/components';
+import { MessageBubble, ChatInputField, ChatAvatar } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
@@ -183,42 +183,107 @@ export default function ChatDetailScreen() {
     });
 
   const otherUserId = displayChat.participantIds?.find((id) => id !== userId) ?? null;
+  const contactName =
+    displayChat.name && displayChat.name !== 'Chat'
+      ? displayChat.name
+      : (messages.find((m) => m.senderId !== userId)?.senderName ?? displayChat.name);
   const handleVoiceCall = () => {
-    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'voice');
+    if (otherUserId) startCall(otherUserId, contactName, '', 'voice');
   };
   const handleVideoCall = () => {
-    if (otherUserId) startCall(otherUserId, displayChat.name, '', 'video');
+    if (otherUserId) startCall(otherUserId, contactName, '', 'video');
   };
+
+  const HeaderContent = () => (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        width: '100%',
+        paddingHorizontal: 4,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={{
+          paddingVertical: 8,
+          paddingHorizontal: 12,
+          borderRadius: 20,
+          backgroundColor: colors.secondaryBackground,
+        }}
+      >
+        <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
+      </TouchableOpacity>
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 12,
+          minWidth: 0,
+        }}
+      >
+        <ChatAvatar name={contactName} size={40} />
+        <View style={{ marginLeft: 12, flex: 1, minWidth: 0 }}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.primaryText }} numberOfLines={1}>
+            {contactName}
+          </Text>
+          <Text style={{ fontSize: 13, fontWeight: '400', color: colors.secondaryText, marginTop: 2 }}>
+            online
+          </Text>
+        </View>
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 6,
+          paddingHorizontal: 8,
+          borderRadius: 20,
+          backgroundColor: colors.secondaryBackground,
+          gap: 4,
+        }}
+      >
+        <TouchableOpacity onPress={handleVideoCall} disabled={!otherUserId} style={{ padding: 6 }}>
+          <Ionicons name="videocam-outline" size={22} color={colors.primaryText} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleVoiceCall} disabled={!otherUserId} style={{ padding: 6 }}>
+          <Ionicons name="call-outline" size={22} color={colors.primaryText} />
+        </TouchableOpacity>
+        <TouchableOpacity style={{ padding: 6 }}>
+          <Ionicons name="ellipsis-vertical" size={20} color={colors.primaryText} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: displayChat.name,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 16 }}>
-              <Ionicons name="arrow-back" size={24} color={colors.primaryText} />
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', marginRight: 16, gap: 16 }}>
-              <TouchableOpacity onPress={handleVideoCall} disabled={!otherUserId}>
-                <Ionicons name="videocam" size={24} color={colors.primaryText} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleVoiceCall} disabled={!otherUserId}>
-                <Ionicons name="call" size={24} color={colors.primaryText} />
-              </TouchableOpacity>
-            </View>
-          ),
-          headerStyle: { backgroundColor: colors.secondaryBackground },
+          headerTransparent: false,
+          headerBackVisible: false,
+          headerLeft: () => null,
+          headerRight: () => null,
+          headerTitle: HeaderContent,
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: colors.secondaryBackground,
+            borderBottomWidth: 0.5,
+            borderBottomColor: colors.separator,
+            shadowOpacity: 0,
+            elevation: 0,
+          },
           headerTintColor: colors.primaryText,
         }}
       />
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.chatBackground }} edges={['bottom']}>
         <Container>
           <KeyboardView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            style={{ flex: 1 }}
           >
             <FlatList
               ref={flatListRef}
@@ -227,7 +292,8 @@ export default function ChatDetailScreen() {
                 <MessageBubble message={item} isMe={item.senderId === userId} />
               )}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ padding: 16 }}
+              contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8, flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
             />
             <ChatInputField
               value={inputText}

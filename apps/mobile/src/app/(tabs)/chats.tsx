@@ -1,16 +1,10 @@
 import React from 'react';
-import {
-  View,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { FlatList, ActivityIndicator, RefreshControl, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Chat } from '@/src/domain/entities';
-import { ChatListItem } from '@/src/presentation/components';
+import { ChatListItem, GlassView } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { chatService } from '@/src/application/services';
@@ -20,50 +14,60 @@ const Page = styled.View`
   background-color: ${(p) => p.theme.colors.secondaryBackground};
 `;
 
-const Header = styled.View`
-  padding: 14px 16px;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => p.theme.colors.separator};
-`;
-
-const HeaderRow = styled.View`
+const HeaderBar = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  padding-vertical: 14px;
+  padding-horizontal: 16px;
 `;
 
-const HeaderSide = styled.View`
-  flex: 1;
+const HeaderTitle = styled.Text`
+  font-size: 22px;
+  font-weight: 600;
+  color: #25D366;
+`;
+
+const HeaderIcons = styled.View`
   flex-direction: row;
   align-items: center;
-  min-width: 72px;
-`;
-
-const HeaderSideRight = styled(HeaderSide)`
-  justify-content: flex-end;
-  gap: 8px;
-`;
-
-const Title = styled.Text`
-  flex: 1;
-  font-size: 17px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.primaryText};
-  text-align: center;
+  gap: 16px;
 `;
 
 const HeaderButton = styled.TouchableOpacity`
   padding: 6px;
 `;
 
-const NewChatButton = styled.View`
-  width: 28px;
-  height: 28px;
-  border-radius: 14px;
-  justify-content: center;
+const SearchRow = styled.View`
+  padding-horizontal: 16px;
+  padding-bottom: 12px;
+`;
+
+const SearchBox = styled.View`
+  flex-direction: row;
   align-items: center;
-  background-color: ${(p) => p.theme.colors.primaryGreen};
+  background-color: #E9E9EB;
+  border-radius: 24px;
+  padding-vertical: 10px;
+  padding-horizontal: 14px;
+  gap: 10px;
+`;
+
+const SearchInput = styled.TextInput`
+  flex: 1;
+  font-size: 16px;
+  padding: 0;
+  color: ${(p) => (p.theme as { colors?: { primaryText?: string } })?.colors?.primaryText ?? '#000'};
+`;
+
+const HEADER_HEIGHT = 104;
+
+const HeaderGlassWrap = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 `;
 
 const EmptyContainer = styled.View`
@@ -117,34 +121,48 @@ export default function ChatsScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <Header>
-          <HeaderRow>
-            <HeaderSide>
-              <HeaderButton onPress={() => {}}>
-                <Ionicons name="ellipsis-horizontal" size={22} color={colors.primaryText} />
-              </HeaderButton>
-            </HeaderSide>
-            <Title>聊天</Title>
-            <HeaderSideRight>
-              <HeaderButton onPress={() => {}}>
-                <Ionicons name="camera-outline" size={22} color={colors.primaryText} />
-              </HeaderButton>
-              <HeaderButton onPress={() => {}}>
-                <NewChatButton>
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
-                </NewChatButton>
-              </HeaderButton>
-            </HeaderSideRight>
-          </HeaderRow>
-        </Header>
+        <HeaderGlassWrap>
+          <GlassView
+            liquid
+            style={{
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+          >
+            <HeaderBar>
+              <HeaderTitle>WhatsChat</HeaderTitle>
+              <HeaderIcons>
+                <HeaderButton onPress={() => {}}>
+                  <Ionicons name="camera-outline" size={24} color={colors.primaryText} />
+                </HeaderButton>
+                <HeaderButton onPress={() => {}}>
+                  <Ionicons name="ellipsis-vertical" size={24} color={colors.primaryText} />
+                </HeaderButton>
+              </HeaderIcons>
+            </HeaderBar>
+            <SearchRow>
+              <SearchBox>
+                <Ionicons name="sparkles" size={20} color="#8E8E93" />
+                <SearchInput
+                  placeholder="Ask Meta AI or Search"
+                  placeholderTextColor="#8E8E93"
+                  returnKeyType="search"
+                />
+              </SearchBox>
+            </SearchRow>
+          </GlassView>
+        </HeaderGlassWrap>
         {loading ? (
-          <EmptyContainerCentered>
+          <EmptyContainerCentered style={{ paddingTop: HEADER_HEIGHT }}>
             <ActivityIndicator size="large" color={colors.primaryGreen} />
             <EmptyText>加载中...</EmptyText>
           </EmptyContainerCentered>
         ) : (
           <FlatList
             data={chats}
+            contentContainerStyle={{ paddingTop: HEADER_HEIGHT, paddingBottom: 88 }}
             renderItem={({ item }) => (
               <ChatListItem
                 chat={item}
@@ -160,7 +178,7 @@ export default function ChatsScreen() {
               />
             }
             ListEmptyComponent={
-              <EmptyContainer>
+              <EmptyContainer style={{ paddingTop: HEADER_HEIGHT + 40 }}>
                 <Ionicons name="chatbubbles-outline" size={80} color={colors.secondaryText} />
                 <EmptyText>暂无聊天</EmptyText>
               </EmptyContainer>

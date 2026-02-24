@@ -27,9 +27,9 @@ export const AppTheme = {
   chatBackground: '#F2F2F7',
   darkChatBackground: '#000000',
 
-  // 消息气泡颜色 - iOS 风格
-  myMessageBubble: '#1DAC5A',
-  otherMessageBubble: '#E5E5EA',
+  // 消息气泡颜色 - WhatsApp 风格
+  myMessageBubble: '#D9FDD3',
+  otherMessageBubble: '#E9EDEF',
   darkMyMessageBubble: '#1DAC5A',
   darkOtherMessageBubble: '#3A3A3C',
 

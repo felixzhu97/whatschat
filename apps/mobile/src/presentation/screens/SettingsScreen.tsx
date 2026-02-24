@@ -1,79 +1,14 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { styled } from '@/src/presentation/shared/emotion';
+import { ChatAvatar, TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore, useAppDispatch, logout as logoutThunk } from '@/src/presentation/stores';
 
-const Page = styled.View`
-  flex: 1;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-`;
-
-const Header = styled.View`
-  padding: 14px 16px;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => p.theme.colors.separator};
-`;
-
-const HeaderRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Title = styled.Text`
-  font-size: 17px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.primaryText};
-`;
-
-const Section = styled.View`
-  margin-top: 24px;
-`;
-
-const SectionHeader = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.secondaryText};
-  padding: 8px 16px;
-  text-transform: uppercase;
-`;
-
-const Row = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  padding: 14px 16px;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => p.theme.colors.separator};
-`;
-
-const RowLabel = styled.Text`
-  flex: 1;
-  font-size: 17px;
-  color: ${(p) => p.theme.colors.primaryText};
-`;
-
-const RowValue = styled.Text`
-  font-size: 17px;
-  color: ${(p) => p.theme.colors.secondaryText};
-  margin-right: 8px;
-`;
-
-const LogoutRow = styled(Row)`
-  margin-top: 24px;
-  justify-content: center;
-`;
-
-const LogoutText = styled.Text`
-  font-size: 17px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.iosRed};
-`;
+const SECTION_RADIUS = 12;
+const ROW_HEIGHT = 52;
 
 export const SettingsScreen: React.FC = () => {
   const router = useRouter();
@@ -97,33 +32,158 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-      <Page>
-        <Header>
-          <HeaderRow>
-            <Title>设置</Title>
-          </HeaderRow>
-        </Header>
-        <Section>
-          <SectionHeader>账号</SectionHeader>
-          {user && (
-            <>
-              <Row activeOpacity={0.7}>
-                <RowLabel>用户名</RowLabel>
-                <RowValue>{user.username}</RowValue>
-                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </Row>
-              <Row activeOpacity={0.7}>
-                <RowLabel>邮箱</RowLabel>
-                <RowValue numberOfLines={1}>{user.email}</RowValue>
-                <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
-              </Row>
-            </>
-          )}
-        </Section>
-        <LogoutRow onPress={handleLogout} activeOpacity={0.7}>
-          <LogoutText>退出登录</LogoutText>
-        </LogoutRow>
-      </Page>
+      <View style={{ flex: 1, backgroundColor: colors.secondaryBackground }}>
+        <TabPageHeader title="设置" />
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 24 + TAB_PAGE_HEADER_HEIGHT }}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colors.secondaryBackground,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+            borderRadius: SECTION_RADIUS,
+            marginBottom: 32,
+          }}
+        >
+          <ChatAvatar name={user?.username ?? 'User'} size={64} />
+          <View style={{ marginLeft: 16, flex: 1 }}>
+            <Text
+              style={{ fontSize: 20, fontWeight: '600', color: colors.primaryText }}
+              numberOfLines={1}
+            >
+              {user?.username ?? '未设置'}
+            </Text>
+            <Text
+              style={{ fontSize: 15, color: colors.secondaryText, marginTop: 2 }}
+              numberOfLines={1}
+            >
+              {user?.email ?? ''}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={22} color={colors.secondaryText} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.secondaryText,
+            marginBottom: 8,
+            paddingHorizontal: 4,
+          }}
+        >
+          账号
+        </Text>
+        <View
+          style={{
+            backgroundColor: colors.secondaryBackground,
+            borderRadius: SECTION_RADIUS,
+            overflow: 'hidden',
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderBottomWidth: 0.5,
+              borderBottomColor: colors.separator,
+            }}
+          >
+            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>用户名</Text>
+            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }} numberOfLines={1}>
+              {user?.username ?? '—'}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+            }}
+          >
+            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>邮箱</Text>
+            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }} numberOfLines={1}>
+              {user?.email ?? '—'}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+          </TouchableOpacity>
+        </View>
+
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.secondaryText,
+            marginTop: 24,
+            marginBottom: 8,
+            paddingHorizontal: 4,
+          }}
+        >
+          聊天
+        </Text>
+        <View
+          style={{
+            backgroundColor: colors.secondaryBackground,
+            borderRadius: SECTION_RADIUS,
+            overflow: 'hidden',
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderBottomWidth: 0.5,
+              borderBottomColor: colors.separator,
+            }}
+          >
+            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>主题</Text>
+            <Text style={{ fontSize: 17, color: colors.secondaryText, marginRight: 8 }}>浅色</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+            }}
+          >
+            <Text style={{ fontSize: 17, color: colors.primaryText, flex: 1 }}>聊天壁纸</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={handleLogout}
+          style={{
+            marginTop: 32,
+            backgroundColor: colors.secondaryBackground,
+            borderRadius: SECTION_RADIUS,
+            paddingVertical: 16,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.iosRed }}>退出登录</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

@@ -1,31 +1,15 @@
 import React from 'react';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
+import { TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 
 const Page = styled.View`
   flex: 1;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
-`;
-
-const Header = styled.View`
-  padding: 14px 16px;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => p.theme.colors.separator};
-`;
-
-const HeaderRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Title = styled.Text`
-  font-size: 17px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.primaryText};
+  padding-bottom: 88;
 `;
 
 const EmptyState = styled.View`
@@ -58,11 +42,8 @@ export const CommunitiesScreen: React.FC = () => {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <Header>
-          <HeaderRow>
-            <Title>社区</Title>
-          </HeaderRow>
-        </Header>
+        <TabPageHeader title="社区" />
+        <View style={{ flex: 1, paddingTop: TAB_PAGE_HEADER_HEIGHT }}>
         <EmptyState>
           <EmptyIcon>
             <Ionicons name="people-outline" size={64} color={colors.secondaryText} />
@@ -70,6 +51,7 @@ export const CommunitiesScreen: React.FC = () => {
           <EmptyTitle>暂无社区</EmptyTitle>
           <EmptySubtitle>创建或加入社区，与多人一起交流</EmptySubtitle>
         </EmptyState>
+        </View>
       </Page>
     </SafeAreaView>
   );

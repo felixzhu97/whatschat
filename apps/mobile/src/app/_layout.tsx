@@ -12,8 +12,11 @@ export default function RootLayout() {
   return (
     <StoreProvider>
     <ThemeProvider>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <View style={{ flex: 1 }}>
+      <StatusBar
+        style={colorScheme === 'dark' ? 'light' : 'dark'}
+        backgroundColor="#ffffff"
+      />
+      <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
         <Stack
           screenOptions={{
             headerShown: false,

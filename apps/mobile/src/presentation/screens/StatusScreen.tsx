@@ -1,31 +1,15 @@
 import React from 'react';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
+import { TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 
 const Page = styled.View`
   flex: 1;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
-`;
-
-const Header = styled.View`
-  padding: 14px 16px;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
-  border-bottom-width: 0.5px;
-  border-bottom-color: ${(p) => p.theme.colors.separator};
-`;
-
-const HeaderRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Title = styled.Text`
-  font-size: 17px;
-  font-weight: 600;
-  color: ${(p) => p.theme.colors.primaryText};
+  padding-bottom: 88;
 `;
 
 const Section = styled.View`
@@ -70,11 +54,8 @@ export const StatusScreen: React.FC = () => {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <Header>
-          <HeaderRow>
-            <Title>更新</Title>
-          </HeaderRow>
-        </Header>
+        <TabPageHeader title="更新" />
+        <View style={{ flex: 1, paddingTop: TAB_PAGE_HEADER_HEIGHT }}>
         <Section>
           <SectionHeader>我的状态</SectionHeader>
         </Section>
@@ -85,6 +66,7 @@ export const StatusScreen: React.FC = () => {
           <EmptyTitle>暂无状态更新</EmptyTitle>
           <EmptySubtitle>点击下方按钮分享状态，仅限你的联系人可见</EmptySubtitle>
         </EmptyState>
+        </View>
       </Page>
     </SafeAreaView>
   );

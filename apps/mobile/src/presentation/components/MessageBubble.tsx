@@ -9,13 +9,15 @@ interface MessageBubbleProps {
   message: Message;
   isMe: boolean;
   showSenderName?: boolean;
+  showAvatar?: boolean;
   onTap?: () => void;
   onLongPress?: () => void;
 }
 
 const Row = styled.View`
   flex-direction: row;
-  margin: 4px 8px;
+  margin-vertical: 2px;
+  margin-horizontal: 4px;
   align-items: flex-end;
   justify-content: ${(p: { isMe: boolean }) => (p.isMe ? 'flex-end' : 'flex-start')};
 `;
@@ -38,7 +40,7 @@ const AvatarText = styled.Text`
 
 const MessageWrapper = styled.View`
   flex: 1;
-  max-width: 70%;
+  max-width: 78%;
 `;
 
 const ReplyIndicator = styled.View`
@@ -73,18 +75,10 @@ const ReplyText = styled.Text`
 `;
 
 const Bubble = styled.View`
-  padding: 12px;
-  shadow-color: #000;
-  shadow-offset: 0px 1px;
-  shadow-opacity: 0.1;
-  shadow-radius: 2px;
-  elevation: 2;
+  padding: 10px 14px 8px 14px;
   background-color: ${(p: { isMe: boolean }) =>
     p.isMe ? p.theme.colors.myMessageBubble : p.theme.colors.otherMessageBubble};
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  border-bottom-left-radius: ${(p: { isMe: boolean }) => (p.isMe ? 18 : 4)}px;
-  border-bottom-right-radius: ${(p: { isMe: boolean }) => (p.isMe ? 4 : 18)}px;
+  border-radius: 18px;
 `;
 
 const SenderName = styled.Text`
@@ -97,7 +91,13 @@ const SenderName = styled.Text`
 const MessageText = styled.Text`
   font-size: 16px;
   font-weight: 400;
-  color: ${(p: { isMe: boolean }) => (p.isMe ? '#ffffff' : p.theme.colors.primaryText)};
+  line-height: 22px;
+  color: ${(p: {
+    isMe: boolean;
+    isDark?: boolean;
+    theme?: { colors: { primaryText: string } };
+  }) =>
+    p.isMe ? (p.isDark ? '#FFFFFF' : '#111B21') : (p.theme?.colors?.primaryText ?? '#000000')};
 `;
 
 const ImageMessage = styled.Image`
@@ -201,13 +201,19 @@ const SystemText = styled.Text`
 const MessageInfo = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-top: 2px;
+  align-self: flex-end;
+  margin-top: 4px;
   gap: 4px;
 `;
 
 const TimeText = styled.Text`
   font-size: 11px;
-  color: #808080;
+  color: ${(p: { isMe?: boolean; isDark?: boolean }) =>
+    p.isMe
+      ? p.isDark
+        ? 'rgba(255,255,255,0.85)'
+        : 'rgba(17,27,33,0.6)'
+      : 'rgba(0,0,0,0.45)'};
 `;
 
 function formatTime(timestamp: Date): string {
@@ -241,17 +247,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   isMe,
   showSenderName = false,
+  showAvatar = false,
   onTap,
   onLongPress,
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const sentStatusColor = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(17,27,33,0.6)';
 
   const renderMessageStatusIcon = () => {
     switch (message.status) {
       case MessageStatus.Sent:
-        return <Ionicons name="checkmark" size={12} color={colors.secondaryText} />;
+        return <Ionicons name="checkmark" size={12} color={sentStatusColor} />;
       case MessageStatus.Delivered:
-        return <Ionicons name="checkmark-done" size={12} color={colors.secondaryText} />;
+        return <Ionicons name="checkmark-done" size={12} color={sentStatusColor} />;
       case MessageStatus.Read:
         return <Ionicons name="checkmark-done" size={12} color={colors.deliveredColor} />;
       case MessageStatus.Failed:
@@ -264,7 +272,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const renderMessageContent = () => {
     switch (message.type) {
       case MessageType.Text:
-        return <MessageText isMe={isMe}>{message.content}</MessageText>;
+        return (
+          <MessageText isMe={isMe} isDark={isDark}>
+            {message.content}
+          </MessageText>
+        );
       case MessageType.Image:
         return (
           <ImageMessage
@@ -341,14 +353,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </SystemContainer>
         );
       default:
-        return <MessageText isMe={isMe}>{message.content}</MessageText>;
+        return (
+          <MessageText isMe={isMe} isDark={isDark}>
+            {message.content}
+          </MessageText>
+        );
     }
   };
 
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onTap} onLongPress={onLongPress}>
       <Row isMe={isMe}>
-        {!isMe && (
+        {!isMe && showAvatar && (
           <Avatar>
             <AvatarText>{message.senderName?.[0]?.toUpperCase() || 'U'}</AvatarText>
           </Avatar>
@@ -364,15 +380,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </ReplyIndicator>
           )}
           <Bubble isMe={isMe}>
-            {!isMe && message.type !== MessageType.System && (
+            {!isMe && showSenderName && message.type !== MessageType.System && (
               <SenderName>{message.senderName}</SenderName>
             )}
             {renderMessageContent()}
+            <MessageInfo>
+              <TimeText isMe={isMe} isDark={isDark}>
+                {formatTime(message.timestamp)}
+              </TimeText>
+              {isMe && renderMessageStatusIcon()}
+            </MessageInfo>
           </Bubble>
-          <MessageInfo>
-            <TimeText>{formatTime(message.timestamp)}</TimeText>
-            {isMe && renderMessageStatusIcon()}
-          </MessageInfo>
         </MessageWrapper>
       </Row>
     </TouchableOpacity>
