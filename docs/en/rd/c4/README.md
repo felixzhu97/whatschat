@@ -10,6 +10,7 @@ This folder contains the [C4 model](https://c4model.com/) diagrams for WhatsChat
 | **2 – Containers** | [containers.puml](./containers.puml) | Main containers: Web App, Admin App, Mobile App, API Server, PostgreSQL, Redis, Object Storage. |
 | **3 – Components (API Server)** | [components-api-server.puml](./components-api-server.puml) | NestJS API Server: controllers, WebSocket gateway, services, repositories. |
 | **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, chat/call UI (Emotion, Radix UI), hooks, API/WebSocket clients, @whatschat/domain. |
+| **3 – Components (Mobile App)** | [components-mobile-app.puml](./components-mobile-app.puml) | Expo Mobile App: screens (Expo Router), chat/call/settings UI (Emotion), auth/message hooks, i18n, theme, API/WebSocket clients, @whatschat/domain. |
 
 ## How to view
 
@@ -32,11 +33,11 @@ This folder contains the [C4 model](https://c4model.com/) diagrams for WhatsChat
 # Install Java and PlantUML (e.g. on macOS)
 brew install plantuml
 
-# Generate PNGs
-plantuml docs/c4/*.puml
+# Generate PNGs (from repo root)
+plantuml docs/en/rd/c4/*.puml
 
 # Or SVG
-plantuml -tsvg docs/c4/*.puml
+plantuml -tsvg docs/en/rd/c4/*.puml
 ```
 
 ## Conventions

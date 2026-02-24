@@ -46,7 +46,11 @@ package "Client Applications" {
     - React Native
     - Expo
     - TypeScript
+    - Emotion (@emotion/native)
     - Redux Toolkit + React Redux
+    - i18next (en/zh)
+    - Theme (light/dark/system)
+    - iOS-style Settings (grouped cards)
   end note
 }
 

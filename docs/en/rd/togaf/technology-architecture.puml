@@ -46,7 +46,9 @@ package "Client Technology Stack" {
     component [React Native] as ReactNative
     component [Expo] as Expo
     component [TypeScript] as MobileTS
+    component [Emotion @emotion/native] as MobileEmotion
     component [Redux Toolkit + React Redux] as MobileState
+    component [i18next] as i18n
     component [WebSocket Client] as MobileWs
     component [WebRTC Client] as MobileRTC
   }
@@ -196,7 +198,9 @@ AdminNextJS --> Emotion : styling
 
 ReactNative --> Expo : framework
 ReactNative --> MobileTS : language
+ReactNative --> MobileEmotion : styling
 ReactNative --> MobileState : state management (Redux Toolkit + React Redux)
+ReactNative --> i18n : i18n (en/zh)
 ReactNative --> MobileWs : realtime transport
 ReactNative --> MobileRTC : audio/video
 
@@ -240,9 +244,9 @@ rectangle "Tech Stack Summary" {
     **Frontend stack**
     - Web: Next.js + React + TypeScript + Tailwind CSS
     - Admin: Next.js + React + TypeScript + Emotion
-    - Mobile: React Native + Expo + TypeScript
+    - Mobile: React Native + Expo + TypeScript + Emotion (@emotion/native) + i18next
     - State management: Redux Toolkit + React Redux (Web & Mobile)
-    - UI: Tailwind CSS (Web) / Emotion (Admin) / React Native UI (Mobile)
+    - UI: Tailwind CSS (Web) / Emotion (Admin & Mobile) / theme (light/dark/system on Mobile)
     - Realtime: WebSocket + WebRTC (Web & Mobile)
   end note
   
@@ -272,7 +276,7 @@ note bottom
   
   WhatsChat adopts a modern technology stack:
   
-  1. **Clients** – Web app (Next.js + React); admin app (Next.js + React + Emotion); mobile app (React Native + Expo)
+  1. **Clients** – Web app (Next.js + React); admin app (Next.js + React + Emotion); mobile app (React Native + Expo + Emotion + i18next, theme)
   2. **Server** – NestJS framework provides modular, extensible backend services
   3. **Data layer** – PostgreSQL as the primary database; Redis for caching and message brokering
   4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video

@@ -17,6 +17,8 @@ const ROW_MIN_HEIGHT = 44;
 const CARD_RADIUS = 12;
 const PROFILE_CARD_RADIUS = 14;
 const CARD_GAP = 20;
+const CARD_PADDING_V = 12;
+const CARD_PADDING_H = 16;
 
 const ScreenWrap = styled.View`
   flex: 1;
@@ -34,12 +36,15 @@ const ScrollContent = styled.View`
   padding-top: ${LIST_INSET}px;
 `;
 
+const CARD_INSET_H = 12;
+
 const ProfileCard = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   padding-vertical: 16px;
   padding-horizontal: ${LIST_INSET}px;
   margin-bottom: ${CARD_GAP}px;
+  margin-horizontal: ${CARD_INSET_H}px;
   border-radius: ${PROFILE_CARD_RADIUS}px;
   overflow: hidden;
 `;
@@ -66,6 +71,11 @@ const Card = styled.View`
   border-radius: ${CARD_RADIUS}px;
   overflow: hidden;
   margin-top: ${CARD_GAP}px;
+  margin-bottom: ${CARD_GAP}px;
+  margin-horizontal: ${CARD_INSET_H}px;
+  padding-top: ${CARD_PADDING_V}px;
+  padding-bottom: ${CARD_PADDING_V}px;
+  padding-horizontal: ${CARD_PADDING_H}px;
 `;
 
 const ICON_SIZE = 28;
@@ -76,7 +86,7 @@ const Row = styled.TouchableOpacity`
   align-items: center;
   min-height: ${ROW_MIN_HEIGHT}px;
   padding-vertical: 11px;
-  padding-horizontal: ${LIST_INSET}px;
+  padding-horizontal: 0;
 `;
 
 const RowBorder = styled(Row)`

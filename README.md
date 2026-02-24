@@ -10,13 +10,14 @@ A modern instant messaging application built with React and TypeScript, supporti
 - 👥 **Contact Management** - Add, delete, and search contacts
 - 🔍 **Message Search** - Full-text search of chat history
 - 📱 **Responsive Design** - Support for desktop and mobile devices
+- 📱 **Mobile App (Expo)** - React Native app with iOS-style Settings (grouped cards, theme, language), i18n (en/zh), light/dark/system theme
 - 🔐 **Complete Authentication System** - Registration, login, JWT token management
 - 🧪 **A/B Testing & Feature Flags** - GrowthBook for experiments and feature toggles (e.g. `send_message`, inline experiments)
 
 ## 🛠️ Tech Stack
 
 **Frontend Web**: Next.js 15, React 19, TypeScript, Tailwind CSS, **Emotion** (styled/css), Radix UI, **Redux Toolkit + React Redux**, **GrowthBook** (A/B testing & feature flags)  
-**Frontend Mobile**: React Native, Expo, TypeScript, **Emotion** (@emotion/native), **Redux Toolkit + React Redux**  
+**Frontend Mobile**: React Native, Expo, TypeScript, **Emotion** (@emotion/native), **Redux Toolkit + React Redux**, **i18next** (en/zh), theme (light/dark/system)  
 **Frontend Admin**: Next.js 15, React 19, TypeScript, **Emotion** (styled/css)  
 **Backend**: NestJS 10, TypeScript, Prisma, PostgreSQL, Redis  
 **Authentication**: JWT, Passport, bcrypt  
@@ -404,6 +405,7 @@ View architecture diagrams and documentation: [中文 (zh)](docs/zh/README.md) |
 - [Level 2 – Containers](docs/en/rd/c4/containers.puml)
 - [Level 3 – API Server Components](docs/en/rd/c4/components-api-server.puml)
 - [Level 3 – Web App Components](docs/en/rd/c4/components-web-app.puml)
+- [Level 3 – Mobile App Components](docs/en/rd/c4/components-mobile-app.puml)
 
 ### TOGAF Architecture Diagrams · R&D
 
