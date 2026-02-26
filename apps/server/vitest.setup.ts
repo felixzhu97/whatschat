@@ -62,17 +62,6 @@ vi.mock('nodemailer', () => ({
   })),
 }))
 
-vi.mock('aws-sdk', () => ({
-  S3: vi.fn(() => ({
-    upload: vi.fn(() => ({
-      promise: vi.fn(),
-    })),
-    deleteObject: vi.fn(() => ({
-      promise: vi.fn(),
-    })),
-  })),
-}))
-
 vi.mock('bull', () => ({
   default: vi.fn(() => ({
     add: vi.fn(),

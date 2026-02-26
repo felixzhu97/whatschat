@@ -13,7 +13,7 @@ System_Boundary(whatschat, "WhatsChat") {
 
 System_Ext(email, "Email Service", "Sends transactional email (e.g. SMTP/SES)")
 System_Ext(push, "Push Service", "Push notifications (FCM/APNs)")
-System_Ext(storage, "Object Storage", "File storage (S3/MinIO)")
+System_Ext(storage, "File Storage", "Local file storage")
 System_Ext(webrtc, "STUN/TURN", "WebRTC NAT traversal")
 System_Ext(growthbook, "GrowthBook", "A/B testing and feature flags (optional)")
 

@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { ConfigService } from './infrastructure/config/config.service';
-import { ApiGatewayWebSocketModule } from './infrastructure/services/apigateway/apigateway-websocket.module';
 import { AuthModule } from './presentation/auth/auth.module';
 import { HealthModule } from './presentation/health/health.module';
 import { WebSocketModule } from './presentation/websocket/websocket.module';
@@ -13,6 +12,7 @@ import { ChatsModule } from './presentation/chats/chats.module';
 import { GroupsModule } from './presentation/groups/groups.module';
 import { CallsModule } from './presentation/calls/calls.module';
 import { StatusModule } from './presentation/status/status.module';
+import { AdminModule } from './presentation/admin/admin.module';
 
 @Module({
   imports: [
@@ -31,8 +31,6 @@ import { StatusModule } from './presentation/status/status.module';
     ]),
     // Database module
     DatabaseModule,
-    ApiGatewayWebSocketModule,
-    // Business modules
     AuthModule,
     HealthModule,
     WebSocketModule,
@@ -42,6 +40,7 @@ import { StatusModule } from './presentation/status/status.module';
     GroupsModule,
     CallsModule,
     StatusModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

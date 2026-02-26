@@ -17,10 +17,9 @@ docs/
 │   ├── data/                 # 数据：数据流、复制
 │   │   ├── data-flow.puml
 │   │   └── data-replication.puml
-│   └── rd/                   # 研发：API、分布式系统、AWS
+│   └── rd/                   # 研发：API、分布式系统
 │       ├── api/
-│       ├── distributed-systems/
-│       └── aws-integration.md
+│       └── distributed-systems/
 └── en/
     ├── README.md
     ├── product/              # 产品（链至 zh/product）
@@ -54,7 +53,6 @@ docs/
 - [TOGAF](../en/rd/togaf/README.md)（en）— overview, business, application, data, technology
 - [API 文档](rd/api/README.md) · [Postman 集合](rd/api/whatschat-api.postman_collection.json)
 - [分布式系统](rd/distributed-systems/README.md) — 架构、服务发现、事务、负载均衡、消息队列、时序
-- [AWS 集成](rd/aws-integration.md)
 
 ## 🔧 如何查看架构图
 
@@ -98,7 +96,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 - **用户角色**：普通用户、联系人、系统管理员
 - **外部系统**：WebRTC服务、云存储、推送通知、CDN、邮件服务、数据分析、监控报警
 - **系统边界**：明确定义系统职责范围
-- **交互协议**：HTTPS、WebSocket、WebRTC、S3 API、FCM/APNs等
+- **交互协议**：HTTPS、WebSocket、WebRTC、FCM/APNs等
 
 ### 2. 容器图 (Container Diagram)
 
@@ -109,7 +107,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 
 - **前端容器**：Next.js Web应用、Flutter移动应用
 - **后端容器**：Node.js API服务、WebSocket服务
-- **数据存储**：PostgreSQL主数据库、Redis缓存、MinIO/S3文件存储、Elasticsearch搜索
+- **数据存储**：PostgreSQL主数据库、Redis缓存、本地文件存储、Elasticsearch搜索
 - **基础设施**：API网关、负载均衡器
 - **外部服务集成**：推送服务、邮件服务、监控服务
 
@@ -213,7 +211,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
   - **Genesis (创新)**：WebRTC音视频、实时推送、消息搜索 - 高度定制化，差异化竞争优势
   - **Custom-built (定制)**：消息处理逻辑、用户认证系统、文件管理 - 内部构建，特定业务需求
   - **Product (产品)**：Next.js、Flutter、NestJS、Prisma、Socket.io - 标准化产品，可配置
-  - **Commodity (商品)**：PostgreSQL、Redis、S3、CDN、HTTP/HTTPS、Docker - 通用服务，按需使用
+  - **Commodity (商品)**：PostgreSQL、Redis、本地存储、CDN、HTTP/HTTPS、Docker - 通用服务，按需使用
 
 **使用场景：**
 
@@ -323,7 +321,7 @@ apps/web/
 
 - **共享领域包**：新增 `packages/domain`（@whatschat/domain），统一 User、Message、Chat、Contact、Group、Call 等类型定义
 - **三端统一**：Server、Web、Mobile 均使用 @whatschat/domain 的类型；各应用可扩展或实现接口
-- **共享包结构**：`packages/domain`（领域类型）、`packages/aws-integration`（AWS 服务封装）
+- **共享包结构**：`packages/domain`（领域类型）
 - **类型检查**：根目录 `pnpm tsc` / `pnpm check-types` 对所有 workspace 执行 TypeScript 检查
 
 ### v5.0 - 未来规划
@@ -489,7 +487,7 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 
 - ✅ 更新技术栈信息（NestJS 10）
 - ✅ 添加整洁架构说明
-- ✅ 添加共享领域包与 monorepo 包结构（@whatschat/domain、@whatschat/aws-integration）
+- ✅ 添加共享领域包与 monorepo 包结构（@whatschat/domain）
 - ✅ 更新项目结构描述
 - ✅ 更新环境变量配置说明
 - ✅ 更新 API 文档链接（Swagger）

@@ -185,7 +185,20 @@ export async function main() {
     const saltRounds = config.security.bcrypt.saltRounds;
     const hashedPassword = await bcrypt.hash("123456", saltRounds);
 
-    const users: Awaited<ReturnType<typeof prisma.user.create>>[] = [];
+    const adminUser = await prisma.user.create({
+      data: {
+        username: "admin",
+        email: "admin@whatschat.com",
+        phone: "+1 555 000 0000",
+        password: hashedPassword,
+        avatar: "/placeholder.svg?height=40&width=40&text=A",
+        status: "Admin",
+        isOnline: false,
+      },
+    });
+    await prisma.userSettings.create({ data: { userId: adminUser.id } });
+
+    const users: Awaited<ReturnType<typeof prisma.user.create>>[] = [adminUser];
     for (let i = 0; i < PERSON_DATA.length; i++) {
       const p = PERSON_DATA[i]!;
       const initial = p.username[0]!.toUpperCase();
@@ -413,7 +426,7 @@ export async function main() {
 
     logger.info("数据库种子完成！");
     logger.info(`共 ${users.length} 个测试账户，密码均为: 123456`);
-    logger.info("示例: cristiano@whatschat.com (Web默认), ladygaga@whatschat.com (Mobile默认) ...");
+    logger.info("默认: admin@whatschat.com (Admin后台) | cristiano@whatschat.com (Web) | ladygaga@whatschat.com (Mobile)");
   } catch (error) {
     logger.error("数据库种子失败:", error);
     throw error;

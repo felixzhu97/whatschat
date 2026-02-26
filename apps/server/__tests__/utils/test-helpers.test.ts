@@ -6,7 +6,6 @@ import {
   mockPrismaClient,
   mockRedisClient,
   mockSocketIO,
-  mockS3Client,
   mockEmailTransporter,
   mockQueue,
   generateMockUsers,
@@ -150,30 +149,6 @@ describe("Test Helpers", () => {
       const room = io.to();
 
       expect(room.emit).toBeDefined();
-    });
-  });
-
-  describe("mockS3Client", () => {
-    it("应该创建mock S3客户端", () => {
-      const s3 = mockS3Client();
-
-      expect(s3.upload).toBeDefined();
-      expect(s3.deleteObject).toBeDefined();
-      expect(s3.getSignedUrl).toBeDefined();
-    });
-
-    it("upload方法应该返回具有promise方法的对象", () => {
-      const s3 = mockS3Client();
-      const upload = s3.upload();
-
-      expect(upload.promise).toBeDefined();
-    });
-
-    it("deleteObject方法应该返回具有promise方法的对象", () => {
-      const s3 = mockS3Client();
-      const deleteObj = s3.deleteObject();
-
-      expect(deleteObj.promise).toBeDefined();
     });
   });
 

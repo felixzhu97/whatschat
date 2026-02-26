@@ -90,16 +90,6 @@ export const mockSocketIO = () => ({
   close: vi.fn(),
 })
 
-export const mockS3Client = () => ({
-  upload: vi.fn(() => ({
-    promise: vi.fn(),
-  })),
-  deleteObject: vi.fn(() => ({
-    promise: vi.fn(),
-  })),
-  getSignedUrl: vi.fn(),
-})
-
 export const mockEmailTransporter = () => ({
   sendMail: vi.fn(),
   verify: vi.fn(),

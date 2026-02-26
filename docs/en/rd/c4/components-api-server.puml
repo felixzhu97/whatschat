@@ -11,8 +11,8 @@ Container_Boundary(api_server, "API Server") {
   Component(user_svc, "User Service", "NestJS", "Profile, search")
   Component(message_svc, "Message Service", "NestJS", "Send, list, reactions")
   Component(chat_svc, "Chat Service", "NestJS", "Chat list, create, participants")
-  Component(call_svc, "Call Service", "NestJS", "Call signaling (WebSocket); optional Chime SDK")
-  Component(file_svc, "File Service", "NestJS", "Upload, presign, @whatschat/aws-integration")
+  Component(call_svc, "Call Service", "NestJS", "Call signaling (WebSocket)")
+  Component(file_svc, "File Service", "NestJS", "Upload, local storage")
   ComponentDb(repo, "Repositories", "Prisma", "Data access, @whatschat/domain types")
 }
 
@@ -20,7 +20,7 @@ Container_Ext(web_app, "Web App", "Next.js", "Browser client")
 Container_Ext(mobile_app, "Mobile App", "Expo", "Mobile client")
 ContainerDb_Ext(postgres, "PostgreSQL", "Database", "Persistent storage")
 Container_Ext(redis, "Redis", "Cache", "Session, Pub/Sub")
-Container_Ext(s3, "S3", "Object Storage", "Files")
+Container_Ext(file_storage, "File Storage", "Local", "Files")
 
 Rel(web_app, controllers, "REST, WebSocket")
 Rel(mobile_app, controllers, "REST, WebSocket")
@@ -41,7 +41,7 @@ Rel(file_svc, repo, "Uses")
 Rel(repo, postgres, "Prisma")
 Rel(auth_svc, redis, "Session")
 Rel(websocket, redis, "Pub/Sub")
-Rel(file_svc, s3, "Upload/Download")
+Rel(file_svc, file_storage, "Upload/Download")
 
 SHOW_LEGEND()
 @enduml

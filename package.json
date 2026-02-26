@@ -21,7 +21,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "setup": "./scripts/setup/dev.sh",
-    "setup:inline": "pnpm --filter @whatschat/aws-integration build && cd apps/server && pnpm db:generate && cd ../..",
+    "setup:inline": "cd apps/server && pnpm db:generate && cd ../..",
     "start:server": "bash scripts/app/start.sh dev",
     "start:mobile": "pnpm --filter react-native-app start",
     "start:mobile:ios": "pnpm --filter react-native-app ios",

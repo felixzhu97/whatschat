@@ -6,20 +6,17 @@ import {
 } from "../../../domain/interfaces/adapters/websocket.interface";
 import { io, Socket } from "socket.io-client";
 
-type WebSocketMode = "socketio" | "apigateway" | "simulated";
+type WebSocketMode = "socketio" | "simulated";
 
 const SOCKET_DEBUG = process.env.NEXT_PUBLIC_SOCKET_DEBUG === "true";
 
 function logSocket(...args: any[]) {
   if (!SOCKET_DEBUG) return;
-  //统一前缀，方便在控制台过滤
   console.log("[WS]", ...args);
 }
 
 export class WebSocketAdapter implements IWebSocketAdapter {
-  // Native WebSocket connection (for API Gateway or basic WS)
   private ws: WebSocket | null = null;
-  // Socket.IO connection (for NestJS ChatGateway)
   private ioSocket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -28,21 +25,15 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   private isConnecting = false;
   private messageQueue: WebSocketMessage[] = [];
   private mode: WebSocketMode = "simulated";
-  private apiGatewayEndpoint: string | null = null;
-  private connectionId: string | null = null;
 
   constructor() {
-    // Determine connection mode from environment or config
-    const wsMode = (process.env.NEXT_PUBLIC_WEBSOCKET_MODE || "socketio") as WebSocketMode;
-    this.mode = wsMode;
-    this.apiGatewayEndpoint = process.env.NEXT_PUBLIC_API_GATEWAY_WEBSOCKET_ENDPOINT || null;
+    const wsMode = (process.env.NEXT_PUBLIC_WEBSOCKET_MODE || "socketio") as string;
+    this.mode = wsMode === "socketio" ? "socketio" : "simulated";
 
-    logSocket("init adapter", { mode: this.mode, apiGatewayEndpoint: this.apiGatewayEndpoint });
+    logSocket("init adapter", { mode: this.mode });
 
     if (this.mode === "simulated") {
       this.simulateConnection();
-    } else if (this.mode === "apigateway" && this.apiGatewayEndpoint) {
-      this.connectToApiGateway();
     } else {
       this.connect();
     }
@@ -87,130 +78,6 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.handleMessage(simulatedMessage);
   }
 
-  private connectToApiGateway() {
-    if (
-      this.isConnecting ||
-      (this.ws && this.ws.readyState === WebSocket.OPEN)
-    ) {
-      return;
-    }
-
-    if (!this.apiGatewayEndpoint) {
-      logSocket("API Gateway WebSocket endpoint not configured, fallback to simulated");
-      this.mode = "simulated";
-      this.simulateConnection();
-      return;
-    }
-
-    this.isConnecting = true;
-
-    try {
-      // Get JWT token from localStorage or auth context
-      const token = this.getAuthToken();
-      if (!token) {
-        logSocket("no auth token, fallback to simulated");
-        this.mode = "simulated";
-        this.simulateConnection();
-        return;
-      }
-
-      // Connect to API Gateway WebSocket with token
-      const wsUrl = `${this.apiGatewayEndpoint}?token=${encodeURIComponent(token)}`;
-      logSocket("connecting to API Gateway WS", { wsUrl });
-      this.ws = new WebSocket(wsUrl);
-
-      this.ws.onopen = () => {
-        logSocket("API Gateway WS connected");
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        
-        // Extract connection ID from WebSocket URL if available
-        // Note: API Gateway provides connection ID in the response
-        this.emit("connected", { mode: this.mode, connectionId: this.connectionId });
-        this.flushMessageQueue();
-      };
-
-      this.ws.onmessage = (event) => {
-        try {
-          let message: WebSocketMessage;
-
-          if (typeof event.data === "string") {
-            if (event.data.startsWith("{") || event.data.startsWith("[")) {
-              const parsed = JSON.parse(event.data);
-
-              // Handle API Gateway message format
-              if (this.mode === "apigateway" && parsed.type) {
-                message = {
-                  type: parsed.type,
-                  from: parsed.from || parsed.userId || "server",
-                  data: parsed.data || parsed,
-                  timestamp: parsed.timestamp || Date.now(),
-                };
-              } else {
-                message = parsed;
-              }
-            } else {
-              message = {
-                type: "message",
-                data: {
-                  text: event.data,
-                  type: "text",
-                  id: Date.now().toString(),
-                },
-                from: this.mode === "apigateway" ? "server" : "echo_server",
-                timestamp: Date.now(),
-              };
-            }
-          } else {
-            logSocket("API Gateway WS received binary data", event.data);
-            return;
-          }
-
-          this.handleMessage(message);
-        } catch (error) {
-          logSocket("API Gateway WS parse message failed, using raw data", {
-            error,
-            raw: event.data,
-          });
-
-          const fallbackMessage: WebSocketMessage = {
-            type: "message",
-            data: {
-              text: String(event.data).substring(0, 100),
-              type: "text",
-              id: Date.now().toString(),
-            },
-            from: "server",
-            timestamp: Date.now(),
-          };
-
-          this.handleMessage(fallbackMessage);
-        }
-      };
-
-      this.ws.onclose = (event) => {
-        logSocket("API Gateway WS closed", { code: event.code, reason: event.reason });
-        this.isConnecting = false;
-        this.ws = null;
-        this.emit("disconnected", null);
-
-        if (event.code !== 1000) {
-          this.attemptReconnect();
-        }
-      };
-
-      this.ws.onerror = (error) => {
-        logSocket("API Gateway WS error", error);
-        this.isConnecting = false;
-        this.emit("error", error);
-      };
-    } catch (error) {
-      logSocket("API Gateway WS connect failed", error);
-      this.isConnecting = false;
-      this.attemptReconnect();
-    }
-  }
-
   private flushMessageQueue() {
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift();
@@ -232,8 +99,6 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       setTimeout(() => {
         if (this.mode === "simulated") {
           this.simulateConnection();
-        } else if (this.mode === "apigateway") {
-          this.connectToApiGateway();
         } else {
           this.connect();
         }
@@ -632,8 +497,6 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.mode = mode;
     if (mode === "simulated") {
       this.simulateConnection();
-    } else if (mode === "apigateway") {
-      this.connectToApiGateway();
     } else {
       this.connect();
     }

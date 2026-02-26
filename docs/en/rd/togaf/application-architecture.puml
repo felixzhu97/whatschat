@@ -7,16 +7,10 @@ title TOGAF Application Architecture - WhatsChat Messaging System
 
 package "Shared Packages" {
   component [@whatschat/domain] as DomainPkg #LightYellow
-  component [@whatschat/aws-integration] as AwsPkg #LightYellow
   note right of DomainPkg
     Shared domain types:
     User, Message, Chat,
     Contact, Group, Call
-  end note
-  note right of AwsPkg
-    AWS SDK wrappers:
-    S3, SES, SNS, SQS,
-    Lambda, Cognito, Chime
   end note
 }
 
@@ -79,8 +73,6 @@ package "Application Services Layer" {
 AuthService --> DomainPkg : uses types
 MessageService --> DomainPkg : uses types
 ChatService --> DomainPkg : uses types
-FileService --> AwsPkg : uses
-
 package "Business Logic Layer" {
   component [Message Handling Logic] as MessageLogic
   component [Realtime Communication Logic] as RealtimeLogic

@@ -362,8 +362,6 @@
 **相关文件**：
 - `packages/sdk-storage/` - 存储 SDK
 - `apps/server/src/application/services/file.service.ts` - 文件服务
-- `packages/aws-integration/` - AWS 集成
-
 ## 5. 实施优先级与路线图
 
 ### 第一阶段（高优先级 - 立即实施）

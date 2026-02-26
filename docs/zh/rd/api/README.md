@@ -30,7 +30,7 @@
 在使用 Postman 集合之前，需要配置以下环境变量：
 
 - `base_url`: API 服务器的基础 URL
-  - 开发环境: `http://localhost:3000`
+  - 开发环境: `http://localhost:4000`
   - 生产环境: `https://api.whatschat.com`
 
 ### 运行测试

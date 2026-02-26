@@ -31,7 +31,7 @@ It includes test cases for:
 Configure before running requests:
 
 - `base_url` – API base URL  
-  - Development: `http://localhost:3000`  
+  - Development: `http://localhost:4000`  
   - Production: `https://api.whatschat.com`
 
 ### Run tests

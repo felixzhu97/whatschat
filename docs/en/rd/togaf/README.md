@@ -13,14 +13,14 @@ The diagrams describe the **four core architecture domains**: Business, Applicat
 | --- | --- |
 | [business-architecture.puml](./business-architecture.puml) | **Business Architecture** – business actors, capabilities (user management, instant messaging, voice & video calls, file sharing, groups, contacts, notifications), business processes and business value |
 | [application-architecture.puml](./application-architecture.puml) | **Application Architecture** – Web/Mobile clients, API gateways (REST, WebSocket, WebRTC), NestJS application services, data access, and infrastructure services |
-| [data-architecture.puml](./data-architecture.puml) | **Data Architecture** – core entities (User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload), association entities, PostgreSQL/Redis/S3 storage and data flows |
+| [data-architecture.puml](./data-architecture.puml) | **Data Architecture** – core entities (User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload), association entities, PostgreSQL/Redis/Local storage and data flows |
 | [technology-architecture.puml](./technology-architecture.puml) | **Technology Architecture** – frontend and backend technology stack (Next.js, React Native, NestJS, Prisma, JWT, Socket.IO, WebRTC), data persistence, and deployment (Docker, etc.) |
 
 ## Mapping to WhatsChat
 
 - **Business** – instant messaging, audio/video calling, file sharing, groups, contacts, notifications and related core capabilities
 - **Application** – `apps/web`, `apps/mobile`, `apps/server` and NestJS modules (Auth, Users, Messages, Chats, Calls, Groups, Status, WebSocket)
-- **Data** – Prisma schema in `apps/server/prisma/` and PostgreSQL/Redis/S3
+- **Data** – Prisma schema in `apps/server/prisma/` and PostgreSQL/Redis/Local
 - **Technology** – monorepo (Turborepo, pnpm), each app’s `package.json`, `tsconfig.json`, and shared tooling
 
 ## Specification & Checklist

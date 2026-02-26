@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm exec next build",
-    "dev": "pnpm exec next dev",
+    "dev": "pnpm exec next dev -p 4000",
     "check-types": "npx -p typescript tsc --noEmit",
     "lint": "pnpm exec next lint",
     "start": "pnpm exec next start",

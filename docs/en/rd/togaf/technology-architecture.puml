@@ -7,17 +7,10 @@ title TOGAF Technology Architecture - WhatsChat Messaging System
 
 package "Shared Packages (Monorepo)" {
   component [@whatschat/domain] as DomainPkg #LightYellow
-  component [@whatschat/aws-integration] as AwsPkg #LightYellow
   note right of DomainPkg
     Shared TypeScript types:
     User, Message, Chat,
     Contact, Group, Call
-  end note
-  note right of AwsPkg
-    AWS SDK wrappers:
-    S3, SES, SNS, SQS,
-    Lambda, Cognito, Chime,
-    CloudWatch, API GW
   end note
 }
 
@@ -115,12 +108,11 @@ package "Data Persistence" {
 }
 
 package "File Storage" {
-  component [MinIO/S3] as S3 #LightGreen
-  note right of S3
-    Object storage
+  component [Local Storage] as FileStorage #LightGreen
+  note right of FileStorage
+    Local file storage
     - File upload/download
-    - CDN acceleration
-    - Versioning
+    - uploadDir
   end note
   
   component [Sharp] as Sharp
@@ -173,7 +165,6 @@ NextJS --> DomainPkg : types
 AdminNextJS --> DomainPkg : types
 ReactNative --> DomainPkg : types
 NestJS --> DomainPkg : types
-NestJS --> AwsPkg : AWS services
 
 \' Client to server connections
 WebBrowser --> NextJS : HTTP/HTTPS
@@ -226,7 +217,7 @@ NestJS --> RedisPubSub : uses
 NestJS --> BullQueue : uses
 
 \' Service connections
-NestJS --> S3 : file storage
+NestJS --> FileStorage : file storage
 NestJS --> Sharp : image processing
 NestJS --> Elasticsearch : search
 NestJS --> Winston : logging
@@ -265,7 +256,7 @@ rectangle "Tech Stack Summary" {
     - Containerization: Docker + Docker Compose
     - Reverse proxy: Nginx
     - Load balancing: Nginx/cloud provider
-    - File storage: MinIO/S3
+    - File storage: Local
     - Search: Elasticsearch
     - Logging: Winston
   end note
@@ -281,7 +272,7 @@ note bottom
   3. **Data layer** – PostgreSQL as the primary database; Redis for caching and message brokering
   4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video
   5. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
-  6. **Storage** – MinIO/S3 for file/object storage, Elasticsearch for full‑text search
+  6. **Storage** – Local file storage, Elasticsearch for full‑text search
   7. **Deployment** – Docker‑based containerization across development, test, and production
   
   The technology choices emphasize performance, scalability, security, and developer productivity.

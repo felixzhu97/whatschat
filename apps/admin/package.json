@@ -4,15 +4,17 @@
   "private": true,
   "scripts": {
     "build": "pnpm exec next build",
-    "dev": "pnpm exec next dev --port 3002",
+    "dev": "pnpm exec next dev --port 4001",
     "check-types": "npx -p typescript tsc --noEmit",
     "lint": "pnpm exec next lint",
-    "start": "pnpm exec next start --port 3002"
+    "start": "pnpm exec next start --port 4001"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.454.0",
     "next": "15.2.8",
     "react": "^19",
     "react-dom": "^19"

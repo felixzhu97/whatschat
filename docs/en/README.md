@@ -17,10 +17,9 @@ docs/
 │   ├── data/                 # Data: data flow, replication
 │   │   ├── data-flow.puml
 │   │   └── data-replication.puml
-│   └── rd/                   # R&D: API, distributed systems, AWS
+│   └── rd/                   # R&D: API, distributed systems
 │       ├── api/
-│       ├── distributed-systems/
-│       └── aws-integration.md
+│       └── distributed-systems/
 └── en/                       # English (this tree)
     ├── README.md
     ├── product/              # Product (links to zh/product)
@@ -58,7 +57,6 @@ docs/
 - [TOGAF](rd/togaf/README.md) — overview, business, application, data, technology
 - [API](../zh/rd/api/README.md) — API docs and Postman collection
 - [Distributed systems](../zh/rd/distributed-systems/README.md) — architecture, service discovery, transaction, load balancing, message queue
-- [AWS integration](../zh/rd/aws-integration.md) — API Gateway WebSocket, Chime SDK
 
 ## Viewing diagrams
 
@@ -90,8 +88,6 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 - [Distributed systems](../zh/rd/distributed-systems/)
 - [User journey map](../zh/product/user-journey-map/user-journey-map.puml)
 - [Wardley map](../zh/product/wardley-map/wardley-map.puml)
-- [AWS Integration Guide](../zh/rd/aws-integration.md)
-
 ## License
 
 Documentation is under the same [MIT License](../../LICENSE) as the project.

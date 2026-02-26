@@ -27,13 +27,6 @@ export interface AppConfig {
     refreshExpiresIn: string;
   };
   storage: {
-    aws: {
-      accessKeyId?: string;
-      secretAccessKey?: string;
-      region: string;
-      bucket: string;
-      endpoint?: string;
-    };
     local: {
       uploadDir: string;
       maxFileSize: number;
@@ -68,17 +61,6 @@ export interface AppConfig {
     turnUsername?: string;
     turnCredential?: string;
   };
-  chime: {
-    enabled: boolean;
-    region?: string;
-    mediaRegion?: string;
-  };
-  apigateway: {
-    websocket: {
-      enabled: boolean;
-      endpoint?: string;
-    };
-  };
   logging: {
     level: string;
     filePath: string;
@@ -105,6 +87,9 @@ export interface AppConfig {
     prometheus: {
       port: number;
     };
+  };
+  admin: {
+    emails: string[];
   };
   business: {
     maxGroupParticipants: number;
@@ -165,19 +150,6 @@ export class ConfigService {
         refreshExpiresIn: process.env["JWT_REFRESH_EXPIRES_IN"] || "30d",
       },
       storage: {
-        aws: {
-          ...(process.env["AWS_ACCESS_KEY_ID"] && {
-            accessKeyId: process.env["AWS_ACCESS_KEY_ID"],
-          }),
-          ...(process.env["AWS_SECRET_ACCESS_KEY"] && {
-            secretAccessKey: process.env["AWS_SECRET_ACCESS_KEY"],
-          }),
-          region: process.env["AWS_REGION"] || "us-east-1",
-          bucket: process.env["AWS_S3_BUCKET"] || "whatschat-files",
-          ...(process.env["AWS_S3_ENDPOINT"] && {
-            endpoint: process.env["AWS_S3_ENDPOINT"],
-          }),
-        },
         local: {
           uploadDir: process.env["UPLOAD_DIR"] || "./uploads",
           maxFileSize: 50 * 1024 * 1024, // 50MB
@@ -241,19 +213,6 @@ export class ConfigService {
           turnCredential: process.env["WEBRTC_TURN_CREDENTIAL"],
         }),
       },
-      chime: {
-        enabled: process.env["AWS_CHIME_ENABLED"] === "true",
-        region: process.env["AWS_CHIME_REGION"] || process.env["AWS_REGION"] || "us-east-1",
-        mediaRegion: process.env["AWS_CHIME_MEDIA_REGION"] || process.env["AWS_REGION"] || "us-east-1",
-      },
-      apigateway: {
-        websocket: {
-          enabled: process.env["AWS_API_GATEWAY_WEBSOCKET_ENABLED"] === "true",
-          ...(process.env["AWS_API_GATEWAY_WEBSOCKET_ENDPOINT"] && {
-            endpoint: process.env["AWS_API_GATEWAY_WEBSOCKET_ENDPOINT"],
-          }),
-        },
-      },
       logging: {
         level: process.env["LOG_LEVEL"] || "info",
         filePath: process.env["LOG_FILE_PATH"] || "logs/app.log",
@@ -263,7 +222,8 @@ export class ConfigService {
       security: {
         cors: {
           origin: process.env["CORS_ORIGIN"]?.split(",") || [
-            "http://localhost:3000",
+            "http://localhost:4000",
+            "http://localhost:4001",
           ],
           credentials: true,
         },
@@ -285,6 +245,12 @@ export class ConfigService {
         prometheus: {
           port: parseInt(process.env["PROMETHEUS_PORT"] || "9090", 10),
         },
+      },
+      admin: {
+        emails: (process.env["ADMIN_EMAILS"] || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
       },
       business: {
         maxGroupParticipants: 256,

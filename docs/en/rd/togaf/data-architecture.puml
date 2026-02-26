@@ -31,7 +31,7 @@ package "Association Entities" {
 package "Data Storage" {
   database [PostgreSQL\nPrimary DB] as PostgreSQL #LightBlue
   database [Redis\nCache & Session] as Redis #LightCoral
-  component [File Storage\nMinIO/S3] as FileStorage #LightGreen
+  component [File Storage\nLocal] as FileStorage #LightGreen
 }
 
 \' Core entity relationships

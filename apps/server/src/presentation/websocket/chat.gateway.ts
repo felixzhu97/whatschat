@@ -11,7 +11,6 @@ import { Server, Socket } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "../../infrastructure/config/config.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { ApiGatewayWebSocketService } from "../../infrastructure/services/apigateway/apigateway-websocket.service";
 import {
   OfflineMessageQueueService,
   QueuedMessagePayload,
@@ -24,12 +23,11 @@ interface AuthenticatedSocket extends Socket {
   user?: any;
 }
 
-// Online user management
-const onlineUsers = new Map<string, string>(); // userId -> socketId
+const onlineUsers = new Map<string, string>();
 
 @WebSocketGateway({
   cors: {
-    origin: process.env["CORS_ORIGIN"]?.split(",") || ["http://localhost:3000"],
+    origin: process.env["CORS_ORIGIN"]?.split(",") || ["http://localhost:4000", "http://localhost:4001"],
     credentials: true,
   },
   transports: ["websocket", "polling"],
@@ -38,20 +36,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  private readonly config: ReturnType<typeof ConfigService.loadConfig>;
-  private useApiGateway: boolean;
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-    private readonly offlineQueue: OfflineMessageQueueService,
-    private readonly apiGatewayWebSocketService?: ApiGatewayWebSocketService
-  ) {
-    this.config = ConfigService.loadConfig();
-    this.useApiGateway =
-      this.config.apigateway.websocket.enabled &&
-      this.apiGatewayWebSocketService?.isAvailable() === true;
-  }
+    private readonly offlineQueue: OfflineMessageQueueService
+  ) {}
 
   async handleConnection(socket: AuthenticatedSocket) {
     try {
@@ -130,24 +119,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .map((p: { userId: string }) => p.userId)
       .filter((id: string) => id !== senderId);
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      for (const userId of recipientIds) {
-        const result = await this.apiGatewayWebSocketService.sendToUser(userId, {
-          type: "message:received",
-          data: message,
-        });
-        if (result.succeeded.length === 0) {
-          this.offlineQueue.enqueue(userId, message);
-        }
-      }
-    } else {
-      for (const userId of recipientIds) {
-        const socketId = onlineUsers.get(userId);
-        if (socketId) {
-          this.server.to(socketId).emit("message:received", message);
-        } else {
-          this.offlineQueue.enqueue(userId, message);
-        }
+    for (const userId of recipientIds) {
+      const socketId = onlineUsers.get(userId);
+      if (socketId) {
+        this.server.to(socketId).emit("message:received", message);
+      } else {
+        this.offlineQueue.enqueue(userId, message);
       }
     }
   }
@@ -270,20 +247,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      // Notify other participants that message is read
-      if (this.useApiGateway && this.apiGatewayWebSocketService) {
-        // Use API Gateway WebSocket to send message
-        // Note: Need to get chat participants here, simplified to use Socket.IO
-        socket.to(`chat:${chatId}`).emit("message:read", {
-          messageId,
-          userId: socket.userId,
-        });
-      } else {
-        socket.to(`chat:${chatId}`).emit("message:read", {
-          messageId,
-          userId: socket.userId,
-        });
-      }
+      socket.to(`chat:${chatId}`).emit("message:read", {
+        messageId,
+        userId: socket.userId,
+      });
     } catch (error) {
       logger.error(`Message read error: ${error}`);
     }
@@ -348,22 +315,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { targetUserId } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
-        type: "call:incoming",
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("call:incoming", {
         ...data,
         initiatorId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const targetSocketId = onlineUsers.get(targetUserId);
-      if (targetSocketId) {
-        this.server.to(targetSocketId).emit("call:incoming", {
-          ...data,
-          initiatorId: socket.userId,
-        });
-      }
     }
   }
 
@@ -374,22 +331,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, initiatorId } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
-        type: "call:answer",
+    const initiatorSocketId = onlineUsers.get(initiatorId);
+    if (initiatorSocketId) {
+      this.server.to(initiatorSocketId).emit("call:answer", {
         callId,
         userId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const initiatorSocketId = onlineUsers.get(initiatorId);
-      if (initiatorSocketId) {
-        this.server.to(initiatorSocketId).emit("call:answer", {
-          callId,
-          userId: socket.userId,
-        });
-      }
     }
   }
 
@@ -400,22 +347,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, initiatorId } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(initiatorId, {
-        type: "call:reject",
+    const initiatorSocketId = onlineUsers.get(initiatorId);
+    if (initiatorSocketId) {
+      this.server.to(initiatorSocketId).emit("call:reject", {
         callId,
         userId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const initiatorSocketId = onlineUsers.get(initiatorId);
-      if (initiatorSocketId) {
-        this.server.to(initiatorSocketId).emit("call:reject", {
-          callId,
-          userId: socket.userId,
-        });
-      }
     }
   }
 
@@ -426,33 +363,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, participants } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      const otherParticipants = participants.filter(
-        (userId) => userId !== socket.userId
-      );
-      if (otherParticipants.length > 0) {
-        await this.apiGatewayWebSocketService.broadcastToUsers(
-          otherParticipants,
-          {
-            type: "call:end",
-            callId,
-            userId: socket.userId,
-          }
-        );
+    participants.forEach((userId: string) => {
+      const participantSocketId = onlineUsers.get(userId);
+      if (participantSocketId && participantSocketId !== socket.id) {
+        this.server.to(participantSocketId).emit("call:end", {
+          callId,
+          userId: socket.userId,
+        });
       }
-    } else {
-      // Use Socket.IO to send message
-      participants.forEach((userId: string) => {
-        const participantSocketId = onlineUsers.get(userId);
-        if (participantSocketId && participantSocketId !== socket.id) {
-          this.server.to(participantSocketId).emit("call:end", {
-            callId,
-            userId: socket.userId,
-          });
-        }
-      });
-    }
+    });
   }
 
   @SubscribeMessage("call:ice-candidate")
@@ -463,24 +382,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, targetUserId, candidate } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
-        type: "call:ice-candidate",
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("call:ice-candidate", {
         callId,
         candidate,
         userId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const targetSocketId = onlineUsers.get(targetUserId);
-      if (targetSocketId) {
-        this.server.to(targetSocketId).emit("call:ice-candidate", {
-          callId,
-          candidate,
-          userId: socket.userId,
-        });
-      }
     }
   }
 
@@ -491,24 +399,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, targetUserId, offer } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
-        type: "call:offer",
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("call:offer", {
         callId,
         offer,
         userId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const targetSocketId = onlineUsers.get(targetUserId);
-      if (targetSocketId) {
-        this.server.to(targetSocketId).emit("call:offer", {
-          callId,
-          offer,
-          userId: socket.userId,
-        });
-      }
     }
   }
 
@@ -519,24 +416,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { callId, targetUserId, answer } = data;
 
-    if (this.useApiGateway && this.apiGatewayWebSocketService) {
-      // Use API Gateway WebSocket to send message
-      await this.apiGatewayWebSocketService.sendToUser(targetUserId, {
-        type: "call:webrtc-answer",
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit("call:webrtc-answer", {
         callId,
         answer,
         userId: socket.userId,
       });
-    } else {
-      // Use Socket.IO to send message
-      const targetSocketId = onlineUsers.get(targetUserId);
-      if (targetSocketId) {
-        this.server.to(targetSocketId).emit("call:webrtc-answer", {
-          callId,
-          answer,
-          userId: socket.userId,
-        });
-      }
     }
   }
 
