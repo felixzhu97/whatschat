@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 
 const PageTitle = styled.h1`
   font-size: 1.5rem;
@@ -126,6 +127,8 @@ interface Chat {
 }
 
 export default function ChatsPage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [chats, setChats] = useState<Chat[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -166,17 +169,17 @@ export default function ChatsPage() {
   const displayName = (c: Chat) =>
     c.name ||
     c.participants?.map((p) => p.username).join(", ") ||
-    "未知聊天";
+    t("chats.unknownChat");
 
   return (
     <div>
-      <PageTitle>聊天管理</PageTitle>
+      <PageTitle>{t("chats.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
           <SearchWrapper>
             <Search size={18} />
             <SearchInput
-              placeholder="搜索聊天"
+              placeholder={t("chats.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -192,14 +195,14 @@ export default function ChatsPage() {
               cursor: "pointer",
             }}
           >
-            搜索
+            {t("chats.search")}
           </button>
         </Toolbar>
       </form>
       <ChatList>
         {loading ? (
           <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-            加载中...
+            {t("common.loading")}
           </div>
         ) : (
           chats.map((c) => (
@@ -212,11 +215,11 @@ export default function ChatsPage() {
                 <ChatMeta>
                   {c.lastMessage
                     ? `${c.lastMessage.sender?.username || ""}: ${c.lastMessage.content?.slice(0, 50) || ""}`
-                    : "暂无消息"}
+                    : t("chats.noMessages")}
                 </ChatMeta>
               </ChatInfo>
               <ChatTime>
-                {format(new Date(c.updatedAt), "MM-dd HH:mm", { locale: zhCN })}
+                {format(new Date(c.updatedAt), "MM-dd HH:mm", { locale: dateLocale })}
               </ChatTime>
               <ChevronRight size={20} color={theme.iconMuted} />
             </ChatItem>
@@ -244,7 +247,7 @@ export default function ChatsPage() {
               cursor: "pointer",
             }}
           >
-            上一页
+            {t("common.prev")}
           </button>
           <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
             {page} / {totalPages}
@@ -261,7 +264,7 @@ export default function ChatsPage() {
               cursor: "pointer",
             }}
           >
-            下一页
+            {t("common.next")}
           </button>
         </div>
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 
@@ -25,11 +26,12 @@ const Text = styled.p`
 `;
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   return (
     <div>
-      <PageTitle>设置</PageTitle>
+      <PageTitle>{t("settings.title")}</PageTitle>
       <Card>
-        <Text>系统设置功能开发中...</Text>
+        <Text>{t("settings.developing")}</Text>
       </Card>
     </div>
   );

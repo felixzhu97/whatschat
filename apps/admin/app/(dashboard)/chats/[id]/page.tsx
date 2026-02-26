@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 
 const BackLink = styled(Link)`
   display: inline-flex;
@@ -88,7 +89,9 @@ interface Message {
 }
 
 export default function ChatMessagesPage() {
+  const { t, i18n } = useTranslation();
   const params = useParams();
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -116,19 +119,19 @@ export default function ChatMessagesPage() {
   }, [params.id, page]);
 
   const handleDelete = (messageId: string) => {
-    if (!confirm("确定删除此消息？")) return;
+    if (!confirm(t("chats.deleteMessageConfirm"))) return;
     api.delete(`admin/messages/${messageId}`).then(() => load(page));
   };
 
   return (
     <div>
       <BackLink href="/chats">
-        <ArrowLeft size={18} /> 返回聊天列表
+        <ArrowLeft size={18} /> {t("chats.backToList")}
       </BackLink>
       <MessageList>
         {loading ? (
           <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-            加载中...
+            {t("common.loading")}
           </div>
         ) : (
           messages.map((m) => (
@@ -140,18 +143,18 @@ export default function ChatMessagesPage() {
                 <MessageText>
                   {m.isDeleted ? (
                     <span style={{ color: theme.textSecondary, fontStyle: "italic" }}>
-                      [已删除]
+                      [{t("chats.deleted")}]
                     </span>
                   ) : (
                     m.content
                   )}
                 </MessageText>
                 <MessageTime>
-                  {format(new Date(m.createdAt), "PPpp", { locale: zhCN })}
+                  {format(new Date(m.createdAt), "PPpp", { locale: dateLocale })}
                 </MessageTime>
               </MessageContent>
               {!m.isDeleted && (
-                <DeleteBtn onClick={() => handleDelete(m.id)} title="删除消息">
+                <DeleteBtn onClick={() => handleDelete(m.id)} title={t("chats.deleteMessage")}>
                   <Trash2 size={16} />
                 </DeleteBtn>
               )}
@@ -180,7 +183,7 @@ export default function ChatMessagesPage() {
               cursor: "pointer",
             }}
           >
-            上一页
+            {t("common.prev")}
           </button>
           <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
             {page} / {totalPages}
@@ -197,7 +200,7 @@ export default function ChatMessagesPage() {
               cursor: "pointer",
             }}
           >
-            下一页
+            {t("common.next")}
           </button>
         </div>
       )}

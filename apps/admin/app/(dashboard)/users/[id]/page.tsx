@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 
 const BackLink = styled(Link)`
   display: inline-flex;
@@ -102,8 +103,10 @@ interface User {
 }
 
 export default function UserDetailPage() {
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const router = useRouter();
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -120,7 +123,7 @@ export default function UserDetailPage() {
   }, [params.id]);
 
   const handleDelete = () => {
-    if (!user || !confirm("确定删除该用户？此操作不可恢复。")) return;
+    if (!user || !confirm(t("users.deleteConfirm"))) return;
     setDeleting(true);
     api
       .delete(`admin/users/${user.id}`)
@@ -134,9 +137,9 @@ export default function UserDetailPage() {
     return (
       <div>
         <BackLink href="/users">
-          <ArrowLeft size={18} /> 返回用户列表
+          <ArrowLeft size={18} /> {t("users.backToUserList")}
         </BackLink>
-        <div style={{ color: theme.textSecondary }}>加载中...</div>
+        <div style={{ color: theme.textSecondary }}>{t("common.loading")}</div>
       </div>
     );
   }
@@ -144,34 +147,34 @@ export default function UserDetailPage() {
   return (
     <div>
       <BackLink href="/users">
-        <ArrowLeft size={18} /> 返回用户列表
+        <ArrowLeft size={18} /> {t("users.backToUserList")}
       </BackLink>
       <Card>
         <Avatar>{user.username?.charAt(0)?.toUpperCase() || "?"}</Avatar>
         <UserName>{user.username}</UserName>
         <Row>
-          <Label>邮箱</Label>
+          <Label>{t("users.email")}</Label>
           <span>{user.email}</span>
         </Row>
         <Row>
-          <Label>手机</Label>
+          <Label>{t("users.phone")}</Label>
           <span>{user.phone || "-"}</span>
         </Row>
         <Row>
-          <Label>状态</Label>
-          <span>{user.isOnline ? "在线" : "离线"}</span>
+          <Label>{t("users.status")}</Label>
+          <span>{user.isOnline ? t("users.online") : t("users.offline")}</span>
         </Row>
         <Row>
-          <Label>注册时间</Label>
-          <span>{format(new Date(user.createdAt), "PPpp", { locale: zhCN })}</span>
+          <Label>{t("users.registeredAt")}</Label>
+          <span>{format(new Date(user.createdAt), "PPpp", { locale: dateLocale })}</span>
         </Row>
         <Row>
-          <Label>最后登录</Label>
-          <span>{format(new Date(user.lastSeen), "PPpp", { locale: zhCN })}</span>
+          <Label>{t("users.lastLogin")}</Label>
+          <span>{format(new Date(user.lastSeen), "PPpp", { locale: dateLocale })}</span>
         </Row>
         <Actions>
           <Btn $danger onClick={handleDelete} disabled={deleting}>
-            {deleting ? "删除中..." : "删除用户"}
+            {deleting ? t("users.deleting") : t("users.deleteUser")}
           </Btn>
         </Actions>
       </Card>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
@@ -13,7 +14,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 import {
   BarChart,
   Bar,
@@ -202,9 +203,11 @@ function formatCompact(n: number) {
 }
 
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const api = getApiClient();
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
 
   useEffect(() => {
     api
@@ -219,12 +222,12 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div style={{ color: theme.textSecondary, padding: "2rem", textAlign: "center" }}>
-        加载中...
+        {t("common.loading")}
       </div>
     );
   }
   if (!stats) {
-    return <LoadError>加载失败，请确认有管理员权限</LoadError>;
+    return <LoadError>{t("error.loadFailed")}</LoadError>;
   }
 
   const messageVolumeData = [
@@ -251,11 +254,11 @@ export default function DashboardPage() {
     { name: "Web", value: 7, color: "#667781" },
   ];
 
-  const recentActivity = stats.recentUsers?.slice(0, 5).map((u, i) => ({
+  const recentActivity = stats.recentUsers?.slice(0, 5).map((u) => ({
     id: u.id,
     initials: (u.username || "U").slice(0, 2).toUpperCase(),
-    text: `${u.username} 注册了账户`,
-    time: formatDistanceToNow(new Date(u.createdAt), { addSuffix: true, locale: zhCN }),
+    text: t("dashboard.registered", { name: u.username }),
+    time: formatDistanceToNow(new Date(u.createdAt), { addSuffix: true, locale: dateLocale }),
   })) || [];
 
   return (
@@ -268,11 +271,11 @@ export default function DashboardPage() {
             </MetricIcon>
             <MetricChange positive>
               <TrendingUp size={14} />
-              +12.5% 较上月
+              +12.5% {t("dashboard.vsLastMonth")}
             </MetricChange>
           </MetricHeader>
           <MetricValue>{formatCompact(stats.totalUsers)}</MetricValue>
-          <MetricLabel>活跃用户</MetricLabel>
+          <MetricLabel>{t("dashboard.activeUsers")}</MetricLabel>
         </MetricCard>
         <MetricCard>
           <MetricHeader>
@@ -281,11 +284,11 @@ export default function DashboardPage() {
             </MetricIcon>
             <MetricChange positive>
               <TrendingUp size={14} />
-              +8.2% 较上月
+              +8.2% {t("dashboard.vsLastMonth")}
             </MetricChange>
           </MetricHeader>
           <MetricValue>{formatCompact(stats.totalMessages)}</MetricValue>
-          <MetricLabel>已发消息</MetricLabel>
+          <MetricLabel>{t("dashboard.messagesSent")}</MetricLabel>
         </MetricCard>
         <MetricCard>
           <MetricHeader>
@@ -294,11 +297,11 @@ export default function DashboardPage() {
             </MetricIcon>
             <MetricChange positive>
               <TrendingUp size={14} />
-              +3.1% 较上月
+              +3.1% {t("dashboard.vsLastMonth")}
             </MetricChange>
           </MetricHeader>
           <MetricValue>{formatCompact(stats.totalGroups)}</MetricValue>
-          <MetricLabel>活跃群组</MetricLabel>
+          <MetricLabel>{t("dashboard.activeGroups")}</MetricLabel>
         </MetricCard>
         <MetricCard>
           <MetricHeader>
@@ -307,17 +310,17 @@ export default function DashboardPage() {
             </MetricIcon>
             <MetricChange positive={false}>
               <TrendingDown size={14} />
-              -2.4% 较上月
+              -2.4% {t("dashboard.vsLastMonth")}
             </MetricChange>
           </MetricHeader>
           <MetricValue>{formatCompact(stats.todayMessages)}</MetricValue>
-          <MetricLabel>今日广播</MetricLabel>
+          <MetricLabel>{t("dashboard.todayBroadcast")}</MetricLabel>
         </MetricCard>
       </MetricsGrid>
 
       <ChartsRow>
         <ChartCard>
-          <ChartTitle>消息量</ChartTitle>
+          <ChartTitle>{t("dashboard.messageVolume")}</ChartTitle>
           <ChartContainer>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={messageVolumeData}>
@@ -329,14 +332,14 @@ export default function DashboardPage() {
                   labelStyle={{ color: theme.text }}
                 />
                 <Legend />
-                <Bar dataKey="sent" fill="#00a884" name="已发送" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="received" fill="#53bdeb" name="已接收" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sent" fill="#00a884" name={t("chart.sent")} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="received" fill="#53bdeb" name={t("chart.received")} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </ChartCard>
         <ChartCard>
-          <ChartTitle>用户增长</ChartTitle>
+          <ChartTitle>{t("dashboard.userGrowth")}</ChartTitle>
           <ChartContainer>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={userGrowthData}>
@@ -346,7 +349,7 @@ export default function DashboardPage() {
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8 }}
                 />
-                <Line type="monotone" dataKey="users" stroke="#00a884" strokeWidth={2} dot={{ fill: "#00a884" }} name="用户" />
+                <Line type="monotone" dataKey="users" stroke="#00a884" strokeWidth={2} dot={{ fill: "#00a884" }} name={t("chart.users")} />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -355,7 +358,7 @@ export default function DashboardPage() {
 
       <BottomRow>
         <ChartCard>
-          <ChartTitle>平台分布</ChartTitle>
+          <ChartTitle>{t("dashboard.platformDistribution")}</ChartTitle>
           <ChartContainer>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -374,7 +377,7 @@ export default function DashboardPage() {
                 </Pie>
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8 }}
-                  formatter={(v: number) => [`${v}%`, "占比"]}
+                  formatter={(v: number) => [`${v}%`, t("chart.share")]}
                 />
                 <Legend />
               </PieChart>
@@ -382,7 +385,7 @@ export default function DashboardPage() {
           </ChartContainer>
         </ChartCard>
         <ActivityCard>
-          <ActivityTitle>最近动态</ActivityTitle>
+          <ActivityTitle>{t("dashboard.recentActivity")}</ActivityTitle>
           {recentActivity.length ? (
             recentActivity.map((a) => (
               <ActivityItem key={a.id}>
@@ -395,7 +398,7 @@ export default function DashboardPage() {
             ))
           ) : (
             <div style={{ color: theme.textSecondary, fontSize: "0.875rem", padding: "1rem 0" }}>
-              暂无动态
+              {t("dashboard.noActivity")}
             </div>
           )}
         </ActivityCard>

@@ -3,9 +3,12 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/src/presentation/providers/auth-provider";
+import { useTheme } from "@/src/presentation/providers/theme-provider";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
+import { setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +18,9 @@ import {
   LogOut,
   Search,
   Bell,
+  Moon,
+  Sun,
+  Languages,
 } from "lucide-react";
 
 const LayoutRoot = styled.div`
@@ -243,12 +249,45 @@ const ContentArea = styled.div`
   padding: 1.5rem;
 `;
 
-const routes = [
-  { href: "/", label: "仪表盘", icon: LayoutDashboard },
-  { href: "/users", label: "用户管理", icon: Users },
-  { href: "/chats", label: "聊天管理", icon: MessageSquare },
-  { href: "/groups", label: "群组管理", icon: UsersRound },
-  { href: "/settings", label: "设置", icon: Settings },
+const LangSelect = styled.select`
+  padding: 0.35rem 0.5rem;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.border};
+  border-radius: 6px;
+  color: ${theme.text};
+  font-size: 0.8125rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667781' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  padding-right: 1.5rem;
+`;
+
+function getRouteKey(pathname: string): string {
+  if (pathname === "/") return "dashboard.title";
+  if (pathname.startsWith("/users")) return "users.title";
+  if (pathname.startsWith("/chats")) return "chats.title";
+  if (pathname.startsWith("/groups")) return "groups.title";
+  if (pathname.startsWith("/settings")) return "settings.title";
+  return "dashboard.title";
+}
+
+function getSubtitleKey(pathname: string): string {
+  if (pathname === "/") return "dashboard.subtitle";
+  if (pathname.startsWith("/users")) return "users.subtitle";
+  if (pathname.startsWith("/chats")) return "chats.subtitle";
+  if (pathname.startsWith("/groups")) return "groups.subtitle";
+  if (pathname.startsWith("/settings")) return "settings.subtitle";
+  return "dashboard.subtitle";
+}
+
+const ROUTES = [
+  { href: "/", labelKey: "dashboard.title", icon: LayoutDashboard },
+  { href: "/users", labelKey: "users.title", icon: Users },
+  { href: "/chats", labelKey: "chats.title", icon: MessageSquare },
+  { href: "/groups", labelKey: "groups.title", icon: UsersRound },
+  { href: "/settings", labelKey: "settings.title", icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -256,9 +295,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { t, i18n } = useTranslation();
+  const { mode, toggle } = useTheme();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  const handleLocaleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lng = e.target.value as AppLocale;
+    setStoredLocale(lng);
+    i18n.changeLanguage(lng);
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -270,7 +317,7 @@ export default function DashboardLayout({
     return (
       <LayoutRoot>
         <Main style={{ display: "flex", alignItems: "center", justifyContent: "center", color: theme.textSecondary }}>
-          加载中...
+          {t("common.loading")}
         </Main>
       </LayoutRoot>
     );
@@ -293,16 +340,16 @@ export default function DashboardLayout({
             <LogoText>WhatsChat Admin</LogoText>
           </Logo>
         </SidebarHeader>
-        <NavLabel>导航</NavLabel>
+        <NavLabel>{t("common.nav")}</NavLabel>
         <Nav>
-          {routes.map((r) => (
+          {ROUTES.map((r) => (
             <NavLink
               key={r.href}
               href={r.href}
               active={pathname === r.href || (r.href !== "/" && pathname.startsWith(r.href))}
             >
               <r.icon size={20} />
-              {r.label}
+              {t(r.labelKey)}
             </NavLink>
           ))}
         </Nav>
@@ -318,7 +365,7 @@ export default function DashboardLayout({
           </UserCard>
           <LogoutBtn onClick={logout}>
             <LogOut size={20} />
-            退出登录
+            {t("common.logout")}
           </LogoutBtn>
         </SidebarFooter>
       </Sidebar>
@@ -326,27 +373,22 @@ export default function DashboardLayout({
         <TopBar>
           <TopBarLeft>
             <div>
-              <TopBarTitle>
-                {pathname === "/" && "仪表盘"}
-                {pathname.startsWith("/users") && "用户管理"}
-                {pathname.startsWith("/chats") && "聊天管理"}
-                {pathname.startsWith("/groups") && "群组管理"}
-                {pathname.startsWith("/settings") && "设置"}
-              </TopBarTitle>
-              <TopBarSubtitle>
-                {pathname === "/" && "WhatsApp 业务概览"}
-                {pathname.startsWith("/users") && "管理用户账户"}
-                {pathname.startsWith("/chats") && "管理聊天会话"}
-                {pathname.startsWith("/groups") && "管理群组"}
-                {pathname.startsWith("/settings") && "系统设置"}
-              </TopBarSubtitle>
+              <TopBarTitle>{t(getRouteKey(pathname))}</TopBarTitle>
+              <TopBarSubtitle>{t(getSubtitleKey(pathname))}</TopBarSubtitle>
             </div>
           </TopBarLeft>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <SearchWrapper>
               <Search size={18} />
-              <SearchInput placeholder="搜索..." />
+              <SearchInput placeholder={t("common.search")} />
             </SearchWrapper>
+            <IconBtn onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
+              {mode === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            </IconBtn>
+            <LangSelect value={i18n.language.startsWith("zh") ? "zh" : "en"} onChange={handleLocaleChange} aria-label={t("common.language")}>
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </LangSelect>
             <IconBtn>
               <Bell size={20} />
             </IconBtn>

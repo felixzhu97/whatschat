@@ -32,6 +32,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      i18next:
+        specifier: ^24.2.0
+        version: 24.2.3(typescript@5.8.2)
       lucide-react:
         specifier: ^0.454.0
         version: 0.454.0(react@19.2.0)
@@ -44,6 +47,9 @@ importers:
       react-dom:
         specifier: ^19
         version: 19.2.0(react@19.2.0)
+      react-i18next:
+        specifier: ^15.1.0
+        version: 15.7.4(i18next@24.2.3(typescript@5.8.2))(react-dom@19.2.0(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
       recharts:
         specifier: ^2.15.0
         version: 2.15.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

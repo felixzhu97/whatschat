@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search } from "lucide-react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 
 const PageTitle = styled.h1`
   font-size: 1.5rem;
@@ -116,7 +117,9 @@ interface Group {
 }
 
 export default function GroupsPage() {
+  const { t, i18n } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -155,13 +158,13 @@ export default function GroupsPage() {
 
   return (
     <div>
-      <PageTitle>群组管理</PageTitle>
+      <PageTitle>{t("groups.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
           <SearchWrapper>
             <Search size={18} />
             <SearchInput
-              placeholder="搜索群组名称"
+              placeholder={t("groups.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -177,14 +180,14 @@ export default function GroupsPage() {
               cursor: "pointer",
             }}
           >
-            搜索
+            {t("groups.search")}
           </button>
         </Toolbar>
       </form>
       {loading ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-          加载中...
-        </div>
+<div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
+        {t("common.loading")}
+      </div>
       ) : (
         <>
           <GroupGrid>
@@ -195,9 +198,9 @@ export default function GroupsPage() {
                   <div>
                     <GroupName>{g.name}</GroupName>
                     <GroupMeta>
-                      创建者: {g.creator?.username} ·{" "}
+                      {t("groups.creator")}: {g.creator?.username} ·{" "}
                       {format(new Date(g.createdAt), "yyyy-MM-dd", {
-                        locale: zhCN,
+                        locale: dateLocale,
                       })}
                     </GroupMeta>
                   </div>
@@ -214,7 +217,7 @@ export default function GroupsPage() {
                   </div>
                 )}
                 <Members>
-                  成员 {g.participants?.length || 0} 人
+                  {t("groups.membersCount", { count: g.participants?.length || 0 })}
                   {g.participants?.slice(0, 5).map((p) => (
                     <span
                       key={p.username}
@@ -260,7 +263,7 @@ style={{
                 cursor: "pointer",
               }}
               >
-                上一页
+                {t("common.prev")}
               </button>
               <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
                 {page} / {totalPages}
@@ -277,7 +280,7 @@ style={{
                 cursor: "pointer",
               }}
               >
-                下一页
+                {t("common.next")}
               </button>
             </div>
           )}

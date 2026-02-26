@@ -1,17 +1,37 @@
+export type ThemeMode = "light" | "dark";
+
 export const theme = {
+  bg: "var(--admin-bg)",
+  surface: "var(--admin-surface)",
+  surfaceAlt: "var(--admin-surface-alt)",
+  border: "var(--admin-border)",
+  borderLight: "var(--admin-border-light)",
+  text: "var(--admin-text)",
+  textSecondary: "var(--admin-text-secondary)",
+  primary: "var(--admin-primary)",
+  primaryHover: "var(--admin-primary-hover)",
+  danger: "var(--admin-danger)",
+  dangerHover: "var(--admin-danger-hover)",
+  inputBg: "var(--admin-input-bg)",
+  chartGrid: "var(--admin-chart-grid)",
+  iconMuted: "var(--admin-icon-muted)",
+  shadow: "var(--admin-shadow)",
+} as const;
+
+export const lightColors = {
   bg: "#f0f2f5",
   surface: "#ffffff",
-  surfaceAlt: "#f5f6f6",
   border: "#e9edef",
-  borderLight: "#e0e5e8",
   text: "#111b21",
   textSecondary: "#667781",
   primary: "#00a884",
-  primaryHover: "#06cf9c",
-  danger: "#e54545",
-  dangerHover: "rgba(229, 69, 69, 0.15)",
-  inputBg: "#f0f2f5",
-  chartGrid: "#e9edef",
-  iconMuted: "#8696a0",
-  shadow: "0 1px 2px rgba(0,0,0,0.08)",
+} as const;
+
+export const darkColors = {
+  bg: "#111b21",
+  surface: "#202c33",
+  border: "#2a3942",
+  text: "#e9edef",
+  textSecondary: "#8696a0",
+  primary: "#00a884",
 } as const;

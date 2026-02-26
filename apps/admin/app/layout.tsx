@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { EmotionRegistry } from "./emotion-registry";
-import { AuthProvider } from "@/src/presentation/providers/auth-provider";
+import { Providers } from "./providers";
+import { ThemeInitScript } from "./theme-init";
 
 export const metadata: Metadata = {
   title: "WhatsChat Admin",
@@ -14,10 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
       <body>
+        <ThemeInitScript />
         <EmotionRegistry>
-          <AuthProvider>{children}</AuthProvider>
+          <Providers>{children}</Providers>
         </EmotionRegistry>
       </body>
     </html>

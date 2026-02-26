@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS } from "date-fns/locale";
 
 const PageTitle = styled.h1`
   font-size: 1.5rem;
@@ -151,6 +152,8 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [users, setUsers] = useState<User[]>([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -192,13 +195,13 @@ export default function UsersPage() {
 
   return (
     <div>
-      <PageTitle>用户管理</PageTitle>
+      <PageTitle>{t("users.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
           <SearchWrapper>
             <Search size={18} />
             <SearchInput
-              placeholder="搜索用户名/邮箱/手机"
+              placeholder={t("users.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -214,22 +217,22 @@ export default function UsersPage() {
               cursor: "pointer",
             }}
           >
-            搜索
+            {t("users.search")}
           </button>
         </Toolbar>
       </form>
       <Table>
         <TableHeader>
-          <div>用户</div>
-          <div>邮箱</div>
-          <div>手机</div>
-          <div>注册时间</div>
-          <div>操作</div>
+          <div>{t("users.userHeader")}</div>
+          <div>{t("users.email")}</div>
+          <div>{t("users.phone")}</div>
+          <div>{t("users.registeredAt")}</div>
+          <div>{t("users.action")}</div>
         </TableHeader>
         {loading ? (
           <TableRow>
             <div colSpan={5} style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
-              加载中...
+              {t("common.loading")}
             </div>
           </TableRow>
         ) : (
@@ -240,19 +243,19 @@ export default function UsersPage() {
                   <Avatar>{u.username?.charAt(0)?.toUpperCase() || "?"}</Avatar>
                   <div>
                     <UserName>{u.username}</UserName>
-                    <UserEmail>{u.isOnline ? "在线" : "离线"}</UserEmail>
+                    <UserEmail>{u.isOnline ? t("users.online") : t("users.offline")}</UserEmail>
                   </div>
                 </UserCell>
               </div>
               <div>{u.email}</div>
               <div>{u.phone || "-"}</div>
               <div>
-                {format(new Date(u.createdAt), "yyyy-MM-dd", { locale: zhCN })}
+                {format(new Date(u.createdAt), "yyyy-MM-dd", { locale: dateLocale })}
               </div>
               <div>
                 <LinkBtn href={`/users/${u.id}`}>
                   <ChevronLeft size={16} style={{ display: "inline", verticalAlign: "middle" }} />
-                  详情
+                  {t("users.detail")}
                 </LinkBtn>
               </div>
             </TableRow>
@@ -265,7 +268,7 @@ export default function UsersPage() {
             disabled={pagination.page <= 1}
             onClick={() => load(pagination.page - 1)}
           >
-            上一页
+            {t("common.prev")}
           </PageBtn>
           {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
             (p) => (
@@ -282,7 +285,7 @@ export default function UsersPage() {
             disabled={pagination.page >= pagination.totalPages}
             onClick={() => load(pagination.page + 1)}
           >
-            下一页
+            {t("common.next")}
           </PageBtn>
         </Pagination>
       )}
