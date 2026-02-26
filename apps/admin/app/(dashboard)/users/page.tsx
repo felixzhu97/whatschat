@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
-import { Search, ChevronLeft } from "lucide-react";
+import { DataGrid } from "@/src/presentation/components/data-grid";
+import { Search, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
+import type { ColDef } from "ag-grid-community";
 
 const PageTitle = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: ${theme.text};
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
 `;
 
 const Toolbar = styled.div`
@@ -25,16 +28,17 @@ const Toolbar = styled.div`
 
 const SearchInput = styled.input`
   flex: 1;
-  max-width: 300px;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  max-width: 360px;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
   background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 8px;
-  font-size: 0.9375rem;
+  border: none;
+  border-radius: 24px;
+  font-size: 15px;
   color: ${theme.text};
   &:focus {
     outline: none;
-    border-color: ${theme.primary};
+    background: ${theme.surface};
+    box-shadow: 0 0 0 1px ${theme.border};
   }
   &::placeholder {
     color: ${theme.textSecondary};
@@ -45,76 +49,11 @@ const SearchWrapper = styled.div`
   position: relative;
   & svg {
     position: absolute;
-    left: 0.75rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: ${theme.iconMuted};
     width: 18px;
-  }
-`;
-
-const Table = styled.div`
-  background: ${theme.surface};
-  border-radius: 12px;
-  border: 1px solid ${theme.border};
-  overflow: hidden;
-  box-shadow: ${theme.shadow};
-`;
-
-const TableRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 120px 100px;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid ${theme.border};
-  align-items: center;
-  font-size: 0.9375rem;
-  color: ${theme.text};
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const TableHeader = styled(TableRow)`
-  background: ${theme.surfaceAlt};
-  font-weight: 500;
-  color: ${theme.textSecondary};
-`;
-
-const Avatar = styled.div`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: ${theme.primary};
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  font-size: 0.875rem;
-`;
-
-const UserCell = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
-const UserName = styled.div`
-  font-weight: 500;
-  color: ${theme.text};
-`;
-
-const UserEmail = styled.div`
-  font-size: 0.8125rem;
-  color: ${theme.textSecondary};
-`;
-
-const LinkBtn = styled(Link)`
-  color: ${theme.primary};
-  text-decoration: none;
-  font-size: 0.875rem;
-  &:hover {
-    text-decoration: underline;
   }
 `;
 
@@ -128,12 +67,12 @@ const Pagination = styled.div`
 const PageBtn = styled("button", {
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.875rem;
   border: 1px solid ${theme.border};
   background: ${(p) => (p.active ? theme.primary : theme.surface)};
   color: ${(p) => (p.active ? "#fff" : theme.text)};
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  font-size: 15px;
   cursor: pointer;
   &:hover:not(:disabled) {
     background: ${(p) => (p.active ? theme.primary : theme.surfaceAlt)};
@@ -151,6 +90,60 @@ interface User {
   createdAt: string;
 }
 
+function UserCell(params: { value: string; data: User }) {
+  const { data } = params;
+  const { t } = useTranslation();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          flexShrink: 0,
+          borderRadius: "50%",
+          background: theme.primary,
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: 500,
+          fontSize: "0.875rem",
+        }}
+      >
+        {(data?.username || "?").charAt(0).toUpperCase()}
+      </div>
+      <div style={{ lineHeight: 1.4, minHeight: 40, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ fontWeight: 500, color: theme.text, fontSize: "15px" }}>{data?.username}</div>
+        <div style={{ fontSize: "13px", color: theme.textSecondary }}>
+          {data?.isOnline ? t("users.online") : t("users.offline")}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionCell(params: { data: User }) {
+  const { data } = params;
+  const { t } = useTranslation();
+  if (!data?.id) return null;
+  return (
+    <Link
+      href={`/users/${data.id}`}
+      style={{
+        color: theme.primary,
+        textDecoration: "none",
+        fontSize: "15px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+      }}
+    >
+      {t("users.detail")}
+      <ChevronRight size={18} strokeWidth={2} />
+    </Link>
+  );
+}
+
 export default function UsersPage() {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
@@ -165,33 +158,77 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const api = getApiClient();
 
-  const load = (page = 1) => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: "20",
-      ...(search && { search }),
-    });
-    api
-      .get<User[]>(`admin/users?${params}`)
-      .then((res) => {
-        if (res.success) {
-          const r = res as { data?: User[]; pagination?: typeof pagination };
-          setUsers(r.data || []);
-          if (r.pagination) setPagination(r.pagination);
-        }
-      })
-      .finally(() => setLoading(false));
-  };
+  const load = useCallback(
+    (page = 1) => {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "20",
+        ...(search && { search }),
+      });
+      api
+        .get<User[]>(`admin/users?${params}`)
+        .then((res) => {
+          if (res.success) {
+            const r = res as { data?: User[]; pagination?: typeof pagination };
+            setUsers(r.data || []);
+            if (r.pagination) setPagination(r.pagination);
+          }
+        })
+        .finally(() => setLoading(false));
+    },
+    [api, search]
+  );
 
   useEffect(() => {
     load(pagination.page);
-  }, [pagination.page]);
+  }, [pagination.page, load]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     load(1);
   };
+
+  const columnDefs = useMemo<ColDef<User>[]>(
+    () => [
+      {
+        field: "username",
+        headerName: t("users.userHeader"),
+        flex: 1,
+        minWidth: 220,
+        cellClass: "user-cell",
+        cellRenderer: UserCell,
+      },
+      {
+        field: "email",
+        headerName: t("users.email"),
+        flex: 1,
+        minWidth: 160,
+      },
+      {
+        field: "phone",
+        headerName: t("users.phone"),
+        flex: 1,
+        minWidth: 130,
+        valueFormatter: (p) => p.value || "-",
+      },
+      {
+        field: "createdAt",
+        headerName: t("users.registeredAt"),
+        minWidth: 130,
+        valueFormatter: (p) =>
+          p.value ? format(new Date(p.value as string), "yyyy-MM-dd", { locale: dateLocale }) : "",
+      },
+      {
+        headerName: t("users.action"),
+        minWidth: 90,
+        sortable: false,
+        filter: false,
+        cellRenderer: ActionCell,
+      },
+    ],
+    [t, dateLocale]
+  );
 
   return (
     <div>
@@ -209,78 +246,36 @@ export default function UsersPage() {
           <button
             type="submit"
             style={{
-              padding: "0.5rem 1rem",
+              padding: "0.625rem 1.25rem",
               background: theme.primary,
               color: "#fff",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: 24,
               cursor: "pointer",
+              fontSize: "15px",
+              fontWeight: 500,
             }}
           >
             {t("users.search")}
           </button>
         </Toolbar>
       </form>
-      <Table>
-        <TableHeader>
-          <div>{t("users.userHeader")}</div>
-          <div>{t("users.email")}</div>
-          <div>{t("users.phone")}</div>
-          <div>{t("users.registeredAt")}</div>
-          <div>{t("users.action")}</div>
-        </TableHeader>
-        {loading ? (
-          <TableRow>
-            <div colSpan={5} style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
-              {t("common.loading")}
-            </div>
-          </TableRow>
-        ) : (
-          users.map((u) => (
-            <TableRow key={u.id}>
-              <div>
-                <UserCell>
-                  <Avatar>{u.username?.charAt(0)?.toUpperCase() || "?"}</Avatar>
-                  <div>
-                    <UserName>{u.username}</UserName>
-                    <UserEmail>{u.isOnline ? t("users.online") : t("users.offline")}</UserEmail>
-                  </div>
-                </UserCell>
-              </div>
-              <div>{u.email}</div>
-              <div>{u.phone || "-"}</div>
-              <div>
-                {format(new Date(u.createdAt), "yyyy-MM-dd", { locale: dateLocale })}
-              </div>
-              <div>
-                <LinkBtn href={`/users/${u.id}`}>
-                  <ChevronLeft size={16} style={{ display: "inline", verticalAlign: "middle" }} />
-                  {t("users.detail")}
-                </LinkBtn>
-              </div>
-            </TableRow>
-          ))
-        )}
-      </Table>
+      <DataGrid<User>
+        rowData={users}
+        columnDefs={columnDefs}
+        loading={loading}
+        getRowId={(p) => p.data.id}
+      />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <PageBtn
-            disabled={pagination.page <= 1}
-            onClick={() => load(pagination.page - 1)}
-          >
+          <PageBtn disabled={pagination.page <= 1} onClick={() => load(pagination.page - 1)}>
             {t("common.prev")}
           </PageBtn>
-          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
-            (p) => (
-              <PageBtn
-                key={p}
-                active={p === pagination.page}
-                onClick={() => load(p)}
-              >
-                {p}
-              </PageBtn>
-            )
-          )}
+          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+            <PageBtn key={p} active={p === pagination.page} onClick={() => load(p)}>
+              {p}
+            </PageBtn>
+          ))}
           <PageBtn
             disabled={pagination.page >= pagination.totalPages}
             onClick={() => load(pagination.page + 1)}

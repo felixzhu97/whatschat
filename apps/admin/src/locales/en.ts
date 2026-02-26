@@ -25,7 +25,7 @@ export const en = {
   },
   dashboard: {
     title: "Dashboard",
-    subtitle: "WhatsApp business overview",
+    subtitle: "Core KPIs and business overview",
     activeUsers: "Active users",
     messagesSent: "Messages sent",
     activeGroups: "Active groups",
@@ -40,7 +40,7 @@ export const en = {
   },
   users: {
     title: "User management",
-    subtitle: "Manage user accounts",
+    subtitle: "User search, ban management, abnormal behavior",
     searchPlaceholder: "Search username/email/phone",
     userHeader: "User",
     search: "Search",
@@ -58,6 +58,11 @@ export const en = {
     deleting: "Deleting...",
     deleteConfirm: "Delete this user? This cannot be undone.",
   },
+  contentSafety: {
+    title: "Content safety",
+    subtitle: "Reports, content review, policy, violations",
+    developing: "Content safety under development...",
+  },
   chats: {
     title: "Chat management",
     subtitle: "Manage chat sessions",
@@ -70,6 +75,21 @@ export const en = {
     deleteMessageConfirm: "Delete this message?",
     deleted: "Deleted",
   },
+  opsMonitor: {
+    title: "Operations monitor",
+    subtitle: "Service health, message volume, performance, alerts",
+    developing: "Operations monitor under development...",
+  },
+  business: {
+    title: "Business management",
+    subtitle: "API clients, merchant review, reconciliation, plans",
+    developing: "Business management under development...",
+  },
+  analytics: {
+    title: "Data analytics",
+    subtitle: "User analysis, behavior, retention, funnel",
+    developing: "Data analytics under development...",
+  },
   groups: {
     title: "Group management",
     subtitle: "Manage groups",
@@ -80,9 +100,14 @@ export const en = {
     membersCount: "{{count}} members",
   },
   settings: {
-    title: "Settings",
-    subtitle: "System settings",
-    developing: "System settings under development...",
+    title: "System config",
+    subtitle: "Basic config, push, region, experiments",
+    developing: "System config under development...",
+  },
+  permission: {
+    title: "Permission & audit",
+    subtitle: "Admins, roles, operation logs",
+    developing: "Permission & audit under development...",
   },
   chart: {
     sent: "Sent",

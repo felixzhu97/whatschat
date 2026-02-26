@@ -57,7 +57,7 @@ const MetricIcon = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(0, 168, 132, 0.15);
+  background: rgba(37, 211, 102, 0.15);
   color: ${theme.primary};
   display: flex;
   align-items: center;
@@ -249,7 +249,7 @@ export default function DashboardPage() {
   ];
 
   const platformData = [
-    { name: "Android", value: 62, color: "#00a884" },
+    { name: "Android", value: 62, color: "#25d366" },
     { name: "iOS", value: 31, color: "#53bdeb" },
     { name: "Web", value: 7, color: "#667781" },
   ];
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                   labelStyle={{ color: theme.text }}
                 />
                 <Legend />
-                <Bar dataKey="sent" fill="#00a884" name={t("chart.sent")} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sent" fill="#25d366" name={t("chart.sent")} radius={[4, 4, 0, 0]} />
                 <Bar dataKey="received" fill="#53bdeb" name={t("chart.received")} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -345,11 +345,11 @@ export default function DashboardPage() {
               <LineChart data={userGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme.chartGrid} />
                 <XAxis dataKey="month" stroke={theme.textSecondary} fontSize={12} />
-                <YAxis stroke={theme.textSecondary} fontSize={12} tickFormatter={(v) => formatCompact(v)} />
+                <YAxis stroke={theme.textSecondary} fontSize={12} allowDecimals={false} tickFormatter={(v) => formatCompact(Number(v))} />
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8 }}
                 />
-                <Line type="monotone" dataKey="users" stroke="#00a884" strokeWidth={2} dot={{ fill: "#00a884" }} name={t("chart.users")} />
+                <Line type="monotone" dataKey="users" stroke="#25d366" strokeWidth={2} dot={{ fill: "#25d366" }} name={t("chart.users")} />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>

@@ -1,5 +1,7 @@
 export type ThemeMode = "light" | "dark";
 
+export const primaryHex = "#25d366";
+
 export const theme = {
   bg: "var(--admin-bg)",
   surface: "var(--admin-surface)",
@@ -24,14 +26,14 @@ export const lightColors = {
   border: "#e9edef",
   text: "#111b21",
   textSecondary: "#667781",
-  primary: "#00a884",
+  primary: "#25d366",
 } as const;
 
 export const darkColors = {
-  bg: "#111b21",
-  surface: "#202c33",
+  bg: "#0b141a",
+  surface: "#1f2c34",
   border: "#2a3942",
   text: "#e9edef",
   textSecondary: "#8696a0",
-  primary: "#00a884",
+  primary: "#25d366",
 } as const;

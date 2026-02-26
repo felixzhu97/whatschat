@@ -16,17 +16,23 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 ## 📸 Screenshots
 
-**Web**
+### Web
 
-| Login | Chat | Video Call |
-|:-----:|:----:|:----------:|
-| ![Web Login](screenshots/web-login.png) | ![Web Chat](screenshots/web-chat-conversation.png) | ![Web Video Call](screenshots/web-video-call.png) |
+| Login | Chat List | Chat | Video Call |
+|:-----:|:---------:|:----:|:----------:|
+| ![Web Login](screenshots/web-login.png) | ![Web Chat List](screenshots/web-chat-list.png) | ![Web Chat](screenshots/web-chat-conversation.png) | ![Web Video Call](screenshots/web-video-call.png) |
 
-**Mobile**
+### Mobile
 
-| Login | Chats | Settings |
-|:-----:|:-----:|:--------:|
-| ![Mobile Login](screenshots/mobile-login.png) | ![Mobile Chats](screenshots/mobile-chats-list.png) | ![Mobile Settings](screenshots/mobile-settings.png) |
+| Login | Chats | Chat | Communities | Video Call | Settings |
+|:-----:|:-----:|:----:|:-----------:|:----------:|:--------:|
+| ![Mobile Login](screenshots/mobile-login.png) | ![Mobile Chats](screenshots/mobile-chats-list.png) | ![Mobile Chat](screenshots/mobile-chat-conversation.png) | ![Mobile Communities](screenshots/mobile-communities.png) | ![Mobile Video Call](screenshots/mobile-video-call.png) | ![Mobile Settings](screenshots/mobile-settings.png) |
+
+### Admin
+
+| Dashboard | Users |
+|:---------:|:-----:|
+| ![Admin Dashboard](screenshots/admin-dashboard.png) | ![Admin Users](screenshots/admin-users.png) |
 
 ## 🛠 Tech Stack
 

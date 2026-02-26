@@ -7,13 +7,13 @@
 [data-theme="light"] {
   --admin-bg: #f0f2f5;
   --admin-surface: #ffffff;
-  --admin-surface-alt: #f5f6f6;
+  --admin-surface-alt: #e9edef;
   --admin-border: #e9edef;
   --admin-border-light: #e0e5e8;
   --admin-text: #111b21;
   --admin-text-secondary: #667781;
-  --admin-primary: #00a884;
-  --admin-primary-hover: #06cf9c;
+  --admin-primary: #25d366;
+  --admin-primary-hover: #2ed573;
   --admin-danger: #e54545;
   --admin-danger-hover: rgba(229, 69, 69, 0.15);
   --admin-input-bg: #f0f2f5;
@@ -23,15 +23,15 @@
 }
 
 [data-theme="dark"] {
-  --admin-bg: #111b21;
-  --admin-surface: #202c33;
+  --admin-bg: #0b141a;
+  --admin-surface: #1f2c34;
   --admin-surface-alt: #2a3942;
   --admin-border: #2a3942;
   --admin-border-light: #374248;
   --admin-text: #e9edef;
   --admin-text-secondary: #8696a0;
-  --admin-primary: #00a884;
-  --admin-primary-hover: #06cf9c;
+  --admin-primary: #25d366;
+  --admin-primary-hover: #2ed573;
   --admin-danger: #e54545;
   --admin-danger-hover: rgba(229, 69, 69, 0.2);
   --admin-input-bg: #2a3942;
@@ -52,4 +52,63 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--admin-bg);
   color: var(--admin-text);
+}
+
+.ag-admin-grid.ag-theme-alpine {
+  --ag-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ag-font-size: 15px;
+  --ag-header-height: 48px;
+  --ag-row-height: 72px;
+  --ag-header-font-weight: 500;
+  --ag-header-foreground-color: var(--admin-text-secondary);
+  --ag-border-radius: 16px;
+  --ag-cell-horizontal-padding: 20px;
+  --ag-header-cell-horizontal-padding: 20px;
+  --ag-borders: none;
+  --ag-row-border-color: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ag-admin-grid .ag-root-wrapper {
+  border-radius: 16px;
+  border: 1px solid var(--admin-border);
+}
+
+.ag-admin-grid .ag-header {
+  border-bottom: 1px solid var(--admin-border);
+  background: var(--admin-surface) !important;
+}
+
+.ag-admin-grid .ag-header-cell {
+  border-right: none !important;
+}
+
+.ag-admin-grid .ag-cell {
+  display: flex;
+  align-items: center;
+  border-right: none !important;
+}
+
+.ag-admin-grid .ag-row {
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.ag-admin-grid .ag-row:hover {
+  background: var(--admin-surface-alt) !important;
+}
+
+.ag-admin-grid .ag-ltr .ag-cell {
+  border-left: none !important;
+}
+
+.ag-admin-grid .ag-cell.user-cell,
+.ag-admin-grid .ag-cell.user-cell .ag-cell-wrapper {
+  overflow: visible !important;
+}
+
+.ag-admin-grid .ag-cell.user-cell > * {
+  overflow: visible !important;
 }

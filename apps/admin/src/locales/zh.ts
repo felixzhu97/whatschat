@@ -25,7 +25,7 @@ export const zh = {
   },
   dashboard: {
     title: "仪表盘",
-    subtitle: "WhatsApp 业务概览",
+    subtitle: "核心 KPI 与业务概览",
     activeUsers: "活跃用户",
     messagesSent: "已发消息",
     activeGroups: "活跃群组",
@@ -40,7 +40,7 @@ export const zh = {
   },
   users: {
     title: "用户管理",
-    subtitle: "管理用户账户",
+    subtitle: "用户查询、封禁管理、异常行为",
     searchPlaceholder: "搜索用户名/邮箱/手机",
     userHeader: "用户",
     search: "搜索",
@@ -58,6 +58,11 @@ export const zh = {
     deleting: "删除中...",
     deleteConfirm: "确定删除该用户？此操作不可恢复。",
   },
+  contentSafety: {
+    title: "内容安全",
+    subtitle: "举报处理、内容审核、策略管理、违规记录",
+    developing: "内容安全功能开发中...",
+  },
   chats: {
     title: "聊天管理",
     subtitle: "管理聊天会话",
@@ -70,6 +75,21 @@ export const zh = {
     deleteMessageConfirm: "确定删除此消息？",
     deleted: "已删除",
   },
+  opsMonitor: {
+    title: "运营监控",
+    subtitle: "服务健康度、实时消息量、性能图表、告警列表",
+    developing: "运营监控功能开发中...",
+  },
+  business: {
+    title: "商务管理",
+    subtitle: "API 客户、商户审核、交易对账、服务套餐",
+    developing: "商务管理功能开发中...",
+  },
+  analytics: {
+    title: "数据分析",
+    subtitle: "用户分析、行为分析、留存报告、漏斗分析",
+    developing: "数据分析功能开发中...",
+  },
   groups: {
     title: "群组管理",
     subtitle: "管理群组",
@@ -80,9 +100,14 @@ export const zh = {
     membersCount: "成员 {{count}} 人",
   },
   settings: {
-    title: "设置",
-    subtitle: "系统设置",
-    developing: "系统设置功能开发中...",
+    title: "系统配置",
+    subtitle: "基础配置、推送管理、地区策略、实验功能",
+    developing: "系统配置功能开发中...",
+  },
+  permission: {
+    title: "权限与审计",
+    subtitle: "管理员列表、角色权限、操作记录",
+    developing: "权限与审计功能开发中...",
   },
   chart: {
     sent: "已发送",

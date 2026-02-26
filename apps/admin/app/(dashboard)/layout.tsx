@@ -12,15 +12,17 @@ import { setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 import {
   LayoutDashboard,
   Users,
-  MessageSquare,
-  UsersRound,
+  Shield,
+  Activity,
+  Briefcase,
+  BarChart2,
   Settings,
+  Key,
   LogOut,
   Search,
   Bell,
   Moon,
   Sun,
-  Languages,
 } from "lucide-react";
 
 const LayoutRoot = styled.div`
@@ -267,27 +269,36 @@ const LangSelect = styled.select`
 function getRouteKey(pathname: string): string {
   if (pathname === "/") return "dashboard.title";
   if (pathname.startsWith("/users")) return "users.title";
-  if (pathname.startsWith("/chats")) return "chats.title";
-  if (pathname.startsWith("/groups")) return "groups.title";
+  if (pathname.startsWith("/content-safety")) return "contentSafety.title";
+  if (pathname.startsWith("/ops-monitor")) return "opsMonitor.title";
+  if (pathname.startsWith("/business")) return "business.title";
+  if (pathname.startsWith("/analytics")) return "analytics.title";
   if (pathname.startsWith("/settings")) return "settings.title";
+  if (pathname.startsWith("/permission")) return "permission.title";
   return "dashboard.title";
 }
 
 function getSubtitleKey(pathname: string): string {
   if (pathname === "/") return "dashboard.subtitle";
   if (pathname.startsWith("/users")) return "users.subtitle";
-  if (pathname.startsWith("/chats")) return "chats.subtitle";
-  if (pathname.startsWith("/groups")) return "groups.subtitle";
+  if (pathname.startsWith("/content-safety")) return "contentSafety.subtitle";
+  if (pathname.startsWith("/ops-monitor")) return "opsMonitor.subtitle";
+  if (pathname.startsWith("/business")) return "business.subtitle";
+  if (pathname.startsWith("/analytics")) return "analytics.subtitle";
   if (pathname.startsWith("/settings")) return "settings.subtitle";
+  if (pathname.startsWith("/permission")) return "permission.subtitle";
   return "dashboard.subtitle";
 }
 
 const ROUTES = [
   { href: "/", labelKey: "dashboard.title", icon: LayoutDashboard },
   { href: "/users", labelKey: "users.title", icon: Users },
-  { href: "/chats", labelKey: "chats.title", icon: MessageSquare },
-  { href: "/groups", labelKey: "groups.title", icon: UsersRound },
+  { href: "/content-safety", labelKey: "contentSafety.title", icon: Shield },
+  { href: "/ops-monitor", labelKey: "opsMonitor.title", icon: Activity },
+  { href: "/business", labelKey: "business.title", icon: Briefcase },
+  { href: "/analytics", labelKey: "analytics.title", icon: BarChart2 },
   { href: "/settings", labelKey: "settings.title", icon: Settings },
+  { href: "/permission", labelKey: "permission.title", icon: Key },
 ];
 
 export default function DashboardLayout({
