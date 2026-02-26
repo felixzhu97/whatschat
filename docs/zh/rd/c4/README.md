@@ -10,6 +10,8 @@
 | **2 – 容器** | [containers.puml](../../../en/rd/c4/containers.puml) | 主要容器：Web 应用 (:4000)、Admin 应用 (:4001)、移动应用、API 服务 (:3001)、PostgreSQL、Redis、Kafka、本地文件存储。 |
 | **3 – 组件（API 服务）** | [components-api-server.puml](../../../en/rd/c4/components-api-server.puml) | NestJS API 服务：控制器、WebSocket 网关、服务、仓储。 |
 | **3 – 组件（Web 应用）** | [components-web-app.puml](../../../en/rd/c4/components-web-app.puml) | Next.js Web 应用：页面、聊天/通话 UI、Hooks、API/WebSocket 客户端、@whatschat/domain。 |
+| **3 – 组件（移动应用）** | [components-mobile-app.puml](../../../en/rd/c4/components-mobile-app.puml) | Expo 移动应用：屏幕、聊天/通话/设置 UI、Hooks、i18n、主题、API/WebSocket 客户端。 |
+| **3 – 组件（Admin 应用）** | [components-admin-app.puml](../../../en/rd/c4/components-admin-app.puml) | Next.js Admin 应用：页面、DataGrid、图表、认证/主题/i18n、API 客户端。 |
 
 ## 如何查看
 

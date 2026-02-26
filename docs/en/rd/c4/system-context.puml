@@ -6,6 +6,7 @@ title C4 Level 1 - System Context: WhatsChat
 
 Person(user_web, "Web User", "Uses chat, calls, and contacts via browser")
 Person(user_mobile, "Mobile User", "Uses chat, calls, and contacts via mobile app")
+Person(admin_user, "Admin User", "Manages users, content, ops via admin dashboard")
 
 System_Boundary(whatschat, "WhatsChat") {
   System(whatschat_sys, "WhatsChat", "Instant messaging: chat, voice/video calls, file sharing, contacts, groups")
@@ -19,6 +20,7 @@ System_Ext(growthbook, "GrowthBook", "A/B testing and feature flags (optional)")
 
 Rel(user_web, whatschat_sys, "Uses", "HTTPS, WebSocket, WebRTC")
 Rel(user_mobile, whatschat_sys, "Uses", "HTTPS, WebSocket, WebRTC")
+Rel(admin_user, whatschat_sys, "Manages", "HTTPS")
 Rel(whatschat_sys, email, "Sends email")
 Rel(whatschat_sys, push, "Sends push")
 Rel(whatschat_sys, storage, "Stores/retrieves files")

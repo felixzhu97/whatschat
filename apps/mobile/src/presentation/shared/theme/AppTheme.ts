@@ -1,11 +1,9 @@
 export const AppTheme = {
-  // WhatsApp iOS 主色调
-  primaryGreen: '#1DAC5A',
-  primaryGreenDark: '#128C7E',
+  primaryGreen: '#25D366',
+  primaryGreenDark: '#075E54',
   lightGreen: '#25D366',
   accentBlue: '#007AFF',
 
-  // iOS 系统颜色
   iosBlue: '#007AFF',
   iosGreen: '#34C759',
   iosRed: '#FF3B30',
@@ -30,7 +28,7 @@ export const AppTheme = {
   // 消息气泡颜色 - WhatsApp 风格
   myMessageBubble: '#D9FDD3',
   otherMessageBubble: '#E9EDEF',
-  darkMyMessageBubble: '#1DAC5A',
+  darkMyMessageBubble: '#25D366',
   darkOtherMessageBubble: '#3A3A3C',
 
   // 文本颜色 - iOS 风格
@@ -51,7 +49,7 @@ export const AppTheme = {
 
   // 通知和状态颜色
   unreadRed: '#FF3B30',
-  typingGreen: '#1DAC5A',
+  typingGreen: '#25D366',
   deliveredBlue: '#007AFF',
   readBlue: '#007AFF',
 } as const;

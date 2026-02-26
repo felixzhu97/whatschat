@@ -19,6 +19,7 @@ package "Business Capabilities" {
   component [Status Sharing] as StatusShare
   component [Contact Management] as ContactMgmt
   component [Notification Management] as NotificationMgmt
+  component [Platform Administration] as PlatformAdmin
 }
 
 package "Business Processes" {
@@ -48,6 +49,7 @@ EndUser --> StatusShare : uses
 EndUser --> ContactMgmt : uses
 Admin --> UserMgmt : manages
 Admin --> NotificationMgmt : manages
+Admin --> PlatformAdmin : uses
 
 \' Relationships between business processes and capabilities
 AuthProcess --> UserMgmt : supports
@@ -111,6 +113,7 @@ note bottom
   6. **Status sharing** – online/offline presence and ephemeral status updates
   7. **Contact management** – add, remove, search, organize contacts
   8. **Notification management** – message notifications, system notifications, push notifications
+  9. **Platform administration** – dashboard, user management, content safety, ops monitor, analytics, system config, permission & audit
   
   Business value is delivered through real‑time communication, efficient collaboration,
   great user experience, and strong data security.

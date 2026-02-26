@@ -32,6 +32,10 @@ package "Client Applications" {
     - React 19
     - TypeScript
     - Emotion (styled)
+    - AG Grid (tables)
+    - Recharts (charts)
+    - i18next (en/zh)
+    - Theme (light/dark)
   end note
   
   component [Mobile App] as MobileApp #LightGreen
@@ -180,7 +184,7 @@ note bottom
   
   WhatsChat adopts a layered application architecture:
   
-  1. **Client applications layer** – Web app (Next.js) and mobile app (React Native/Expo) providing user interfaces
+  1. **Client applications layer** – Web app (Next.js), Admin app (Next.js), and mobile app (React Native/Expo) providing user interfaces
   2. **API gateway layer** – REST API gateway, WebSocket gateway, and WebRTC signaling gateway as unified entrypoints
   3. **Application services layer** – fine‑grained services for auth, users, messages, chats, calls, groups, status, files, and notifications
   4. **Business logic layer** – core business logic and rules processing

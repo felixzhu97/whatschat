@@ -14,7 +14,8 @@ package "Business Architecture" as BA {
     **business-architecture.puml**
     User management, instant messaging,
     voice & video calls, file sharing,
-    groups, contacts, notifications
+    groups, contacts, notifications,
+    platform administration (admin dashboard)
   end note
 }
 
@@ -25,9 +26,9 @@ package "Application Architecture" as AA {
   component [Data Access] as DataAccess
   note right of AA
     **application-architecture.puml**
-    Web/Mobile, REST/WebSocket/WebRTC,
-    NestJS services, PostgreSQL/Redis.
-    Shared packages: @whatschat/domain.
+    Web/Mobile/Admin, REST/WebSocket/WebRTC,
+    NestJS services, PostgreSQL/Redis/Kafka.
+    Admin: AG Grid, Recharts, i18n.
   end note
 }
 

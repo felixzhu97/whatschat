@@ -12,37 +12,43 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🌐 **Web App** – Next.js SPA on port 4000
 - 📱 **Mobile App** – React Native + Expo
-- ⚙️ **Admin Dashboard** – Management UI on port 4001
+- ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, System Config, Permission & Audit (port 4001)
 
 ## 📸 Screenshots
 
-### Web
-
-| Login | Chat List | Chat | Video Call |
-|:-----:|:---------:|:----:|:----------:|
-| ![Web Login](screenshots/web-login.png) | ![Web Chat List](screenshots/web-chat-list.png) | ![Web Chat](screenshots/web-chat-conversation.png) | ![Web Video Call](screenshots/web-video-call.png) |
-
 ### Mobile
 
-| Login | Chats | Chat | Communities | Video Call | Settings |
-|:-----:|:-----:|:----:|:-----------:|:----------:|:--------:|
-| ![Mobile Login](screenshots/mobile-login.png) | ![Mobile Chats](screenshots/mobile-chats-list.png) | ![Mobile Chat](screenshots/mobile-chat-conversation.png) | ![Mobile Communities](screenshots/mobile-communities.png) | ![Mobile Video Call](screenshots/mobile-video-call.png) | ![Mobile Settings](screenshots/mobile-settings.png) |
+<p align="center">
+  <img src="./screenshots/mobile-login.png" width="200" alt="Mobile Login">
+  <img src="./screenshots/mobile-chats-list.png" width="200" alt="Mobile Chats">
+  <img src="./screenshots/mobile-chat-conversation.png" width="200" alt="Mobile Chat">
+</p>
+<p align="center">
+  <img src="./screenshots/mobile-communities.png" width="200" alt="Mobile Communities">
+  <img src="./screenshots/mobile-video-call.png" width="200" alt="Mobile Video Call">
+  <img src="./screenshots/mobile-settings.png" width="200" alt="Mobile Settings">
+</p>
+
+### Web
+
+<p align="center">
+  <img src="./screenshots/web-login.png" width="280" alt="Web Login">
+  <img src="./screenshots/web-chat-list.png" width="280" alt="Web Chat List">
+  <img src="./screenshots/web-chat-conversation.png" width="280" alt="Web Chat">
+  <img src="./screenshots/web-video-call.png" width="280" alt="Web Video Call">
+</p>
 
 ### Admin
 
-| Dashboard | Users |
-|:---------:|:-----:|
-| ![Admin Dashboard](screenshots/admin-dashboard.png) | ![Admin Users](screenshots/admin-users.png) |
+<p align="center">
+  <img src="./screenshots/admin-dashboard.png" width="280" alt="Admin Dashboard">
+  <img src="./screenshots/admin-users.png" width="280" alt="Admin Users">
+</p>
 
 ## 🛠 Tech Stack
 
-| Layer | Technologies |
-|-------|--------------|
-| Frontend | Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS |
-| Mobile | React Native · Expo · Emotion · Redux Toolkit |
-| Backend | NestJS · Prisma · PostgreSQL · Redis · Socket.IO |
-| Search | Elasticsearch (optional) |
-| Storage | Local file storage |
+- **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Elasticsearch (optional)
 
 ## 🚀 Quick Start
 
@@ -79,19 +85,25 @@ pnpm start:mobile:ios   # or start:mobile:android
 
 ```
 apps/
-  web      # Next.js web app (:4000)
-  admin    # Admin dashboard (:4001)
-  mobile   # Expo mobile app
-  server   # NestJS API (:3001)
+  web      # Next.js web app (whatschat-web, :4000)
+  admin    # Admin dashboard (whatschat-admin, :4001)
+  mobile   # Expo mobile app (react-native-app)
+  server   # NestJS API (whatschat-server, :3001)
 packages/
-  domain   # Shared types and constants
+  domain   # Shared types and constants (@whatschat/domain)
 ```
 
 ## 📚 Docs & Diagrams
 
 - [文档索引](docs/README.md)
-- [C4](docs/en/rd/c4/README.md): [系统上下文](docs/en/rd/c4/system-context.puml) · [容器](docs/en/rd/c4/containers.puml) · [API 组件](docs/en/rd/c4/components-api-server.puml)
-- [TOGAF](docs/en/rd/togaf/overview.puml)
+- [C4 Model](docs/en/rd/c4/README.md)
+  - [System Context](docs/en/rd/c4/system-context.puml)
+  - [Containers](docs/en/rd/c4/containers.puml)
+  - [Components: API Server](docs/en/rd/c4/components-api-server.puml)
+  - [Components: Web App](docs/en/rd/c4/components-web-app.puml)
+  - [Components: Mobile App](docs/en/rd/c4/components-mobile-app.puml)
+  - [Components: Admin App](docs/en/rd/c4/components-admin-app.puml)
+- [TOGAF](docs/en/rd/togaf/overview.puml) · [Business](docs/en/rd/togaf/business-architecture.puml) · [Application](docs/en/rd/togaf/application-architecture.puml)
 
 ## 📄 License
 

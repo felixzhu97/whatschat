@@ -5,7 +5,7 @@
 title C4 Level 3 - Components: API Server (NestJS)
 
 Container_Boundary(api_server, "API Server") {
-  Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files")
+  Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files, Admin")
   Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing, call signaling")
   Component(auth_svc, "Auth Service", "NestJS", "Login, JWT, refresh, password")
   Component(user_svc, "User Service", "NestJS", "Profile, search")
