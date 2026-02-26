@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { styled } from "@/src/shared/utils/emotion";
+import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
@@ -11,7 +12,7 @@ import { zhCN } from "date-fns/locale";
 const PageTitle = styled.h1`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 1.5rem;
 `;
 
@@ -25,13 +26,17 @@ const SearchInput = styled.input`
   flex: 1;
   max-width: 300px;
   padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border: 1px solid #e9edef;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.border};
   border-radius: 8px;
   font-size: 0.9375rem;
-  background: #fff;
+  color: ${theme.text};
   &:focus {
     outline: none;
-    border-color: #128c7e;
+    border-color: ${theme.primary};
+  }
+  &::placeholder {
+    color: ${theme.textSecondary};
   }
 `;
 
@@ -42,41 +47,43 @@ const SearchWrapper = styled.div`
     left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #8696a0;
+    color: ${theme.iconMuted};
     width: 18px;
   }
 `;
 
 const Table = styled.div`
-  background: #fff;
+  background: ${theme.surface};
   border-radius: 12px;
-  border: 1px solid #e9edef;
+  border: 1px solid ${theme.border};
   overflow: hidden;
+  box-shadow: ${theme.shadow};
 `;
 
 const TableRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 120px 100px;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid ${theme.border};
   align-items: center;
   font-size: 0.9375rem;
+  color: ${theme.text};
   &:last-child {
     border-bottom: none;
   }
 `;
 
 const TableHeader = styled(TableRow)`
-  background: #f8f9fa;
+  background: ${theme.surfaceAlt};
   font-weight: 500;
-  color: #54656f;
+  color: ${theme.textSecondary};
 `;
 
 const Avatar = styled.div`
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #075e54;
+  background: ${theme.primary};
   color: white;
   display: flex;
   align-items: center;
@@ -93,16 +100,16 @@ const UserCell = styled.div`
 
 const UserName = styled.div`
   font-weight: 500;
-  color: #111;
+  color: ${theme.text};
 `;
 
 const UserEmail = styled.div`
   font-size: 0.8125rem;
-  color: #8696a0;
+  color: ${theme.textSecondary};
 `;
 
 const LinkBtn = styled(Link)`
-  color: #128c7e;
+  color: ${theme.primary};
   text-decoration: none;
   font-size: 0.875rem;
   &:hover {
@@ -117,16 +124,18 @@ const Pagination = styled.div`
   margin-top: 1rem;
 `;
 
-const PageBtn = styled.button<{ $active?: boolean }>`
+const PageBtn = styled("button", {
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active?: boolean }>`
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e9edef;
-  background: ${(p) => (p.$active ? "#128c7e" : "#fff")};
-  color: ${(p) => (p.$active ? "#fff" : "#54656f")};
+  border: 1px solid ${theme.border};
+  background: ${(p) => (p.active ? theme.primary : theme.surface)};
+  color: ${(p) => (p.active ? "#fff" : theme.text)};
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
   &:hover:not(:disabled) {
-    background: #f0f2f5;
+    background: ${(p) => (p.active ? theme.primary : theme.surfaceAlt)};
   }
 `;
 
@@ -198,7 +207,7 @@ export default function UsersPage() {
             type="submit"
             style={{
               padding: "0.5rem 1rem",
-              background: "#128c7e",
+              background: theme.primary,
               color: "#fff",
               border: "none",
               borderRadius: "8px",
@@ -262,7 +271,7 @@ export default function UsersPage() {
             (p) => (
               <PageBtn
                 key={p}
-                $active={p === pagination.page}
+                active={p === pagination.page}
                 onClick={() => load(p)}
               >
                 {p}

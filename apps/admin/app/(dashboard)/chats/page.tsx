@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { styled } from "@/src/shared/utils/emotion";
+import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
@@ -11,7 +12,7 @@ import { zhCN } from "date-fns/locale";
 const PageTitle = styled.h1`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 1.5rem;
 `;
 
@@ -25,13 +26,17 @@ const SearchInput = styled.input`
   flex: 1;
   max-width: 300px;
   padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border: 1px solid #e9edef;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.border};
   border-radius: 8px;
   font-size: 0.9375rem;
-  background: #fff;
+  color: ${theme.text};
   &:focus {
     outline: none;
-    border-color: #128c7e;
+    border-color: ${theme.primary};
+  }
+  &::placeholder {
+    color: ${theme.textSecondary};
   }
 `;
 
@@ -42,16 +47,17 @@ const SearchWrapper = styled.div`
     left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #8696a0;
+    color: ${theme.iconMuted};
     width: 18px;
   }
 `;
 
 const ChatList = styled.div`
-  background: #fff;
+  background: ${theme.surface};
   border-radius: 12px;
-  border: 1px solid #e9edef;
+  border: 1px solid ${theme.border};
   overflow: hidden;
+  box-shadow: ${theme.shadow};
 `;
 
 const ChatItem = styled(Link)`
@@ -59,14 +65,14 @@ const ChatItem = styled(Link)`
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid ${theme.border};
   text-decoration: none;
-  color: inherit;
+  color: ${theme.text};
   &:last-child {
     border-bottom: none;
   }
   &:hover {
-    background: #f8f9fa;
+    background: ${theme.surfaceAlt};
   }
 `;
 
@@ -74,7 +80,7 @@ const Avatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #075e54;
+  background: ${theme.primary};
   color: white;
   display: flex;
   align-items: center;
@@ -91,13 +97,13 @@ const ChatInfo = styled.div`
 
 const ChatName = styled.div`
   font-weight: 500;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 0.25rem;
 `;
 
 const ChatMeta = styled.div`
   font-size: 0.8125rem;
-  color: #8696a0;
+  color: ${theme.textSecondary};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -105,7 +111,7 @@ const ChatMeta = styled.div`
 
 const ChatTime = styled.div`
   font-size: 0.8125rem;
-  color: #8696a0;
+  color: ${theme.textSecondary};
   flex-shrink: 0;
 `;
 
@@ -179,7 +185,7 @@ export default function ChatsPage() {
             type="submit"
             style={{
               padding: "0.5rem 1rem",
-              background: "#128c7e",
+              background: theme.primary,
               color: "#fff",
               border: "none",
               borderRadius: "8px",
@@ -192,7 +198,7 @@ export default function ChatsPage() {
       </form>
       <ChatList>
         {loading ? (
-          <div style={{ padding: "2rem", textAlign: "center", color: "#8696a0" }}>
+          <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
             加载中...
           </div>
         ) : (
@@ -212,7 +218,7 @@ export default function ChatsPage() {
               <ChatTime>
                 {format(new Date(c.updatedAt), "MM-dd HH:mm", { locale: zhCN })}
               </ChatTime>
-              <ChevronRight size={20} color="#8696a0" />
+              <ChevronRight size={20} color={theme.iconMuted} />
             </ChatItem>
           ))
         )}
@@ -231,14 +237,16 @@ export default function ChatsPage() {
             onClick={() => setPage((p) => p - 1)}
             style={{
               padding: "0.5rem 0.75rem",
-              border: "1px solid #e9edef",
+              border: `1px solid ${theme.border}`,
+              background: theme.surface,
+              color: theme.text,
               borderRadius: "6px",
               cursor: "pointer",
             }}
           >
             上一页
           </button>
-          <span style={{ padding: "0.5rem" }}>
+          <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
             {page} / {totalPages}
           </span>
           <button
@@ -246,7 +254,9 @@ export default function ChatsPage() {
             onClick={() => setPage((p) => p + 1)}
             style={{
               padding: "0.5rem 0.75rem",
-              border: "1px solid #e9edef",
+              border: `1px solid ${theme.border}`,
+              background: theme.surface,
+              color: theme.text,
               borderRadius: "6px",
               cursor: "pointer",
             }}

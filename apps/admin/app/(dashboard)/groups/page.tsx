@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { styled } from "@/src/shared/utils/emotion";
+import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search } from "lucide-react";
 import { format } from "date-fns";
@@ -10,7 +11,7 @@ import { zhCN } from "date-fns/locale";
 const PageTitle = styled.h1`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 1.5rem;
 `;
 
@@ -24,13 +25,17 @@ const SearchInput = styled.input`
   flex: 1;
   max-width: 300px;
   padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border: 1px solid #e9edef;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.border};
   border-radius: 8px;
   font-size: 0.9375rem;
-  background: #fff;
+  color: ${theme.text};
   &:focus {
     outline: none;
-    border-color: #128c7e;
+    border-color: ${theme.primary};
+  }
+  &::placeholder {
+    color: ${theme.textSecondary};
   }
 `;
 
@@ -41,7 +46,7 @@ const SearchWrapper = styled.div`
     left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #8696a0;
+    color: ${theme.iconMuted};
     width: 18px;
   }
 `;
@@ -53,10 +58,11 @@ const GroupGrid = styled.div`
 `;
 
 const GroupCard = styled.div`
-  background: #fff;
+  background: ${theme.surface};
   border-radius: 12px;
-  border: 1px solid #e9edef;
+  border: 1px solid ${theme.border};
   padding: 1.25rem;
+  box-shadow: ${theme.shadow};
 `;
 
 const GroupHeader = styled.div`
@@ -70,7 +76,7 @@ const Avatar = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #075e54;
+  background: ${theme.primary};
   color: white;
   display: flex;
   align-items: center;
@@ -82,19 +88,19 @@ const Avatar = styled.div`
 
 const GroupName = styled.div`
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   font-size: 1rem;
 `;
 
 const GroupMeta = styled.div`
   font-size: 0.8125rem;
-  color: #8696a0;
+  color: ${theme.textSecondary};
   margin-top: 0.25rem;
 `;
 
 const Members = styled.div`
   font-size: 0.875rem;
-  color: #54656f;
+  color: ${theme.textSecondary};
   margin-top: 0.5rem;
 `;
 
@@ -164,7 +170,7 @@ export default function GroupsPage() {
             type="submit"
             style={{
               padding: "0.5rem 1rem",
-              background: "#128c7e",
+              background: theme.primary,
               color: "#fff",
               border: "none",
               borderRadius: "8px",
@@ -176,7 +182,7 @@ export default function GroupsPage() {
         </Toolbar>
       </form>
       {loading ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8696a0" }}>
+        <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
           加载中...
         </div>
       ) : (
@@ -200,7 +206,7 @@ export default function GroupsPage() {
                   <div
                     style={{
                       fontSize: "0.875rem",
-                      color: "#54656f",
+                      color: theme.textSecondary,
                       marginBottom: "0.5rem",
                     }}
                   >
@@ -216,7 +222,7 @@ export default function GroupsPage() {
                         display: "inline-block",
                         marginLeft: "0.25rem",
                         padding: "0.125rem 0.375rem",
-                        background: "#f0f2f5",
+                        background: theme.surfaceAlt,
                         borderRadius: "4px",
                         fontSize: "0.75rem",
                       }}
@@ -225,7 +231,7 @@ export default function GroupsPage() {
                     </span>
                   ))}
                   {(g.participants?.length || 0) > 5 && (
-                    <span style={{ marginLeft: "0.25rem", color: "#8696a0" }}>
+                    <span style={{ marginLeft: "0.25rem", color: theme.textSecondary }}>
                       +{g.participants!.length - 5}
                     </span>
                   )}
@@ -245,27 +251,31 @@ export default function GroupsPage() {
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
-                style={{
-                  padding: "0.5rem 0.75rem",
-                  border: "1px solid #e9edef",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
+style={{
+                padding: "0.5rem 0.75rem",
+                border: `1px solid ${theme.border}`,
+                background: theme.surface,
+                color: theme.text,
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
               >
                 上一页
               </button>
-              <span style={{ padding: "0.5rem" }}>
+              <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
                 {page} / {totalPages}
               </span>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                style={{
-                  padding: "0.5rem 0.75rem",
-                  border: "1px solid #e9edef",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
+style={{
+                padding: "0.5rem 0.75rem",
+                border: `1px solid ${theme.border}`,
+                background: theme.surface,
+                color: theme.text,
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
               >
                 下一页
               </button>

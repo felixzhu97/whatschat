@@ -35,7 +35,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 | Frontend | Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS |
 | Mobile | React Native · Expo · Emotion · Redux Toolkit |
 | Backend | NestJS · Prisma · PostgreSQL · Redis · Socket.IO |
-| Search | Elasticsearch |
+| Search | Elasticsearch (optional) |
 | Storage | Local file storage |
 
 ## 🚀 Quick Start
@@ -44,7 +44,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - Node.js 18+
 - pnpm 8+
-- Docker & Docker Compose (for PostgreSQL, Redis, Kafka, Elasticsearch)
+- Docker & Docker Compose (PostgreSQL, Redis, Kafka via `apps/server/docker-compose.yml`)
 
 ### Setup
 
@@ -56,10 +56,10 @@ pnpm setup
 ### Run
 
 ```bash
-cd apps/server && pnpm start   # Start Docker + NestJS API (:3001)
-cd apps/web && pnpm dev       # Web app on :4000
-cd apps/admin && pnpm dev     # Admin on :4001
-cd apps/mobile && pnpm start  # Expo mobile app
+pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001)
+pnpm start:web       # Web app on :4000
+pnpm start:admin     # Admin dashboard on :4001
+pnpm start:mobile:ios   # or start:mobile:android
 ```
 
 ### Environment
@@ -67,7 +67,7 @@ cd apps/mobile && pnpm start  # Expo mobile app
 - `apps/server/.env` – Copy from `env.example`
 - `apps/web/.env.local` – Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `apps/admin/.env.local` – Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
-- Server: Set `ADMIN_EMAILS=admin@example.com` (comma-separated) for admin access
+- `ADMIN_EMAILS=admin@whatschat.com` (comma-separated) for admin access
 
 ## 📁 Project Structure
 

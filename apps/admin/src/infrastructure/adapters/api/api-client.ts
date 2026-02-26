@@ -24,6 +24,9 @@ export class ApiClient {
   }
 
   getToken() {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(TOKEN_KEY);
+    }
     return this.token;
   }
 
@@ -41,9 +44,13 @@ export class ApiClient {
       },
       ...options,
     };
-    if (this.token) {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem(TOKEN_KEY)
+        : this.token;
+    if (token) {
       (config.headers as Record<string, string>)["Authorization"] =
-        `Bearer ${this.token}`;
+        `Bearer ${token}`;
     }
     const response = await fetch(url, config);
     const data = await response.json();

@@ -7,7 +7,7 @@
 | 层级 | 图表 | 说明 |
 |------|------|------|
 | **1 – 系统上下文** | [system-context.puml](../../../en/rd/c4/system-context.puml) | WhatsChat 作为单一系统，与用户及外部系统（邮件、推送、存储、STUN/TURN）的关系。 |
-| **2 – 容器** | [containers.puml](../../../en/rd/c4/containers.puml) | 主要容器：Web 应用、Admin 应用、移动应用、API 服务、PostgreSQL、Redis、对象存储。 |
+| **2 – 容器** | [containers.puml](../../../en/rd/c4/containers.puml) | 主要容器：Web 应用 (:4000)、Admin 应用 (:4001)、移动应用、API 服务 (:3001)、PostgreSQL、Redis、Kafka、本地文件存储。 |
 | **3 – 组件（API 服务）** | [components-api-server.puml](../../../en/rd/c4/components-api-server.puml) | NestJS API 服务：控制器、WebSocket 网关、服务、仓储。 |
 | **3 – 组件（Web 应用）** | [components-web-app.puml](../../../en/rd/c4/components-web-app.puml) | Next.js Web 应用：页面、聊天/通话 UI、Hooks、API/WebSocket 客户端、@whatschat/domain。 |
 
@@ -36,7 +36,7 @@ plantuml -tsvg docs/en/rd/c4/*.puml
 ## 约定
 
 - **系统上下文**：单一系统（WhatsChat）、参与者（Web/移动用户）及外部系统。
-- **容器**：可部署的运行单元与数据存储；Web 应用、Admin 应用、移动应用、API 服务、PostgreSQL、Redis、对象存储。
+- **容器**：可部署的运行单元与数据存储；Web 应用 (:4000)、Admin 应用 (:4001)、移动应用、API 服务 (:3001)、PostgreSQL、Redis、Kafka、本地文件存储。
 - **组件**：容器内的逻辑模块（如服务、网关、Hooks、API 客户端）。共享领域类型在图中体现（如 Web 应用使用 `@whatschat/domain`）。
 
 ## 参考

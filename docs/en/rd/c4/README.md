@@ -7,7 +7,7 @@ This folder contains the [C4 model](https://c4model.com/) diagrams for WhatsChat
 | Level | Diagram | Description |
 |-------|---------|-------------|
 | **1 – System Context** | [system-context.puml](./system-context.puml) | WhatsChat, users, external systems (email, push, file storage, STUN/TURN). |
-| **2 – Containers** | [containers.puml](./containers.puml) | Web App (:4000), Admin (:4001), Mobile, API Server (:3001), PostgreSQL, Redis, Local File Storage. |
+| **2 – Containers** | [containers.puml](./containers.puml) | Web App (:4000), Admin (:4001), Mobile, API Server (:3001), PostgreSQL, Redis, Kafka, Local File Storage. |
 | **3 – Components (API Server)** | [components-api-server.puml](./components-api-server.puml) | NestJS API Server: controllers, WebSocket gateway, services, repositories. |
 | **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, chat/call UI (Emotion, Radix UI), hooks, API/WebSocket clients, @whatschat/domain. |
 | **3 – Components (Mobile App)** | [components-mobile-app.puml](./components-mobile-app.puml) | Expo Mobile App: screens (Expo Router), chat/call/settings UI (Emotion), auth/message hooks, i18n, theme, API/WebSocket clients, @whatschat/domain. |
@@ -43,7 +43,7 @@ plantuml -tsvg docs/en/rd/c4/*.puml
 ## Conventions
 
 - **System Context**: One system (WhatsChat), actors (Web/Mobile User), and external systems only.
-- **Containers**: Web App (:4000), Admin (:4001), Mobile, API Server (:3001), PostgreSQL, Redis, Local File Storage.
+- **Containers**: Web App (:4000), Admin (:4001), Mobile, API Server (:3001), PostgreSQL, Redis, Kafka, Local File Storage.
 - **Components**: Logical building blocks inside a container (e.g. services, gateways, hooks, API client).  
   Shared domain types are represented where relevant (e.g. Web App uses `@whatschat/domain`).
 

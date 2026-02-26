@@ -4,33 +4,35 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { styled } from "@/src/shared/utils/emotion";
 import { useAuth } from "@/src/presentation/providers/auth-provider";
+import { theme } from "@/src/shared/theme";
 
 const Page = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #075e54 0%, #128c7e 50%, #25d366 100%);
+  background: ${theme.bg};
 `;
 
 const Card = styled.div`
-  background: white;
+  background: ${theme.surface};
   border-radius: 16px;
   padding: 2.5rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid ${theme.border};
+  box-shadow: ${theme.shadow};
 `;
 
 const Title = styled.h1`
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 0.25rem;
 `;
 
 const Subtitle = styled.p`
-  color: #6b7280;
+  color: ${theme.textSecondary};
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
 `;
@@ -43,19 +45,23 @@ const Form = styled.form`
 
 const Input = styled.input`
   padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  background: ${theme.inputBg};
+  border: 1px solid ${theme.border};
   border-radius: 8px;
   font-size: 0.9375rem;
+  color: ${theme.text};
   &:focus {
     outline: none;
-    border-color: #128c7e;
-    box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.2);
+    border-color: ${theme.primary};
+  }
+  &::placeholder {
+    color: ${theme.textSecondary};
   }
 `;
 
 const Button = styled.button<{ $loading?: boolean }>`
   padding: 0.75rem 1rem;
-  background: #128c7e;
+  background: ${theme.primary};
   color: white;
   border: none;
   border-radius: 8px;
@@ -64,7 +70,7 @@ const Button = styled.button<{ $loading?: boolean }>`
   cursor: pointer;
   opacity: ${(p) => (p.$loading ? 0.7 : 1)};
   &:hover:not(:disabled) {
-    background: #0d6b5f;
+    background: ${theme.primaryHover};
   }
   &:disabled {
     cursor: not-allowed;
@@ -72,7 +78,7 @@ const Button = styled.button<{ $loading?: boolean }>`
 `;
 
 const ErrorText = styled.p`
-  color: #dc2626;
+  color: ${theme.danger};
   font-size: 0.875rem;
 `;
 

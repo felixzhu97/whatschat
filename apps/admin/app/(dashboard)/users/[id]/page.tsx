@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { styled } from "@/src/shared/utils/emotion";
+import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
@@ -13,7 +14,7 @@ const BackLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #128c7e;
+  color: ${theme.primary};
   text-decoration: none;
   font-size: 0.9375rem;
   margin-bottom: 1rem;
@@ -23,18 +24,19 @@ const BackLink = styled(Link)`
 `;
 
 const Card = styled.div`
-  background: #fff;
+  background: ${theme.surface};
   border-radius: 12px;
-  border: 1px solid #e9edef;
+  border: 1px solid ${theme.border};
   padding: 1.5rem;
   max-width: 500px;
+  box-shadow: ${theme.shadow};
 `;
 
 const Avatar = styled.div`
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #075e54;
+  background: ${theme.primary};
   color: white;
   display: flex;
   align-items: center;
@@ -47,23 +49,24 @@ const Avatar = styled.div`
 const UserName = styled.h1`
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111;
+  color: ${theme.text};
   margin-bottom: 0.5rem;
 `;
 
 const Row = styled.div`
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid ${theme.border};
   display: flex;
   justify-content: space-between;
   font-size: 0.9375rem;
+  color: ${theme.text};
   &:last-child {
     border-bottom: none;
   }
 `;
 
 const Label = styled.span`
-  color: #8696a0;
+  color: ${theme.textSecondary};
 `;
 
 const Actions = styled.div`
@@ -77,9 +80,9 @@ const Btn = styled.button<{ $danger?: boolean }>`
   border-radius: 8px;
   font-size: 0.9375rem;
   cursor: pointer;
-  border: 1px solid ${(p) => (p.$danger ? "#dc3545" : "#e9edef")};
-  background: ${(p) => (p.$danger ? "#dc3545" : "#fff")};
-  color: ${(p) => (p.$danger ? "#fff" : "#54656f")};
+  border: 1px solid ${(p) => (p.$danger ? theme.danger : theme.border)};
+  background: ${(p) => (p.$danger ? theme.danger : theme.surfaceAlt)};
+  color: ${(p) => (p.$danger ? "#fff" : theme.text)};
   &:hover {
     opacity: 0.9;
   }
@@ -133,7 +136,7 @@ export default function UserDetailPage() {
         <BackLink href="/users">
           <ArrowLeft size={18} /> 返回用户列表
         </BackLink>
-        <div>加载中...</div>
+        <div style={{ color: theme.textSecondary }}>加载中...</div>
       </div>
     );
   }
