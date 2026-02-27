@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@whatschat/domain": "workspace:*",
+    "@whatschat/im": "workspace:*",
     "@emotion/native": "^11.11.0",
     "@emotion/react": "^11.14.0",
     "@expo/metro-runtime": "55.0.6",

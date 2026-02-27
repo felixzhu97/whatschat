@@ -91,6 +91,7 @@ apps/
   server   # NestJS API (whatschat-server, :3001)
 packages/
   domain   # Shared types and constants (@whatschat/domain)
+  im       # Instant messaging logic (@whatschat/im)
 ```
 
 ## 📚 Docs & Diagrams

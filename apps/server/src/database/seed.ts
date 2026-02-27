@@ -5,14 +5,14 @@ import logger from "@/shared/utils/logger";
 
 if (!process.env["DATABASE_URL"]) {
   process.env["DATABASE_URL"] =
-    "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public";
+      "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public";
 }
 
 const prisma = new PrismaClient({
   log:
-    process.env["NODE_ENV"] === "development"
-      ? ["query", "info", "warn", "error"]
-      : ["error"],
+      process.env["NODE_ENV"] === "development"
+          ? ["query", "info", "warn", "error"]
+          : ["error"],
 });
 
 const config = ConfigService.loadConfig();
@@ -147,6 +147,7 @@ const PERSON_DATA: { username: string; name: string; status: string }[] = [
   { username: "louis", name: "Louis", status: "Tomlinson." },
   { username: "niall", name: "Niall", status: "Horan." },
   { username: "zayn", name: "Zayn", status: "Malik." },
+  { username: "admin", name: "Admin", status: "Admin." },
 ];
 
 export async function main() {
@@ -177,7 +178,7 @@ export async function main() {
         await prisma.user.deleteMany();
       } catch (e) {
         logger.warn(
-          "清理失败（可能是权限或未使用 Docker 数据库），请先执行 pnpm start 再执行 db:seed。跳过清理继续..."
+            "清理失败（可能是权限或未使用 Docker 数据库），请先执行 pnpm start 再执行 db:seed。跳过清理继续..."
         );
       }
     }
@@ -185,20 +186,7 @@ export async function main() {
     const saltRounds = config.security.bcrypt.saltRounds;
     const hashedPassword = await bcrypt.hash("123456", saltRounds);
 
-    const adminUser = await prisma.user.create({
-      data: {
-        username: "admin",
-        email: "admin@whatschat.com",
-        phone: "+1 555 000 0000",
-        password: hashedPassword,
-        avatar: "/placeholder.svg?height=40&width=40&text=A",
-        status: "Admin",
-        isOnline: false,
-      },
-    });
-    await prisma.userSettings.create({ data: { userId: adminUser.id } });
-
-    const users: Awaited<ReturnType<typeof prisma.user.create>>[] = [adminUser];
+    const users: Awaited<ReturnType<typeof prisma.user.create>>[] = [];
     for (let i = 0; i < PERSON_DATA.length; i++) {
       const p = PERSON_DATA[i]!;
       const initial = p.username[0]!.toUpperCase();
@@ -426,7 +414,7 @@ export async function main() {
 
     logger.info("数据库种子完成！");
     logger.info(`共 ${users.length} 个测试账户，密码均为: 123456`);
-    logger.info("默认: admin@whatschat.com (Admin后台) | cristiano@whatschat.com (Web) | ladygaga@whatschat.com (Mobile)");
+    logger.info("示例: cristiano@whatschat.com (Web默认), ladygaga@whatschat.com (Mobile默认) ...");
   } catch (error) {
     logger.error("数据库种子失败:", error);
     throw error;
@@ -434,10 +422,10 @@ export async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });

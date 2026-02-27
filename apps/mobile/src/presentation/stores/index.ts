@@ -36,11 +36,9 @@ export {
   updateChat,
   deleteChat,
   setSelectedChat,
-} from '../store/slices/chatSlice';
-export {
   addMessage,
   updateMessage,
   deleteMessage,
   setMessages,
-} from '../store/slices/messageSlice';
+} from '@whatschat/im';
 export { setThemeMode } from '../store/slices/themeSlice';

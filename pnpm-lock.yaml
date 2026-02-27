@@ -105,6 +105,9 @@ importers:
       '@whatschat/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@whatschat/im':
+        specifier: workspace:*
+        version: link:../../packages/im
       axios:
         specifier: ^1.8.4
         version: 1.13.5
@@ -566,6 +569,9 @@ importers:
       '@whatschat/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@whatschat/im':
+        specifier: workspace:*
+        version: link:../../packages/im
       amazon-chime-sdk-js:
         specifier: ^3.0.0
         version: 3.30.0
@@ -684,6 +690,28 @@ importers:
 
   packages/domain:
     devDependencies:
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/im:
+    dependencies:
+      '@whatschat/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@reduxjs/toolkit':
+        specifier: ^2.5.0
+        version: 2.11.2(react-redux@9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.28
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
@@ -4255,6 +4283,9 @@ packages:
   '@types/passport@1.0.17':
     resolution: {integrity: sha512-aciLyx+wDwT2t2/kJGJR2AEeBz0nJU4WuRX04Wu9Dqc5lSUtwu0WERPHYsLhF9PtseiAMPBGNUOtFjxZ56prsg==}
 
+  '@types/prop-types@15.7.15':
+    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
+
   '@types/qs@6.14.0':
     resolution: {integrity: sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ==}
 
@@ -4268,6 +4299,9 @@ packages:
 
   '@types/react-test-renderer@19.1.0':
     resolution: {integrity: sha512-XD0WZrHqjNrxA/MaR9O22w/RNidWR9YZmBdRGI7wcnWGrv/3dA8wKCJ8m63Sn+tLJhcjmuhOi629N66W6kgWzQ==}
+
+  '@types/react@18.3.28':
+    resolution: {integrity: sha512-z9VXpC7MWrhfWipitjNdgCauoMLRdIILQsAEV+ZesIzBq/oUlxk0m3ApZuMFCXdnS4U7KrI+l3WRUEGQ8K1QKw==}
 
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
@@ -8454,6 +8488,10 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react@18.3.1:
+    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
+    engines: {node: '>=0.10.0'}
 
   react@19.2.0:
     resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
@@ -13633,6 +13671,18 @@ snapshots:
     dependencies:
       '@redis/client': 1.6.1
 
+  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      '@standard-schema/utils': 0.3.0
+      immer: 11.1.4
+      redux: 5.0.1
+      redux-thunk: 3.1.0(redux@5.0.1)
+      reselect: 5.1.1
+    optionalDependencies:
+      react: 18.3.1
+      react-redux: 9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1)
+
   '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.0)(redux@5.0.1))(react@19.2.0)':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -14282,6 +14332,8 @@ snapshots:
     dependencies:
       '@types/express': 4.17.25
 
+  '@types/prop-types@15.7.15': {}
+
   '@types/qs@6.14.0': {}
 
   '@types/range-parser@1.2.7': {}
@@ -14293,6 +14345,11 @@ snapshots:
   '@types/react-test-renderer@19.1.0':
     dependencies:
       '@types/react': 19.2.14
+
+  '@types/react@18.3.28':
+    dependencies:
+      '@types/prop-types': 15.7.15
+      csstype: 3.2.3
 
   '@types/react@19.2.14':
     dependencies:
@@ -19455,6 +19512,16 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  react-redux@9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1):
+    dependencies:
+      '@types/use-sync-external-store': 0.0.6
+      react: 18.3.1
+      use-sync-external-store: 1.6.0(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.28
+      redux: 5.0.1
+    optional: true
+
   react-redux@9.2.0(@types/react@19.2.14)(react@19.2.0)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.6
@@ -19522,6 +19589,10 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
+
+  react@18.3.1:
+    dependencies:
+      loose-envify: 1.4.0
 
   react@19.2.0: {}
 
@@ -20780,6 +20851,11 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.14
+
+  use-sync-external-store@1.6.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+    optional: true
 
   use-sync-external-store@1.6.0(react@19.2.0):
     dependencies:
