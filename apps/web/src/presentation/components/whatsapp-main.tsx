@@ -313,8 +313,8 @@ export function WhatsAppMain() {
       return (
         <RealCallInterface
           callState={callState}
-          localStream={localStream}
-          remoteStream={remoteStream}
+          localStream={localStream as MediaStream | null}
+          remoteStream={remoteStream as MediaStream | null}
           onEndCall={endCall}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}

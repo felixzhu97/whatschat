@@ -702,10 +702,28 @@ importers:
       '@whatschat/domain':
         specifier: workspace:*
         version: link:../domain
+      '@whatschat/rtc':
+        specifier: workspace:*
+        version: link:../rtc
     devDependencies:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.11.2(react-redux@9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.28
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/rtc:
+    devDependencies:
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28

@@ -91,8 +91,14 @@ apps/
   server   # NestJS API (whatschat-server, :3001)
 packages/
   domain   # Shared types and constants (@whatschat/domain)
-  im       # Instant messaging logic (@whatschat/im)
+  im       # Instant messaging + RTC (@whatschat/im)
+  rtc      # Voice/video call logic (@whatschat/rtc, used by im)
 ```
+
+**Shared packages:**
+- `@whatschat/domain` – User, Message, Chat, Contact, Call types
+- `@whatschat/im` – Chat slices, hooks (useRealChat, useChatsWithLiveMessages), RTC (useCall, createCallManager). Apps inject platform adapters.
+- `@whatschat/rtc` – RTC domain (RTCCallState, ICallManager), config-driven createCallManager, formatDuration, CallManagerStub.
 
 ## 📚 Docs & Diagrams
 

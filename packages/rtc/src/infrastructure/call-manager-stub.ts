@@ -1,24 +1,15 @@
-import type { CallState } from './callTypes';
+import type { ICallManager } from "../domain/call-manager";
+import type { RTCCallState } from "../domain/types";
+import { INITIAL_CALL_STATE } from "../application/constants";
 
 type Listener = (data: unknown) => void;
 
-const defaultState: CallState = {
-  isActive: false,
-  isIncoming: false,
-  contactId: '',
-  contactName: '',
-  contactAvatar: '',
-  callType: 'voice',
-  status: 'ended',
-  duration: 0,
-  isMuted: false,
-  isVideoOff: false,
-  isSpeakerOn: false,
-};
+const DEFAULT_EXPO_GO_MESSAGE =
+  "Calls require a development build. Expo Go does not support WebRTC.";
 
-export class CallManagerStub {
+export class CallManagerStub implements ICallManager {
   private listeners = new Map<string, Listener[]>();
-  private callState: CallState = { ...defaultState };
+  private callState: RTCCallState = { ...INITIAL_CALL_STATE };
 
   setSocket(_socket: unknown) {}
 
@@ -35,7 +26,7 @@ export class CallManagerStub {
     }
   }
 
-  getCallState(): CallState {
+  getCallState(): RTCCallState {
     return { ...this.callState };
   }
 
@@ -48,11 +39,11 @@ export class CallManagerStub {
   }
 
   async startCall() {
-    throw new Error('Calls require a development build. Expo Go does not support WebRTC.');
+    throw new Error(DEFAULT_EXPO_GO_MESSAGE);
   }
 
   async answerCall() {
-    throw new Error('Calls require a development build.');
+    throw new Error("Calls require a development build.");
   }
 
   endCall() {}

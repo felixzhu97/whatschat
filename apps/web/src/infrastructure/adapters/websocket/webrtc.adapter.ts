@@ -1,6 +1,11 @@
 "use client";
 
-import { IWebRTCAdapter, RTCCallState } from "../../../domain/interfaces/adapters/webrtc.interface";
+import {
+  ICE_SERVERS,
+  INITIAL_CALL_STATE,
+} from "@whatschat/im";
+import type { RTCCallState } from "../../../domain/interfaces/adapters/webrtc.interface";
+import type { IWebRTCAdapter } from "../../../domain/interfaces/adapters/webrtc.interface";
 import { IWebSocketAdapter } from "../../../domain/interfaces/adapters/websocket.interface";
 import { getWebSocketAdapter } from "./websocket.adapter";
 
@@ -10,19 +15,7 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   private remoteStream: MediaStream | null = null;
   private wsManager: IWebSocketAdapter;
   private listeners: Map<string, Function[]> = new Map();
-  private callState: RTCCallState = {
-    isActive: false,
-    isIncoming: false,
-    contactId: "",
-    contactName: "",
-    contactAvatar: "",
-    callType: "voice",
-    status: "ended",
-    duration: 0,
-    isMuted: false,
-    isVideoOff: false,
-    isSpeakerOn: false,
-  };
+  private callState: RTCCallState = { ...INITIAL_CALL_STATE };
   private durationTimer: NodeJS.Timeout | null = null;
 
   constructor(wsManager?: IWebSocketAdapter) {
@@ -40,10 +33,7 @@ export class WebRTCAdapter implements IWebRTCAdapter {
   private async createPeerConnection() {
     try {
       const configuration: RTCConfiguration = {
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
+        iceServers: ICE_SERVERS,
       };
 
       this.peerConnection = new RTCPeerConnection(configuration);

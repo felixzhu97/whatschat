@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useCall } from '@/src/presentation/hooks/useCall';
 import { IncomingCallOverlay } from './IncomingCallOverlay';
-import { ActiveCallOverlay } from './ActiveCallOverlay';
+import { ActiveCallOverlay, type StreamLike } from './ActiveCallOverlay';
 
 const ErrorBar = styled.View`
   position: absolute;
@@ -50,8 +50,8 @@ export function CallOverlay() {
     return (
       <ActiveCallOverlay
         callState={callState}
-        localStream={localStream}
-        remoteStream={remoteStream}
+        localStream={localStream as StreamLike | null}
+        remoteStream={remoteStream as StreamLike | null}
         onEndCall={endCall}
         onToggleMute={toggleMute}
         onToggleVideo={toggleVideo}

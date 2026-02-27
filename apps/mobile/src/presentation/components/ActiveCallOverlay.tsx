@@ -6,7 +6,7 @@ import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import type { CallState } from '@/src/infrastructure/call/callManagerLoader';
 
-interface StreamLike {
+export interface StreamLike {
   toURL(): string;
 }
 

@@ -1,29 +1,16 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { getCallManagerStub, createCallManager } from '@whatschat/im';
+import { createMobileRTCConfig } from '../rtc/mobile-rtc-config';
 import type { CallState } from './callTypes';
 
 export type { CallState } from './callTypes';
+export type { ICallManager } from '@whatschat/im';
 
-export interface ICallManager {
-  setSocket(socket: unknown): void;
-  on(event: string, cb: (data: any) => void): void;
-  off(event: string, cb: (data: any) => void): void;
-  getCallState(): CallState;
-  getLocalStream(): unknown;
-  getRemoteStream(): unknown;
-  startCall(...args: unknown[]): Promise<void>;
-  answerCall(): Promise<void>;
-  endCall(): void;
-  toggleMute(): void;
-  toggleVideo(): void;
-  toggleSpeaker(): void;
-}
-
-let cached: ICallManager | null = null;
+let cached: import('@whatschat/im').ICallManager | null = null;
 
 function isExpoGo(): boolean {
   try {
     if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return true;
-    // Fallback: if webrtc native module is missing (e.g. Expo Go), treat as Expo Go so we never require it.
     const { NativeModules } = require('react-native');
     const hasWebRTC = NativeModules?.WebRTCModule != null || NativeModules?.RTCModule != null;
     return !hasWebRTC;
@@ -32,20 +19,16 @@ function isExpoGo(): boolean {
   }
 }
 
-export function getCallManager(): ICallManager {
+export function getCallManager(): import('@whatschat/im').ICallManager {
   if (cached) return cached;
-  // In Expo Go there is no WebRTC native module; use stub only so we never load callManager/webrtc.
   if (isExpoGo()) {
-    const m = require('./callManager.stub');
-    cached = m.getCallManagerStub() as ICallManager;
+    cached = getCallManagerStub();
   } else {
     try {
-      const m = require('./callManager');
-      cached = m.getCallManager() as ICallManager;
+      cached = createCallManager(createMobileRTCConfig(null));
     } catch {
-      const m = require('./callManager.stub');
-      cached = m.getCallManagerStub() as ICallManager;
+      cached = getCallManagerStub();
     }
   }
-  return cached as ICallManager;
+  return cached!;
 }
