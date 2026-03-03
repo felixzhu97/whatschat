@@ -12,7 +12,8 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🌐 **Web App** – Next.js SPA on port 4000
 - 📱 **Mobile App** – React Native + Expo
-- ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, System Config, Permission & Audit (port 4001)
+- 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (page_view, chat_open, send_message, call); API ingests and stores; Admin shows overview and event list
+- ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
 
 ## 📸 Screenshots
 
@@ -90,15 +91,17 @@ apps/
   mobile   # Expo mobile app (react-native-app)
   server   # NestJS API (whatschat-server, :3001)
 packages/
-  domain   # Shared types and constants (@whatschat/domain)
-  im       # Instant messaging + RTC (@whatschat/im)
-  rtc      # Voice/video call logic (@whatschat/rtc, used by im)
+  domain    # Shared types and constants (@whatschat/domain)
+  im        # Instant messaging + RTC (@whatschat/im)
+  rtc       # Voice/video call logic (@whatschat/rtc, used by im)
+  analytics # Behavior analytics SDK (@whatschat/analytics)
 ```
 
 **Shared packages:**
 - `@whatschat/domain` – User, Message, Chat, Contact, Call types
 - `@whatschat/im` – Chat slices, hooks (useRealChat, useChatsWithLiveMessages), RTC (useCall, createCallManager). Apps inject platform adapters.
 - `@whatschat/rtc` – RTC domain (RTCCallState, ICallManager), config-driven createCallManager, formatDuration, CallManagerStub.
+- `@whatschat/analytics` – Event types, track/identify API, ConsoleTransport, HttpTransport, React Provider + useAnalytics. Web/Mobile use it to send events to API; Admin reads via REST.
 
 ## 📚 Docs & Diagrams
 

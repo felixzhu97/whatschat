@@ -63,6 +63,7 @@
     "kafkajs": "^2.2.4",
     "ws": "^8.14.2",
     "tsconfig-paths": "^4.2.0",
+    "@whatschat/analytics": "workspace:*",
     "@whatschat/domain": "workspace:*"
   },
   "devDependencies": {

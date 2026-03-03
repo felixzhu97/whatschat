@@ -1,6 +1,7 @@
 export const en = {
   common: {
     loading: "Loading...",
+    apply: "Apply",
     search: "Search...",
     nav: "Navigation",
     logout: "Log out",
@@ -89,6 +90,10 @@ export const en = {
     title: "Data analytics",
     subtitle: "User analysis, behavior, retention, funnel",
     developing: "Data analytics under development...",
+    total: "Total events",
+    byEvent: "By event",
+    byDay: "By day",
+    recentEvents: "Recent events",
   },
   groups: {
     title: "Group management",

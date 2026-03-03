@@ -13,6 +13,7 @@ import { GroupsModule } from './presentation/groups/groups.module';
 import { CallsModule } from './presentation/calls/calls.module';
 import { StatusModule } from './presentation/status/status.module';
 import { AdminModule } from './presentation/admin/admin.module';
+import { AnalyticsModule } from './presentation/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AdminModule } from './presentation/admin/admin.module';
     CallsModule,
     StatusModule,
     AdminModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

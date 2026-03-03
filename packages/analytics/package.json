@@ -1,0 +1,32 @@
+{
+  "name": "@whatschat/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Behavior analytics SDK for WhatsChat",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "check-types": "npx -p typescript tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "react": "^18.3.1",
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

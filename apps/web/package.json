@@ -16,6 +16,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@whatschat/analytics": "workspace:*",
     "@whatschat/domain": "workspace:*",
     "@whatschat/im": "workspace:*",
     "@hookform/resolvers": "^3.9.1",

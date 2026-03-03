@@ -15,6 +15,7 @@
     "lint": "eslint . --ext .ts,.tsx --fix --config eslint.config.js"
   },
   "dependencies": {
+    "@whatschat/analytics": "workspace:*",
     "@whatschat/domain": "workspace:*",
     "@whatschat/im": "workspace:*",
     "@emotion/native": "^11.11.0",

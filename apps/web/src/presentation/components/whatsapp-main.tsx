@@ -20,6 +20,8 @@ import { RealCallInterface } from "./real-call-interface";
 import { useRealCall } from "../hooks/use-real-call";
 import { getWebRTCManager } from "@/src/lib/webrtc";
 import { useMessages } from "../hooks/use-messages";
+import { useAnalytics } from "@whatschat/analytics";
+import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END } from "@whatschat/analytics";
 import { useSearch } from "../hooks/use-search";
 import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
@@ -72,8 +74,17 @@ export function WhatsAppMain() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
-
+  const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
+
+  useEffect(() => {
+    analytics.track(PAGE_VIEW, { path: "/", title: "Chat" });
+    if (currentUser?.id) analytics.identify(currentUser.id);
+  }, [currentUser?.id, analytics]);
+
+  useEffect(() => {
+    if (selectedContactId) analytics.track(CHAT_OPEN, { chatId: selectedContactId });
+  }, [selectedContactId, analytics]);
 
   const chatsWithLive = useChatsWithLiveMessages(
     selectedContactId,
@@ -172,6 +183,9 @@ export function WhatsAppMain() {
     } else {
       handleSendMessage(content, type);
     }
+    if (selectedContactId) {
+      analytics.track(SEND_MESSAGE, { chatId: selectedContactId, type });
+    }
   };
 
   const isConnected = chatsWithLive.isConnected;
@@ -227,28 +241,20 @@ export function WhatsAppMain() {
     handleSearchSuggestion(suggestion, mockContacts, handleContactSelect);
   };
 
-  const handleVoiceCall = () => {
-    if (selectedContact) {
-      startCall(
-        selectedContact.id,
-        selectedContact.name,
-        selectedContact.avatar || "",
-        "voice",
-        isConnected ? { chatId: selectedContact.id } : undefined
-      );
-    }
+  const handleStartCall = (callType: "voice" | "video") => {
+    if (!selectedContact?.id) return;
+    const id = selectedContact.id;
+    const name = selectedContact.name ?? "";
+    const avatar = selectedContact.avatar ?? "";
+    analytics.track(CALL_START, { chatId: id, callType });
+    startCall(id, name, avatar, callType, isConnected ? { chatId: id } : undefined);
   };
 
-  const handleVideoCall = () => {
-    if (selectedContact) {
-      startCall(
-        selectedContact.id,
-        selectedContact.name,
-        selectedContact.avatar || "",
-        "video",
-        isConnected ? { chatId: selectedContact.id } : undefined
-      );
+  const handleEndCallWrapper = () => {
+    if (callState?.contactId) {
+      analytics.track(CALL_END, { chatId: callState.contactId, callType: callState.callType, duration: callState.duration });
     }
+    endCall();
   };
 
   // Create group handler
@@ -315,7 +321,7 @@ export function WhatsAppMain() {
           callState={callState}
           localStream={localStream as MediaStream | null}
           remoteStream={remoteStream as MediaStream | null}
-          onEndCall={endCall}
+          onEndCall={handleEndCallWrapper}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
           onToggleSpeaker={toggleSpeaker}
@@ -383,8 +389,8 @@ export function WhatsAppMain() {
             onForward={handleForward}
             onStar={handleStar}
             onInfo={handleInfo}
-            onVoiceCall={handleVoiceCall}
-            onVideoCall={handleVideoCall}
+            onVoiceCall={() => handleStartCall("voice")}
+            onVideoCall={() => handleStartCall("video")}
             onShowInfo={() => {}}
             onCancelReply={handleCancelReply}
             onCancelEdit={handleCancelEdit}

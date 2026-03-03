@@ -357,6 +357,19 @@ model UserSettings {
   @@map("user_settings")
 }
 
+// 行为分析事件模型
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  eventName  String
+  properties Json?
+  platform   String?
+  sessionId  String?
+  createdAt  DateTime @default(now())
+
+  @@map("analytics_events")
+}
+
 // 文件上传模型
 model FileUpload {
   id           String   @id @default(cuid())

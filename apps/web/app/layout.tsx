@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { EmotionRegistry } from "./emotion-registry";
 import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
+import { AnalyticsProvider } from "@/presentation/providers/analytics-provider";
 
 export const metadata: Metadata = {
   title: "whats chat",
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <EmotionRegistry>
-          <GrowthBookProviderWrapper>{children}</GrowthBookProviderWrapper>
+          <GrowthBookProviderWrapper>
+          <AnalyticsProvider>{children}</AnalyticsProvider>
+        </GrowthBookProviderWrapper>
         </EmotionRegistry>
       </body>
     </html>

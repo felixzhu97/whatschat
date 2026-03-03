@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from '@/src/presentation/shared/theme';
 import { StatusBar } from 'expo-status-bar';
 import { CallOverlay } from '@/src/presentation/components';
 import { StoreProvider } from '@/src/presentation/store/StoreProvider';
+import { AnalyticsProvider } from '@/src/presentation/providers/AnalyticsProvider';
 import { styled } from '@/src/presentation/shared/emotion';
 import { applyStoredLanguage } from '@/src/presentation/shared/i18n';
 import '@/src/presentation/shared/i18n/i18n';
@@ -56,9 +57,11 @@ function ThemeAwareLayout() {
 export default function RootLayout() {
   return (
     <StoreProvider>
-      <ThemeProvider>
-        <ThemeAwareLayout />
-      </ThemeProvider>
+      <AnalyticsProvider>
+        <ThemeProvider>
+          <ThemeAwareLayout />
+        </ThemeProvider>
+      </AnalyticsProvider>
     </StoreProvider>
   );
 }

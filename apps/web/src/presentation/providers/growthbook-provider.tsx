@@ -10,17 +10,12 @@ const gb = new GrowthBook({
   apiHost: apiHost ?? undefined,
   clientKey: clientKey ?? undefined,
   enableDevMode: process.env.NODE_ENV === "development",
-  // So targeting rules (e.g. "environment = dev") and default value apply correctly
   attributes: {
     environment: process.env.NODE_ENV,
   },
-  // Send experiment view to your analytics provider (GrowthBook dashboard, GA, Segment, etc.)
   trackingCallback: (experiment, result) => {
     if (process.env.NODE_ENV === "development") {
-      console.log("Viewed Experiment", {
-        experimentId: experiment.key,
-        variationId: result.key,
-      });
+      console.log("Viewed Experiment", { experimentId: experiment.key, variationId: result.key });
     }
     if (typeof window === "undefined") return;
     const w = window as Window & { gtag?: (...args: unknown[]) => void };

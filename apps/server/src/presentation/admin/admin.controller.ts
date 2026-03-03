@@ -13,6 +13,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { AdminGuard } from "./admin.guard";
 import { AdminService } from "@/application/services/admin.service";
 import { UsersService } from "@/application/services/users.service";
+import { AnalyticsService } from "@/application/services/analytics.service";
 
 @ApiTags("管理员")
 @Controller("admin")
@@ -21,7 +22,8 @@ import { UsersService } from "@/application/services/users.service";
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   @Get("stats")
@@ -125,7 +127,7 @@ export class AdminController {
   async getChatMessages(
     @Param("chatId") chatId: string,
     @Query("page") page: string = "1",
-    @Query("limit") limit: string = "50"
+    @Query("limit") limit: string = "50",
   ) {
     const result = await this.adminService.getChatMessages(
       chatId,
@@ -146,5 +148,40 @@ export class AdminController {
       success: true,
       message: "消息已删除",
     };
+  }
+
+  @Get("analytics/overview")
+  @ApiOperation({ summary: "行为分析概览" })
+  async getAnalyticsOverview(
+    @Query("start") startStr: string,
+    @Query("end") endStr: string,
+  ) {
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    const data = await this.analyticsService.getOverview(start, end);
+    return { success: true, data };
+  }
+
+  @Get("analytics/events")
+  @ApiOperation({ summary: "行为分析事件列表" })
+  async getAnalyticsEvents(
+    @Query("start") startStr: string,
+    @Query("end") endStr: string,
+    @Query("page") pageStr?: string,
+    @Query("limit") limitStr?: string,
+    @Query("eventName") eventName?: string,
+  ) {
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    const page = pageStr ? parseInt(pageStr, 10) : 1;
+    const limit = limitStr ? parseInt(limitStr, 10) : 20;
+    const result = await this.analyticsService.getEvents({
+      start,
+      end,
+      page,
+      limit,
+      ...(eventName && { eventName }),
+    });
+    return { success: true, ...result };
   }
 }

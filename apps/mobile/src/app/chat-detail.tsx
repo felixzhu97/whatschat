@@ -25,6 +25,8 @@ import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAuthStore } from '@/src/presentation/stores';
 import { useSocket } from '@/src/presentation/hooks/useSocket';
 import { useCall } from '@/src/presentation/hooks/useCall';
+import { useAnalytics } from '@whatschat/analytics';
+import { CHAT_OPEN, SEND_MESSAGE, CALL_START } from '@whatschat/analytics';
 import { messageService } from '@/src/application/services/MessageService';
 import { chatService } from '@/src/application/services/ChatService';
 
@@ -152,6 +154,16 @@ export default function ChatDetailScreen() {
 
   const { sendMessage, connected } = useSocket(onMessageReceived, onMessageSent);
   const { startCall } = useCall();
+  const analytics = useAnalytics();
+
+  useEffect(() => {
+    if (userId) analytics.identify(userId);
+  }, [userId, analytics]);
+
+  useEffect(() => {
+    const chatId = params.chatId;
+    if (chatId) analytics.track(CHAT_OPEN, { chatId });
+  }, [params.chatId, analytics]);
 
   useEffect(() => {
     const chatId = params.chatId;
@@ -182,6 +194,7 @@ export default function ChatDetailScreen() {
       if (connected) {
         sendMessage(chatId, text.trim(), 'TEXT');
         setInputText('');
+        analytics.track(SEND_MESSAGE, { chatId, type: 'text' });
       } else {
         const tempId = `temp-${Date.now()}`;
         const temp = new MessageEntity({
@@ -202,6 +215,7 @@ export default function ChatDetailScreen() {
           )
         );
         setInputText('');
+        analytics.track(SEND_MESSAGE, { chatId, type: 'text' });
         messageService.sendMessage(chatId, text.trim()).then((msg) => {
           setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
         }).catch(() => {
@@ -249,10 +263,16 @@ export default function ChatDetailScreen() {
       ? displayChat.name
       : (messages.find((m) => m.senderId !== userId)?.senderName ?? displayChat.name);
   const handleVoiceCall = () => {
-    if (otherUserId) startCall(otherUserId, contactName, '', 'voice');
+    if (otherUserId) {
+      analytics.track(CALL_START, { chatId: params.chatId ?? undefined, callType: 'voice' });
+      startCall(otherUserId, contactName, '', 'voice');
+    }
   };
   const handleVideoCall = () => {
-    if (otherUserId) startCall(otherUserId, contactName, '', 'video');
+    if (otherUserId) {
+      analytics.track(CALL_START, { chatId: params.chatId ?? undefined, callType: 'video' });
+      startCall(otherUserId, contactName, '', 'video');
+    }
   };
 
   const HeaderContent = () => (

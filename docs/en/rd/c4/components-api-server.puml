@@ -5,7 +5,7 @@
 title C4 Level 3 - Components: API Server (NestJS)
 
 Container_Boundary(api_server, "API Server") {
-  Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files, Admin")
+  Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files, Admin, Analytics")
   Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing, call signaling")
   Component(auth_svc, "Auth Service", "NestJS", "Login, JWT, refresh, password")
   Component(user_svc, "User Service", "NestJS", "Profile, search")
@@ -13,6 +13,7 @@ Container_Boundary(api_server, "API Server") {
   Component(chat_svc, "Chat Service", "NestJS", "Chat list, create, participants")
   Component(call_svc, "Call Service", "NestJS", "Call signaling (WebSocket)")
   Component(file_svc, "File Service", "NestJS", "Upload, local storage")
+  Component(analytics_svc, "Analytics Service", "NestJS", "Event ingest, overview, event list")
   ComponentDb(repo, "Repositories", "Prisma", "Data access, @whatschat/domain types")
 }
 
@@ -31,6 +32,7 @@ Rel(controllers, message_svc, "Uses")
 Rel(controllers, chat_svc, "Uses")
 Rel(controllers, call_svc, "Uses")
 Rel(controllers, file_svc, "Uses")
+Rel(controllers, analytics_svc, "Uses")
 Rel(controllers, websocket, "Uses")
 Rel(websocket, message_svc, "Uses")
 Rel(auth_svc, repo, "Uses")
@@ -39,6 +41,7 @@ Rel(message_svc, repo, "Uses")
 Rel(chat_svc, repo, "Uses")
 Rel(call_svc, repo, "Uses")
 Rel(file_svc, repo, "Uses")
+Rel(analytics_svc, repo, "Uses")
 Rel(repo, postgres, "Prisma")
 Rel(auth_svc, redis, "Session")
 Rel(websocket, redis, "Pub/Sub")

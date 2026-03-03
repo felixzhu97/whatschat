@@ -1,6 +1,7 @@
 export const zh = {
   common: {
     loading: "加载中...",
+    apply: "应用",
     search: "搜索...",
     nav: "导航",
     logout: "退出登录",
@@ -89,6 +90,10 @@ export const zh = {
     title: "数据分析",
     subtitle: "用户分析、行为分析、留存报告、漏斗分析",
     developing: "数据分析功能开发中...",
+    total: "事件总数",
+    byEvent: "按事件",
+    byDay: "按日",
+    recentEvents: "最近事件",
   },
   groups: {
     title: "群组管理",

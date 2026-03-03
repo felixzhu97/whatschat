@@ -57,6 +57,7 @@ export function DataGrid<T extends Record<string, unknown>>({
     <AgGridProvider modules={modules}>
       <GridWrapper className={`ag-admin-grid ${themeClass}`}>
         <AgGridReact
+          theme="legacy"
           rowData={rowData}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
