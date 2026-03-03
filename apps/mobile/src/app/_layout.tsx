@@ -6,9 +6,18 @@ import { StatusBar } from 'expo-status-bar';
 import { CallOverlay } from '@/src/presentation/components';
 import { StoreProvider } from '@/src/presentation/store/StoreProvider';
 import { AnalyticsProvider } from '@/src/presentation/providers/AnalyticsProvider';
+import { useAppDispatch, hydrateAuth } from '@/src/presentation/stores';
 import { styled } from '@/src/presentation/shared/emotion';
 import { applyStoredLanguage } from '@/src/presentation/shared/i18n';
 import '@/src/presentation/shared/i18n/i18n';
+
+function AuthHydration({ children }: { children: React.ReactNode }) {
+  const dispatch = useAppDispatch();
+  React.useEffect(() => {
+    dispatch(hydrateAuth());
+  }, [dispatch]);
+  return <>{children}</>;
+}
 
 const OverlayWrap = styled.View`
   position: absolute;
@@ -57,11 +66,13 @@ function ThemeAwareLayout() {
 export default function RootLayout() {
   return (
     <StoreProvider>
-      <AnalyticsProvider>
-        <ThemeProvider>
-          <ThemeAwareLayout />
-        </ThemeProvider>
-      </AnalyticsProvider>
+      <AuthHydration>
+        <AnalyticsProvider>
+          <ThemeProvider>
+            <ThemeAwareLayout />
+          </ThemeProvider>
+        </AnalyticsProvider>
+      </AuthHydration>
     </StoreProvider>
   );
 }

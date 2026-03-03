@@ -1,9 +1,10 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LiquidGlassBar } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
+import { useAuthStore } from '@/src/presentation/stores';
 import { styled } from '@/src/presentation/shared/emotion';
 
 const TabButton = styled.TouchableOpacity`
@@ -27,6 +28,12 @@ const Pill = styled.View`
 export default function TabsLayout() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const token = useAuthStore((s) => s.token);
+  const isReady = useAuthStore((s) => s.isReady);
+
+  if (isReady && !token) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
