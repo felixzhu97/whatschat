@@ -2,7 +2,7 @@
 
 import { Button } from "@/src/presentation/components/ui/button";
 import { Card } from "@/src/presentation/components/ui/card";
-import { FileText, Image as ImageIcon, MessageCircle, Video } from "lucide-react";
+import { FileText, Image as ImageIcon, MessageCircle, Video, Mic } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface AiActionMenuProps {
@@ -10,6 +10,7 @@ interface AiActionMenuProps {
   onGenerateText?: () => void;
   onGenerateImage?: () => void;
   onGenerateVideo?: () => void;
+  onGenerateVoice?: () => void;
 }
 
 const MenuCard = styled(Card)`
@@ -20,9 +21,9 @@ const MenuCard = styled(Card)`
 
 const MenuGrid = styled.div<{ count: number }>`
   display: grid;
-  grid-template-columns: repeat(${({ count }) => (count === 4 ? 4 : 3)}, 1fr);
+  grid-template-columns: repeat(${({ count }) => (count >= 4 ? (count === 5 ? 5 : 4) : 3)}, 1fr);
   gap: 0.5rem;
-  min-width: ${({ count }) => (count === 4 ? "19rem" : "12rem")};
+  min-width: ${({ count }) => (count >= 4 ? (count === 5 ? "24rem" : "19rem") : "12rem")};
   width: max-content;
 `;
 
@@ -58,6 +59,12 @@ const VideoIconStyled = styled(Video)`
   color: rgb(147 51 234);
 `;
 
+const MicIconStyled = styled(Mic)`
+  height: 1.5rem;
+  width: 1.5rem;
+  color: rgb(234 88 12);
+`;
+
 const SmartReplyIconStyled = styled(MessageCircle)`
   height: 1.5rem;
   width: 1.5rem;
@@ -69,8 +76,9 @@ export function AiActionMenu({
   onGenerateText,
   onGenerateImage,
   onGenerateVideo,
+  onGenerateVoice,
 }: AiActionMenuProps) {
-  const count = [onSmartReply, onGenerateText, onGenerateImage, onGenerateVideo].filter(
+  const count = [onSmartReply, onGenerateText, onGenerateImage, onGenerateVideo, onGenerateVoice].filter(
     (x) => x != null
   ).length;
   if (count === 0) return null;
@@ -100,6 +108,12 @@ export function AiActionMenu({
           <MenuOptionButton variant="ghost" size="sm" onClick={onGenerateVideo}>
             <VideoIconStyled />
             <OptionLabel>生成视频</OptionLabel>
+          </MenuOptionButton>
+        )}
+        {onGenerateVoice != null && (
+          <MenuOptionButton variant="ghost" size="sm" onClick={onGenerateVoice}>
+            <MicIconStyled />
+            <OptionLabel>生成语音</OptionLabel>
           </MenuOptionButton>
         )}
       </MenuGrid>

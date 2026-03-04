@@ -20,9 +20,10 @@ echo -e "${GREEN}Stopping WhatsChat (${ENV})${NC}\n"
 echo "[1/2] Stopping processes..."
 lsof -ti:3001 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:3456 2>/dev/null | xargs kill -9 2>/dev/null || true
-lsof -ti:3457 2>/dev/null | xargs kill -9 2>/dev/null || true
+pkill -f "apps/media-gen/app.py" 2>/dev/null || true
 pkill -f "apps/video-gen/app.py" 2>/dev/null || true
 pkill -f "apps/image-gen/app.py" 2>/dev/null || true
+pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
 SERVER_PIDS=$(ps aux | grep -E "(nest start|node.*dist/main.js|pnpm.*dev)" | grep -v grep | awk '{print $2}' || true)
 for PID in $SERVER_PIDS; do kill $PID 2>/dev/null || true; done
 sleep 1

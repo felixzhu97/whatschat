@@ -76,9 +76,8 @@ Thumbs.db
 *.log
 **/logs
 
-# Image/Video gen output
-apps/image-gen/output/
-apps/video-gen/output/
+# Media gen output (image + video + voice)
+apps/media-gen/output/
 
 # Python
 .venv

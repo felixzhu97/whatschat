@@ -11,8 +11,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔍 **Message Search** – Full-text search powered by Elasticsearch
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
-- 🖼️ **Image Generation** – Self-hosted (apps/image-gen, :3457) or Replicate; prompt refined and translated to English via Ollama, then generate
-- 🎬 **Video Generation** – Self-hosted HTTP service (apps/video-gen, :3456); text-to-video
+- 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
 - 🌐 **Web App** – Next.js SPA on port 4000
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
@@ -44,6 +43,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 <p align="center">
   <img src="./screenshots/web-ai-text-dialog.png" width="280" alt="Web AI Text Generation">
   <img src="./screenshots/web-ai-image-dialog.png" width="280" alt="Web AI Image Generation">
+  <img src="./screenshots/web-ai-voice-dialog.png" width="280" alt="Web AI Voice Generation">
 </p>
 
 ### Admin
@@ -57,7 +57,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
 - **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Elasticsearch (optional)
-- **AI / Media** – Ollama (text stream), self-hosted image-gen (Python/FastAPI/diffusers), self-hosted video-gen (Python/FastAPI/CogVideoX); optional Replicate for image
+- **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
 
@@ -77,7 +77,7 @@ pnpm setup
 ### Run
 
 ```bash
-pnpm start           # Full: Docker + image-gen (:3457) + video-gen (:3456) + API (:3001)
+pnpm start           # Full: Docker + media-gen (:3456) + API (:3001)
 pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
@@ -88,8 +88,7 @@ pnpm start:mobile:ios   # or start:mobile:android
 
 - `apps/server/.env` – Copy from `apps/server/.env.example`
   - **AI**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`
-  - **Image**: `IMAGE_GENERATION_API_URL` (e.g. `http://localhost:3457` for apps/image-gen) or `REPLICATE_API_TOKEN`
-  - **Video**: `VIDEO_GENERATION_API_URL` (e.g. `http://localhost:3456` for apps/video-gen)
+  - **Media** (image + video + voice): `MEDIA_GENERATION_API_URL` (e.g. `http://localhost:3456` for apps/media-gen); or `REPLICATE_API_TOKEN` for image only
 - `apps/web/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`, `NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001` (optional, for Socket.IO)
 - `apps/admin/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `ADMIN_EMAILS=admin@whatschat.com` (comma-separated) for admin access
@@ -102,8 +101,7 @@ apps/
   admin      # Admin dashboard (whatschat-admin, :4001)
   mobile     # Expo mobile app (react-native-app)
   server     # NestJS API (whatschat-server, :3001)
-  image-gen  # Self-hosted image generation (Python/FastAPI/diffusers, :3457)
-  video-gen  # Self-hosted video generation (Python/FastAPI/CogVideoX, :3456)
+  media-gen  # Self-hosted image + video + voice (Python/FastAPI, :3456)
 packages/
   domain           # Shared types and constants (@whatschat/domain)
   im               # Instant messaging + RTC (@whatschat/im)

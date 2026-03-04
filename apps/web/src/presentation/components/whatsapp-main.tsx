@@ -18,6 +18,7 @@ import { AdvancedSearchDialog } from "./advanced-search-dialog";
 import { VideoGenerateDialog } from "./video-generate-dialog";
 import { TextGenerateDialog } from "./text-generate-dialog";
 import { ImageGenerateDialog } from "./image-generate-dialog";
+import { VoiceGenerateDialog } from "./voice-generate-dialog";
 import { RealIncomingCall } from "./real-incoming-call";
 import { RealCallInterface } from "./real-call-interface";
 import { useRealCall } from "../hooks/use-real-call";
@@ -82,6 +83,7 @@ export function WhatsAppMain() {
   const [showVideoDialog, setShowVideoDialog] = useState(false);
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [showVoiceDialog, setShowVoiceDialog] = useState(false);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
 
@@ -230,6 +232,11 @@ export function WhatsAppMain() {
   const handleImageGenerateSuccess = (imageUrl: string) => {
     handleSendMessageWrapper("", "image", { mediaUrl: imageUrl });
     setShowImageDialog(false);
+  };
+  const handleGenerateVoiceClick = () => setShowVoiceDialog(true);
+  const handleVoiceGenerateSuccess = (audioUrl: string) => {
+    handleSendMessageWrapper("", "audio", { mediaUrl: audioUrl });
+    setShowVoiceDialog(false);
   };
 
   const isConnected = chatsWithLive.isConnected;
@@ -451,6 +458,9 @@ export function WhatsAppMain() {
             onGenerateImageClick={
               chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
             }
+            onGenerateVoiceClick={
+              chatsWithLive.isApiChat ? handleGenerateVoiceClick : undefined
+            }
           />
         ) : (
           <WelcomeScreen />
@@ -538,6 +548,12 @@ export function WhatsAppMain() {
         isOpen={showImageDialog}
         onClose={() => setShowImageDialog(false)}
         onSuccess={handleImageGenerateSuccess}
+      />
+
+      <VoiceGenerateDialog
+        isOpen={showVoiceDialog}
+        onClose={() => setShowVoiceDialog(false)}
+        onSuccess={handleVoiceGenerateSuccess}
       />
     </AppShell>
   );

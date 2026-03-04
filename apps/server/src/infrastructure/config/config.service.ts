@@ -103,6 +103,9 @@ export interface AppConfig {
     replicateApiToken?: string;
     imageApiBaseUrl?: string;
   };
+  voice: {
+    voiceApiBaseUrl?: string;
+  };
   business: {
     maxGroupParticipants: number;
     maxMessageLength: number;
@@ -273,17 +276,28 @@ export class ConfigService {
         ...(process.env["REPLICATE_API_TOKEN"] && {
           replicateApiToken: process.env["REPLICATE_API_TOKEN"],
         }),
-        ...(process.env["VIDEO_GENERATION_API_URL"] && {
-          videoApiBaseUrl: process.env["VIDEO_GENERATION_API_URL"],
-        }),
+        ...(process.env["MEDIA_GENERATION_API_URL"]
+          ? { videoApiBaseUrl: process.env["MEDIA_GENERATION_API_URL"].replace(/\/$/, "") + "/video" }
+          : process.env["VIDEO_GENERATION_API_URL"] && {
+              videoApiBaseUrl: process.env["VIDEO_GENERATION_API_URL"],
+            }),
       },
       image: {
         ...(process.env["REPLICATE_API_TOKEN"] && {
           replicateApiToken: process.env["REPLICATE_API_TOKEN"],
         }),
-        ...(process.env["IMAGE_GENERATION_API_URL"] && {
-          imageApiBaseUrl: process.env["IMAGE_GENERATION_API_URL"],
-        }),
+        ...(process.env["MEDIA_GENERATION_API_URL"]
+          ? { imageApiBaseUrl: process.env["MEDIA_GENERATION_API_URL"].replace(/\/$/, "") + "/image" }
+          : process.env["IMAGE_GENERATION_API_URL"] && {
+              imageApiBaseUrl: process.env["IMAGE_GENERATION_API_URL"],
+            }),
+      },
+      voice: {
+        ...(process.env["MEDIA_GENERATION_API_URL"]
+          ? { voiceApiBaseUrl: process.env["MEDIA_GENERATION_API_URL"].replace(/\/$/, "") + "/voice" }
+          : process.env["VOICE_GENERATION_API_URL"] && {
+              voiceApiBaseUrl: process.env["VOICE_GENERATION_API_URL"],
+            }),
       },
       business: {
         maxGroupParticipants: 256,

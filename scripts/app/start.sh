@@ -12,16 +12,13 @@ ENV=${1:-dev}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SERVER_DIR="$ROOT_DIR/apps/server"
-VIDEO_GEN_DIR="$ROOT_DIR/apps/video-gen"
-IMAGE_GEN_DIR="$ROOT_DIR/apps/image-gen"
+MEDIA_GEN_DIR="$ROOT_DIR/apps/media-gen"
 SERVER_PID=""
-VIDEO_GEN_PID=""
-IMAGE_GEN_PID=""
+MEDIA_GEN_PID=""
 
 cleanup() {
   [ -n "$SERVER_PID" ] && kill $SERVER_PID 2>/dev/null || true
-  [ -n "$VIDEO_GEN_PID" ] && kill $VIDEO_GEN_PID 2>/dev/null || true
-  [ -n "$IMAGE_GEN_PID" ] && kill $IMAGE_GEN_PID 2>/dev/null || true
+  [ -n "$MEDIA_GEN_PID" ] && kill $MEDIA_GEN_PID 2>/dev/null || true
   exit 0
 }
 trap cleanup SIGINT SIGTERM
@@ -31,10 +28,11 @@ echo -e "${GREEN}WhatsChat (${ENV})${NC}\n"
 echo "[1/4] Stopping old processes..."
 lsof -ti:3001 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:3456 2>/dev/null | xargs kill -9 2>/dev/null || true
-lsof -ti:3457 2>/dev/null | xargs kill -9 2>/dev/null || true
 pkill -f "whatschat-server.*dev" 2>/dev/null || true
+pkill -f "apps/media-gen/app.py" 2>/dev/null || true
 pkill -f "apps/video-gen/app.py" 2>/dev/null || true
 pkill -f "apps/image-gen/app.py" 2>/dev/null || true
+pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
 sleep 1
 
 echo "[2/4] Docker (Postgres, Redis, Kafka)..."
@@ -57,20 +55,12 @@ pnpm --filter whatschat-server migrate >/dev/null 2>&1 || true
 [ "$ENV" == "dev" ] && "$SCRIPT_DIR/../db/seed.sh" dev >/dev/null 2>&1 || true
 
 echo "[4/4] Starting..."
-if [ -f "$VIDEO_GEN_DIR/app.py" ] && command -v python3 >/dev/null 2>&1; then
-  if [ -f "$VIDEO_GEN_DIR/requirements.txt" ]; then
-    (cd "$VIDEO_GEN_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null) || true
+if [ -f "$MEDIA_GEN_DIR/app.py" ] && command -v python3 >/dev/null 2>&1; then
+  if [ -f "$MEDIA_GEN_DIR/requirements.txt" ]; then
+    (cd "$MEDIA_GEN_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null) || true
   fi
-  (cd "$VIDEO_GEN_DIR" && ( [ -d ".venv" ] && . .venv/bin/activate; python3 app.py )) &
-  VIDEO_GEN_PID=$!
-  sleep 2
-fi
-if [ -f "$IMAGE_GEN_DIR/app.py" ] && command -v python3 >/dev/null 2>&1; then
-  if [ -f "$IMAGE_GEN_DIR/requirements.txt" ]; then
-    (cd "$IMAGE_GEN_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null) || true
-  fi
-  (cd "$IMAGE_GEN_DIR" && ( [ -d ".venv" ] && . .venv/bin/activate; python3 app.py )) &
-  IMAGE_GEN_PID=$!
+  (cd "$MEDIA_GEN_DIR" && ( [ -d ".venv" ] && . .venv/bin/activate; python3 app.py )) &
+  MEDIA_GEN_PID=$!
   sleep 2
 fi
 [ ! -d "$ROOT_DIR/node_modules" ] && pnpm install

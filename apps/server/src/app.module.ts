@@ -17,6 +17,7 @@ import { AnalyticsModule } from './presentation/analytics/analytics.module';
 import { AiModule } from './presentation/ai/ai.module';
 import { VideoModule } from './presentation/video/video.module';
 import { ImageModule } from './presentation/image/image.module';
+import { VoiceModule } from './presentation/voice/voice.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ImageModule } from './presentation/image/image.module';
     AiModule,
     VideoModule,
     ImageModule,
+    VoiceModule,
   ],
 })
 export class AppModule {}

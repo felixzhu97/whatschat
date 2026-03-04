@@ -30,6 +30,7 @@ interface ChatAreaProps {
   onGenerateVideoClick?: () => void;
   onGenerateTextClick?: () => void;
   onGenerateImageClick?: () => void;
+  onGenerateVoiceClick?: () => void;
   onEmojiSelect: (emoji: string) => void;
   onToggleEmojiPicker: () => void;
   onFileSelect: (file: File) => void;
@@ -95,6 +96,7 @@ export function ChatArea({
   onGenerateVideoClick,
   onGenerateTextClick,
   onGenerateImageClick,
+  onGenerateVoiceClick,
 }: ChatAreaProps) {
   return (
     <ChatAreaRoot>
@@ -159,6 +161,7 @@ export function ChatArea({
         onGenerateVideoClick={onGenerateVideoClick}
         onGenerateTextClick={onGenerateTextClick}
         onGenerateImageClick={onGenerateImageClick}
+        onGenerateVoiceClick={onGenerateVoiceClick}
       />
     </ChatAreaRoot>
   );

@@ -35,6 +35,7 @@ interface MessageInputProps {
   onGenerateVideoClick?: () => void;
   onGenerateTextClick?: () => void;
   onGenerateImageClick?: () => void;
+  onGenerateVoiceClick?: () => void;
 }
 
 const InputShell = styled.div`
@@ -139,6 +140,7 @@ export function MessageInput({
   onGenerateVideoClick,
   onGenerateTextClick,
   onGenerateImageClick,
+  onGenerateVoiceClick,
 }: MessageInputProps) {
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showAiMenu, setShowAiMenu] = useState(false);
@@ -146,7 +148,8 @@ export function MessageInput({
   const hasAiActions =
     onGenerateTextClick != null ||
     onGenerateImageClick != null ||
-    onGenerateVideoClick != null;
+    onGenerateVideoClick != null ||
+    onGenerateVoiceClick != null;
   const sendMessageEnabled = useFeatureIsOn("send_message");
   const inputPlaceholderVariant = useAbTest("message-input-placeholder");
   const placeholder =
@@ -285,6 +288,14 @@ export function MessageInput({
                       ? () => {
                           setShowAiMenu(false);
                           onGenerateVideoClick();
+                        }
+                      : undefined
+                  }
+                  onGenerateVoice={
+                    onGenerateVoiceClick
+                      ? () => {
+                          setShowAiMenu(false);
+                          onGenerateVoiceClick();
                         }
                       : undefined
                   }

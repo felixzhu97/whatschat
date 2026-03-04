@@ -133,22 +133,26 @@ partition "Scenario 6: Voice/Video call (WebRTC)" {
   end note
 }
 
-' AI / Image / Video generation
-partition "Scenario 7: AI text / Image / Video generation" {
-  :Client requests AI chat / image / video;
+' AI / Image / Video / Voice generation
+partition "Scenario 7: AI text / Image / Video / Voice generation" {
+  :Client requests AI chat / image / video / voice;
   :API Server receives request;
   if (Type?) then (AI chat)
     :AI Service calls Ollama;
     :SSE stream response to client;
   else (Image)
     :Image Service refines prompt via Ollama (translate to English);
-    :Image Service calls Image Gen (:3457) or Replicate;
+    :Image Service calls Media Gen (:3456) /image or Replicate;
     :Poll jobId until imageUrl;
     :Return imageUrl to client;
   else (Video)
-    :Video Service calls Video Gen (:3456);
+    :Video Service calls Media Gen (:3456) /video;
     :Poll jobId until videoUrl;
     :Return videoUrl to client;
+  else (Voice)
+    :Voice Service: LLM generates text, optional translate (zh/en);
+    :Voice Service calls Media Gen (:3456) /voice (edge-tts);
+    :Return audioUrl + text to client;
   endif
 }
 
@@ -163,7 +167,7 @@ note right
   4. **消息查询**: 客户端 -> API服务 -> Redis缓存 / PostgreSQL从库
   5. **实时推送**: API服务 -> Redis Pub/Sub -> WebSocket服务 -> 客户端
   6. **Voice/Video call**: Signaling via WebSocket; media via WebRTC P2P (optional STUN/TURN)
-  7. **AI/Image/Video**: Client -> API Server -> Ollama (stream / image prompt refine) / Image Gen (:3457) or Replicate / Video Gen (:3456); async job poll for image/video
+  7. **AI/Image/Video/Voice**: Client -> API Server -> Ollama (stream / prompt refine) / Media Gen (:3456) image|video|voice or Replicate (image); async job poll for image/video; voice returns audioUrl + text
   
   **Shared types**: Domain types (User, Message, Chat, Call, etc.) used by API and clients are defined in @whatschat/domain.
 end note
