@@ -25,7 +25,7 @@ import { useRealCall } from "../hooks/use-real-call";
 import { getWebRTCManager } from "@/src/lib/webrtc";
 import { useMessages } from "../hooks/use-messages";
 import { useAnalytics } from "@whatschat/analytics";
-import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END } from "@whatschat/analytics";
+import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION } from "@whatschat/analytics";
 import { useSearch } from "../hooks/use-search";
 import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
@@ -218,23 +218,40 @@ export function WhatsAppMain() {
       })
       .catch(() => {});
   };
-  const handleGenerateVideoClick = () => setShowVideoDialog(true);
+  const chatIdForAnalytics = selectedContactId ?? undefined;
+  const handleGenerateVideoClick = () => {
+    analytics.track(AI_ACTION, { action: "video", step: "open", chatId: chatIdForAnalytics });
+    setShowVideoDialog(true);
+  };
   const handleVideoGenerateSuccess = (videoUrl: string) => {
+    analytics.track(AI_ACTION, { action: "video", step: "send_to_chat", chatId: chatIdForAnalytics });
     handleSendMessageWrapper("", "video", { mediaUrl: videoUrl });
     setShowVideoDialog(false);
   };
-  const handleGenerateTextClick = () => setShowTextDialog(true);
+  const handleGenerateTextClick = () => {
+    analytics.track(AI_ACTION, { action: "text", step: "open", chatId: chatIdForAnalytics });
+    setShowTextDialog(true);
+  };
   const handleTextGenerateSuccess = (content: string) => {
+    analytics.track(AI_ACTION, { action: "text", step: "send_to_chat", chatId: chatIdForAnalytics });
     handleSendMessageWrapper(content, "text");
     setShowTextDialog(false);
   };
-  const handleGenerateImageClick = () => setShowImageDialog(true);
+  const handleGenerateImageClick = () => {
+    analytics.track(AI_ACTION, { action: "image", step: "open", chatId: chatIdForAnalytics });
+    setShowImageDialog(true);
+  };
   const handleImageGenerateSuccess = (imageUrl: string) => {
+    analytics.track(AI_ACTION, { action: "image", step: "send_to_chat", chatId: chatIdForAnalytics });
     handleSendMessageWrapper("", "image", { mediaUrl: imageUrl });
     setShowImageDialog(false);
   };
-  const handleGenerateVoiceClick = () => setShowVoiceDialog(true);
+  const handleGenerateVoiceClick = () => {
+    analytics.track(AI_ACTION, { action: "voice", step: "open", chatId: chatIdForAnalytics });
+    setShowVoiceDialog(true);
+  };
   const handleVoiceGenerateSuccess = (audioUrl: string) => {
+    analytics.track(AI_ACTION, { action: "voice", step: "send_to_chat", chatId: chatIdForAnalytics });
     handleSendMessageWrapper("", "audio", { mediaUrl: audioUrl });
     setShowVoiceDialog(false);
   };
@@ -536,24 +553,36 @@ export function WhatsAppMain() {
         isOpen={showVideoDialog}
         onClose={() => setShowVideoDialog(false)}
         onSuccess={handleVideoGenerateSuccess}
+        onTrackGenerateSuccess={() =>
+          analytics.track(AI_ACTION, { action: "video", step: "generate_success", chatId: chatIdForAnalytics })
+        }
       />
 
       <TextGenerateDialog
         isOpen={showTextDialog}
         onClose={() => setShowTextDialog(false)}
         onSuccess={handleTextGenerateSuccess}
+        onTrackGenerateSuccess={() =>
+          analytics.track(AI_ACTION, { action: "text", step: "generate_success", chatId: chatIdForAnalytics })
+        }
       />
 
       <ImageGenerateDialog
         isOpen={showImageDialog}
         onClose={() => setShowImageDialog(false)}
         onSuccess={handleImageGenerateSuccess}
+        onTrackGenerateSuccess={() =>
+          analytics.track(AI_ACTION, { action: "image", step: "generate_success", chatId: chatIdForAnalytics })
+        }
       />
 
       <VoiceGenerateDialog
         isOpen={showVoiceDialog}
         onClose={() => setShowVoiceDialog(false)}
         onSuccess={handleVoiceGenerateSuccess}
+        onTrackGenerateSuccess={() =>
+          analytics.track(AI_ACTION, { action: "voice", step: "generate_success", chatId: chatIdForAnalytics })
+        }
       />
     </AppShell>
   );

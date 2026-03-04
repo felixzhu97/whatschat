@@ -4,6 +4,7 @@ export const SEND_MESSAGE = "send_message";
 export const CALL_START = "call_start";
 export const CALL_END = "call_end";
 export const EXPERIMENT_VIEWED = "experiment_viewed";
+export const AI_ACTION = "ai_action";
 
 export type KnownEventName =
   | typeof PAGE_VIEW
@@ -11,7 +12,8 @@ export type KnownEventName =
   | typeof SEND_MESSAGE
   | typeof CALL_START
   | typeof CALL_END
-  | typeof EXPERIMENT_VIEWED;
+  | typeof EXPERIMENT_VIEWED
+  | typeof AI_ACTION;
 
 export interface PageViewPayload {
   path?: string;
@@ -44,13 +46,23 @@ export interface ExperimentViewedPayload {
   variation_id: string;
 }
 
+export type AiActionType = "text" | "image" | "video" | "voice";
+export type AiActionStep = "open" | "generate_success" | "send_to_chat";
+
+export interface AiActionPayload {
+  action: AiActionType;
+  step: AiActionStep;
+  chatId?: string;
+}
+
 export type KnownEventPayload =
   | PageViewPayload
   | ChatOpenPayload
   | SendMessagePayload
   | CallStartPayload
   | CallEndPayload
-  | ExperimentViewedPayload;
+  | ExperimentViewedPayload
+  | AiActionPayload;
 
 export type KnownEventPayloadMap = {
   [PAGE_VIEW]: PageViewPayload;
@@ -59,4 +71,5 @@ export type KnownEventPayloadMap = {
   [CALL_START]: CallStartPayload;
   [CALL_END]: CallEndPayload;
   [EXPERIMENT_VIEWED]: ExperimentViewedPayload;
+  [AI_ACTION]: AiActionPayload;
 };

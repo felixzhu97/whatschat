@@ -62,12 +62,14 @@ interface TextGenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (content: string) => void;
+  onTrackGenerateSuccess?: () => void;
 }
 
 export function TextGenerateDialog({
   isOpen,
   onClose,
   onSuccess,
+  onTrackGenerateSuccess,
 }: TextGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [output, setOutput] = useState("");
@@ -88,6 +90,7 @@ export function TextGenerateDialog({
         (chunk) => setOutput((prev) => prev + chunk)
       );
       setStatus("");
+      onTrackGenerateSuccess?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "请求失败");
       setStatus("");

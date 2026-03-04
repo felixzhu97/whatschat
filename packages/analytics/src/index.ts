@@ -10,6 +10,7 @@ export {
   CALL_START,
   CALL_END,
   EXPERIMENT_VIEWED,
+  AI_ACTION,
 } from "./events";
 export type {
   KnownEventName,
@@ -21,6 +22,9 @@ export type {
   CallStartPayload,
   CallEndPayload,
   ExperimentViewedPayload,
+  AiActionPayload,
+  AiActionType,
+  AiActionStep,
 } from "./events";
 export type { IAnalyticsTransport } from "./transport";
 export { ConsoleTransport, HttpTransport } from "./transport";

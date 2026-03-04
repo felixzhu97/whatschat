@@ -51,12 +51,14 @@ interface ImageGenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (imageUrl: string) => void;
+  onTrackGenerateSuccess?: () => void;
 }
 
 export function ImageGenerateDialog({
   isOpen,
   onClose,
   onSuccess,
+  onTrackGenerateSuccess,
 }: ImageGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
@@ -80,6 +82,7 @@ export function ImageGenerateDialog({
           setStatus("");
           setIsSubmitting(false);
           setImageUrl(data.imageUrl);
+          onTrackGenerateSuccess?.();
         } else if (data.status === "failed") {
           setJobId(null);
           setStatus("");

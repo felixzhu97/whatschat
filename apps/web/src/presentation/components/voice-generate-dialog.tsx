@@ -168,6 +168,7 @@ interface VoiceGenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (audioUrl: string) => void;
+  onTrackGenerateSuccess?: () => void;
 }
 
 type TargetLang = "auto" | "zh" | "en";
@@ -182,6 +183,7 @@ export function VoiceGenerateDialog({
   isOpen,
   onClose,
   onSuccess,
+  onTrackGenerateSuccess,
 }: VoiceGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [targetLang, setTargetLang] = useState<TargetLang>("auto");
@@ -238,6 +240,7 @@ export function VoiceGenerateDialog({
       }
       setAudioUrl(res.data.audioUrl);
       if (res.data.text) setGeneratedText(res.data.text);
+      onTrackGenerateSuccess?.();
     } catch (e) {
       setStatus("");
       setIsSubmitting(false);

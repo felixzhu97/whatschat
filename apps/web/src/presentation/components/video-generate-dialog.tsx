@@ -50,12 +50,14 @@ interface VideoGenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (videoUrl: string) => void;
+  onTrackGenerateSuccess?: () => void;
 }
 
 export function VideoGenerateDialog({
   isOpen,
   onClose,
   onSuccess,
+  onTrackGenerateSuccess,
 }: VideoGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState<string>("");
@@ -78,6 +80,7 @@ export function VideoGenerateDialog({
           setStatus("");
           setIsSubmitting(false);
           setVideoUrl(data.videoUrl);
+          onTrackGenerateSuccess?.();
         } else if (data.status === "failed") {
           setJobId(null);
           setStatus("");
