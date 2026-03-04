@@ -41,6 +41,10 @@ A modern instant messaging application with real-time chat, voice/video calls, a
   <img src="./screenshots/web-chat-conversation.png" width="280" alt="Web Chat">
   <img src="./screenshots/web-video-call.png" width="280" alt="Web Video Call">
 </p>
+<p align="center">
+  <img src="./screenshots/web-ai-text-dialog.png" width="280" alt="Web AI Text Generation">
+  <img src="./screenshots/web-ai-image-dialog.png" width="280" alt="Web AI Image Generation">
+</p>
 
 ### Admin
 

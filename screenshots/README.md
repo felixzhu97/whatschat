@@ -8,6 +8,8 @@ Naming: `{platform}-{feature}.png`
 | web-chat-list.png | Web | Chat list |
 | web-chat-conversation.png | Web | Chat conversation |
 | web-video-call.png | Web | Video call |
+| web-ai-text-dialog.png | Web | AI text generation dialog |
+| web-ai-image-dialog.png | Web | AI image generation dialog |
 | mobile-login.png | Mobile | Login |
 | mobile-chats-list.png | Mobile | Chats list |
 | mobile-chat-conversation.png | Mobile | Chat conversation |

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/src/presentation/components/ui/button";
 import {
   Dialog,
@@ -26,10 +27,9 @@ const StatusText = styled.p`
   margin-top: 0.5rem;
 `;
 
-const OutputBox = styled.pre`
+const OutputBox = styled.div`
   font-size: 0.875rem;
-  white-space: pre-wrap;
-  word-break: break-word;
+  line-height: 1.5;
   max-height: 12rem;
   overflow-y: auto;
   padding: 0.75rem;
@@ -37,6 +37,16 @@ const OutputBox = styled.pre`
   border-radius: 0.375rem;
   margin-top: 0.5rem;
   background: rgb(249 250 251);
+
+  & h1, & h2, & h3 { font-weight: 600; margin: 0.75em 0 0.25em; }
+  & h1 { font-size: 1.125rem; }
+  & h2 { font-size: 1rem; }
+  & h3 { font-size: 0.9375rem; }
+  & p { margin: 0.5em 0; }
+  & ul, & ol { margin: 0.5em 0; padding-left: 1.5rem; }
+  & li { margin: 0.25em 0; }
+  & strong { font-weight: 600; }
+  & code { font-size: 0.8125rem; background: rgb(229 231 235); padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
 `;
 
 const PrimaryButton = styled(Button)`
@@ -141,7 +151,7 @@ export function TextGenerateDialog({
           />
           {output ? (
             <OutputBox role="log" aria-live="polite">
-              {output}
+              <ReactMarkdown>{output}</ReactMarkdown>
             </OutputBox>
           ) : null}
           {error ? <ErrorText>{error}</ErrorText> : null}

@@ -71,6 +71,7 @@
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
     "@reduxjs/toolkit": "^2.5.0",
+    "react-markdown": "^9.0.1",
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0",
     "@growthbook/growthbook-react": "^1.4.0"
