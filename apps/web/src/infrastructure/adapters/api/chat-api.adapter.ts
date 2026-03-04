@@ -38,6 +38,7 @@ export class ChatApiAdapter {
       content: string;
       type?: "text" | "image" | "video" | "audio" | "file";
       replyToMessageId?: string;
+      mediaUrl?: string;
     }
   ): Promise<ApiResponse> {
     return this.apiClient.post("/messages", { ...messageData, chatId });

@@ -77,6 +77,19 @@ export class ApiClientAdapter implements IApiClient {
     });
   }
 
+  async postStream(endpoint: string, data?: any): Promise<Response> {
+    const url = `${this.baseURL}${endpoint}`;
+    const config: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: data ? JSON.stringify(data) : undefined,
+    };
+    if (this.token) {
+      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${this.token}`;
+    }
+    return fetch(url, config);
+  }
+
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "PUT",

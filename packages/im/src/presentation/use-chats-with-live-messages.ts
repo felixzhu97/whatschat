@@ -98,7 +98,8 @@ export function useChatsWithLiveMessages(
   const handleSendMessage = useCallback(
     (
       content: string,
-      type: "text" | "image" | "video" | "audio" | "file" = "text"
+      type: "text" | "image" | "video" | "audio" | "file" = "text",
+      options?: { mediaUrl?: string }
     ) => {
       if (!isApiChat || !selectedContactId) return;
       const optimistic: Message = {
@@ -109,13 +110,18 @@ export function useChatsWithLiveMessages(
         timestamp: new Date().toISOString(),
         type,
         status: "sending",
+        ...(options?.mediaUrl != null && { mediaUrl: options.mediaUrl }),
       };
       setApiMessagesByChatId((prev) => ({
         ...prev,
         [selectedContactId]: [...(prev[selectedContactId] ?? []), optimistic],
       }));
       getChatsService()
-        .sendMessage(selectedContactId, { content, type })
+        .sendMessage(selectedContactId, {
+          content,
+          type,
+          ...(options?.mediaUrl != null && { mediaUrl: options.mediaUrl }),
+        })
         .then((m: Message) => {
           setApiMessagesByChatId((prev) => ({
             ...prev,
@@ -129,6 +135,9 @@ export function useChatsWithLiveMessages(
                       typeof m.timestamp === "string"
                         ? m.timestamp
                         : (m.createdAt as string | undefined) ?? msg.timestamp,
+                    ...((m as Message).mediaUrl != null && {
+                      mediaUrl: (m as Message).mediaUrl,
+                    }),
                   }
                 : msg
             ),

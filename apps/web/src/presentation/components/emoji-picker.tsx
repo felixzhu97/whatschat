@@ -5,7 +5,7 @@ import { Button } from "@/src/presentation/components/ui/button";
 import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/presentation/components/ui/tabs";
 import { Input } from "@/src/presentation/components/ui/input";
-import { Search, Clock, Smile, Heart, Star, X } from "lucide-react";
+import { Search, Clock, Smile, Heart, Star, X, Hand } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface EmojiPickerProps {
@@ -27,7 +27,7 @@ const emojiCategories = {
   },
   hands: {
     name: "手势",
-    icon: X,
+    icon: Hand,
     emojis: ["👍", "👎", "👌", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉"],
   },
   hearts: {
@@ -47,13 +47,14 @@ const Root = styled.div`
   bottom: 100%;
   left: 0;
   margin-bottom: 0.5rem;
-  background: white;
+  background: #ffffff;
   border-radius: 0.5rem;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-  border: 1px solid hsl(var(--border));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  border: 1px solid rgb(229 231 235);
   width: 20rem;
   height: 24rem;
-  z-index: 50;
+  z-index: 100;
+  overflow: hidden;
 `;
 
 const Header = styled.div`
@@ -61,12 +62,13 @@ const Header = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid rgb(229 231 235);
 `;
 
 const HeaderTitle = styled.h3`
-  font-weight: 500;
-  color: rgb(17 24 31);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #111b21;
 `;
 
 const CloseBtn = styled(Button)`
@@ -81,7 +83,7 @@ const XIcon = styled(X)`
 
 const SearchSection = styled.div`
   padding: 0.75rem;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid rgb(229 231 235);
 `;
 
 const SearchWrap = styled.div`
@@ -95,7 +97,7 @@ const SearchIcon = styled(Search)`
   transform: translateY(-50%);
   height: 1rem;
   width: 1rem;
-  color: rgb(156 163 175);
+  color: #8696a0;
 `;
 
 const SearchInput = styled(Input)`
@@ -118,9 +120,10 @@ const EmojiBtn = styled(Button)`
   height: 2rem;
   width: 2rem;
   padding: 0;
+  border-radius: 0.375rem;
 
   &:hover {
-    background-color: rgb(243 244 246);
+    background-color: rgb(233 246 227);
   }
 `;
 
@@ -130,8 +133,9 @@ const EmojiSpan = styled.span`
 
 const EmptySearch = styled.div`
   text-align: center;
-  color: rgb(107 114 128);
+  color: #8696a0;
   padding: 2rem 0;
+  font-size: 0.875rem;
 `;
 
 const TabsRoot = styled(Tabs)`
@@ -141,13 +145,50 @@ const TabsRoot = styled(Tabs)`
 const TabsListStyled = styled(TabsList)`
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   height: 2.5rem;
   margin: 0 0.75rem 0.5rem;
+  gap: 0;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none;
+  border-bottom: 1px solid rgb(229 231 235);
+  border-radius: 0;
+  box-shadow: none;
 `;
 
 const TabsTriggerStyled = styled(TabsTrigger)`
   padding: 0.25rem;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  color: #667781;
+  border: none;
+  border-radius: 0;
+  box-shadow: none !important;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: none;
+    outline: 1px solid rgb(229 231 235);
+    outline-offset: -1px;
+  }
+
+  &:hover {
+    color: #111b21;
+    background: rgb(245 246 246) !important;
+  }
+
+  &[data-state="active"] {
+    color: #25d366;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-bottom-color: #25d366;
+  }
 `;
 
 const TabsContentStyled = styled(TabsContent)`
@@ -164,23 +205,25 @@ const TabEmojiBtn = styled(Button)`
   height: 2rem;
   width: 2rem;
   padding: 0;
+  border-radius: 0.375rem;
 
   &:hover {
-    background-color: rgb(243 244 246);
+    background-color: rgb(233 246 227);
   }
 `;
 
 const EmptyRecent = styled.div`
   text-align: center;
-  color: rgb(107 114 128);
+  color: #8696a0;
   padding: 2rem 0;
+  font-size: 0.875rem;
 `;
 
 const EmptyClock = styled(Clock)`
   height: 2rem;
   width: 2rem;
   margin: 0 auto 0.5rem;
-  color: rgb(209 213 219);
+  color: #d1d7db;
 `;
 
 const Preview = styled.div`
@@ -188,8 +231,8 @@ const Preview = styled.div`
   bottom: 0.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgb(31 41 55);
-  color: white;
+  background-color: #111b21;
+  color: #e9edef;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;

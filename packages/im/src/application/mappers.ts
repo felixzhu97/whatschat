@@ -13,6 +13,9 @@ export function mapApiMessageToMessage(m: ApiMessageLike): Message {
         : m.createdAt ?? new Date().toISOString(),
     type: (m.type?.toLowerCase() ?? "text") as Message["type"],
     status: (m.status ?? "delivered") as Message["status"],
+    ...((m as { mediaUrl?: string }).mediaUrl != null && {
+      mediaUrl: (m as { mediaUrl?: string }).mediaUrl,
+    }),
   };
 }
 

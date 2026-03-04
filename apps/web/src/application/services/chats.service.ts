@@ -84,6 +84,7 @@ export class ChatsService implements IChatsService {
                 : msg.createdAt ?? new Date().toISOString(),
             type: (msg.type?.toLowerCase() ?? "text") as Message["type"],
             status: "delivered",
+            ...(msg.mediaUrl != null && { mediaUrl: msg.mediaUrl }),
           })
         );
       }
@@ -100,6 +101,7 @@ export class ChatsService implements IChatsService {
       content: string;
       type?: "text" | "image" | "video" | "audio" | "file";
       replyToMessageId?: string;
+      mediaUrl?: string;
     }
   ): Promise<Message> {
     try {

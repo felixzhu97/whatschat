@@ -8,7 +8,8 @@ export interface CreateMessageData {
   type: string;
   senderId: string;
   chatId: string;
-  metadata?: any;
+  mediaUrl?: string;
+  replyToMessageId?: string;
 }
 
 export interface GetMessagesOptions {
@@ -41,7 +42,8 @@ export class MessagesService {
         senderId: data.senderId,
         type: toMessageType(data.type),
         content: data.content,
-        ...(data.metadata && { metadata: data.metadata }),
+        ...(data.mediaUrl != null && { mediaUrl: data.mediaUrl }),
+        ...(data.replyToMessageId != null && { replyToMessageId: data.replyToMessageId }),
       },
       include: {
         sender: {

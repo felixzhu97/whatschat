@@ -23,8 +23,13 @@ interface ChatAreaProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
   onSendMessage: (
     content: string,
-    type?: "text" | "image" | "video" | "audio" | "file"
+    type?: "text" | "image" | "video" | "audio" | "file",
+    options?: { mediaUrl?: string }
   ) => void;
+  onSmartReplyClick?: () => void;
+  onGenerateVideoClick?: () => void;
+  onGenerateTextClick?: () => void;
+  onGenerateImageClick?: () => void;
   onEmojiSelect: (emoji: string) => void;
   onToggleEmojiPicker: () => void;
   onFileSelect: (file: File) => void;
@@ -86,6 +91,10 @@ export function ChatArea({
   onCancelReply,
   onCancelEdit,
   onRecordingChange,
+  onSmartReplyClick,
+  onGenerateVideoClick,
+  onGenerateTextClick,
+  onGenerateImageClick,
 }: ChatAreaProps) {
   return (
     <ChatAreaRoot>
@@ -138,7 +147,7 @@ export function ChatArea({
         isRecordingVoice={isRecordingVoice}
         onMessageChange={onMessageChange}
         onKeyDown={onKeyDown}
-        onSendMessage={() => onSendMessage(messageText)}
+        onSendMessage={() => onSendMessage(messageText, "text")}
         onEmojiSelect={onEmojiSelect}
         onToggleEmojiPicker={onToggleEmojiPicker}
         onFileSelect={onFileSelect}
@@ -146,6 +155,10 @@ export function ChatArea({
         onCancelReply={onCancelReply}
         onCancelEdit={onCancelEdit}
         onRecordingChange={onRecordingChange}
+        onSmartReplyClick={onSmartReplyClick}
+        onGenerateVideoClick={onGenerateVideoClick}
+        onGenerateTextClick={onGenerateTextClick}
+        onGenerateImageClick={onGenerateImageClick}
       />
     </ChatAreaRoot>
   );

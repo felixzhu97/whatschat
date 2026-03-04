@@ -7,7 +7,8 @@ import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { useAbTest } from "@/presentation/hooks/use-ab-test";
 import { Button } from "@/src/presentation/components/ui/button";
 import { Textarea } from "@/src/presentation/components/ui/textarea";
-import { Smile, Paperclip, Send, X } from "lucide-react";
+import { Smile, Paperclip, Send, X, Sparkles } from "lucide-react";
+import { AiActionMenu } from "./ai-action-menu";
 import { EmojiPicker } from "./emoji-picker";
 import { FileUpload } from "./file-upload";
 import { VoiceRecorder } from "./voice-recorder";
@@ -30,6 +31,10 @@ interface MessageInputProps {
   onCancelReply: () => void;
   onCancelEdit: () => void;
   onRecordingChange: (isRecording: boolean) => void;
+  onSmartReplyClick?: () => void;
+  onGenerateVideoClick?: () => void;
+  onGenerateTextClick?: () => void;
+  onGenerateImageClick?: () => void;
 }
 
 const InputShell = styled.div`
@@ -92,6 +97,7 @@ const PopoverContainer = styled.div`
   left: 0;
   bottom: 3rem;
   z-index: 50;
+  overflow: visible;
 `;
 
 const MessageTextarea = styled(Textarea)`
@@ -129,9 +135,18 @@ export function MessageInput({
   onCancelReply,
   onCancelEdit,
   onRecordingChange,
+  onSmartReplyClick,
+  onGenerateVideoClick,
+  onGenerateTextClick,
+  onGenerateImageClick,
 }: MessageInputProps) {
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showAiMenu, setShowAiMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasAiActions =
+    onGenerateTextClick != null ||
+    onGenerateImageClick != null ||
+    onGenerateVideoClick != null;
   const sendMessageEnabled = useFeatureIsOn("send_message");
   const inputPlaceholderVariant = useAbTest("message-input-placeholder");
   const placeholder =
@@ -212,7 +227,10 @@ export function MessageInput({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowFileUpload(!showFileUpload)}
+            onClick={() => {
+              setShowFileUpload(!showFileUpload);
+              setShowAiMenu(false);
+            }}
           >
             <Paperclip size={20} />
           </Button>
@@ -222,6 +240,59 @@ export function MessageInput({
             </PopoverContainer>
           )}
         </IconButtonWrapper>
+
+        {(hasAiActions || onSmartReplyClick != null) && (
+          <IconButtonWrapper>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowAiMenu(!showAiMenu);
+                setShowFileUpload(false);
+              }}
+            >
+              <Sparkles size={20} />
+            </Button>
+            {showAiMenu && (
+              <PopoverContainer>
+                <AiActionMenu
+                  onSmartReply={
+                    onSmartReplyClick
+                      ? () => {
+                          setShowAiMenu(false);
+                          onSmartReplyClick();
+                        }
+                      : undefined
+                  }
+                  onGenerateText={
+                    onGenerateTextClick
+                      ? () => {
+                          setShowAiMenu(false);
+                          onGenerateTextClick();
+                        }
+                      : undefined
+                  }
+                  onGenerateImage={
+                    onGenerateImageClick
+                      ? () => {
+                          setShowAiMenu(false);
+                          onGenerateImageClick();
+                        }
+                      : undefined
+                  }
+                  onGenerateVideo={
+                    onGenerateVideoClick
+                      ? () => {
+                          setShowAiMenu(false);
+                          onGenerateVideoClick();
+                        }
+                      : undefined
+                  }
+                />
+              </PopoverContainer>
+            )}
+          </IconButtonWrapper>
+        )}
 
         <TextareaWrapper>
           <MessageTextarea

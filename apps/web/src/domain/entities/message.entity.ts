@@ -44,7 +44,8 @@ export class Message {
     public readonly duration?: number,
     public readonly fileName?: string,
     public readonly fileSize?: string,
-    public readonly location?: Location
+    public readonly location?: Location,
+    public readonly mediaUrl?: string
   ) {}
 
   static create(data: {
@@ -65,6 +66,7 @@ export class Message {
     fileName?: string;
     fileSize?: string;
     location?: Location;
+    mediaUrl?: string;
   }): Message {
     return new Message(
       data.id,
@@ -83,7 +85,8 @@ export class Message {
       data.duration,
       data.fileName,
       data.fileSize,
-      data.location
+      data.location,
+      data.mediaUrl
     );
   }
 
@@ -105,7 +108,8 @@ export class Message {
       this.duration,
       this.fileName,
       this.fileSize,
-      this.location
+      this.location,
+      this.mediaUrl
     );
   }
 
@@ -127,7 +131,8 @@ export class Message {
       this.duration,
       this.fileName,
       this.fileSize,
-      this.location
+      this.location,
+      this.mediaUrl
     );
   }
 
@@ -149,7 +154,8 @@ export class Message {
       this.duration,
       this.fileName,
       this.fileSize,
-      this.location
+      this.location,
+      this.mediaUrl
     );
   }
 }

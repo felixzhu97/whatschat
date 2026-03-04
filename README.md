@@ -4,15 +4,18 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 ## ✨ Features
 
-- 💬 **Real-time Chat** – Instant messaging with Socket.IO
+- 💬 **Real-time Chat** – Instant messaging with Socket.IO (real connection only)
 - 📞 **Voice/Video Calls** – WebRTC-based audio and video
 - 📎 **File Sharing** – Send images, documents, and media
 - 👥 **Contact Management** – Add, search, and manage contacts
 - 🔍 **Message Search** – Full-text search powered by Elasticsearch
 - 🔐 **Authentication** – JWT-based auth with bcrypt
+- 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
+- 🖼️ **Image Generation** – Self-hosted (apps/image-gen, :3457) or Replicate; prompt refined and translated to English via Ollama, then generate
+- 🎬 **Video Generation** – Self-hosted HTTP service (apps/video-gen, :3456); text-to-video
 - 🌐 **Web App** – Next.js SPA on port 4000
 - 📱 **Mobile App** – React Native + Expo
-- 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (page_view, chat_open, send_message, call); API ingests and stores; Admin shows overview and event list
+- 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
 
 ## 📸 Screenshots
@@ -50,6 +53,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
 - **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Elasticsearch (optional)
+- **AI / Media** – Ollama (text stream), self-hosted image-gen (Python/FastAPI/diffusers), self-hosted video-gen (Python/FastAPI/CogVideoX); optional Replicate for image
 
 ## 🚀 Quick Start
 
@@ -69,7 +73,8 @@ pnpm setup
 ### Run
 
 ```bash
-pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001)
+pnpm start           # Full: Docker + image-gen (:3457) + video-gen (:3456) + API (:3001)
+pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
 pnpm start:mobile:ios   # or start:mobile:android
@@ -77,31 +82,42 @@ pnpm start:mobile:ios   # or start:mobile:android
 
 ### Environment
 
-- `apps/server/.env` – Copy from `env.example`
-- `apps/web/.env.local` – Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
-- `apps/admin/.env.local` – Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
+- `apps/server/.env` – Copy from `apps/server/.env.example`
+  - **AI**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`
+  - **Image**: `IMAGE_GENERATION_API_URL` (e.g. `http://localhost:3457` for apps/image-gen) or `REPLICATE_API_TOKEN`
+  - **Video**: `VIDEO_GENERATION_API_URL` (e.g. `http://localhost:3456` for apps/video-gen)
+- `apps/web/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`, `NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001` (optional, for Socket.IO)
+- `apps/admin/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `ADMIN_EMAILS=admin@whatschat.com` (comma-separated) for admin access
 
 ## 📁 Project Structure
 
 ```
 apps/
-  web      # Next.js web app (whatschat-web, :4000)
-  admin    # Admin dashboard (whatschat-admin, :4001)
-  mobile   # Expo mobile app (react-native-app)
-  server   # NestJS API (whatschat-server, :3001)
+  web        # Next.js web app (whatschat-web, :4000)
+  admin      # Admin dashboard (whatschat-admin, :4001)
+  mobile     # Expo mobile app (react-native-app)
+  server     # NestJS API (whatschat-server, :3001)
+  image-gen  # Self-hosted image generation (Python/FastAPI/diffusers, :3457)
+  video-gen  # Self-hosted video generation (Python/FastAPI/CogVideoX, :3456)
 packages/
-  domain    # Shared types and constants (@whatschat/domain)
-  im        # Instant messaging + RTC (@whatschat/im)
-  rtc       # Voice/video call logic (@whatschat/rtc, used by im)
-  analytics # Behavior analytics SDK (@whatschat/analytics)
+  domain           # Shared types and constants (@whatschat/domain)
+  im               # Instant messaging + RTC (@whatschat/im)
+  rtc              # Voice/video call logic (@whatschat/rtc, used by im)
+  analytics        # Behavior analytics SDK (@whatschat/analytics)
+  llm              # LLM client (Ollama stream, used by server)
+  image-generation # Image client (HTTP job API or Replicate, used by server)
+  video-generation # Video client (HTTP job API, used by server)
 ```
 
 **Shared packages:**
 - `@whatschat/domain` – User, Message, Chat, Contact, Call types
 - `@whatschat/im` – Chat slices, hooks (useRealChat, useChatsWithLiveMessages), RTC (useCall, createCallManager). Apps inject platform adapters.
 - `@whatschat/rtc` – RTC domain (RTCCallState, ICallManager), config-driven createCallManager, formatDuration, CallManagerStub.
-- `@whatschat/analytics` – Event types, track/identify API, ConsoleTransport, HttpTransport, React Provider + useAnalytics. Web/Mobile use it to send events to API; Admin reads via REST.
+- `@whatschat/analytics` – Event types, track/identify API; Web/Mobile send events to API; Admin reads via REST.
+- `@whatschat/llm` – Ollama streaming chat client.
+- `@whatschat/image-generation` – Image generation: HTTP client (jobId poll) or Replicate adapter.
+- `@whatschat/video-generation` – Video generation: HTTP client (jobId poll).
 
 ## 📚 Docs & Diagrams
 

@@ -64,7 +64,10 @@
     "ws": "^8.14.2",
     "tsconfig-paths": "^4.2.0",
     "@whatschat/analytics": "workspace:*",
-    "@whatschat/domain": "workspace:*"
+    "@whatschat/domain": "workspace:*",
+    "@whatschat/llm": "workspace:*",
+    "@whatschat/video-generation": "workspace:*",
+    "@whatschat/image-generation": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",

@@ -8,15 +8,18 @@ Person(user_web, "Web User", "Uses chat via browser")
 Person(user_mobile, "Mobile User", "Uses chat via app")
 
 System_Boundary(whatschat, "WhatsChat") {
-  Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
+  Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion", "Chat UI, calls, contacts, auth, AI/image/video dialogs")
   Container(admin_app, "Admin Application", "Next.js, React, TypeScript, Emotion, AG Grid, Recharts, i18next", "Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, System Config, Permission & Audit")
   Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
-  Container(api_server, "API Server", "NestJS, TypeScript", "REST API, WebSocket, auth, business logic, analytics ingestion")
+  Container(api_server, "API Server", "NestJS, TypeScript", "REST API, WebSocket, auth, business logic, analytics, AI/image/video proxy")
+  Container(image_gen, "Image Gen Service", "Python, FastAPI, diffusers", "Text-to-image, :3457")
+  Container(video_gen, "Video Gen Service", "Python, FastAPI, CogVideoX", "Text-to-video, :3456")
   ContainerDb(postgres, "PostgreSQL", "Relational DB", "Users, messages, chats, groups")
   ContainerDb(redis, "Redis", "Cache & Pub/Sub", "Sessions, presence, Pub/Sub")
   ContainerDb(kafka, "Kafka", "Message Queue", "Offline messages")
   Container_Ext(file_storage, "File Storage", "Local", "Files, media")
   Container_Ext(growthbook, "GrowthBook", "A/B & feature flags", "Feature toggles, experiments")
+  Container_Ext(ollama, "Ollama", "LLM runtime", "Streaming chat, optional")
 }
 
 Person(admin_user, "Admin User", "Manages system via admin dashboard")
@@ -32,6 +35,9 @@ Rel(api_server, postgres, "Reads/Writes", "Prisma")
 Rel(api_server, redis, "Cache, Pub/Sub")
 Rel(api_server, kafka, "Produce/Consume", "KafkaJS")
 Rel(api_server, file_storage, "Upload/Download")
+Rel(api_server, image_gen, "POST/GET /generate", "HTTP, :3457")
+Rel(api_server, video_gen, "POST/GET /generate", "HTTP, :3456")
+Rel(api_server, ollama, "Chat stream", "HTTP, optional")
 
 SHOW_LEGEND()
 @enduml

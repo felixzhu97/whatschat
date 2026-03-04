@@ -19,6 +19,7 @@ export interface IChatsService {
       content: string;
       type?: "text" | "image" | "video" | "audio" | "file";
       replyToMessageId?: string;
+      mediaUrl?: string;
     }
   ): Promise<Message>;
   markMessageAsRead(chatId: string, messageId: string): Promise<void>;

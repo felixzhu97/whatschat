@@ -75,3 +75,20 @@ Thumbs.db
 # Logs
 *.log
 **/logs
+
+# Image/Video gen output
+apps/image-gen/output/
+apps/video-gen/output/
+
+# Python
+.venv
+venv
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+*.whl

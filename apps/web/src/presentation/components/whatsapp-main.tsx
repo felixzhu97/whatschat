@@ -15,6 +15,9 @@ import { SettingsPage } from "./settings-page";
 import { CreateGroupDialog } from "./create-group-dialog";
 import { AddFriendDialog } from "./add-friend-dialog";
 import { AdvancedSearchDialog } from "./advanced-search-dialog";
+import { VideoGenerateDialog } from "./video-generate-dialog";
+import { TextGenerateDialog } from "./text-generate-dialog";
+import { ImageGenerateDialog } from "./image-generate-dialog";
 import { RealIncomingCall } from "./real-incoming-call";
 import { RealCallInterface } from "./real-call-interface";
 import { useRealCall } from "../hooks/use-real-call";
@@ -38,6 +41,8 @@ import {
   handleContactAction,
 } from "@/shared/utils/message-utils";
 import type { Contact, User, Message } from "@/shared/types";
+import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
+import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 
 const AppShell = styled.div`
   display: flex;
@@ -74,6 +79,9 @@ export function WhatsAppMain() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
+  const [showTextDialog, setShowTextDialog] = useState(false);
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
 
@@ -173,12 +181,18 @@ export function WhatsAppMain() {
     selectedContact: selectedContact ?? null,
   });
 
+  type SendMessageFn = (
+    content: string,
+    type?: "text" | "image" | "video" | "audio" | "file",
+    options?: { mediaUrl?: string }
+  ) => void;
   const handleSendMessageWrapper = (
     content: string,
-    type: "text" | "image" | "video" | "audio" | "file" = "text"
+    type: "text" | "image" | "video" | "audio" | "file" = "text",
+    options?: { mediaUrl?: string }
   ) => {
     if (chatsWithLive.isApiChat) {
-      chatsWithLive.handleSendMessage(content, type);
+      (chatsWithLive.handleSendMessage as SendMessageFn)(content, type, options);
       clearInput();
     } else {
       handleSendMessage(content, type);
@@ -186,6 +200,36 @@ export function WhatsAppMain() {
     if (selectedContactId) {
       analytics.track(SEND_MESSAGE, { chatId: selectedContactId, type });
     }
+  };
+
+  const aiApi = new AiApiAdapter(getApiClient());
+  const handleSmartReplyClick = () => {
+    const recent = chatsWithLive.messagesForSelected.slice(-10).map((m) => ({
+      role: m.senderId === currentUser?.id ? "user" : "assistant",
+      content: m.content,
+    }));
+    if (recent.length === 0) return;
+    aiApi
+      .postChat(recent)
+      .then((res) => {
+        if (res.success && res.data?.content) handleMessageChange(res.data.content);
+      })
+      .catch(() => {});
+  };
+  const handleGenerateVideoClick = () => setShowVideoDialog(true);
+  const handleVideoGenerateSuccess = (videoUrl: string) => {
+    handleSendMessageWrapper("", "video", { mediaUrl: videoUrl });
+    setShowVideoDialog(false);
+  };
+  const handleGenerateTextClick = () => setShowTextDialog(true);
+  const handleTextGenerateSuccess = (content: string) => {
+    handleSendMessageWrapper(content, "text");
+    setShowTextDialog(false);
+  };
+  const handleGenerateImageClick = () => setShowImageDialog(true);
+  const handleImageGenerateSuccess = (imageUrl: string) => {
+    handleSendMessageWrapper("", "image", { mediaUrl: imageUrl });
+    setShowImageDialog(false);
   };
 
   const isConnected = chatsWithLive.isConnected;
@@ -395,6 +439,18 @@ export function WhatsAppMain() {
             onCancelReply={handleCancelReply}
             onCancelEdit={handleCancelEdit}
             onRecordingChange={handleRecordingChange}
+            onSmartReplyClick={
+              chatsWithLive.isApiChat ? handleSmartReplyClick : undefined
+            }
+            onGenerateVideoClick={
+              chatsWithLive.isApiChat ? handleGenerateVideoClick : undefined
+            }
+            onGenerateTextClick={
+              chatsWithLive.isApiChat ? handleGenerateTextClick : undefined
+            }
+            onGenerateImageClick={
+              chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
+            }
           />
         ) : (
           <WelcomeScreen />
@@ -464,6 +520,24 @@ export function WhatsAppMain() {
         onClose={closeAdvancedSearchDialog}
         contacts={mockContacts}
         onSearch={handleAdvancedSearch}
+      />
+
+      <VideoGenerateDialog
+        isOpen={showVideoDialog}
+        onClose={() => setShowVideoDialog(false)}
+        onSuccess={handleVideoGenerateSuccess}
+      />
+
+      <TextGenerateDialog
+        isOpen={showTextDialog}
+        onClose={() => setShowTextDialog(false)}
+        onSuccess={handleTextGenerateSuccess}
+      />
+
+      <ImageGenerateDialog
+        isOpen={showImageDialog}
+        onClose={() => setShowImageDialog(false)}
+        onSuccess={handleImageGenerateSuccess}
       />
     </AppShell>
   );

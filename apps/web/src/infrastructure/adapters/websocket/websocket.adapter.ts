@@ -6,17 +6,14 @@ import {
 } from "../../../domain/interfaces/adapters/websocket.interface";
 import { io, Socket } from "socket.io-client";
 
-type WebSocketMode = "socketio" | "simulated";
-
 const SOCKET_DEBUG = process.env.NEXT_PUBLIC_SOCKET_DEBUG === "true";
 
-function logSocket(...args: any[]) {
+function logSocket(...args: unknown[]) {
   if (!SOCKET_DEBUG) return;
   console.log("[WS]", ...args);
 }
 
 export class WebSocketAdapter implements IWebSocketAdapter {
-  private ws: WebSocket | null = null;
   private ioSocket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -24,90 +21,27 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   private listeners: Map<string, Function[]> = new Map();
   private isConnecting = false;
   private messageQueue: WebSocketMessage[] = [];
-  private mode: WebSocketMode = "simulated";
 
   constructor() {
-    const wsMode = (process.env.NEXT_PUBLIC_WEBSOCKET_MODE || "socketio") as string;
-    this.mode = wsMode === "socketio" ? "socketio" : "simulated";
-
-    logSocket("init adapter", { mode: this.mode });
-
-    if (this.mode === "simulated") {
-      this.simulateConnection();
-    } else {
-      this.connect();
-    }
-  }
-
-  private simulateConnection() {
-    setTimeout(() => {
-      logSocket("simulated connection established");
-      this.emit("connected", null);
-    }, 1000);
-
-    setInterval(() => {
-      if (Math.random() > 0.95) {
-        this.simulateIncomingMessage();
-      }
-    }, 2000);
-  }
-
-  private simulateIncomingMessage() {
-    const mockMessages = [
-      "Hi! How are you recently?",
-      "Nice weather today.",
-      "Do you have time to grab a meal?",
-      "How is work going?",
-      "Any plans for the weekend?",
-    ];
-
-    const randomMessage =
-      mockMessages[Math.floor(Math.random() * mockMessages.length)];
-
-    const simulatedMessage: WebSocketMessage = {
-      type: "message",
-      from: "simulated_user",
-      data: {
-        id: Date.now().toString(),
-        text: randomMessage,
-          type: "text",
-      },
-      timestamp: Date.now(),
-    };
-
-    this.handleMessage(simulatedMessage);
+    logSocket("init adapter");
+    this.connect();
   }
 
   private flushMessageQueue() {
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift();
-      if (message) {
-        this.sendMessage(message);
-      }
+      if (message) this.sendMessage(message);
     }
   }
 
   private attemptReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      logSocket(
-        "attempt reconnect",
-        `${this.reconnectAttempts}/${this.maxReconnectAttempts}`,
-        { mode: this.mode },
-      );
-
-      setTimeout(() => {
-        if (this.mode === "simulated") {
-          this.simulateConnection();
-        } else {
-          this.connect();
-        }
-      }, this.reconnectDelay * this.reconnectAttempts);
-    } else {
-      logSocket("reconnect failed, switch to simulated mode");
-      this.mode = "simulated";
-      this.simulateConnection();
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      logSocket("reconnect failed after max attempts");
+      return;
     }
+    this.reconnectAttempts++;
+    logSocket("attempt reconnect", `${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+    setTimeout(() => this.connect(), this.reconnectDelay * this.reconnectAttempts);
   }
 
   private handleMessage(message: WebSocketMessage) {
@@ -115,9 +49,6 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     this.emit(message.type, message);
   }
 
-  /**
-   * Send via Socket.IO: emit event name as message.type, payload as message.data or full message.
-   */
   private sendViaSocketIo(message: WebSocketMessage) {
     if (!this.ioSocket?.connected) return;
     const payload = message.data !== undefined ? message.data : { ...message };
@@ -125,245 +56,124 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   }
 
   private sendMessage(message: WebSocketMessage) {
-    // If using Socket.IO, map high-level events to backend events
-    if (this.mode === "socketio" && this.ioSocket && this.ioSocket.connected) {
+    if (this.ioSocket?.connected) {
       try {
         this.sendViaSocketIo(message);
       } catch (error) {
         logSocket("Socket.IO send failed, queue message", { error, message });
         this.messageQueue.push(message);
       }
-      return;
-    }
-
-    // Fallback: native WebSocket
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      try {
-        logSocket("WS send", message);
-        this.ws.send(
-          JSON.stringify({
-            ...message,
-            timestamp: Date.now(),
-          })
-        );
-      } catch (error) {
-        logSocket("WS send failed, queue message", { error, message });
-        this.messageQueue.push(message);
-      }
     } else {
-      logSocket("WS not connected, queue message", message);
+      logSocket("Socket.IO not connected, queue message", message);
       this.messageQueue.push(message);
     }
   }
 
   private connect() {
-    // When using Socket.IO mode, use socket.io-client to connect to NestJS ChatGateway
-    if (this.mode === "socketio") {
-      if (this.ioSocket && this.ioSocket.connected) {
-        logSocket("Socket.IO already connected");
-        return;
-      }
-
-      if (this.isConnecting) {
-        logSocket("Socket.IO is connecting, skip duplicate connect");
-        return;
-      }
-
-      this.isConnecting = true;
-
-      const socketIoUrl =
-        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3001";
-      const token = this.getAuthToken();
-      logSocket("Socket.IO connect", { socketIoUrl, hasToken: !!token });
-
-      this.ioSocket = io(socketIoUrl, {
-        transports: ["websocket", "polling"],
-        withCredentials: true,
-        auth: token ? { token } : undefined,
-      });
-
-      this.ioSocket.on("connect", () => {
-        logSocket("Socket.IO connected", this.ioSocket?.id, { mode: this.mode });
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        this.emit("connected", { mode: this.mode });
-        this.flushMessageQueue();
-      });
-
-      this.ioSocket.on("disconnect", (reason) => {
-        logSocket("Socket.IO disconnected", reason);
-        this.emit("disconnected", null);
-      });
-
-      this.ioSocket.on("connect_error", (error) => {
-        logSocket("Socket.IO connect error", error);
-        this.isConnecting = false;
-        this.attemptReconnect();
-      });
-
-      // Map backend Socket.IO events to high-level WebSocketMessage
-      this.ioSocket.on("message:received", (data: any) => {
-        logSocket("Socket.IO event message:received", data);
-        const message: WebSocketMessage = {
-          type: "message",
-          from: data.senderId,
-          to: data.chatId,
-          data: {
-            id: data.id,
-            text: data.content,
-            type: (data.type || "TEXT").toString().toLowerCase(),
-            mediaUrl: data.mediaUrl,
-          },
-          timestamp: new Date(data.createdAt || Date.now()).getTime(),
-        };
-        this.handleMessage(message);
-      });
-
-      this.ioSocket.on(
-        "message:typing",
-        (payload: { chatId: string; userId: string; isTyping: boolean }) => {
-          logSocket("Socket.IO event message:typing", payload);
-          const typingMessage: WebSocketMessage = {
-            type: "typing",
-            from: payload.userId,
-            to: payload.chatId,
-            data: { isTyping: payload.isTyping },
-            timestamp: Date.now(),
-          };
-          this.handleMessage(typingMessage);
-        },
-      );
-
-      this.ioSocket.on(
-        "message:read",
-        (payload: { messageId: string; userId: string }) => {
-          logSocket("Socket.IO event message:read", payload);
-          // Expose as a generic message_status event so existing hooks can reuse it
-          this.emit("message_status", {
-            messageId: payload.messageId,
-            status: "read",
-          });
-        },
-      );
-
-      // Call signaling events (audio/video) – forward to listeners for WebRTC manager
-      const callEvents = [
-        "call:incoming",
-        "call:answer",
-        "call:reject",
-        "call:offer",
-        "call:webrtc-answer",
-        "call:ice-candidate",
-        "call:end",
-      ] as const;
-      callEvents.forEach((event) => {
-        this.ioSocket!.on(event, (payload: any) => {
-          logSocket("Socket.IO event", event, payload);
-          this.handleMessage({
-            type: event,
-            from: payload.userId ?? payload.initiatorId,
-            data: payload,
-            timestamp: Date.now(),
-          });
-        });
-      });
-
+    if (this.ioSocket?.connected) {
+      logSocket("Socket.IO already connected");
       return;
     }
-
-    // Default: plain WebSocket echo server (mainly for demos)
-    if (
-      this.isConnecting ||
-      (this.ws && this.ws.readyState === WebSocket.OPEN)
-    ) {
+    if (this.isConnecting) {
+      logSocket("Socket.IO is connecting, skip duplicate connect");
       return;
     }
-
     this.isConnecting = true;
+    const socketIoUrl =
+      process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3001";
+    const token = this.getAuthToken();
+    logSocket("Socket.IO connect", { socketIoUrl, hasToken: !!token });
 
-    try {
-      const socketWsUrl =
-        process.env.NEXT_PUBLIC_SOCKET_IO_URL || "ws://localhost:3001";
-      logSocket("basic WS connect", { socketWsUrl });
-      this.ws = new WebSocket(socketWsUrl);
+    this.ioSocket = io(socketIoUrl, {
+      transports: ["websocket", "polling"],
+      withCredentials: true,
+      auth: token ? { token } : undefined,
+    });
 
-      this.ws.onopen = () => {
-        logSocket("basic WS connected");
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        this.emit("connected", { mode: this.mode });
-        this.flushMessageQueue();
-      };
+    this.ioSocket.on("connect", () => {
+      logSocket("Socket.IO connected", this.ioSocket?.id);
+      this.isConnecting = false;
+      this.reconnectAttempts = 0;
+      this.emit("connected", null);
+      this.flushMessageQueue();
+    });
 
-      this.ws.onmessage = (event) => {
-        try {
-          let message: WebSocketMessage;
+    this.ioSocket.on("disconnect", (reason) => {
+      logSocket("Socket.IO disconnected", reason);
+      this.emit("disconnected", null);
+    });
 
-          if (typeof event.data === "string") {
-            if (event.data.startsWith("{") || event.data.startsWith("[")) {
-              message = JSON.parse(event.data);
-            } else {
-              message = {
-                type: "message",
-                data: {
-                  text: event.data,
-                  type: "text",
-                  id: Date.now().toString(),
-                },
-                from: "server",
-                timestamp: Date.now(),
-              };
-            }
-          } else {
-            logSocket("basic WS received binary data", event.data);
-            return;
-          }
-
-          this.handleMessage(message);
-        } catch (error) {
-          logSocket("basic WS parse message failed, using raw data", {
-            error,
-            raw: event.data,
-          });
-          const fallbackMessage: WebSocketMessage = {
-            type: "message",
-            data: {
-              text: String(event.data).substring(0, 100),
-              type: "text",
-              id: Date.now().toString(),
-            },
-            from: "server",
-            timestamp: Date.now(),
-          };
-          this.handleMessage(fallbackMessage);
-        }
-      };
-
-      this.ws.onclose = (event) => {
-        logSocket("basic WS closed", { code: event.code, reason: event.reason });
-        this.isConnecting = false;
-        this.ws = null;
-        this.emit("disconnected", null);
-
-        if (event.code !== 1000) {
-          this.attemptReconnect();
-        }
-      };
-
-      this.ws.onerror = (error) => {
-        logSocket("basic WS error", error);
-        this.isConnecting = false;
-        this.emit("error", error);
-      };
-    } catch (error) {
-      logSocket("basic WS connect failed", error);
+    this.ioSocket.on("connect_error", (error) => {
+      logSocket("Socket.IO connect error", error);
       this.isConnecting = false;
       this.attemptReconnect();
-    }
+    });
+
+    this.ioSocket.on("message:received", (data: Record<string, unknown>) => {
+      logSocket("Socket.IO event message:received", data);
+      const message: WebSocketMessage = {
+        type: "message",
+        from: (data.senderId as string) ?? "",
+        to: (data.chatId as string) ?? "",
+        data: {
+          id: (data.id as string) ?? "",
+          text: (data.content as string) ?? "",
+          type: ((data.type as string) || "TEXT").toString().toLowerCase(),
+          mediaUrl: data.mediaUrl as string | undefined,
+        },
+        timestamp: new Date((data.createdAt as string) ?? Date.now()).getTime(),
+      };
+      this.handleMessage(message);
+    });
+
+    this.ioSocket.on(
+      "message:typing",
+      (payload: { chatId: string; userId: string; isTyping: boolean }) => {
+        logSocket("Socket.IO event message:typing", payload);
+        this.handleMessage({
+          type: "typing",
+          from: payload.userId,
+          to: payload.chatId,
+          data: { isTyping: payload.isTyping },
+          timestamp: Date.now(),
+        });
+      }
+    );
+
+    this.ioSocket.on(
+      "message:read",
+      (payload: { messageId: string; userId: string }) => {
+        logSocket("Socket.IO event message:read", payload);
+        this.emit("message_status", {
+          messageId: payload.messageId,
+          status: "read",
+        });
+      }
+    );
+
+    const callEvents = [
+      "call:incoming",
+      "call:answer",
+      "call:reject",
+      "call:offer",
+      "call:webrtc-answer",
+      "call:ice-candidate",
+      "call:end",
+    ] as const;
+    callEvents.forEach((event) => {
+      this.ioSocket!.on(event, (payload: Record<string, unknown>) => {
+        logSocket("Socket.IO event", event, payload);
+        this.handleMessage({
+          type: event,
+          from: (payload.userId ?? payload.initiatorId) as string,
+          data: payload,
+          timestamp: Date.now(),
+        });
+      });
+    });
   }
 
   private getAuthToken(): string | null {
-    // Try to get token from localStorage or auth context
     if (typeof window !== "undefined") {
       return (
         localStorage.getItem("auth_token") ||
@@ -374,73 +184,11 @@ export class WebSocketAdapter implements IWebSocketAdapter {
   }
 
   send(message: WebSocketMessage): void {
-    if (this.mode === "simulated") {
-      logSocket("simulated send", message);
-
-      setTimeout(() => {
-        if (message.type === "message") {
-          this.emit("message_status", {
-            messageId: message.data.id,
-            status: "delivered",
-          });
-
-          setTimeout(() => {
-            this.emit("message_status", {
-              messageId: message.data.id,
-              status: "read",
-            });
-          }, 2000);
-        }
-      }, 500);
-
-      if (message.type === "message" && Math.random() > 0.7) {
-        setTimeout(
-          () => {
-            this.simulateResponse(message);
-          },
-          1000 + Math.random() * 3000
-        );
-      }
-    } else {
-      this.sendMessage(message);
-    }
-  }
-
-  private simulateResponse(originalMessage: WebSocketMessage) {
-    const responses = [
-      "Got it!",
-      "Okay, I see.",
-      "No problem.",
-      "Let me think about it...",
-      "That sounds like a good idea.",
-      "I agree with you.",
-      "Hold on, I will check.",
-      "Understood.",
-      "Thanks for your message.",
-      "Let us talk later.",
-    ];
-
-    const randomResponse =
-      responses[Math.floor(Math.random() * responses.length)];
-
-    const responseMessage: WebSocketMessage = {
-      type: "message",
-      from: originalMessage.to || "simulated_contact",
-      data: {
-        id: Date.now().toString(),
-        text: randomResponse,
-        type: "text",
-      },
-      timestamp: Date.now(),
-    };
-
-    this.handleMessage(responseMessage);
+    this.sendMessage(message);
   }
 
   on(event: string, callback: Function): void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
-    }
+    if (!this.listeners.has(event)) this.listeners.set(event, []);
     this.listeners.get(event)!.push(callback);
   }
 
@@ -448,17 +196,13 @@ export class WebSocketAdapter implements IWebSocketAdapter {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       const index = callbacks.indexOf(callback);
-      if (index > -1) {
-        callbacks.splice(index, 1);
-      }
+      if (index > -1) callbacks.splice(index, 1);
     }
   }
 
-  private emit(event: string, data: any) {
+  private emit(event: string, data: unknown) {
     const callbacks = this.listeners.get(event);
-    if (callbacks) {
-      callbacks.forEach((callback) => callback(data));
-    }
+    if (callbacks) callbacks.forEach((cb) => cb(data));
   }
 
   disconnect(): void {
@@ -466,53 +210,18 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       this.ioSocket.disconnect();
       this.ioSocket = null;
     }
-    if (this.ws) {
-      this.ws.close(1000, "Client disconnect");
-      this.ws = null;
-    }
   }
 
   isConnected(): boolean {
-    if (this.mode === "simulated") {
-      return true;
-    }
-    if (this.mode === "socketio") {
-      return this.ioSocket !== null && this.ioSocket.connected;
-    }
-    return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    return this.ioSocket != null && this.ioSocket.connected;
   }
 
-  setSimulatedMode(enabled: boolean): void {
-    this.mode = enabled ? "simulated" : "socketio";
-    if (enabled) {
-      this.disconnect();
-      this.simulateConnection();
-    } else {
-      this.connect();
-    }
-  }
-
-  setMode(mode: WebSocketMode): void {
-    this.disconnect();
-    this.mode = mode;
-    if (mode === "simulated") {
-      this.simulateConnection();
-    } else {
-      this.connect();
-    }
-  }
-
-  getMode(): WebSocketMode {
-    return this.mode;
-  }
+  setSimulatedMode(_enabled: boolean): void {}
 }
 
-// 单例模式
 let wsManager: WebSocketAdapter | null = null;
 
 export const getWebSocketAdapter = (): IWebSocketAdapter => {
-  if (!wsManager) {
-    wsManager = new WebSocketAdapter();
-  }
+  if (!wsManager) wsManager = new WebSocketAdapter();
   return wsManager;
 };

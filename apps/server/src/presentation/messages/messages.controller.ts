@@ -58,6 +58,8 @@ export class MessagesController {
       type: string;
       chatId: string;
       metadata?: any;
+      mediaUrl?: string;
+      replyToMessageId?: string;
     },
   ) {
     const message = await this.messagesService.createMessage({
@@ -65,7 +67,10 @@ export class MessagesController {
       type: createMessageDto.type,
       chatId: createMessageDto.chatId,
       senderId: user.id,
-      ...(createMessageDto.metadata && { metadata: createMessageDto.metadata }),
+      ...(createMessageDto.mediaUrl != null && { mediaUrl: createMessageDto.mediaUrl }),
+      ...(createMessageDto.replyToMessageId != null && {
+        replyToMessageId: createMessageDto.replyToMessageId,
+      }),
     });
 
     await this.chatGateway.deliverToParticipants(

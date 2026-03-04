@@ -91,6 +91,18 @@ export interface AppConfig {
   admin: {
     emails: string[];
   };
+  ai: {
+    ollamaBaseUrl: string;
+    defaultModel: string;
+  };
+  video: {
+    replicateApiToken?: string;
+    videoApiBaseUrl?: string;
+  };
+  image: {
+    replicateApiToken?: string;
+    imageApiBaseUrl?: string;
+  };
   business: {
     maxGroupParticipants: number;
     maxMessageLength: number;
@@ -251,6 +263,27 @@ export class ConfigService {
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
+      },
+      ai: {
+        ollamaBaseUrl: process.env["OLLAMA_BASE_URL"] || "http://localhost:11434",
+        defaultModel:
+          process.env["OLLAMA_DEFAULT_MODEL"] || "qwen3-coder:30b",
+      },
+      video: {
+        ...(process.env["REPLICATE_API_TOKEN"] && {
+          replicateApiToken: process.env["REPLICATE_API_TOKEN"],
+        }),
+        ...(process.env["VIDEO_GENERATION_API_URL"] && {
+          videoApiBaseUrl: process.env["VIDEO_GENERATION_API_URL"],
+        }),
+      },
+      image: {
+        ...(process.env["REPLICATE_API_TOKEN"] && {
+          replicateApiToken: process.env["REPLICATE_API_TOKEN"],
+        }),
+        ...(process.env["IMAGE_GENERATION_API_URL"] && {
+          imageApiBaseUrl: process.env["IMAGE_GENERATION_API_URL"],
+        }),
       },
       business: {
         maxGroupParticipants: 256,

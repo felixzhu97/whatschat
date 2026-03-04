@@ -1,0 +1,32 @@
+{
+  "name": "@whatschat/llm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LLM client for WhatsChat (Ollama)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts",
+    "check-types": "npx -p typescript tsc --noEmit"
+  },
+  "dependencies": {
+    "ollama": "^0.6.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "5.8.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

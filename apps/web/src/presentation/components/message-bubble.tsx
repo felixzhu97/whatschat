@@ -151,6 +151,12 @@ const ImageTimeBadge = styled.div`
   color: white;
 `;
 
+const VideoElement = styled.video`
+  width: 100%;
+  max-width: 16rem;
+  border-radius: 0.75rem;
+`;
+
 const VideoThumb = styled.div`
   max-width: 16rem;
   border-radius: 0.75rem;
@@ -280,9 +286,13 @@ export function MessageBubble({
       case "video":
         return (
           <ImageWrapper>
-            <VideoThumb>
-              <Play size={32} color="#4b5563" />
-            </VideoThumb>
+            {message.mediaUrl ? (
+              <VideoElement src={message.mediaUrl} controls />
+            ) : (
+              <VideoThumb>
+                <Play size={32} color="#4b5563" />
+              </VideoThumb>
+            )}
             <ImageTimeBadge>{formatTime(message.timestamp)}</ImageTimeBadge>
           </ImageWrapper>
         );

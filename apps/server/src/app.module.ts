@@ -14,6 +14,9 @@ import { CallsModule } from './presentation/calls/calls.module';
 import { StatusModule } from './presentation/status/status.module';
 import { AdminModule } from './presentation/admin/admin.module';
 import { AnalyticsModule } from './presentation/analytics/analytics.module';
+import { AiModule } from './presentation/ai/ai.module';
+import { VideoModule } from './presentation/video/video.module';
+import { ImageModule } from './presentation/image/image.module';
 
 @Module({
   imports: [
@@ -43,6 +46,9 @@ import { AnalyticsModule } from './presentation/analytics/analytics.module';
     StatusModule,
     AdminModule,
     AnalyticsModule,
+    AiModule,
+    VideoModule,
+    ImageModule,
   ],
 })
 export class AppModule {}
