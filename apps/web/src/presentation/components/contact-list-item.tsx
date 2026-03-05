@@ -29,8 +29,8 @@ import type { Contact } from "../../../types";
 import { useLongPress } from "../hooks/use-long-press";
 import {
   styled,
-  whatsappListRowColors,
-  whatsappShadows,
+  instagramListRowColors,
+  instagramShadows,
 } from "@/src/shared/utils/emotion";
 
 const ContactRow = styled.div<{
@@ -49,19 +49,19 @@ const ContactRow = styled.div<{
   user-select: none;
   background: ${(p) =>
     p.$showActions
-      ? whatsappListRowColors.active
+      ? instagramListRowColors.active
       : p.$isSelected
-        ? whatsappListRowColors.selected
-        : whatsappListRowColors.default};
-  box-shadow: ${(p) => (p.$showActions ? whatsappShadows.listRowActive : "none")};
+        ? instagramListRowColors.selected
+        : instagramListRowColors.default};
+  box-shadow: ${(p) => (p.$showActions ? instagramShadows.listRowActive : "none")};
   transform: ${(p) => (p.$isLongPressing ? "scale(0.95)" : "none")};
   &:hover {
     background: ${(p) =>
       p.$showActions
-        ? whatsappListRowColors.active
+        ? instagramListRowColors.active
         : p.$isSelected
-          ? whatsappListRowColors.selected
-          : whatsappListRowColors.hover};
+          ? instagramListRowColors.selected
+          : instagramListRowColors.hover};
   }
 `;
 

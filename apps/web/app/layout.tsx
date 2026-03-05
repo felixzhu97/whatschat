@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { EmotionRegistry } from "./emotion-registry";
+import { I18nProvider } from "@/presentation/providers/i18n-provider";
 import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
 import { AnalyticsProvider } from "@/presentation/providers/analytics-provider";
 
@@ -19,9 +20,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <EmotionRegistry>
-          <GrowthBookProviderWrapper>
-          <AnalyticsProvider>{children}</AnalyticsProvider>
-        </GrowthBookProviderWrapper>
+          <I18nProvider>
+            <GrowthBookProviderWrapper>
+              <AnalyticsProvider>{children}</AnalyticsProvider>
+            </GrowthBookProviderWrapper>
+          </I18nProvider>
         </EmotionRegistry>
       </body>
     </html>

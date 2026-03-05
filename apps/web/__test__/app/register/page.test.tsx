@@ -89,7 +89,7 @@ describe("RegisterPage", () => {
     it("should render registration form", () => {
       render(<RegisterPage />);
 
-      expect(screen.getByText("注册 WhatsApp")).toBeInTheDocument();
+      expect(screen.getByText("注册 Instagram")).toBeInTheDocument();
       expect(screen.getByText("创建您的新账号")).toBeInTheDocument();
     });
 

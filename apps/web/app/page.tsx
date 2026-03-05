@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/presentation/hooks";
-import { WhatsAppMain } from "@/src/presentation/components/whatsapp-main";
+import { InstagramMain } from "@/src/presentation/components/instagram-main";
 import { styled } from "@/src/shared/utils/emotion";
 
 const LoadingScreen = styled.div`
@@ -70,5 +70,5 @@ export default function HomePage() {
     return null;
   }
 
-  return <WhatsAppMain />;
+  return <InstagramMain />;
 }

@@ -263,7 +263,7 @@ export function ProfilePage({ onBack }: ProfilePageProps) {
                 </Button>
               </ViewRow>
             )}
-            <FieldHint>这不是用户名或PIN码。此名称将对您的WhatsApp联系人可见。</FieldHint>
+            <FieldHint>这不是用户名或PIN码。此名称将对您的 Instagram 联系人可见。</FieldHint>
           </FieldGroup>
 
           <Separator />
@@ -282,7 +282,7 @@ export function ProfilePage({ onBack }: ProfilePageProps) {
               </EditRow>
             ) : (
               <ViewRow>
-                <ViewText>{user?.about || "嗨，我正在使用 WhatsApp！"}</ViewText>
+                <ViewText>{user?.about || "嗨，我正在使用 Instagram！"}</ViewText>
                 <Button size="icon" variant="ghost" onClick={() => setIsEditingAbout(true)}>
                   <EditIcon />
                 </Button>

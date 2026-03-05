@@ -3,10 +3,14 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
+import { Send } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { ChatArea } from "./chat-area";
 import { WelcomeScreen } from "./welcome-screen";
 import { ProfilePage } from "./profile-page";
+import { InstagramNav } from "./instagram-nav";
+import { InstagramFeed } from "./instagram-feed";
+import { InstagramRightSidebar } from "./instagram-right-sidebar";
 import { CallsPage } from "./calls-page";
 import { StatusPage } from "./status-page";
 import { StarredMessagesPage } from "./starred-messages-page";
@@ -36,6 +40,9 @@ import {
   mockContacts,
   mockMessages,
   mockUser,
+  mockStories,
+  mockFeedPosts,
+  mockSuggestedUsers,
 } from "@/infrastructure/data/mock-data";
 import {
   getMessagesForContact,
@@ -48,13 +55,51 @@ import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 const AppShell = styled.div`
   display: flex;
   height: 100vh;
-  background-color: hsl(var(--background));
+  background-color: rgb(255 255 255);
+`;
+
+const CenterColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: rgb(255 255 255);
+`;
+
+const MessagesRow = styled.div`
+  flex: 1;
+  display: flex;
+  min-height: 0;
 `;
 
 const MainContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+`;
+
+const FloatingMessagesBtn = styled.button`
+  position: fixed;
+  bottom: 1.5rem;
+  right: calc(320px + 1.5rem);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 24px;
+  border: none;
+  background-color: rgb(255 255 255);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.15);
+  color: rgb(38 38 38);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background-color: rgb(250 250 250);
+  }
 `;
 
 const FullscreenOverlay = styled.div`
@@ -76,10 +121,11 @@ const ErrorToast = styled.div`
   color: rgb(153 27 27);
 `;
 
-export function WhatsAppMain() {
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(
-    null
-  );
+type InstagramView = "feed" | "messages";
+
+export function InstagramMain() {
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [instagramView, setInstagramView] = useState<InstagramView>("feed");
   const [showVideoDialog, setShowVideoDialog] = useState(false);
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -271,16 +317,13 @@ export function WhatsAppMain() {
     error: callError,
   } = useRealCall();
 
-  // Filter contacts based on search
   const filteredContacts = filterContacts(contactsForList, searchQuery);
 
-  // Handle contact selection
   const handleContactSelect = (contact: Contact) => {
     setSelectedContactId(contact.id);
     handleBackToChat();
   };
 
-  // Handle contact actions
   const handleContactActionWrapper = (action: string, contact: Contact) => {
     const startCallWithOptions = (
       contactId: string,
@@ -299,7 +342,6 @@ export function WhatsAppMain() {
     handleContactAction(action, contact, startCallWithOptions);
   };
 
-  // Handle search
   const handleGlobalSearchWrapper = (query: string) => {
     handleGlobalSearch(query);
     handleSearchPageClick();
@@ -325,7 +367,6 @@ export function WhatsAppMain() {
     endCall();
   };
 
-  // Create group handler
   const handleCreateGroup = (name: string, selectedMembers: Contact[]) => {
     console.log("Creating group:", name, selectedMembers);
     const newGroup: Contact = {
@@ -355,20 +396,17 @@ export function WhatsAppMain() {
     closeCreateGroupDialog();
   };
 
-  // Add friend handler
   const handleAddFriend = (friendId: string) => {
     console.log("Adding friend:", friendId);
     closeAddFriendDialog();
   };
 
-  // Advanced search handler
   const handleAdvancedSearch = (filters: any) => {
     console.log("Advanced search with filters:", filters);
     closeAdvancedSearchDialog();
     handleSearchPageClick();
   };
 
-  // Message search handler
   const handleSelectMessage = (contactId: string, messageId: string) => {
     console.log("Select message:", contactId, messageId);
     const contact = mockContacts.find((c) => c.id === contactId);
@@ -381,8 +419,7 @@ export function WhatsAppMain() {
     handleKeyDown(e as React.KeyboardEvent<HTMLTextAreaElement>);
   };
 
-  // Render current page
-  const renderCurrentPage = () => {
+  const renderCenterContent = () => {
     if (callState?.isActive) {
       return (
         <RealCallInterface
@@ -398,124 +435,203 @@ export function WhatsAppMain() {
       );
     }
 
+    if (currentPage === "chat" && instagramView === "feed") {
+      return (
+        <CenterColumn style={{ overflow: "auto" }}>
+          <InstagramFeed stories={mockStories} posts={mockFeedPosts} />
+        </CenterColumn>
+      );
+    }
+
+    if (currentPage === "chat" && instagramView === "messages") {
+      return (
+        <MessagesRow>
+          <Sidebar
+            user={mockUser}
+            contacts={filteredContacts}
+            selectedContact={selectedContact ?? null}
+            searchQuery={searchQuery}
+            isConnected={isConnected}
+            showSearchSuggestions={showSearchSuggestions}
+            recentSearches={recentSearches}
+            onContactSelect={handleContactSelect}
+            onContactAction={handleContactActionWrapper}
+            onSearchChange={handleSearchChange}
+            onSearchFocus={handleSearchFocus}
+            onSearchBlur={handleSearchBlur}
+            onGlobalSearch={handleGlobalSearchWrapper}
+            onSearchSuggestion={handleSearchSuggestionWrapper}
+            onRemoveRecentSearch={handleRemoveRecentSearch}
+            onProfileClick={handleProfileClick}
+            onStatusClick={handleStatusClick}
+            onCallsClick={handleCallsClick}
+            onAddFriendClick={handleAddFriendClick}
+            onCreateGroupClick={handleCreateGroupClick}
+            onSearchPageClick={handleSearchPageClick}
+            onAdvancedSearchClick={handleAdvancedSearchClick}
+            onStarredClick={handleStarredClick}
+            onSettingsClick={handleSettingsClick}
+            searchInputRef={searchInputRef}
+          />
+          <MainContent>
+            {selectedContact ? (
+              <ChatArea
+                selectedContact={selectedContact}
+                messages={messagesForSelected}
+                currentUserId={currentUser?.id}
+                messageText={messageText}
+                showEmojiPicker={showEmojiPicker}
+                replyingTo={replyingTo}
+                editingMessage={editingMessage}
+                isRecordingVoice={isRecordingVoice}
+                isTyping={isTyping}
+                isConnected={isConnected}
+                onMessageChange={handleMessageChange}
+                onKeyDown={handleKeyDownWrapper}
+                onSendMessage={handleSendMessageWrapper}
+                onEmojiSelect={handleEmojiSelect}
+                onToggleEmojiPicker={handleToggleEmojiPicker}
+                onFileSelect={handleFileSelect}
+                onSendVoice={handleSendVoice}
+                onReply={handleReply}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onForward={handleForward}
+                onStar={handleStar}
+                onInfo={handleInfo}
+                onVoiceCall={() => handleStartCall("voice")}
+                onVideoCall={() => handleStartCall("video")}
+                onShowInfo={() => {}}
+                onCancelReply={handleCancelReply}
+                onCancelEdit={handleCancelEdit}
+                onRecordingChange={handleRecordingChange}
+                onSmartReplyClick={
+                  chatsWithLive.isApiChat ? handleSmartReplyClick : undefined
+                }
+                onGenerateVideoClick={
+                  chatsWithLive.isApiChat ? handleGenerateVideoClick : undefined
+                }
+                onGenerateTextClick={
+                  chatsWithLive.isApiChat ? handleGenerateTextClick : undefined
+                }
+                onGenerateImageClick={
+                  chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
+                }
+                onGenerateVoiceClick={
+                  chatsWithLive.isApiChat ? handleGenerateVoiceClick : undefined
+                }
+              />
+            ) : (
+              <WelcomeScreen />
+            )}
+          </MainContent>
+        </MessagesRow>
+      );
+    }
+
     switch (currentPage) {
       case "profile":
-        return <ProfilePage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <ProfilePage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "calls":
-        return <CallsPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <CallsPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "status":
-        return <StatusPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <StatusPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "starred":
-        return <StarredMessagesPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <StarredMessagesPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "search":
         return (
-          <MessageSearchPage
-            isOpen={true}
-            onClose={handleBackToChat}
-            initialQuery={searchQuery}
-            allMessages={Object.entries(mockMessages).map(
-              ([contactId, messages]) => ({
-                contactId,
-                messages,
-              })
-            )}
-            contacts={mockContacts}
-            onSelectMessage={handleSelectMessage}
-          />
+          <CenterColumn style={{ overflow: "auto" }}>
+            <MessageSearchPage
+              isOpen={true}
+              onClose={handleBackToChat}
+              initialQuery={searchQuery}
+              allMessages={Object.entries(mockMessages).map(
+                ([contactId, messages]) => ({
+                  contactId,
+                  messages,
+                })
+              )}
+              contacts={mockContacts}
+              onSelectMessage={handleSelectMessage}
+            />
+          </CenterColumn>
         );
       case "settings":
         return (
-          <SettingsPage
-            onBack={handleBackToChat}
-            onProfileClick={handleProfileClick}
-          />
+          <CenterColumn style={{ overflow: "auto" }}>
+            <SettingsPage
+              onBack={handleBackToChat}
+              onProfileClick={handleProfileClick}
+            />
+          </CenterColumn>
         );
-      case "chat":
       default:
-        return selectedContact ? (
-          <ChatArea
-            selectedContact={selectedContact}
-            messages={messagesForSelected}
-            currentUserId={currentUser?.id}
-            messageText={messageText}
-            showEmojiPicker={showEmojiPicker}
-            replyingTo={replyingTo}
-            editingMessage={editingMessage}
-            isRecordingVoice={isRecordingVoice}
-            isTyping={isTyping}
-            isConnected={isConnected}
-            onMessageChange={handleMessageChange}
-            onKeyDown={handleKeyDownWrapper}
-            onSendMessage={handleSendMessageWrapper}
-            onEmojiSelect={handleEmojiSelect}
-            onToggleEmojiPicker={handleToggleEmojiPicker}
-            onFileSelect={handleFileSelect}
-            onSendVoice={handleSendVoice}
-            onReply={handleReply}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onForward={handleForward}
-            onStar={handleStar}
-            onInfo={handleInfo}
-            onVoiceCall={() => handleStartCall("voice")}
-            onVideoCall={() => handleStartCall("video")}
-            onShowInfo={() => {}}
-            onCancelReply={handleCancelReply}
-            onCancelEdit={handleCancelEdit}
-            onRecordingChange={handleRecordingChange}
-            onSmartReplyClick={
-              chatsWithLive.isApiChat ? handleSmartReplyClick : undefined
-            }
-            onGenerateVideoClick={
-              chatsWithLive.isApiChat ? handleGenerateVideoClick : undefined
-            }
-            onGenerateTextClick={
-              chatsWithLive.isApiChat ? handleGenerateTextClick : undefined
-            }
-            onGenerateImageClick={
-              chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
-            }
-            onGenerateVoiceClick={
-              chatsWithLive.isApiChat ? handleGenerateVoiceClick : undefined
-            }
-          />
-        ) : (
-          <WelcomeScreen />
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <InstagramFeed stories={mockStories} posts={mockFeedPosts} />
+          </CenterColumn>
         );
     }
   };
 
+  const navActiveTab =
+    currentPage === "profile"
+      ? "profile"
+      : currentPage === "chat" && instagramView === "messages"
+        ? "messages"
+        : "home";
+
   return (
     <AppShell>
-      <Sidebar
-        user={mockUser}
-        contacts={filteredContacts}
-        selectedContact={selectedContact ?? null}
-        searchQuery={searchQuery}
-        isConnected={isConnected}
-        showSearchSuggestions={showSearchSuggestions}
-        recentSearches={recentSearches}
-        onContactSelect={handleContactSelect}
-        onContactAction={handleContactActionWrapper}
-        onSearchChange={handleSearchChange}
-        onSearchFocus={handleSearchFocus}
-        onSearchBlur={handleSearchBlur}
-        onGlobalSearch={handleGlobalSearchWrapper}
-        onSearchSuggestion={handleSearchSuggestionWrapper}
-        onRemoveRecentSearch={handleRemoveRecentSearch}
+      <InstagramNav
+        user={currentUser ?? mockUser}
+        activeTab={navActiveTab}
+        onHomeClick={() => {
+          handleBackToChat();
+          setInstagramView("feed");
+        }}
+        onMessagesClick={() => {
+          handleBackToChat();
+          setInstagramView("messages");
+        }}
         onProfileClick={handleProfileClick}
-        onStatusClick={handleStatusClick}
-        onCallsClick={handleCallsClick}
-        onAddFriendClick={handleAddFriendClick}
-        onCreateGroupClick={handleCreateGroupClick}
-        onSearchPageClick={handleSearchPageClick}
-        onAdvancedSearchClick={handleAdvancedSearchClick}
-        onStarredClick={handleStarredClick}
-        onSettingsClick={handleSettingsClick}
-        searchInputRef={searchInputRef}
       />
 
-      <MainContent>{renderCurrentPage()}      </MainContent>
+      {renderCenterContent()}
+
+      <InstagramRightSidebar
+        user={currentUser ?? mockUser}
+        suggestions={mockSuggestedUsers}
+      />
+
+      {currentPage === "chat" && instagramView === "feed" && (
+        <FloatingMessagesBtn
+          type="button"
+          onClick={() => {
+            handleBackToChat();
+            setInstagramView("messages");
+          }}
+        >
+          <Send size={20} />
+          消息
+        </FloatingMessagesBtn>
+      )}
 
       {callState?.status === "ringing" && (
         <FullscreenOverlay>

@@ -1,9 +1,9 @@
 import { IStorageAdapter } from "../../../domain/interfaces/adapters/storage.interface";
 
 export class StorageAdapter implements IStorageAdapter {
-  private static readonly PREFIX = "whatsapp_";
+  private static readonly PREFIX = "instagram_";
   private static db: IDBDatabase | null = null;
-  private static dbName = "WhatsAppDB";
+  private static dbName = "InstagramDB";
   private static dbVersion = 1;
 
   static async initDB(): Promise<void> {
@@ -213,12 +213,10 @@ export class StorageAdapter implements IStorageAdapter {
   }
 }
 
-// 初始化存储管理器
 if (typeof window !== "undefined") {
   StorageAdapter.initDB().catch(console.error);
 }
 
-// 创建单例实例
 let storageInstance: StorageAdapter | null = null;
 
 export const getStorageAdapter = (): IStorageAdapter => {

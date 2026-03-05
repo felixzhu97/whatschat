@@ -231,7 +231,7 @@ export default function RegisterPage() {
             </LogoIcon>
           </LogoCircle>
           <CardTitle>
-            注册 WhatsApp
+            注册 Instagram
           </CardTitle>
           <CardDescription>创建您的新账号</CardDescription>
         </CardHeader>

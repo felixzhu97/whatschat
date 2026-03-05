@@ -148,7 +148,7 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
         id: "welcome_1",
         senderId: cid,
         senderName: "系统",
-        content: "欢迎使用 WhatsApp Web！",
+        content: "欢迎使用 Instagram！",
         timestamp: new Date().toISOString(),
         type: "text",
         status: "read",

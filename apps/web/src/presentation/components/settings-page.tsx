@@ -7,8 +7,16 @@ import { Button } from "@/src/presentation/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/presentation/components/ui/card";
 import { Switch } from "@/src/presentation/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/presentation/components/ui/select";
 import { styled } from "@/src/shared/utils/emotion";
 import { useAuth } from "../hooks/use-auth";
+import { useTranslation, setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -206,11 +214,19 @@ const HelpIcon = styled(HelpCircle)`
 `;
 
 export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
+  const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
   const [readReceipts, setReadReceipts] = useState(true);
   const [lastSeen, setLastSeen] = useState(true);
+
+  const currentLocale: AppLocale = i18n.language.startsWith("zh") ? "zh" : "en";
+
+  const handleLocaleChange = (locale: AppLocale) => {
+    setStoredLocale(locale);
+    i18n.changeLanguage(locale);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -224,7 +240,7 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <BackBtn variant="ghost" size="icon" onClick={onBack}>
             <ArrowIcon />
           </BackBtn>
-          <Title>设置</Title>
+          <Title>{t("settings.title")}</Title>
         </HeaderRow>
       </Header>
 
@@ -234,16 +250,16 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
             <ProfileRow>
               <AvatarWrap>
                 <AvatarMedium>
-                  <AvatarImage src={user?.avatar || "/placeholder.svg?height=64&width=64&text=我"} />
-                  <FallbackText>{user?.name?.[0] || "我"}</FallbackText>
+                  <AvatarImage src={user?.avatar || "/placeholder.svg?height=64&width=64&text=Me"} />
+                  <FallbackText>{user?.name?.[0] || t("common.me")}</FallbackText>
                 </AvatarMedium>
                 <CameraBadge>
                   <CameraIcon />
                 </CameraBadge>
               </AvatarWrap>
               <ProfileInfo>
-                <ProfileName>{user?.name || "我的名字"}</ProfileName>
-                <ProfileAbout>{user?.about || "嗨，我正在使用 WhatsApp！"}</ProfileAbout>
+                <ProfileName>{user?.name || t("settings.profileDefaultName")}</ProfileName>
+                <ProfileAbout>{user?.about || t("settings.profileAbout")}</ProfileAbout>
                 <ProfilePhone>{user?.phone || "+86 138 0013 8000"}</ProfilePhone>
               </ProfileInfo>
             </ProfileRow>
@@ -254,29 +270,29 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <CardHeader>
             <CardTitleRow>
               <Icon20 />
-              通知
+              {t("settings.notifications")}
             </CardTitleRow>
-            <CardDescription>管理消息通知设置</CardDescription>
+            <CardDescription>{t("settings.notificationsDesc")}</CardDescription>
           </CardHeader>
           <CardContentSpaced>
             <SettingRow>
               <SettingText>
-                <SettingTitle>消息通知</SettingTitle>
-                <SettingDesc>接收新消息通知</SettingDesc>
+                <SettingTitle>{t("settings.messageNotifications")}</SettingTitle>
+                <SettingDesc>{t("settings.messageNotificationsDesc")}</SettingDesc>
               </SettingText>
               <Switch checked={notifications} onCheckedChange={setNotifications} />
             </SettingRow>
             <SettingRow>
               <SettingText>
-                <SettingTitle>已读回执</SettingTitle>
-                <SettingDesc>发送已读回执给联系人</SettingDesc>
+                <SettingTitle>{t("settings.readReceipts")}</SettingTitle>
+                <SettingDesc>{t("settings.readReceiptsDesc")}</SettingDesc>
               </SettingText>
               <Switch checked={readReceipts} onCheckedChange={setReadReceipts} />
             </SettingRow>
             <SettingRow>
               <SettingText>
-                <SettingTitle>最后在线时间</SettingTitle>
-                <SettingDesc>显示最后在线时间</SettingDesc>
+                <SettingTitle>{t("settings.lastSeen")}</SettingTitle>
+                <SettingDesc>{t("settings.lastSeenDesc")}</SettingDesc>
               </SettingText>
               <Switch checked={lastSeen} onCheckedChange={setLastSeen} />
             </SettingRow>
@@ -287,14 +303,14 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <CardHeader>
             <CardTitleRow>
               <ShieldIcon />
-              隐私
+              {t("settings.privacy")}
             </CardTitleRow>
-            <CardDescription>管理隐私和安全设置</CardDescription>
+            <CardDescription>{t("settings.privacyDesc")}</CardDescription>
           </CardHeader>
           <CardContentSpaced3>
-            <FullWidthBtn variant="ghost">阻止的联系人</FullWidthBtn>
-            <FullWidthBtn variant="ghost">两步验证</FullWidthBtn>
-            <FullWidthBtn variant="ghost">更改号码</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.blockedContacts")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.twoStepVerification")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.changeNumber")}</FullWidthBtn>
           </CardContentSpaced3>
         </Card>
 
@@ -302,14 +318,14 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <CardHeader>
             <CardTitleRow>
               <PaletteIcon />
-              外观
+              {t("settings.appearance")}
             </CardTitleRow>
-            <CardDescription>自定义应用外观</CardDescription>
+            <CardDescription>{t("settings.appearanceDesc")}</CardDescription>
           </CardHeader>
           <CardContentSpaced3>
-            <FullWidthBtn variant="ghost">主题</FullWidthBtn>
-            <FullWidthBtn variant="ghost">聊天壁纸</FullWidthBtn>
-            <FullWidthBtn variant="ghost">字体大小</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.theme")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.chatWallpaper")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.fontSize")}</FullWidthBtn>
           </CardContentSpaced3>
         </Card>
 
@@ -317,25 +333,40 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <CardHeader>
             <CardTitleRow>
               <GlobeIcon />
-              语言
+              {t("settings.language")}
             </CardTitleRow>
+            <CardDescription>{t("settings.languageDesc")}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <FullWidthBtn variant="ghost">应用语言</FullWidthBtn>
-          </CardContent>
+          <CardContentSpaced>
+            <SettingRow>
+              <SettingText>
+                <SettingTitle>{t("settings.appLanguage")}</SettingTitle>
+              </SettingText>
+              <Select value={currentLocale} onValueChange={handleLocaleChange}>
+                <SelectTrigger style={{ maxWidth: 160 }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">{t("settings.languageEnglish")}</SelectItem>
+                  <SelectItem value="zh">{t("settings.languageChinese")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </SettingRow>
+          </CardContentSpaced>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitleRow>
               <HelpIcon />
-              帮助
+              {t("settings.help")}
             </CardTitleRow>
+            <CardDescription>{t("settings.helpDesc")}</CardDescription>
           </CardHeader>
           <CardContentSpaced3>
-            <FullWidthBtn variant="ghost">常见问题</FullWidthBtn>
-            <FullWidthBtn variant="ghost">联系我们</FullWidthBtn>
-            <FullWidthBtn variant="ghost">服务条款和隐私政策</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.faq")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.contactUs")}</FullWidthBtn>
+            <FullWidthBtn variant="ghost">{t("settings.termsAndPrivacy")}</FullWidthBtn>
           </CardContentSpaced3>
         </Card>
 
@@ -343,7 +374,7 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           <LogoutCardContent>
             <LogoutBtn variant="destructive" onClick={handleLogout}>
               <LogoutIcon />
-              退出登录
+              {t("settings.logout")}
             </LogoutBtn>
           </LogoutCardContent>
         </Card>

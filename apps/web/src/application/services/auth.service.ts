@@ -5,7 +5,7 @@ import { AuthApiAdapter } from "../../infrastructure/adapters/api/auth-api.adapt
 import { getStorageAdapter } from "../../infrastructure/adapters/storage/storage.adapter";
 
 const STORAGE_KEYS = {
-  USER: "whatsapp_user",
+  USER: "instagram_user",
   ACCESS_TOKEN: "access_token",
   REFRESH_TOKEN: "refresh_token",
 };

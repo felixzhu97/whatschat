@@ -181,7 +181,7 @@ export default function LoginPage() {
             </LogoIcon>
           </LogoCircle>
           <CardTitle>
-            登录 WhatsApp
+            登录 Instagram
           </CardTitle>
           <CardDescription>请输入您的邮箱和密码登录</CardDescription>
         </CardHeader>

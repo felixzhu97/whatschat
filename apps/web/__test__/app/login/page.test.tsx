@@ -87,7 +87,7 @@ describe("LoginPage", () => {
     it("should render login form", () => {
       render(<LoginPage />);
 
-      expect(screen.getByText("登录 WhatsApp")).toBeInTheDocument();
+      expect(screen.getByText("登录 Instagram")).toBeInTheDocument();
       expect(screen.getByText("请输入您的邮箱和密码登录")).toBeInTheDocument();
     });
 

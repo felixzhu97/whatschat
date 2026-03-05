@@ -199,3 +199,33 @@ export interface CallParticipant {
   joinedAt: number;
   stream?: MediaStream;
 }
+
+export interface StoryItem {
+  id: string;
+  userId: string;
+  username: string;
+  avatar: string;
+  hasUnseen?: boolean;
+}
+
+export interface FeedPost {
+  id: string;
+  userId: string;
+  username: string;
+  avatar: string;
+  timestamp: string;
+  imageUrl: string;
+  likeCount: string;
+  commentCount: string;
+  caption: string;
+  isLiked?: boolean;
+  isSaved?: boolean;
+}
+
+export interface SuggestedUser {
+  id: string;
+  username: string;
+  displayName?: string;
+  avatar: string;
+  description: string;
+}
