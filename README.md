@@ -12,7 +12,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 🌐 **Web App** – Next.js SPA on port 4000
+- 🌐 **Web App** – Next.js SPA on port 4000; Instagram-style UI (left nav, feed, right sidebar), i18n (default English, changeable in Settings)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
@@ -97,7 +97,7 @@ pnpm start:mobile:ios   # or start:mobile:android
 
 ```
 apps/
-  web        # Next.js web app (whatschat-web, :4000)
+  web        # Next.js web app, Instagram-style UI + i18n (whatschat-web, :4000)
   admin      # Admin dashboard (whatschat-admin, :4001)
   mobile     # Expo mobile app (react-native-app)
   server     # NestJS API (whatschat-server, :3001)

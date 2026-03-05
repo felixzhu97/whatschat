@@ -9,7 +9,7 @@ This folder contains the [C4 model](https://c4model.com/) diagrams for WhatsChat
 | **1 – System Context** | [system-context.puml](./system-context.puml) | WhatsChat, users, external systems (email, push, file storage, STUN/TURN). |
 | **2 – Containers** | [containers.puml](./containers.puml) | Web App (:4000), Admin (:4001), Mobile, API Server (:3001), Media Gen (:3456, image/video/voice), PostgreSQL, Redis, Kafka, Local File Storage, Ollama (optional). |
 | **3 – Components (API Server)** | [components-api-server.puml](./components-api-server.puml) | NestJS API Server: controllers (incl. AI/Image/Video/Voice), WebSocket gateway, services (incl. AI/Image/Video/Voice/Analytics), repositories; image prompts refined via Ollama; voice uses LLM + optional translate then TTS. |
-| **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, chat/call UI (Emotion, Radix UI), hooks, API/WebSocket clients, @whatschat/domain. |
+| **3 – Components (Web App)** | [components-web-app.puml](./components-web-app.puml) | Next.js Web App: pages, left nav (Instagram-style), feed, chat, right sidebar, i18n (default en), call UI, hooks, API/WebSocket clients, @whatschat/domain. |
 | **3 – Components (Mobile App)** | [components-mobile-app.puml](./components-mobile-app.puml) | Expo Mobile App: screens (Expo Router), chat/call/settings UI (Emotion), auth/message hooks, i18n, theme, API/WebSocket clients, @whatschat/domain. |
 | **3 – Components (Admin App)** | [components-admin-app.puml](./components-admin-app.puml) | Next.js Admin: pages, DataGrid (AG Grid), Recharts, auth/theme/i18n providers, API client. |
 

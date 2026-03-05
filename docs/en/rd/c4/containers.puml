@@ -8,7 +8,7 @@ Person(user_web, "Web User", "Uses chat via browser")
 Person(user_mobile, "Mobile User", "Uses chat via app")
 
 System_Boundary(whatschat, "WhatsChat") {
-  Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion", "Chat UI, calls, contacts, auth, AI text/image/video/voice dialogs")
+  Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion, i18next", "Instagram-style UI (nav, feed, sidebar), chat, calls, contacts, auth, AI dialogs")
   Container(admin_app, "Admin Application", "Next.js, React, TypeScript, Emotion, AG Grid, Recharts, i18next", "Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, System Config, Permission & Audit")
   Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
   Container(api_server, "API Server", "NestJS, TypeScript", "REST API, WebSocket, auth, business logic, analytics, AI text/image/video/voice proxy")
