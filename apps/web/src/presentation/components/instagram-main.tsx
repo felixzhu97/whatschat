@@ -666,10 +666,12 @@ export function InstagramMain() {
 
       {renderCenterContent()}
 
-      <InstagramRightSidebar
-        user={currentUser ?? mockUser}
-        suggestions={mockSuggestedUsers}
-      />
+      {currentPage === "chat" && instagramView === "feed" && (
+        <InstagramRightSidebar
+          user={currentUser ?? mockUser}
+          suggestions={mockSuggestedUsers}
+        />
+      )}
 
       {currentPage === "chat" && instagramView === "feed" && (
         <FloatingMessagesBtn

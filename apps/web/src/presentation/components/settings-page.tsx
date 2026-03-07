@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   Search,
   User,
   Lock,
@@ -20,6 +21,12 @@ import {
   Type,
   Eye,
   Infinity,
+  Globe,
+  Archive,
+  Accessibility,
+  FileQuestion,
+  Shield,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/src/presentation/components/ui/button";
 import { Input } from "@/src/presentation/components/ui/input";
@@ -35,7 +42,7 @@ import {
 } from "@/src/presentation/components/ui/select";
 import { styled } from "@/src/shared/utils/emotion";
 import { useAuth } from "../hooks/use-auth";
-import { useTranslation } from "@/src/shared/i18n";
+import { useTranslation, setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 
 const BORDER = "1px solid rgb(219 219 219)";
 const TEXT = "rgb(38 38 38)";
@@ -329,6 +336,88 @@ const SendIcon = styled(Send)`
   margin-right: 6px;
 `;
 
+const BackRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+`;
+
+const BackBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: ${TEXT};
+  cursor: pointer;
+
+  &:hover {
+    color: ${TEXT_SECONDARY};
+  }
+`;
+
+const LanguageSearch = styled.input`
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: ${BORDER};
+  border-radius: 8px;
+  background: rgb(239 239 239);
+  color: ${TEXT};
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: ${TEXT_SECONDARY};
+  }
+`;
+
+const LanguageList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+`;
+
+const LanguageItem = styled.button<{ $selected?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-bottom: ${BORDER};
+  background: none;
+  color: ${TEXT};
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgb(249 250 251);
+  }
+`;
+
+const RadioOuter = styled.span<{ $selected?: boolean }>`
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid ${(p: { $selected?: boolean }) => (p.$selected ? TEXT : TEXT_SECONDARY)};
+  background: ${(p: { $selected?: boolean }) => (p.$selected ? TEXT : "transparent")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const RadioInner = styled.span`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+`;
+
 type SettingsSection =
   | "editProfile"
   | "notifications"
@@ -341,7 +430,21 @@ type SettingsSection =
   | "comments"
   | "sharingAndReuse"
   | "restrictedAccounts"
-  | "hiddenWords";
+  | "hiddenWords"
+  | "mutedAccounts"
+  | "contentPreferences"
+  | "likeAndShareCounts"
+  | "subscriptions"
+  | "archivingAndDownloading"
+  | "accessibility"
+  | "language"
+  | "websitePermissions"
+  | "supervisionForTeenAccounts"
+  | "accountTypeAndTools"
+  | "metaVerified"
+  | "help"
+  | "privacyCenter"
+  | "accountStatus";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -357,8 +460,15 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
   const [showThreadsBadge, setShowThreadsBadge] = useState(false);
   const [showAccountSuggestions, setShowAccountSuggestions] = useState(false);
   const [gender, setGender] = useState<string>("male");
+  const [languageSearch, setLanguageSearch] = useState("");
+  const currentLocale: AppLocale = i18n.language.startsWith("zh") ? "zh" : "en";
 
   const bioLength = bio.length;
+
+  const handleLocaleChange = (locale: AppLocale) => {
+    setStoredLocale(locale);
+    i18n.changeLanguage(locale);
+  };
 
   const handleSubmit = async () => {
     await updateUser({ about: bio });
@@ -386,9 +496,23 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
       minus: <MinusCircle size={size} />,
       type: <Type size={size} />,
       eye: <Eye size={size} />,
+      globe: <Globe size={size} />,
+      archive: <Archive size={size} />,
+      accessibility: <Accessibility size={size} />,
+      help: <FileQuestion size={size} />,
+      shield: <Shield size={size} />,
+      clipboard: <ClipboardList size={size} />,
     };
     return <>{icons[name] ?? null}</>;
   };
+
+  const languageOptions: { value: AppLocale; label: string }[] = [
+    { value: "en", label: "English" },
+    { value: "zh", label: "中文" },
+  ];
+  const filteredLanguages = languageOptions.filter((opt) =>
+    opt.label.toLowerCase().includes(languageSearch.trim().toLowerCase())
+  );
 
   return (
     <PageRoot>
@@ -509,11 +633,111 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
 
         <Section>
           <SectionTitle>{t("settings.whatYouSee")}</SectionTitle>
+          <NavItem onClick={() => setSection("mutedAccounts")}>
+            <NavIcon>
+              <Icon name="bell" />
+            </NavIcon>
+            {t("settings.mutedAccounts")}
+          </NavItem>
+          <NavItem onClick={() => setSection("contentPreferences")}>
+            <NavIcon>
+              <Icon name="eye" />
+            </NavIcon>
+            {t("settings.contentPreferences")}
+          </NavItem>
+          <NavItem onClick={() => setSection("likeAndShareCounts")}>
+            <NavIcon>
+              <Icon name="share" />
+            </NavIcon>
+            {t("settings.likeAndShareCounts")}
+          </NavItem>
+          <NavItem onClick={() => setSection("subscriptions")}>
+            <NavIcon>
+              <Icon name="star" />
+            </NavIcon>
+            {t("settings.subscriptions")}
+          </NavItem>
           <NavItem>
             <NavIcon>
               <Icon name="eye" />
             </NavIcon>
             {t("settings.appearance")}
+          </NavItem>
+        </Section>
+
+        <Section>
+          <SectionTitle>{t("settings.yourAppAndMedia")}</SectionTitle>
+          <NavItem onClick={() => setSection("archivingAndDownloading")}>
+            <NavIcon>
+              <Icon name="archive" />
+            </NavIcon>
+            {t("settings.archivingAndDownloading")}
+          </NavItem>
+          <NavItem onClick={() => setSection("accessibility")}>
+            <NavIcon>
+              <Icon name="accessibility" />
+            </NavIcon>
+            {t("settings.accessibility")}
+          </NavItem>
+          <NavItem $active={section === "language"} onClick={() => setSection("language")}>
+            <NavIcon>
+              <Icon name="globe" />
+            </NavIcon>
+            {t("settings.language")}
+          </NavItem>
+          <NavItem onClick={() => setSection("websitePermissions")}>
+            <NavIcon>
+              <Icon name="lock" />
+            </NavIcon>
+            {t("settings.websitePermissions")}
+          </NavItem>
+        </Section>
+
+        <Section>
+          <SectionTitle>{t("settings.familyCenter")}</SectionTitle>
+          <NavItem onClick={() => setSection("supervisionForTeenAccounts")}>
+            <NavIcon>
+              <Icon name="shield" />
+            </NavIcon>
+            {t("settings.supervisionForTeenAccounts")}
+          </NavItem>
+        </Section>
+
+        <Section>
+          <SectionTitle>{t("settings.forProfessionals")}</SectionTitle>
+          <NavItem onClick={() => setSection("accountTypeAndTools")}>
+            <NavIcon>
+              <Icon name="settings" />
+            </NavIcon>
+            {t("settings.accountTypeAndTools")}
+          </NavItem>
+          <NavItem onClick={() => setSection("metaVerified")}>
+            <NavIcon>
+              <Icon name="star" />
+            </NavIcon>
+            {t("settings.metaVerified")}
+          </NavItem>
+        </Section>
+
+        <Section>
+          <SectionTitle>{t("settings.moreInfoAndSupport")}</SectionTitle>
+          <NavItem onClick={() => setSection("help")}>
+            <NavIcon>
+              <Icon name="help" />
+            </NavIcon>
+            {t("settings.help")}
+          </NavItem>
+          <NavItem onClick={() => setSection("privacyCenter")}>
+            <NavIcon>
+              <Icon name="shield" />
+            </NavIcon>
+            {t("settings.privacyCenter")}
+          </NavItem>
+          <NavItem onClick={() => setSection("accountStatus")}>
+            <NavIcon>
+              <Icon name="clipboard" />
+            </NavIcon>
+            {t("settings.accountStatus")}
           </NavItem>
         </Section>
 
@@ -616,12 +840,48 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
           </>
         )}
 
-        {section !== "editProfile" && section !== "notifications" && (
+        {section === "language" && (
           <>
-            <PanelTitle>{t(`settings.${section}`)}</PanelTitle>
-            <FieldNote>{t("settings.privacyDesc")}</FieldNote>
+            <BackRow>
+              <BackBtn type="button" onClick={() => setSection("editProfile")} aria-label="Back">
+                <ArrowLeft size={24} />
+              </BackBtn>
+              <PanelTitle style={{ marginBottom: 0 }}>{t("settings.languagePreferences")}.</PanelTitle>
+            </BackRow>
+            <FieldLabel style={{ marginBottom: 4 }}>{t("settings.appLanguage")}</FieldLabel>
+            <FieldNote style={{ marginTop: 0, marginBottom: 16 }}>{t("settings.appLanguageSubtitle")}</FieldNote>
+            <LanguageSearch
+              type="text"
+              placeholder={t("settings.searchPlaceholder")}
+              value={languageSearch}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLanguageSearch(e.target.value)}
+            />
+            <LanguageList>
+              {filteredLanguages.map((opt) => (
+                <LanguageItem
+                  key={opt.value}
+                  type="button"
+                  $selected={currentLocale === opt.value}
+                  onClick={() => handleLocaleChange(opt.value)}
+                >
+                  <span>{opt.label}</span>
+                  <RadioOuter $selected={currentLocale === opt.value}>
+                    {currentLocale === opt.value ? <RadioInner /> : null}
+                  </RadioOuter>
+                </LanguageItem>
+              ))}
+            </LanguageList>
           </>
         )}
+
+        {section !== "editProfile" &&
+          section !== "notifications" &&
+          section !== "language" && (
+            <>
+              <PanelTitle>{t(`settings.${section}`)}</PanelTitle>
+              <FieldNote>{t("settings.privacyDesc")}</FieldNote>
+            </>
+          )}
       </Main>
     </PageRoot>
   );
