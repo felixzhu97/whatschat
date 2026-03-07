@@ -12,8 +12,8 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts (image + caption), feed (own + followed), comments (MongoDB), search (Elasticsearch); posts/feed in Cassandra; Kafka for post.created
-- 🌐 **Web App** – Next.js SPA on port 4000; Instagram-style UI (left nav, feed, right sidebar), i18n (default English, changeable in Settings)
+- 📷 **Feed & Posts** – Create posts (image/video + caption), feed (own + followed), Reels (vertical video feed), comments (MongoDB), search (Elasticsearch); posts/feed in Cassandra; Kafka for post.created; video pause/play in feed and comments dialog
+- 🌐 **Web App** – Next.js SPA on port 4000; Instagram-style UI (left nav, feed, Reels, profile, right sidebar), i18n (default English, changeable in Settings)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
@@ -132,7 +132,7 @@ packages/
   - [Components: Web App](docs/en/rd/c4/components-web-app.puml)
   - [Components: Mobile App](docs/en/rd/c4/components-mobile-app.puml)
   - [Components: Admin App](docs/en/rd/c4/components-admin-app.puml)
-- [TOGAF](docs/en/rd/togaf/overview.puml) · [Business](docs/en/rd/togaf/business-architecture.puml) · [Application](docs/en/rd/togaf/application-architecture.puml)
+- [TOGAF](docs/en/rd/togaf/overview.puml) · [Business](docs/en/rd/togaf/business-architecture.puml) · [Application](docs/en/rd/togaf/application-architecture.puml) · [Data](docs/en/rd/togaf/data-architecture.puml) · [Technology](docs/en/rd/togaf/technology-architecture.puml)
 
 ## 📄 License
 

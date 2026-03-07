@@ -1,6 +1,7 @@
 "use client";
 
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import type { StoryItem, FeedPost } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
@@ -136,6 +137,11 @@ const PostImageWrap = styled.div`
   background: rgb(0 0 0);
   overflow: hidden;
   line-height: 0;
+  position: relative;
+`;
+
+const PostImageWrapClickable = styled(PostImageWrap)`
+  cursor: pointer;
 `;
 
 const PostImg = styled.img`
@@ -143,6 +149,34 @@ const PostImg = styled.img`
   height: 100%;
   object-fit: cover;
   display: block;
+`;
+
+const PostVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+const FeedPlayOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+const FeedPlayButtonCircle = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(38 38 38);
 `;
 
 const PostActions = styled.div`
@@ -208,6 +242,20 @@ export function InstagramFeed({
   onCommentClick,
 }: InstagramFeedProps) {
   const { t } = useTranslation();
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [pausedPostId, setPausedPostId] = useState<string | null>(null);
+
+  const toggleFeedVideo = useCallback((postId: string) => {
+    const video = videoRefs.current[postId];
+    if (!video) return;
+    if (pausedPostId === postId) {
+      video.play().catch(() => {});
+      setPausedPostId(null);
+    } else {
+      video.pause();
+      setPausedPostId(postId);
+    }
+  }, [pausedPostId]);
 
   return (
     <FeedRoot>
@@ -248,9 +296,31 @@ export function InstagramFeed({
               <MoreHorizontal size={20} />
             </PostMoreBtn>
           </PostHeader>
-          <PostImageWrap>
-            <PostImg src={post.imageUrl} alt="" />
-          </PostImageWrap>
+          {post.type === "VIDEO" || post.videoUrl ? (
+            <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+              <PostVideo
+                ref={(el: HTMLVideoElement | null) => {
+                  videoRefs.current[post.id] = el;
+                }}
+                src={post.videoUrl ?? post.imageUrl}
+                muted
+                playsInline
+                autoPlay
+                loop
+              />
+              {pausedPostId === post.id && (
+                <FeedPlayOverlay>
+                  <FeedPlayButtonCircle>
+                    <Play size={32} fill="currentColor" stroke="none" />
+                  </FeedPlayButtonCircle>
+                </FeedPlayOverlay>
+              )}
+            </PostImageWrapClickable>
+          ) : (
+            <PostImageWrap>
+              <PostImg src={post.imageUrl} alt="" />
+            </PostImageWrap>
+          )}
           <PostActions>
             <PostActionBtn $active={post.isLiked}>
               <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />

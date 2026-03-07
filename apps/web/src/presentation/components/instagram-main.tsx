@@ -10,6 +10,7 @@ import { WelcomeScreen } from "./welcome-screen";
 import { ProfilePage } from "./profile-page";
 import { InstagramNav } from "./instagram-nav";
 import { InstagramFeed } from "./instagram-feed";
+import { InstagramReels } from "./instagram-reels";
 import { InstagramRightSidebar } from "./instagram-right-sidebar";
 import { CallsPage } from "./calls-page";
 import { StatusPage } from "./status-page";
@@ -171,6 +172,7 @@ export function InstagramMain() {
   const {
     currentPage,
     handleProfileClick,
+    handleReelsClick,
     handleStatusClick,
     handleCallsClick,
     handleStarredClick,
@@ -178,6 +180,10 @@ export function InstagramMain() {
     handleSearchPageClick,
     handleBackToChat,
   } = useNavigation();
+
+  useEffect(() => {
+    if (currentUser?.id && currentPage === "reels") feed.loadFeed();
+  }, [currentUser?.id, currentPage]);
 
   const {
     searchQuery,
@@ -555,6 +561,23 @@ export function InstagramMain() {
     }
 
     switch (currentPage) {
+      case "reels":
+        return (
+          <CenterColumn style={{ overflow: "hidden" }}>
+            <InstagramReels
+              reels={feed.posts.filter((p) => p.type === "VIDEO")}
+              loading={feed.loading}
+              onCommentClick={setCommentPost}
+              onFollow={feed.followUser}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
+          </CenterColumn>
+        );
       case "profile":
         return (
           <CenterColumn style={{ overflow: "auto" }}>
@@ -643,9 +666,11 @@ export function InstagramMain() {
   const navActiveTab =
     currentPage === "profile"
       ? "profile"
-      : currentPage === "chat" && instagramView === "messages"
-        ? "messages"
-        : "home";
+      : currentPage === "reels"
+        ? "reels"
+        : currentPage === "chat" && instagramView === "messages"
+          ? "messages"
+          : "home";
 
   return (
     <AppShell>
@@ -661,6 +686,7 @@ export function InstagramMain() {
           setInstagramView("messages");
         }}
         onProfileClick={handleProfileClick}
+        onReelsClick={handleReelsClick}
         onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
       />
 
@@ -708,10 +734,10 @@ export function InstagramMain() {
       <CreatePostDialog
         open={showCreatePostDialog}
         onClose={() => setShowCreatePostDialog(false)}
-        onSubmit={async (caption, mediaUrls) => {
+        onSubmit={async (caption, mediaUrls, type) => {
           await feed.createPost(
             caption,
-            mediaUrls?.length ? "IMAGE" : "TEXT",
+            type ?? (mediaUrls?.length ? "IMAGE" : "TEXT"),
             {
               username: currentUser?.username,
               avatar: currentUser?.avatar,

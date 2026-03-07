@@ -172,14 +172,15 @@ const MetaLogo = styled.div`
 
 interface InstagramNavProps {
   user: User | null;
-  activeTab: "home" | "messages" | "profile";
+  activeTab: "home" | "messages" | "profile" | "reels";
   onHomeClick: () => void;
   onMessagesClick: () => void;
   onProfileClick: () => void;
+  onReelsClick?: () => void;
   onCreateClick?: () => void;
 }
 
-type TabKey = "home" | "messages" | "profile" | null;
+type TabKey = "home" | "messages" | "profile" | "reels" | null;
 
 interface NavEntry {
   id: number;
@@ -195,6 +196,7 @@ export function InstagramNav({
   onHomeClick,
   onMessagesClick,
   onProfileClick,
+  onReelsClick,
   onCreateClick,
 }: InstagramNavProps) {
   const { t } = useTranslation();
@@ -203,7 +205,7 @@ export function InstagramNav({
 
   const mainItems: NavEntry[] = [
     { id: 0, label: t("nav.home"), tab: "home", Icon: Home, onClick: onHomeClick },
-    { id: 1, label: t("nav.reels"), tab: null, Icon: Clapperboard },
+    { id: 1, label: t("nav.reels"), tab: "reels", Icon: Clapperboard, onClick: onReelsClick },
     { id: 2, label: t("nav.messages"), tab: "messages", Icon: Send, onClick: onMessagesClick },
     { id: 3, label: t("nav.search"), tab: null, Icon: Search },
     { id: 4, label: t("nav.explore"), tab: null, Icon: Compass },

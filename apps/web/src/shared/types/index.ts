@@ -220,6 +220,8 @@ export interface FeedPost {
   caption: string;
   isLiked?: boolean;
   isSaved?: boolean;
+  type?: string;
+  videoUrl?: string;
 }
 
 export interface SuggestedUser {

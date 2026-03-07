@@ -47,6 +47,8 @@ export function useFeed(currentUserId: string | undefined) {
           caption: p.caption ?? "",
           isLiked: false,
           isSaved: false,
+          type: p.type,
+          videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
         }));
       setPosts((prev) => (pageState ? [...prev, ...list] : list));
     } catch (e) {
@@ -80,6 +82,8 @@ export function useFeed(currentUserId: string | undefined) {
             caption: p.caption ?? "",
             isLiked: false,
             isSaved: false,
+            type: p.type,
+            videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
           };
           setPosts((prev) => [newPost, ...prev]);
         }

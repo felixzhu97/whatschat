@@ -11,9 +11,9 @@ The diagrams describe the **four core architecture domains**: Business, Applicat
 
 | Diagram | Description |
 | --- | --- |
-| [business-architecture.puml](./business-architecture.puml) | **Business Architecture** – business actors, capabilities (user management, instant messaging, feed & posts, comments, voice & video calls, file sharing, groups, contacts, notifications), business processes and business value |
-| [application-architecture.puml](./application-architecture.puml) | **Application Architecture** – Web/Mobile clients, API gateways (REST, WebSocket, WebRTC), NestJS services (Post, Feed, Comment, Search), data access (PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch), and infrastructure |
-| [data-architecture.puml](./data-architecture.puml) | **Data Architecture** – core entities (User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload, Post, FeedEntry, Comment), association entities, PostgreSQL/Redis/Cassandra/MongoDB/Elasticsearch/Local storage and data flows |
+| [business-architecture.puml](./business-architecture.puml) | **Business Architecture** – business actors, capabilities (user management, instant messaging, feed & posts, Reels/short-form video, comments, voice & video calls, file sharing, groups, contacts, notifications), business processes and business value |
+| [application-architecture.puml](./application-architecture.puml) | **Application Architecture** – Web/Mobile clients (feed, Reels, comments dialog, video pause/play), API gateways (REST, WebSocket, WebRTC), NestJS services (Post, Feed, Comment, Search), data access (PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch), and infrastructure |
+| [data-architecture.puml](./data-architecture.puml) | **Data Architecture** – core entities (User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload, Post (image/video), FeedEntry, Comment), association entities, PostgreSQL/Redis/Cassandra/MongoDB/Elasticsearch/Local storage and data flows |
 | [technology-architecture.puml](./technology-architecture.puml) | **Technology Architecture** – frontend and backend stack (Next.js, React Native, NestJS, Prisma, JWT, Socket.IO, WebRTC, Cassandra, MongoDB, Elasticsearch), data persistence, and deployment (Docker, etc.) |
 
 ## Mapping to WhatsChat

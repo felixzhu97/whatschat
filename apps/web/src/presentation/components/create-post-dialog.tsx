@@ -274,7 +274,7 @@ const MAX_CAPTION = 2200;
 interface CreatePostDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (caption: string, mediaUrls?: string[]) => void | Promise<void>;
+  onSubmit: (caption: string, mediaUrls?: string[], type?: string) => void | Promise<void>;
   currentUser?: { avatar?: string; username?: string } | null;
 }
 
@@ -319,7 +319,7 @@ export function CreatePostDialog({
     (e: React.DragEvent) => {
       e.preventDefault();
       const f = e.dataTransfer.files?.[0];
-      if (f && f.type.startsWith("image/")) handleFileSelect(f);
+      if (f && (f.type.startsWith("image/") || f.type.startsWith("video/"))) handleFileSelect(f);
     },
     [handleFileSelect]
   );
@@ -341,9 +341,10 @@ export function CreatePostDialog({
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        await Promise.resolve(onSubmit(trimmed || "", [dataUrl]));
+        const postType = file.type.startsWith("video/") ? "VIDEO" : "IMAGE";
+        await Promise.resolve(onSubmit(trimmed || "", [dataUrl], postType));
       } else {
-        await Promise.resolve(onSubmit(trimmed || "", []));
+        await Promise.resolve(onSubmit(trimmed || "", [], "TEXT"));
       }
       setStep("success");
     } catch {
@@ -417,7 +418,12 @@ export function CreatePostDialog({
                 </HeaderAction>
               </HeaderBar>
               <CropContent>
-                {previewUrl && <CropImage src={previewUrl} alt="" />}
+                {previewUrl &&
+                  (file?.type.startsWith("video/") ? (
+                    <video src={previewUrl} controls style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                  ) : (
+                    <CropImage src={previewUrl} alt="" />
+                  ))}
               </CropContent>
             </>
           )}
@@ -435,7 +441,18 @@ export function CreatePostDialog({
               </HeaderBar>
               <CaptionLayout style={{ flex: 1, minHeight: 0 }}>
                 <CaptionLeft>
-                  {previewUrl && <CaptionImage src={previewUrl} alt="" />}
+                  {previewUrl &&
+                    (file?.type.startsWith("video/") ? (
+                      <video
+                        src={previewUrl}
+                        muted
+                        loop
+                        playsInline
+                        style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
+                      />
+                    ) : (
+                      <CaptionImage src={previewUrl} alt="" />
+                    ))}
                 </CaptionLeft>
                 <CaptionRight>
                   <CaptionHeader>

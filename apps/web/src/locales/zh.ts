@@ -118,6 +118,13 @@ export const zh = {
     footerLinks: "关于 · 帮助 · 新闻 · API · 职位 · 隐私 · 条款 · 位置 · 语言 · Meta 已验证",
     copyright: "© 2026 INSTAGRAM FROM META",
   },
+  reels: {
+    follow: "关注",
+    noReels: "暂无 Reels。发布视频后即可在此看到。",
+    loading: "加载中...",
+    muted: "已静音",
+    originalAudio: "原声",
+  },
   feed: {
     reels: "Reels",
     like: "赞",

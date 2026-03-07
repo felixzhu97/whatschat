@@ -118,7 +118,7 @@ rectangle "Data Entity Notes" {
     - Contact: contact entries
     - Notification: system/user notifications
     - FileUpload: file upload records
-    - Post: author, media, caption, timestamps
+    - Post: author, media (image/video), caption, type, timestamps
     - FeedEntry: feed item (own + followed)
     - Comment: post comments, replies
   end note

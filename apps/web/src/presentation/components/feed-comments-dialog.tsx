@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
 import { usePostComments } from "../hooks/use-feed";
@@ -35,6 +35,11 @@ const ImageSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+`;
+
+const ImageSectionClickable = styled(ImageSection)`
+  cursor: pointer;
 `;
 
 const PostImage = styled.img`
@@ -42,6 +47,34 @@ const PostImage = styled.img`
   height: 100%;
   object-fit: contain;
   display: block;
+`;
+
+const PostVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+`;
+
+const CommentPlayOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+const CommentPlayButtonCircle = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(38 38 38);
 `;
 
 const RightSection = styled.div`
@@ -290,10 +323,28 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
   const postId = post?.id ?? null;
   const { comments, loading, load, add } = usePostComments(postId);
   const [input, setInput] = useState("");
+  const [videoPaused, setVideoPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (open && postId) load();
   }, [open, postId, load]);
+
+  useEffect(() => {
+    if (!open) setVideoPaused(false);
+  }, [open]);
+
+  const toggleCommentVideo = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (videoPaused) {
+      video.play().catch(() => {});
+      setVideoPaused(false);
+    } else {
+      video.pause();
+      setVideoPaused(true);
+    }
+  }, [videoPaused]);
 
   const handleSend = () => {
     const text = input.trim();
@@ -319,9 +370,28 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
       >
         <ModalBox>
           {post && (
-            <ImageSection>
-              <PostImage src={post.imageUrl} alt="" />
-            </ImageSection>
+            post.type === "VIDEO" || post.videoUrl ? (
+              <ImageSectionClickable onClick={toggleCommentVideo}>
+                <PostVideo
+                  ref={videoRef}
+                  src={post.videoUrl ?? post.imageUrl}
+                  muted
+                  loop
+                  playsInline
+                />
+                {videoPaused && (
+                  <CommentPlayOverlay>
+                    <CommentPlayButtonCircle>
+                      <Play size={36} fill="currentColor" stroke="none" />
+                    </CommentPlayButtonCircle>
+                  </CommentPlayOverlay>
+                )}
+              </ImageSectionClickable>
+            ) : (
+              <ImageSection>
+                <PostImage src={post.imageUrl} alt="" />
+              </ImageSection>
+            )
           )}
           <RightSection>
             {post && (

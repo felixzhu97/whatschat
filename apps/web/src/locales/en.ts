@@ -118,6 +118,13 @@ export const en = {
     footerLinks: "About · Help · Blog · API · Jobs · Privacy · Terms · Locations · Language · Meta Verified",
     copyright: "© 2026 INSTAGRAM FROM META",
   },
+  reels: {
+    follow: "Follow",
+    noReels: "No reels yet. Post a video to see it here.",
+    loading: "Loading...",
+    muted: "Muted",
+    originalAudio: "Original audio",
+  },
   feed: {
     reels: "Reels",
     like: "Like",
