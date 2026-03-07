@@ -558,7 +558,19 @@ export function InstagramMain() {
       case "profile":
         return (
           <CenterColumn style={{ overflow: "auto" }}>
-            <ProfilePage onBack={handleBackToChat} />
+            <ProfilePage
+              user={currentUser ?? null}
+              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              onEditProfile={handleSettingsClick}
+              onNewPost={() => setShowCreatePostDialog(true)}
+              onPostClick={setCommentPost}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
           </CenterColumn>
         );
       case "calls":
