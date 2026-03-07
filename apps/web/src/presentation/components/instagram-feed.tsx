@@ -4,26 +4,39 @@ import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-rea
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import type { StoryItem, FeedPost } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
+import { useTranslation } from "@/src/shared/i18n";
+
+const BORDER = "1px solid rgb(219 219 219)";
+const TEXT_PRIMARY = "rgb(38 38 38)";
+const TEXT_SECONDARY = "rgb(142 142 142)";
+const BLUE = "rgb(0 149 246)";
+const RED_LIKE = "rgb(237 73 86)";
+const BG_GRAY = "rgb(239 239 239)";
 
 const FeedRoot = styled.div`
   flex: 1;
   min-width: 0;
-  max-width: 630px;
+  max-width: 468px;
   margin: 0 auto;
-  padding: 1.5rem 0;
+  padding: 0;
   width: 100%;
+  background: rgb(255 255 255);
 `;
 
 const StoriesWrap = styled.div`
-  padding: 1rem 0;
-  margin-bottom: 1rem;
+  padding: 16px 0;
+  margin-bottom: 8px;
   overflow-x: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
 `;
 
 const StoriesScroll = styled.div`
   display: flex;
-  gap: 1.5rem;
-  padding: 0.75rem 1rem;
+  gap: 16px;
+  padding: 0 16px;
   min-width: min-content;
 `;
 
@@ -31,7 +44,7 @@ const StoryItemWrap = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 6px;
   background: none;
   border: none;
   cursor: pointer;
@@ -43,8 +56,8 @@ const StoryRing = styled.div<{ $hasUnseen?: boolean }>`
   width: 66px;
   height: 66px;
   border-radius: 50%;
-  padding: 3px;
-  background: ${(p) =>
+  padding: 2px;
+  background: ${(p: { $hasUnseen?: boolean }) =>
     p.$hasUnseen
       ? "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
       : "rgb(219 219 219)"};
@@ -61,8 +74,8 @@ const StoryAvatarWrap = styled.div`
 `;
 
 const StoryUsername = styled.span`
-  font-size: 0.75rem;
-  color: rgb(38 38 38);
+  font-size: 12px;
+  color: ${TEXT_PRIMARY};
   max-width: 74px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,53 +83,59 @@ const StoryUsername = styled.span`
 `;
 
 const PostCard = styled.article`
-  margin-bottom: 1.5rem;
+  margin-bottom: 12px;
+  border: ${BORDER};
+  border-radius: 8px;
   overflow: hidden;
+  background: rgb(255 255 255);
 `;
 
 const PostHeader = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 14px 16px;
 `;
 
 const PostHeaderLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 `;
 
 const PostMeta = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0;
+  line-height: 1.2;
 `;
 
 const PostUsername = styled.span`
   font-weight: 600;
-  font-size: 0.875rem;
-  color: rgb(38 38 38);
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
 `;
 
 const PostTime = styled.span`
-  font-size: 0.75rem;
-  color: rgb(142 142 142);
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
 `;
 
 const PostMoreBtn = styled.button`
   background: none;
   border: none;
-  padding: 0.25rem;
+  padding: 8px;
   cursor: pointer;
-  color: rgb(38 38 38);
+  color: ${TEXT_PRIMARY};
+  margin: -8px -8px -8px 0;
 `;
 
 const PostImageWrap = styled.div`
   width: 100%;
   aspect-ratio: 1;
-  background-color: rgb(250 250 250);
+  background: rgb(0 0 0);
   overflow: hidden;
+  line-height: 0;
 `;
 
 const PostImg = styled.img`
@@ -129,16 +148,17 @@ const PostImg = styled.img`
 const PostActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
+  padding: 6px 16px 8px;
+  gap: 12px;
 `;
 
 const PostActionBtn = styled.button<{ $active?: boolean }>`
   background: none;
   border: none;
-  padding: 0.25rem;
+  padding: 8px;
   cursor: pointer;
-  color: ${(p) => (p.$active ? "rgb(237 73 86)" : "rgb(38 38 38)")};
+  margin: -8px 0;
+  color: ${(p: { $active?: boolean }) => (p.$active ? RED_LIKE : TEXT_PRIMARY)};
 `;
 
 const PostActionRight = styled.div`
@@ -146,32 +166,53 @@ const PostActionRight = styled.div`
 `;
 
 const PostLikes = styled.div`
-  padding: 0 1rem 0.25rem;
-  font-size: 0.875rem;
+  padding: 0 16px 4px 8px;
+  font-size: 14px;
   font-weight: 600;
-  color: rgb(38 38 38);
+  color: ${TEXT_PRIMARY};
 `;
 
 const PostCaption = styled.div`
-  padding: 0 1rem 1rem;
-  font-size: 0.875rem;
-  color: rgb(38 38 38);
+  padding: 0 16px 12px 16px;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
   line-height: 1.25;
 `;
 
 const CaptionUsername = styled.span`
   font-weight: 600;
-  margin-right: 0.25rem;
+  margin-right: 4px;
+`;
+
+const FeedError = styled.div`
+  padding: 12px 16px;
+  font-size: 14px;
+  color: rgb(237 73 86);
 `;
 
 interface InstagramFeedProps {
   stories: StoryItem[];
   posts: FeedPost[];
+  loading?: boolean;
+  error?: string | null;
+  currentUser?: { avatar?: string; username?: string } | null;
+  onCommentClick?: (post: FeedPost) => void;
 }
 
-export function InstagramFeed({ stories, posts }: InstagramFeedProps) {
+export function InstagramFeed({
+  stories,
+  posts,
+  loading,
+  error,
+  currentUser,
+  onCommentClick,
+}: InstagramFeedProps) {
+  const { t } = useTranslation();
+
   return (
     <FeedRoot>
+      {error && <FeedError>{error}</FeedError>}
+      {loading && <FeedError>{t("feed.loading")}</FeedError>}
       <StoriesWrap>
         <StoriesScroll>
           {stories.map((s) => (
@@ -214,7 +255,7 @@ export function InstagramFeed({ stories, posts }: InstagramFeedProps) {
             <PostActionBtn $active={post.isLiked}>
               <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />
             </PostActionBtn>
-            <PostActionBtn>
+            <PostActionBtn onClick={() => onCommentClick?.(post)}>
               <MessageCircle size={24} strokeWidth={1.5} />
             </PostActionBtn>
             <PostActionBtn>
@@ -226,7 +267,7 @@ export function InstagramFeed({ stories, posts }: InstagramFeedProps) {
               </PostActionBtn>
             </PostActionRight>
           </PostActions>
-          <PostLikes>{post.likeCount} 次赞</PostLikes>
+          <PostLikes>{t("feed.likesCount", { count: post.likeCount } as Record<string, string>)}</PostLikes>
           <PostCaption>
             <CaptionUsername>{post.username}</CaptionUsername>
             {post.caption}

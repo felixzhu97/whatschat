@@ -12,7 +12,11 @@ import { TransformInterceptor } from "./presentation/interceptors/transform.inte
 import logger from "@/shared/utils/logger";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const express = await import("express");
+  const bodyLimit = "10mb";
+  app.use(express.json({ limit: bodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
 
   // 全局前缀
   app.setGlobalPrefix("api/v1");
@@ -70,7 +74,7 @@ async function bootstrap() {
 
   await app.listen(port, host);
 
-  logger.info(`🚀 WhatsChat服务器启动成功`);
+  logger.info(`🚀 WhatsChat服务器启动成功 (body limit: 10mb)`);
   logger.info(`📍 监听: ${host}:${port} (本机: http://localhost:${port}, 局域网: http://<本机IP>:${port})`);
   if (host === "0.0.0.0") {
     logger.info(`📍 真机访问请用本机局域网 IP，并确保防火墙放行 ${port} 端口`);

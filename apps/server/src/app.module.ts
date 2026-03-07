@@ -18,6 +18,10 @@ import { AiModule } from './presentation/ai/ai.module';
 import { VideoModule } from './presentation/video/video.module';
 import { ImageModule } from './presentation/image/image.module';
 import { VoiceModule } from './presentation/voice/voice.module';
+import { PostModule } from './presentation/post/post.module';
+import { CommentsModule } from './presentation/comments/comments.module';
+import { SearchModule } from './presentation/search/search.module';
+import { FollowModule } from './presentation/follow/follow.module';
 
 @Module({
   imports: [
@@ -51,6 +55,10 @@ import { VoiceModule } from './presentation/voice/voice.module';
     VideoModule,
     ImageModule,
     VoiceModule,
+    PostModule,
+    CommentsModule,
+    SearchModule,
+    FollowModule,
   ],
 })
 export class AppModule {}

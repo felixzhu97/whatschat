@@ -13,8 +13,8 @@ package "Business Architecture" as BA {
   note right of BA
     **business-architecture.puml**
     User management, instant messaging,
-    voice & video calls, file sharing,
-    groups, contacts, notifications,
+    feed & posts, comments, voice & video calls,
+    file sharing, groups, contacts, notifications,
     platform administration (admin dashboard)
   end note
 }
@@ -27,7 +27,8 @@ package "Application Architecture" as AA {
   note right of AA
     **application-architecture.puml**
     Web/Mobile/Admin, REST/WebSocket/WebRTC,
-    NestJS services, PostgreSQL/Redis/Kafka.
+    NestJS services (Post, Feed, Comment, Search),
+    PostgreSQL/Redis/Kafka/Cassandra/MongoDB/Elasticsearch.
     Admin: AG Grid, Recharts, i18n.
   end note
 }
@@ -39,8 +40,8 @@ package "Data Architecture" as DA {
   note right of DA
     **data-architecture.puml**
     User/Chat/Message/Group/Call/Status,
-    Contact/Notification/FileUpload,
-    PostgreSQL, Redis
+    Post/FeedEntry/Comment, Contact/Notification/FileUpload,
+    PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch
   end note
 }
 
@@ -52,7 +53,7 @@ package "Technology Architecture" as TA {
   note right of TA
     **technology-architecture.puml**
     Next.js, React Native, NestJS,
-    Prisma, JWT, Docker
+    Prisma, JWT, Cassandra, MongoDB, Elasticsearch, Docker
   end note
 }
 

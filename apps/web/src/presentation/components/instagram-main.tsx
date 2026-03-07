@@ -35,6 +35,10 @@ import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
 import { useAuth } from "../hooks/use-auth";
+import { useFeed } from "../hooks/use-feed";
+import { useTranslation } from "@/src/shared/i18n";
+import { FeedCommentsDialog } from "./feed-comments-dialog";
+import { CreatePostDialog } from "./create-post-dialog";
 import { styled } from "@/src/shared/utils/emotion";
 import {
   mockContacts,
@@ -48,7 +52,7 @@ import {
   getMessagesForContact,
   handleContactAction,
 } from "@/shared/utils/message-utils";
-import type { Contact, User, Message } from "@/shared/types";
+import type { Contact, User, Message, FeedPost } from "@/shared/types";
 import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 
@@ -130,8 +134,12 @@ export function InstagramMain() {
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showVoiceDialog, setShowVoiceDialog] = useState(false);
+  const [commentPost, setCommentPost] = useState<FeedPost | null>(null);
+  const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
+  const feed = useFeed(currentUser?.id);
+  const { t } = useTranslation();
 
   useEffect(() => {
     analytics.track(PAGE_VIEW, { path: "/", title: "Chat" });
@@ -141,6 +149,10 @@ export function InstagramMain() {
   useEffect(() => {
     if (selectedContactId) analytics.track(CHAT_OPEN, { chatId: selectedContactId });
   }, [selectedContactId, analytics]);
+
+  useEffect(() => {
+    if (currentUser?.id && instagramView === "feed") feed.loadFeed();
+  }, [currentUser?.id, instagramView]);
 
   const chatsWithLive = useChatsWithLiveMessages(
     selectedContactId,
@@ -438,7 +450,20 @@ export function InstagramMain() {
     if (currentPage === "chat" && instagramView === "feed") {
       return (
         <CenterColumn style={{ overflow: "auto" }}>
-          <InstagramFeed stories={mockStories} posts={mockFeedPosts} />
+          <InstagramFeed
+            stories={mockStories}
+            posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+            loading={feed.loading}
+            error={feed.error}
+            currentUser={currentUser ?? undefined}
+            onCommentClick={setCommentPost}
+          />
+          <FeedCommentsDialog
+            post={commentPost}
+            open={!!commentPost}
+            onClose={() => setCommentPost(null)}
+            currentUser={currentUser ?? undefined}
+          />
         </CenterColumn>
       );
     }
@@ -581,10 +606,23 @@ export function InstagramMain() {
             />
           </CenterColumn>
         );
-      default:
+        default:
         return (
           <CenterColumn style={{ overflow: "auto" }}>
-            <InstagramFeed stories={mockStories} posts={mockFeedPosts} />
+            <InstagramFeed
+              stories={mockStories}
+              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              loading={feed.loading}
+              error={feed.error}
+              currentUser={currentUser ?? undefined}
+              onCommentClick={setCommentPost}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
           </CenterColumn>
         );
     }
@@ -611,6 +649,7 @@ export function InstagramMain() {
           setInstagramView("messages");
         }}
         onProfileClick={handleProfileClick}
+        onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
       />
 
       {renderCenterContent()}
@@ -629,7 +668,7 @@ export function InstagramMain() {
           }}
         >
           <Send size={20} />
-          消息
+          {t("nav.messages")}
         </FloatingMessagesBtn>
       )}
 
@@ -650,6 +689,23 @@ export function InstagramMain() {
         onClose={closeCreateGroupDialog}
         contacts={mockContacts.filter((c) => !c.isGroup)}
         onCreateGroup={handleCreateGroup}
+      />
+
+      <CreatePostDialog
+        open={showCreatePostDialog}
+        onClose={() => setShowCreatePostDialog(false)}
+        onSubmit={async (caption, mediaUrls) => {
+          await feed.createPost(
+            caption,
+            mediaUrls?.length ? "IMAGE" : "TEXT",
+            {
+              username: currentUser?.username,
+              avatar: currentUser?.avatar,
+            },
+            mediaUrls
+          );
+        }}
+        currentUser={currentUser ?? undefined}
       />
 
       <AddFriendDialog

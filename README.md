@@ -12,6 +12,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
+- 📷 **Feed & Posts** – Create posts (image + caption), feed (own + followed), comments (MongoDB), search (Elasticsearch); posts/feed in Cassandra; Kafka for post.created
 - 🌐 **Web App** – Next.js SPA on port 4000; Instagram-style UI (left nav, feed, right sidebar), i18n (default English, changeable in Settings)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
@@ -56,7 +57,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Elasticsearch (optional)
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed) · MongoDB (comments) · Elasticsearch (search)
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
@@ -65,7 +66,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - Node.js 18+
 - pnpm 8+
-- Docker & Docker Compose (PostgreSQL, Redis, Kafka via `apps/server/docker-compose.yml`)
+- Docker & Docker Compose (PostgreSQL, Redis, Kafka, Cassandra, MongoDB, Elasticsearch via `apps/server/docker-compose.yml`)
 
 ### Setup
 

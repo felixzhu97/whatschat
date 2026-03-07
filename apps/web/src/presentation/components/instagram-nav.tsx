@@ -176,6 +176,7 @@ interface InstagramNavProps {
   onHomeClick: () => void;
   onMessagesClick: () => void;
   onProfileClick: () => void;
+  onCreateClick?: () => void;
 }
 
 type TabKey = "home" | "messages" | "profile" | null;
@@ -194,6 +195,7 @@ export function InstagramNav({
   onHomeClick,
   onMessagesClick,
   onProfileClick,
+  onCreateClick,
 }: InstagramNavProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -206,7 +208,7 @@ export function InstagramNav({
     { id: 3, label: t("nav.search"), tab: null, Icon: Search },
     { id: 4, label: t("nav.explore"), tab: null, Icon: Compass },
     { id: 5, label: t("nav.notifications"), tab: null, Icon: Heart },
-    { id: 6, label: t("nav.create"), tab: null, Icon: SquarePlus },
+    { id: 6, label: t("nav.create"), tab: null, Icon: SquarePlus, onClick: onCreateClick },
     { id: 7, label: t("nav.profile"), tab: "profile", Icon: Heart, onClick: onProfileClick },
   ];
 

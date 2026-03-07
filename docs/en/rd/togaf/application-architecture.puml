@@ -89,6 +89,9 @@ package "Application Services Layer" {
   component [User Service] as UserService
   component [Message Service] as MessageService
   component [Chat Service] as ChatService
+  component [Post Service] as PostService
+  component [Feed Service] as FeedService
+  component [Comment Service] as CommentService
   component [Call Service] as CallService
   component [Group Service] as GroupService
   component [Status Service] as StatusService
@@ -109,11 +112,16 @@ package "Business Logic Layer" {
 package "Data Access Layer" {
   component [Data Repository] as DataRepository
   component [Cache Service] as CacheService
+  component [Post/Feed Repository] as PostFeedRepo
+  component [Comment Repository] as CommentRepo
 }
 
 package "Infrastructure Services" {
   database [PostgreSQL] as PostgreSQL
   database [Redis] as Redis
+  database [Cassandra] as Cassandra
+  database [MongoDB] as MongoDB
+  database [Elasticsearch] as Elasticsearch
   component [File Storage] as FileStorage
   component [Search Service] as SearchService
 }
@@ -136,6 +144,9 @@ RestGateway --> CallService : routes to
 RestGateway --> GroupService : routes to
 RestGateway --> StatusService : routes to
 RestGateway --> FileService : routes to
+RestGateway --> PostService : routes to
+RestGateway --> FeedService : routes to
+RestGateway --> CommentService : routes to
 
 WsGateway --> MessageService : realtime messages
 WsGateway --> ChatService : chat events
@@ -162,6 +173,12 @@ GroupService --> DataRepository : data access
 StatusService --> DataRepository : data access
 FileService --> DataRepository : data access
 NotificationService --> DataRepository : data access
+PostService --> PostFeedRepo : data access
+PostService --> DataRepository : author/follow
+FeedService --> PostFeedRepo : data access
+FeedService --> CacheService : feed cache
+FeedService --> UserService : follow list
+CommentService --> CommentRepo : data access
 
 MessageService --> CacheService : cache access
 ChatService --> CacheService : cache access
@@ -170,8 +187,11 @@ UserService --> CacheService : cache access
 \' Data layer to infrastructure connections
 DataRepository --> PostgreSQL : persistent storage
 CacheService --> Redis : cache storage
+PostFeedRepo --> Cassandra : posts, feed
+CommentRepo --> MongoDB : comments
 FileService --> FileStorage : file storage
 MessageService --> SearchService : full‑text search
+SearchService --> Elasticsearch : post/user/hashtag search
 
 rectangle "Application Interaction Patterns" {
   note as N1
@@ -179,6 +199,7 @@ rectangle "Application Interaction Patterns" {
     - User authentication and authorization
     - User profile management
     - Chat list and details
+    - Posts, feed (paginated), comments
     - Group management
     - File upload & download
     - Status management
@@ -208,10 +229,10 @@ note bottom
   
   1. **Client applications layer** – Web app (Next.js), Admin app (Next.js), and mobile app (React Native/Expo) providing user interfaces
   2. **API gateway layer** – REST API gateway, WebSocket gateway, and WebRTC signaling gateway as unified entrypoints
-  3. **Application services layer** – fine‑grained services for auth, users, messages, chats, calls, groups, status, files, and notifications
+  3. **Application services layer** – fine‑grained services for auth, users, messages, chats, posts, feed, comments, search, calls, groups, status, files, and notifications
   4. **Business logic layer** – core business logic and rules processing
   5. **Data access layer** – data repository and cache service abstracting data access
-  6. **Infrastructure layer** – PostgreSQL, Redis, file storage, search services, etc.
+  6. **Infrastructure layer** – PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, file storage, search services, etc.
   
   Applications communicate via REST, WebSocket, and WebRTC to support both synchronous and asynchronous interactions.
   
