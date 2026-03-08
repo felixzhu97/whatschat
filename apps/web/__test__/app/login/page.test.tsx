@@ -4,8 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import LoginPage from "@/app/login/page";
 
-// Mock the useAuth hook
 const mockLogin = vi.fn();
+const mockPush = vi.fn();
+const mockBack = vi.fn();
+
 const mockUseAuth: any = {
   login: mockLogin,
   isAuthenticated: false,
@@ -13,25 +15,41 @@ const mockUseAuth: any = {
   error: null as string | null,
 };
 
-vi.mock("../../../hooks/use-auth", () => ({
+vi.mock("../../../src/presentation/hooks/use-auth", () => ({
   useAuth: () => mockUseAuth,
 }));
 
-// Mock next/navigation
-const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
+    back: mockBack,
   }),
 }));
 
-// Mock UI components
-vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, disabled, type, ...props }: any) => (
-    <button onClick={onClick} disabled={disabled} type={type} {...props}>
-      {children}
-    </button>
-  ),
+vi.mock("@/src/shared/i18n", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        "login.logIntoInstagram": "Log into Instagram",
+        "login.usernamePlaceholder": "Mobile number, username or email",
+        "login.passwordPlaceholder": "Password",
+        "login.logIn": "Log in",
+        "login.loggingIn": "Logging in...",
+        "login.forgotPassword": "Forgot password?",
+        "login.logInWithFacebook": "Log in with Facebook",
+        "login.createNewAccount": "Create new account",
+        "login.meta": "Meta",
+        "login.footerLinks": "Meta About Blog Jobs Help API Privacy Terms Locations Instagram Lite Meta AI Threads Contact Uploading & Non-Users Meta Verified",
+        "login.language": "English",
+        "login.copyright": "© 2026 Instagram from Meta",
+        "login.settings": "Settings",
+        "login.taglinePart1": "See everyday moments from your",
+        "login.taglinePart2": "close friends.",
+        "common.cancel": "Cancel",
+      };
+      return map[key] ?? key;
+    },
+  }),
 }));
 
 vi.mock("@/components/ui/input", () => ({
@@ -40,39 +58,9 @@ vi.mock("@/components/ui/input", () => ({
   ),
 }));
 
-vi.mock("@/components/ui/label", () => ({
-  Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
-}));
-
-vi.mock("@/components/ui/card", () => ({
-  Card: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CardContent: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-  CardDescription: ({ children, ...props }: any) => (
-    <p {...props}>{children}</p>
-  ),
-  CardHeader: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CardTitle: ({ children, ...props }: any) => <h1 {...props}>{children}</h1>,
-}));
-
-vi.mock("@/components/ui/alert", () => ({
-  Alert: ({ children, ...props }: any) => (
-    <div role="alert" {...props}>
-      {children}
-    </div>
-  ),
-  AlertDescription: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-}));
-
-// Mock Lucide React icons
 vi.mock("lucide-react", () => ({
-  Eye: () => <div data-testid="eye-icon" />,
-  EyeOff: () => <div data-testid="eye-off-icon" />,
-  Mail: () => <div data-testid="mail-icon" />,
-  Lock: () => <div data-testid="lock-icon" />,
+  ChevronLeft: () => <span data-testid="chevron-left" />,
+  Settings: () => <span data-testid="settings-icon" />,
 }));
 
 describe("LoginPage", () => {
@@ -84,92 +72,71 @@ describe("LoginPage", () => {
   });
 
   describe("Basic Rendering", () => {
-    it("should render login form", () => {
+    it("should render login form title", () => {
       render(<LoginPage />);
-
-      expect(screen.getByText("登录 Instagram")).toBeInTheDocument();
-      expect(screen.getByText("请输入您的邮箱和密码登录")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /log into instagram/i })).toBeInTheDocument();
     });
 
     it("should render form inputs", () => {
       render(<LoginPage />);
-
-      expect(screen.getByPlaceholderText("请输入邮箱")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("请输入密码")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/mobile number, username or email/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
     });
 
     it("should render submit button", () => {
       render(<LoginPage />);
-
-      expect(screen.getByRole("button", { name: "登录" })).toBeInTheDocument();
+      const buttons = screen.getAllByRole("button", { name: /log in/i });
+      expect(buttons.some((b) => b.getAttribute("type") === "submit")).toBe(true);
     });
 
-    it("should render register link", () => {
+    it("should render create new account button", () => {
       render(<LoginPage />);
+      expect(screen.getByRole("button", { name: /create new account/i })).toBeInTheDocument();
+    });
 
-      expect(screen.getByText("还没有账号？")).toBeInTheDocument();
-      expect(screen.getByText("立即注册")).toBeInTheDocument();
+    it("should render forgot password link", () => {
+      render(<LoginPage />);
+      expect(screen.getByRole("link", { name: /forgot password/i })).toBeInTheDocument();
     });
   });
 
   describe("Form Interactions", () => {
-    it("should update email field", async () => {
+    it("should update username field", async () => {
       const user = userEvent.setup();
       render(<LoginPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      await user.clear(emailInput);
-      await user.type(emailInput, "test@example.com");
-
-      expect(emailInput).toHaveValue("test@example.com");
+      const input = screen.getByPlaceholderText(/mobile number, username or email/i);
+      await user.clear(input);
+      await user.type(input, "test@example.com");
+      expect(input).toHaveValue("test@example.com");
     });
 
     it("should update password field", async () => {
       const user = userEvent.setup();
       render(<LoginPage />);
-
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      await user.clear(passwordInput);
-      await user.type(passwordInput, "password123");
-
-      expect(passwordInput).toHaveValue("password123");
+      const input = screen.getByPlaceholderText(/password/i);
+      await user.clear(input);
+      await user.type(input, "password123");
+      expect(input).toHaveValue("password123");
     });
 
-    it("should toggle password visibility", async () => {
+    it("should navigate to register on create new account click", async () => {
       const user = userEvent.setup();
       render(<LoginPage />);
-
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-      const toggleButton = screen.getByTestId("eye-icon").closest("button");
-
-      expect(passwordInput).toHaveAttribute("type", "password");
-
-      if (toggleButton) {
-        await user.click(toggleButton);
-        expect(passwordInput).toHaveAttribute("type", "text");
-      }
+      await user.click(screen.getByRole("button", { name: /create new account/i }));
+      expect(mockPush).toHaveBeenCalledWith("/register");
     });
   });
 
   describe("Form Validation", () => {
     it("should have required fields", () => {
       render(<LoginPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-
-      expect(emailInput).toBeRequired();
-      expect(passwordInput).toBeRequired();
+      expect(screen.getByPlaceholderText(/mobile number, username or email/i)).toBeRequired();
+      expect(screen.getByPlaceholderText(/password/i)).toBeRequired();
     });
 
-    it("should have correct input types", () => {
+    it("should have password input type", () => {
       render(<LoginPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-
-      expect(emailInput).toHaveAttribute("type", "email");
-      expect(passwordInput).toHaveAttribute("type", "password");
+      expect(screen.getByPlaceholderText(/password/i)).toHaveAttribute("type", "password");
     });
   });
 
@@ -177,68 +144,30 @@ describe("LoginPage", () => {
     it("should show loading state", () => {
       mockUseAuth.isLoading = true;
       render(<LoginPage />);
-
-      const submitButton = screen.getByRole("button", { name: "登录中..." });
+      const submitButton = screen.getByRole("button", { name: /logging in/i });
       expect(submitButton).toBeDisabled();
     });
   });
 
   describe("Error Handling", () => {
     it("should display error message", () => {
-      mockUseAuth.error = "登录失败，请检查邮箱和密码";
+      mockUseAuth.error = "Invalid credentials";
       render(<LoginPage />);
-
-      expect(
-        screen.getByText("登录失败，请检查邮箱和密码")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
     });
   });
 
-  describe("Icons and Styling", () => {
-    it("should render icons", () => {
+  describe("Form Structure", () => {
+    it("should have form containing submit button", () => {
       render(<LoginPage />);
-
-      expect(screen.getByTestId("mail-icon")).toBeInTheDocument();
-      expect(screen.getByTestId("lock-icon")).toBeInTheDocument();
-      expect(screen.getByTestId("eye-icon")).toBeInTheDocument();
+      const submitBtn = screen.getByRole("button", { name: "Log in" });
+      expect(submitBtn.closest("form")).toBeInTheDocument();
     });
 
-    it("should have proper form structure", () => {
+    it("should have submit button type submit", () => {
       render(<LoginPage />);
-
-      const form = screen.getByRole("button", { name: "登录" }).closest("form");
-      expect(form).toBeInTheDocument();
-    });
-  });
-
-  describe("Accessibility", () => {
-    it("should have proper labels", () => {
-      render(<LoginPage />);
-
-      expect(screen.getByText("邮箱")).toBeInTheDocument();
-      expect(screen.getByText("密码")).toBeInTheDocument();
-    });
-
-    it("should have proper input IDs", () => {
-      render(<LoginPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput = screen.getByPlaceholderText("请输入密码");
-
-      expect(emailInput).toHaveAttribute("id", "email");
-      expect(passwordInput).toHaveAttribute("id", "password");
-    });
-
-    it("should have proper button types", () => {
-      render(<LoginPage />);
-
-      const submitButton = screen.getByRole("button", { name: "登录" });
-      const toggleButton = screen.getByTestId("eye-icon").closest("button");
-      const registerButton = screen.getByText("立即注册");
-
-      expect(submitButton).toHaveAttribute("type", "submit");
-      expect(toggleButton).toHaveAttribute("type", "button");
-      expect(registerButton).toHaveAttribute("type", "button");
+      const submitBtn = screen.getByRole("button", { name: "Log in" });
+      expect(submitBtn).toHaveAttribute("type", "submit");
     });
   });
 });
