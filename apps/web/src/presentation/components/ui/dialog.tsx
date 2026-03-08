@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { X } from "lucide-react";
 
 import { styled } from "@/src/shared/utils/emotion";
@@ -64,19 +65,23 @@ const DescriptionRoot = styled(DialogPrimitive.Description)`
   color: hsl(var(--muted-foreground));
 `;
 
-const CloseButton = styled.button`
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
+const CloseButton = styled.button<{ $viewport?: boolean }>`
+  position: ${(p) => (p.$viewport ? "fixed" : "absolute")};
+  right: ${(p) => (p.$viewport ? "24px" : "1rem")};
+  top: ${(p) => (p.$viewport ? "24px" : "1rem")};
+  z-index: ${(p) => (p.$viewport ? 51 : "auto")};
   border-radius: 9999px;
-  opacity: 0.7;
+  opacity: 0.9;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 8px;
   border: none;
   background: transparent;
+  color: ${(p) => (p.$viewport ? "rgb(255 255 255)" : "inherit")};
   cursor: pointer;
+  min-width: 32px;
+  min-height: 32px;
 `;
 
 const DialogOverlay = React.forwardRef<
@@ -89,18 +94,34 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    closeInViewport?: boolean;
+    hideClose?: boolean;
+    accessibleTitle?: string;
+  }
+>(({ className, children, closeInViewport, hideClose, accessibleTitle, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
-    <ContentRoot ref={ref} className={className} {...props}>
+    <ContentRoot
+      ref={ref}
+      className={className}
+      {...props}
+      aria-describedby={props["aria-describedby"] ?? undefined}
+    >
+      {accessibleTitle != null && (
+        <VisuallyHidden.Root>
+          <DialogPrimitive.Title>{accessibleTitle}</DialogPrimitive.Title>
+        </VisuallyHidden.Root>
+      )}
       {children}
-      <DialogPrimitive.Close asChild>
-        <CloseButton type="button">
-          <X size={16} />
-          <span className="sr-only">Close</span>
-        </CloseButton>
-      </DialogPrimitive.Close>
+      {!hideClose && (
+        <DialogPrimitive.Close asChild>
+          <CloseButton type="button" $viewport={closeInViewport}>
+            <X size={16} />
+            <span className="sr-only">Close</span>
+          </CloseButton>
+        </DialogPrimitive.Close>
+      )}
     </ContentRoot>
   </DialogPortal>
 ));

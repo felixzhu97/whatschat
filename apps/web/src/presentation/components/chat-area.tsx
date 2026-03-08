@@ -53,7 +53,7 @@ const ChatAreaRoot = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: hsl(var(--background));
+  background-color: rgb(255 255 255);
 `;
 
 const TypingIndicator = styled.div`

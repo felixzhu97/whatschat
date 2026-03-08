@@ -1,0 +1,349 @@
+"use client";
+
+import { useRef, useState, useCallback } from "react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import type { StoryItem, FeedPost } from "@/shared/types";
+import { styled } from "@/src/shared/utils/emotion";
+import { useTranslation } from "@/src/shared/i18n";
+
+const BORDER = "1px solid rgb(219 219 219)";
+const TEXT_PRIMARY = "rgb(38 38 38)";
+const TEXT_SECONDARY = "rgb(142 142 142)";
+const BLUE = "rgb(0 149 246)";
+const RED_LIKE = "rgb(237 73 86)";
+const BG_GRAY = "rgb(239 239 239)";
+
+const FeedRoot = styled.div`
+  flex: 1;
+  min-width: 0;
+  max-width: 468px;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  background: rgb(255 255 255);
+`;
+
+const StoriesWrap = styled.div`
+  padding: 16px 0;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+`;
+
+const StoriesScroll = styled.div`
+  display: flex;
+  gap: 16px;
+  padding: 0 16px;
+  min-width: min-content;
+`;
+
+const StoryItemWrap = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+`;
+
+const StoryRing = styled.div<{ $hasUnseen?: boolean }>`
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  padding: 2px;
+  background: ${(p: { $hasUnseen?: boolean }) =>
+    p.$hasUnseen
+      ? "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
+      : "rgb(219 219 219)"};
+`;
+
+const StoryAvatarWrap = styled.div`
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgb(255 255 255);
+  padding: 2px;
+  box-sizing: border-box;
+`;
+
+const StoryUsername = styled.span`
+  font-size: 12px;
+  color: ${TEXT_PRIMARY};
+  max-width: 74px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const PostCard = styled.article`
+  margin-bottom: 12px;
+  border: ${BORDER};
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgb(255 255 255);
+`;
+
+const PostHeader = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+`;
+
+const PostHeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const PostMeta = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.2;
+`;
+
+const PostUsername = styled.span`
+  font-weight: 600;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
+`;
+
+const PostTime = styled.span`
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+`;
+
+const PostMoreBtn = styled.button`
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: ${TEXT_PRIMARY};
+  margin: -8px -8px -8px 0;
+`;
+
+const PostImageWrap = styled.div`
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgb(0 0 0);
+  overflow: hidden;
+  line-height: 0;
+  position: relative;
+`;
+
+const PostImageWrapClickable = styled(PostImageWrap)`
+  cursor: pointer;
+`;
+
+const PostImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+const PostVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+const FeedPlayOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+const FeedPlayButtonCircle = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(38 38 38);
+`;
+
+const PostActions = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 6px 16px 8px;
+  gap: 12px;
+`;
+
+const PostActionBtn = styled.button<{ $active?: boolean }>`
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  margin: -8px 0;
+  color: ${(p: { $active?: boolean }) => (p.$active ? RED_LIKE : TEXT_PRIMARY)};
+`;
+
+const PostActionRight = styled.div`
+  margin-left: auto;
+`;
+
+const PostLikes = styled.div`
+  padding: 0 16px 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: ${TEXT_PRIMARY};
+`;
+
+const PostCaption = styled.div`
+  padding: 0 16px 12px 16px;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
+  line-height: 1.25;
+`;
+
+const CaptionUsername = styled.span`
+  font-weight: 600;
+  margin-right: 4px;
+`;
+
+const FeedError = styled.div`
+  padding: 12px 16px;
+  font-size: 14px;
+  color: rgb(237 73 86);
+`;
+
+interface InstagramFeedProps {
+  stories: StoryItem[];
+  posts: FeedPost[];
+  loading?: boolean;
+  error?: string | null;
+  currentUser?: { avatar?: string; username?: string } | null;
+  onCommentClick?: (post: FeedPost) => void;
+}
+
+export function InstagramFeed({
+  stories,
+  posts,
+  loading,
+  error,
+  currentUser,
+  onCommentClick,
+}: InstagramFeedProps) {
+  const { t } = useTranslation();
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const [pausedPostId, setPausedPostId] = useState<string | null>(null);
+
+  const toggleFeedVideo = useCallback((postId: string) => {
+    const video = videoRefs.current[postId];
+    if (!video) return;
+    if (pausedPostId === postId) {
+      video.play().catch(() => {});
+      setPausedPostId(null);
+    } else {
+      video.pause();
+      setPausedPostId(postId);
+    }
+  }, [pausedPostId]);
+
+  return (
+    <FeedRoot>
+      {error && <FeedError>{error}</FeedError>}
+      {loading && <FeedError>{t("feed.loading")}</FeedError>}
+      <StoriesWrap>
+        <StoriesScroll>
+          {stories.map((s) => (
+            <StoryItemWrap key={s.id}>
+              <StoryRing $hasUnseen={s.hasUnseen}>
+                <StoryAvatarWrap>
+                  <Avatar style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
+                    <AvatarImage src={s.avatar} />
+                    <AvatarFallback>{s.username[0]}</AvatarFallback>
+                  </Avatar>
+                </StoryAvatarWrap>
+              </StoryRing>
+              <StoryUsername>{s.username}</StoryUsername>
+            </StoryItemWrap>
+          ))}
+        </StoriesScroll>
+      </StoriesWrap>
+
+      {posts.map((post) => (
+        <PostCard key={post.id}>
+          <PostHeader>
+            <PostHeaderLeft>
+              <Avatar style={{ width: 32, height: 32 }}>
+                <AvatarImage src={post.avatar} />
+                <AvatarFallback>{post.username[0]}</AvatarFallback>
+              </Avatar>
+              <PostMeta>
+                <PostUsername>{post.username}</PostUsername>
+                <PostTime>{post.timestamp}</PostTime>
+              </PostMeta>
+            </PostHeaderLeft>
+            <PostMoreBtn>
+              <MoreHorizontal size={20} />
+            </PostMoreBtn>
+          </PostHeader>
+          {post.type === "VIDEO" || post.videoUrl ? (
+            <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+              <PostVideo
+                ref={(el: HTMLVideoElement | null) => {
+                  videoRefs.current[post.id] = el;
+                }}
+                src={post.videoUrl ?? post.imageUrl}
+                muted
+                playsInline
+                autoPlay
+                loop
+              />
+              {pausedPostId === post.id && (
+                <FeedPlayOverlay>
+                  <FeedPlayButtonCircle>
+                    <Play size={32} fill="currentColor" stroke="none" />
+                  </FeedPlayButtonCircle>
+                </FeedPlayOverlay>
+              )}
+            </PostImageWrapClickable>
+          ) : (
+            <PostImageWrap>
+              <PostImg src={post.imageUrl} alt="" />
+            </PostImageWrap>
+          )}
+          <PostActions>
+            <PostActionBtn $active={post.isLiked}>
+              <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />
+            </PostActionBtn>
+            <PostActionBtn onClick={() => onCommentClick?.(post)}>
+              <MessageCircle size={24} strokeWidth={1.5} />
+            </PostActionBtn>
+            <PostActionBtn>
+              <Send size={24} strokeWidth={1.5} />
+            </PostActionBtn>
+            <PostActionRight>
+              <PostActionBtn $active={post.isSaved}>
+                <Bookmark size={24} fill={post.isSaved ? "currentColor" : "none"} strokeWidth={1.5} />
+              </PostActionBtn>
+            </PostActionRight>
+          </PostActions>
+          <PostLikes>{t("feed.likesCount", { count: post.likeCount } as Record<string, string>)}</PostLikes>
+          <PostCaption>
+            <CaptionUsername>{post.username}</CaptionUsername>
+            {post.caption}
+          </PostCaption>
+        </PostCard>
+      ))}
+    </FeedRoot>
+  );
+}

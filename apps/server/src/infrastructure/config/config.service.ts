@@ -19,6 +19,11 @@ export interface AppConfig {
   kafka: {
     brokers: string[];
     topicOfflineMessages: string;
+    topicPostCreated: string;
+    topicPostDeleted: string;
+    topicFeedFanout: string;
+    topicCommentCreated: string;
+    topicAnalyticsEvents: string;
   };
   jwt: {
     secret: string;
@@ -39,6 +44,14 @@ export interface AppConfig {
     user?: string;
     pass?: string;
     from: string;
+  };
+  cassandra: {
+    contactPoints: string[];
+    keyspace: string;
+    localDatacenter: string;
+  };
+  mongodb: {
+    uri: string;
   };
   elasticsearch: {
     node: string;
@@ -155,6 +168,11 @@ export class ConfigService {
         })(),
         topicOfflineMessages:
           process.env["KAFKA_TOPIC_OFFLINE_MESSAGES"] || "offline-messages",
+        topicPostCreated: process.env["KAFKA_TOPIC_POST_CREATED"] || "post.created",
+        topicPostDeleted: process.env["KAFKA_TOPIC_POST_DELETED"] || "post.deleted",
+        topicFeedFanout: process.env["KAFKA_TOPIC_FEED_FANOUT"] || "feed.fanout",
+        topicCommentCreated: process.env["KAFKA_TOPIC_COMMENT_CREATED"] || "comment.created",
+        topicAnalyticsEvents: process.env["KAFKA_TOPIC_ANALYTICS_EVENTS"] || "analytics.events",
       },
       jwt: {
         secret: process.env["JWT_SECRET"] || "your-super-secret-jwt-key-here",
@@ -190,8 +208,19 @@ export class ConfigService {
         ...(process.env["SMTP_PASS"] && { pass: process.env["SMTP_PASS"] }),
         from: process.env["SMTP_FROM"] || "noreply@whatschat.com",
       },
+      cassandra: {
+        contactPoints: (process.env["CASSANDRA_CONTACT_POINTS"] ?? "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        keyspace: process.env["CASSANDRA_KEYSPACE"] || "whatschat",
+        localDatacenter: process.env["CASSANDRA_LOCAL_DC"] || "datacenter1",
+      },
+      mongodb: {
+        uri: process.env["MONGODB_URI"] ?? "",
+      },
       elasticsearch: {
-        node: process.env["ELASTICSEARCH_NODE"] || "http://localhost:9200",
+        node: process.env["ELASTICSEARCH_NODE"] ?? "",
         ...(process.env["ELASTICSEARCH_USERNAME"] && {
           username: process.env["ELASTICSEARCH_USERNAME"],
         }),

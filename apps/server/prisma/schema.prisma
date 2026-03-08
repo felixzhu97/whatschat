@@ -40,8 +40,24 @@ model User {
   blockedByUsers   BlockedUser[] @relation("BlockedUser")
   fileUploads      FileUpload[]
   meetingAttendees MeetingAttendee[]
+  followers        UserFollow[]  @relation("Follower")
+  following        UserFollow[]  @relation("Following")
 
   @@map("users")
+}
+
+model UserFollow {
+  id           String   @id @default(cuid())
+  followerId   String
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  follower   User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following  User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("user_follows")
 }
 
 // 聊天模型

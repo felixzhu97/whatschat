@@ -1,4 +1,4 @@
-import type { Contact, Message } from "../types";
+import type { Contact, Message, StoryItem, FeedPost, SuggestedUser } from "@/shared/types";
 
 export const mockContacts: Contact[] = [
   {
@@ -120,3 +120,49 @@ export const mockUser = {
   createdAt: new Date(),
   updatedAt: new Date(),
 };
+
+export const mockStories: StoryItem[] = [
+  { id: "s1", userId: "u1", username: "appletv", avatar: "/placeholder.svg?height=64&width=64&text=A", hasUnseen: true },
+  { id: "s2", userId: "u2", username: "redbull", avatar: "/placeholder.svg?height=64&width=64&text=R" },
+  { id: "s3", userId: "u3", username: "architect", avatar: "/placeholder.svg?height=64&width=64&text=Ar" },
+  { id: "s4", userId: "u4", username: "olympics", avatar: "/placeholder.svg?height=64&width=64&text=O" },
+  { id: "s5", userId: "u5", username: "dezeen", avatar: "/placeholder.svg?height=64&width=64&text=D" },
+  { id: "s6", userId: "u6", username: "archdaily", avatar: "/placeholder.svg?height=64&width=64&text=Ad" },
+];
+
+export const mockFeedPosts: FeedPost[] = [
+  {
+    id: "p1",
+    userId: "u7",
+    username: "zuck",
+    avatar: "/placeholder.svg?height=32&width=32&text=Z",
+    timestamp: "6d",
+    imageUrl: "https://picsum.photos/600/600?random=1",
+    likeCount: "334.1K",
+    commentCount: "7.6K",
+    caption: "Thanks to Prada for having us in Milan!",
+    isLiked: false,
+    isSaved: false,
+  },
+  {
+    id: "p2",
+    userId: "u8",
+    username: "turn_point",
+    avatar: "/placeholder.svg?height=32&width=32&text=T",
+    timestamp: "1w",
+    imageUrl: "https://picsum.photos/600/600?random=2",
+    likeCount: "12.2K",
+    commentCount: "89",
+    caption: "Sunset at the beach.",
+    isLiked: false,
+    isSaved: false,
+  },
+];
+
+export const mockSuggestedUsers: SuggestedUser[] = [
+  { id: "su1", username: "lara", avatar: "/placeholder.svg?height=32&width=32&text=L", description: "Suggested for you" },
+  { id: "su2", username: "Elena", avatar: "/placeholder.svg?height=32&width=32&text=E", description: "Followed by l_kno_u_00" },
+  { id: "su3", username: "Kanika Arora", avatar: "/placeholder.svg?height=32&width=32&text=K", description: "Following university assigne" },
+  { id: "su4", username: "adrianna", avatar: "/placeholder.svg?height=32&width=32&text=A", description: "Suggested for you" },
+  { id: "su5", username: "Rosa Verges", avatar: "/placeholder.svg?height=32&width=32&text=R", description: "Followed by 2 people you follow" },
+];

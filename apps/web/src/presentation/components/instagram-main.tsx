@@ -3,10 +3,17 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
+import { Send } from "lucide-react";
 import { Sidebar } from "./sidebar";
+import { InstagramMessagesSidebar } from "./instagram-messages-sidebar";
+import { InstagramMessagesEmpty } from "./instagram-messages-empty";
 import { ChatArea } from "./chat-area";
 import { WelcomeScreen } from "./welcome-screen";
 import { ProfilePage } from "./profile-page";
+import { InstagramNav } from "./instagram-nav";
+import { InstagramFeed } from "./instagram-feed";
+import { InstagramReels } from "./instagram-reels";
+import { InstagramRightSidebar } from "./instagram-right-sidebar";
 import { CallsPage } from "./calls-page";
 import { StatusPage } from "./status-page";
 import { StarredMessagesPage } from "./starred-messages-page";
@@ -31,30 +38,75 @@ import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
 import { useAuth } from "../hooks/use-auth";
+import { useFeed, useProfileStats } from "../hooks/use-feed";
+import { useTranslation } from "@/src/shared/i18n";
+import { FeedCommentsDialog } from "./feed-comments-dialog";
+import { CreatePostDialog } from "./create-post-dialog";
+import { FollowListModal } from "./follow-list-modal";
 import { styled } from "@/src/shared/utils/emotion";
 import {
   mockContacts,
   mockMessages,
   mockUser,
+  mockStories,
+  mockFeedPosts,
 } from "@/infrastructure/data/mock-data";
 import {
   getMessagesForContact,
   handleContactAction,
 } from "@/shared/utils/message-utils";
-import type { Contact, User, Message } from "@/shared/types";
+import type { Contact, User, Message, FeedPost } from "@/shared/types";
 import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 
 const AppShell = styled.div`
   display: flex;
   height: 100vh;
-  background-color: hsl(var(--background));
+  background-color: rgb(255 255 255);
+`;
+
+const CenterColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: rgb(255 255 255);
+`;
+
+const MessagesRow = styled.div`
+  flex: 1;
+  display: flex;
+  min-height: 0;
 `;
 
 const MainContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+`;
+
+const FloatingMessagesBtn = styled.button`
+  position: fixed;
+  bottom: 1.5rem;
+  right: calc(320px + 1.5rem);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 24px;
+  border: none;
+  background-color: rgb(255 255 255);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.15);
+  color: rgb(38 38 38);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background-color: rgb(250 250 250);
+  }
 `;
 
 const FullscreenOverlay = styled.div`
@@ -76,16 +128,23 @@ const ErrorToast = styled.div`
   color: rgb(153 27 27);
 `;
 
-export function WhatsAppMain() {
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(
-    null
-  );
+type InstagramView = "feed" | "messages";
+
+export function InstagramMain() {
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [instagramView, setInstagramView] = useState<InstagramView>("feed");
   const [showVideoDialog, setShowVideoDialog] = useState(false);
   const [showTextDialog, setShowTextDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showVoiceDialog, setShowVoiceDialog] = useState(false);
+  const [commentPost, setCommentPost] = useState<FeedPost | null>(null);
+  const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
+  const [followListModal, setFollowListModal] = useState<"followers" | "following" | null>(null);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
+  const feed = useFeed(currentUser?.id);
+  const profileStats = useProfileStats(currentUser?.id);
+  const { t } = useTranslation();
 
   useEffect(() => {
     analytics.track(PAGE_VIEW, { path: "/", title: "Chat" });
@@ -95,6 +154,13 @@ export function WhatsAppMain() {
   useEffect(() => {
     if (selectedContactId) analytics.track(CHAT_OPEN, { chatId: selectedContactId });
   }, [selectedContactId, analytics]);
+
+  useEffect(() => {
+    if (currentUser?.id && instagramView === "feed") {
+      feed.loadFeed();
+      feed.loadSuggestions();
+    }
+  }, [currentUser?.id, instagramView]);
 
   const chatsWithLive = useChatsWithLiveMessages(
     selectedContactId,
@@ -113,6 +179,7 @@ export function WhatsAppMain() {
   const {
     currentPage,
     handleProfileClick,
+    handleReelsClick,
     handleStatusClick,
     handleCallsClick,
     handleStarredClick,
@@ -120,6 +187,14 @@ export function WhatsAppMain() {
     handleSearchPageClick,
     handleBackToChat,
   } = useNavigation();
+
+  useEffect(() => {
+    if (currentUser?.id && currentPage === "profile") profileStats.load();
+  }, [currentUser?.id, currentPage]);
+
+  useEffect(() => {
+    if (currentUser?.id && currentPage === "reels") feed.loadFeed();
+  }, [currentUser?.id, currentPage]);
 
   const {
     searchQuery,
@@ -271,16 +346,13 @@ export function WhatsAppMain() {
     error: callError,
   } = useRealCall();
 
-  // Filter contacts based on search
   const filteredContacts = filterContacts(contactsForList, searchQuery);
 
-  // Handle contact selection
   const handleContactSelect = (contact: Contact) => {
     setSelectedContactId(contact.id);
     handleBackToChat();
   };
 
-  // Handle contact actions
   const handleContactActionWrapper = (action: string, contact: Contact) => {
     const startCallWithOptions = (
       contactId: string,
@@ -299,7 +371,6 @@ export function WhatsAppMain() {
     handleContactAction(action, contact, startCallWithOptions);
   };
 
-  // Handle search
   const handleGlobalSearchWrapper = (query: string) => {
     handleGlobalSearch(query);
     handleSearchPageClick();
@@ -325,7 +396,6 @@ export function WhatsAppMain() {
     endCall();
   };
 
-  // Create group handler
   const handleCreateGroup = (name: string, selectedMembers: Contact[]) => {
     console.log("Creating group:", name, selectedMembers);
     const newGroup: Contact = {
@@ -355,20 +425,17 @@ export function WhatsAppMain() {
     closeCreateGroupDialog();
   };
 
-  // Add friend handler
   const handleAddFriend = (friendId: string) => {
     console.log("Adding friend:", friendId);
     closeAddFriendDialog();
   };
 
-  // Advanced search handler
   const handleAdvancedSearch = (filters: any) => {
     console.log("Advanced search with filters:", filters);
     closeAdvancedSearchDialog();
     handleSearchPageClick();
   };
 
-  // Message search handler
   const handleSelectMessage = (contactId: string, messageId: string) => {
     console.log("Select message:", contactId, messageId);
     const contact = mockContacts.find((c) => c.id === contactId);
@@ -381,8 +448,7 @@ export function WhatsAppMain() {
     handleKeyDown(e as React.KeyboardEvent<HTMLTextAreaElement>);
   };
 
-  // Render current page
-  const renderCurrentPage = () => {
+  const renderCenterContent = () => {
     if (callState?.isActive) {
       return (
         <RealCallInterface
@@ -398,124 +464,264 @@ export function WhatsAppMain() {
       );
     }
 
+    if (currentPage === "chat" && instagramView === "feed") {
+      return (
+        <CenterColumn style={{ overflow: "auto" }}>
+          <InstagramFeed
+            stories={mockStories}
+            posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+            loading={feed.loading}
+            error={feed.error}
+            currentUser={currentUser ?? undefined}
+            onCommentClick={setCommentPost}
+          />
+          <FeedCommentsDialog
+            post={commentPost}
+            open={!!commentPost}
+            onClose={() => setCommentPost(null)}
+            currentUser={currentUser ?? undefined}
+          />
+        </CenterColumn>
+      );
+    }
+
+    if (currentPage === "chat" && instagramView === "messages") {
+      return (
+        <MessagesRow>
+          <InstagramMessagesSidebar
+            user={currentUser ?? mockUser}
+            contacts={filteredContacts}
+            selectedContact={selectedContact ?? null}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onContactSelect={handleContactSelect}
+            onComposeClick={handleAddFriendClick}
+            searchInputRef={searchInputRef}
+          />
+          <MainContent>
+            {selectedContact ? (
+              <ChatArea
+                selectedContact={selectedContact}
+                messages={messagesForSelected}
+                currentUserId={currentUser?.id}
+                messageText={messageText}
+                showEmojiPicker={showEmojiPicker}
+                replyingTo={replyingTo}
+                editingMessage={editingMessage}
+                isRecordingVoice={isRecordingVoice}
+                isTyping={isTyping}
+                isConnected={isConnected}
+                onMessageChange={handleMessageChange}
+                onKeyDown={handleKeyDownWrapper}
+                onSendMessage={handleSendMessageWrapper}
+                onEmojiSelect={handleEmojiSelect}
+                onToggleEmojiPicker={handleToggleEmojiPicker}
+                onFileSelect={handleFileSelect}
+                onSendVoice={handleSendVoice}
+                onReply={handleReply}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onForward={handleForward}
+                onStar={handleStar}
+                onInfo={handleInfo}
+                onVoiceCall={() => handleStartCall("voice")}
+                onVideoCall={() => handleStartCall("video")}
+                onShowInfo={() => {}}
+                onCancelReply={handleCancelReply}
+                onCancelEdit={handleCancelEdit}
+                onRecordingChange={handleRecordingChange}
+                onSmartReplyClick={
+                  chatsWithLive.isApiChat ? handleSmartReplyClick : undefined
+                }
+                onGenerateVideoClick={
+                  chatsWithLive.isApiChat ? handleGenerateVideoClick : undefined
+                }
+                onGenerateTextClick={
+                  chatsWithLive.isApiChat ? handleGenerateTextClick : undefined
+                }
+                onGenerateImageClick={
+                  chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
+                }
+                onGenerateVoiceClick={
+                  chatsWithLive.isApiChat ? handleGenerateVoiceClick : undefined
+                }
+              />
+            ) : (
+              <InstagramMessagesEmpty onSendMessage={handleAddFriendClick} />
+            )}
+          </MainContent>
+        </MessagesRow>
+      );
+    }
+
     switch (currentPage) {
+      case "reels":
+        return (
+          <CenterColumn style={{ overflow: "hidden" }}>
+            <InstagramReels
+              reels={feed.posts.filter((p) => p.type === "VIDEO")}
+              loading={feed.loading}
+              onCommentClick={setCommentPost}
+              onFollow={feed.followUser}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
+          </CenterColumn>
+        );
       case "profile":
-        return <ProfilePage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <ProfilePage
+              user={currentUser ?? null}
+              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              followersCount={profileStats.followersCount}
+              followingCount={profileStats.followingCount}
+              onEditProfile={handleSettingsClick}
+              onNewPost={() => setShowCreatePostDialog(true)}
+              onPostClick={setCommentPost}
+              onFollowersClick={() => setFollowListModal("followers")}
+              onFollowingClick={() => setFollowListModal("following")}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
+            <FollowListModal
+              open={followListModal !== null}
+              onClose={() => {
+                setFollowListModal(null);
+                profileStats.load();
+              }}
+              title={followListModal ?? "followers"}
+              userId={currentUser?.id ?? ""}
+              currentUserId={currentUser?.id}
+              onFollow={feed.followUser}
+              onUnfollow={feed.unfollowUser}
+            />
+          </CenterColumn>
+        );
       case "calls":
-        return <CallsPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <CallsPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "status":
-        return <StatusPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <StatusPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "starred":
-        return <StarredMessagesPage onBack={handleBackToChat} />;
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <StarredMessagesPage onBack={handleBackToChat} />
+          </CenterColumn>
+        );
       case "search":
         return (
-          <MessageSearchPage
-            isOpen={true}
-            onClose={handleBackToChat}
-            initialQuery={searchQuery}
-            allMessages={Object.entries(mockMessages).map(
-              ([contactId, messages]) => ({
-                contactId,
-                messages,
-              })
-            )}
-            contacts={mockContacts}
-            onSelectMessage={handleSelectMessage}
-          />
+          <CenterColumn style={{ overflow: "auto" }}>
+            <MessageSearchPage
+              isOpen={true}
+              onClose={handleBackToChat}
+              initialQuery={searchQuery}
+              allMessages={Object.entries(mockMessages).map(
+                ([contactId, messages]) => ({
+                  contactId,
+                  messages,
+                })
+              )}
+              contacts={mockContacts}
+              onSelectMessage={handleSelectMessage}
+            />
+          </CenterColumn>
         );
       case "settings":
         return (
-          <SettingsPage
-            onBack={handleBackToChat}
-            onProfileClick={handleProfileClick}
-          />
+          <CenterColumn style={{ overflow: "auto" }}>
+            <SettingsPage
+              onBack={handleBackToChat}
+              onProfileClick={handleProfileClick}
+            />
+          </CenterColumn>
         );
-      case "chat":
-      default:
-        return selectedContact ? (
-          <ChatArea
-            selectedContact={selectedContact}
-            messages={messagesForSelected}
-            currentUserId={currentUser?.id}
-            messageText={messageText}
-            showEmojiPicker={showEmojiPicker}
-            replyingTo={replyingTo}
-            editingMessage={editingMessage}
-            isRecordingVoice={isRecordingVoice}
-            isTyping={isTyping}
-            isConnected={isConnected}
-            onMessageChange={handleMessageChange}
-            onKeyDown={handleKeyDownWrapper}
-            onSendMessage={handleSendMessageWrapper}
-            onEmojiSelect={handleEmojiSelect}
-            onToggleEmojiPicker={handleToggleEmojiPicker}
-            onFileSelect={handleFileSelect}
-            onSendVoice={handleSendVoice}
-            onReply={handleReply}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onForward={handleForward}
-            onStar={handleStar}
-            onInfo={handleInfo}
-            onVoiceCall={() => handleStartCall("voice")}
-            onVideoCall={() => handleStartCall("video")}
-            onShowInfo={() => {}}
-            onCancelReply={handleCancelReply}
-            onCancelEdit={handleCancelEdit}
-            onRecordingChange={handleRecordingChange}
-            onSmartReplyClick={
-              chatsWithLive.isApiChat ? handleSmartReplyClick : undefined
-            }
-            onGenerateVideoClick={
-              chatsWithLive.isApiChat ? handleGenerateVideoClick : undefined
-            }
-            onGenerateTextClick={
-              chatsWithLive.isApiChat ? handleGenerateTextClick : undefined
-            }
-            onGenerateImageClick={
-              chatsWithLive.isApiChat ? handleGenerateImageClick : undefined
-            }
-            onGenerateVoiceClick={
-              chatsWithLive.isApiChat ? handleGenerateVoiceClick : undefined
-            }
-          />
-        ) : (
-          <WelcomeScreen />
+        default:
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            <InstagramFeed
+              stories={mockStories}
+              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              loading={feed.loading}
+              error={feed.error}
+              currentUser={currentUser ?? undefined}
+              onCommentClick={setCommentPost}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
+          </CenterColumn>
         );
     }
   };
 
+  const navActiveTab =
+    currentPage === "profile"
+      ? "profile"
+      : currentPage === "reels"
+        ? "reels"
+        : currentPage === "chat" && instagramView === "messages"
+          ? "messages"
+          : "home";
+
   return (
     <AppShell>
-      <Sidebar
-        user={mockUser}
-        contacts={filteredContacts}
-        selectedContact={selectedContact ?? null}
-        searchQuery={searchQuery}
-        isConnected={isConnected}
-        showSearchSuggestions={showSearchSuggestions}
-        recentSearches={recentSearches}
-        onContactSelect={handleContactSelect}
-        onContactAction={handleContactActionWrapper}
-        onSearchChange={handleSearchChange}
-        onSearchFocus={handleSearchFocus}
-        onSearchBlur={handleSearchBlur}
-        onGlobalSearch={handleGlobalSearchWrapper}
-        onSearchSuggestion={handleSearchSuggestionWrapper}
-        onRemoveRecentSearch={handleRemoveRecentSearch}
+      <InstagramNav
+        user={currentUser ?? mockUser}
+        activeTab={navActiveTab}
+        onHomeClick={() => {
+          handleBackToChat();
+          setInstagramView("feed");
+        }}
+        onMessagesClick={() => {
+          handleBackToChat();
+          setInstagramView("messages");
+        }}
         onProfileClick={handleProfileClick}
-        onStatusClick={handleStatusClick}
-        onCallsClick={handleCallsClick}
-        onAddFriendClick={handleAddFriendClick}
-        onCreateGroupClick={handleCreateGroupClick}
-        onSearchPageClick={handleSearchPageClick}
-        onAdvancedSearchClick={handleAdvancedSearchClick}
-        onStarredClick={handleStarredClick}
-        onSettingsClick={handleSettingsClick}
-        searchInputRef={searchInputRef}
+        onReelsClick={handleReelsClick}
+        onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
       />
 
-      <MainContent>{renderCurrentPage()}      </MainContent>
+      {renderCenterContent()}
+
+      {currentPage === "chat" && instagramView === "feed" && (
+        <InstagramRightSidebar
+          user={currentUser ?? mockUser}
+          suggestions={feed.suggestions}
+          onFollow={currentUser?.id ? feed.followSuggestion : undefined}
+        />
+      )}
+
+      {currentPage === "chat" && instagramView === "feed" && (
+        <FloatingMessagesBtn
+          type="button"
+          onClick={() => {
+            handleBackToChat();
+            setInstagramView("messages");
+          }}
+        >
+          <Send size={20} />
+          {t("nav.messages")}
+        </FloatingMessagesBtn>
+      )}
 
       {callState?.status === "ringing" && (
         <FullscreenOverlay>
@@ -534,6 +740,23 @@ export function WhatsAppMain() {
         onClose={closeCreateGroupDialog}
         contacts={mockContacts.filter((c) => !c.isGroup)}
         onCreateGroup={handleCreateGroup}
+      />
+
+      <CreatePostDialog
+        open={showCreatePostDialog}
+        onClose={() => setShowCreatePostDialog(false)}
+        onSubmit={async (caption, mediaUrls, type) => {
+          await feed.createPost(
+            caption,
+            type ?? (mediaUrls?.length ? "IMAGE" : "TEXT"),
+            {
+              username: currentUser?.username,
+              avatar: currentUser?.avatar,
+            },
+            mediaUrls
+          );
+        }}
+        currentUser={currentUser ?? undefined}
       />
 
       <AddFriendDialog

@@ -4,144 +4,348 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Button } from "@/src/presentation/components/ui/button";
+import { ChevronLeft, Settings } from "lucide-react";
 import { Input } from "@/src/presentation/components/ui/input";
-import { Label } from "@/src/presentation/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/src/presentation/components/ui/card";
-import {
-  Alert,
-  AlertDescription,
-} from "@/src/presentation/components/ui/alert";
 import { useAuth } from "../../src/presentation/hooks/use-auth";
+import { useTranslation } from "@/src/shared/i18n";
 import { styled } from "@/src/shared/utils/emotion";
 
-const AuthCard = styled(Card)`
-  width: 100%;
-  max-width: 28rem;
-`;
-
-const AuthPageShell = styled.div`
+const PageShell = styled.div`
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  background-color: rgb(249 250 251);
+  flex-direction: column;
+  background-color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 `;
 
-const LogoCircle = styled.div`
-  margin: 0 auto 1rem;
-  width: 4rem;
-  height: 4rem;
-  border-radius: 9999px;
-  background-color: #22c55e;
+const Main = styled.main`
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 2rem 0 6rem;
+  gap: 4rem;
+  max-width: 935px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  @media (max-width: 876px) {
+    flex-direction: column;
+    padding-top: 2rem;
+  }
 `;
 
-const LogoIcon = styled.svg`
-  width: 2rem;
-  height: 2rem;
-  color: white;
+const LeftColumn = styled.div`
+  flex: 1;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  @media (max-width: 876px) {
+    display: none;
+  }
+`;
+
+const InstagramLogo = styled.div`
+  width: 220px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 174 60'%3E%3Cpath fill='black' d='M115 30c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15zm-58 0c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15zm29 0c0-16.6 13.4-30 30-30s30 13.4 30 30-13.4 30-30 30-30-13.4-30-30z'/%3E%3C/svg%3E") center/contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 174 60'%3E%3Cpath fill='black' d='M115 30c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15zm-58 0c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15zm29 0c0-16.6 13.4-30 30-30s30 13.4 30 30-13.4 30-30 30-30-13.4-30-30z'/%3E%3C/svg%3E") center/contain no-repeat;
+`;
+
+const Tagline = styled.p`
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: #262626;
+  margin: 0 0 1.5rem;
+  font-weight: 400;
+`;
+
+const TaglineHighlight = styled.span`
+  color: #c13584;
+  font-weight: 600;
+`;
+
+const PhoneGraphic = styled.div`
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 381 / 581;
+  background: linear-gradient(180deg, #fae0e8 0%, #e8d5f0 50%, #d5e8f0 100%);
+  border-radius: 40px;
+  position: relative;
+  box-shadow: 0 0 0 8px #262626, 0 0 0 10px #eee;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 24px;
+    background: #262626;
+    border-radius: 12px;
+  }
+`;
+
+const RightColumn = styled.div`
+  flex: 0 0 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  @media (max-width: 876px) {
+    flex: 1;
+    width: 100%;
+    max-width: 350px;
+    padding: 0 1rem;
+  }
+`;
+
+const FormCard = styled.div`
+  width: 100%;
+  border: 1px solid rgb(219 219 219);
+  border-radius: 8px;
+  padding: 2rem 2.5rem;
+  background: #fff;
+  box-sizing: border-box;
+`;
+
+const FormHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #262626;
+  cursor: pointer;
+  border-radius: 50%;
+  &:hover {
+    background: rgb(239 239 239);
+  }
+`;
+
+const FormTitle = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  row-gap: 1rem;
+  gap: 0.75rem;
 `;
 
-const FieldGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  row-gap: 0.5rem;
-`;
-
-const FieldInner = styled.div`
-  position: relative;
-`;
-
-const LeftIconWrapper = styled.div`
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgb(156 163 175);
-  pointer-events: none;
-`;
-
-const InputWithLeftIcon = styled(Input)`
-  padding-left: 2.5rem;
-`;
-
-const InputWithSideIcons = styled(Input)`
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
-`;
-
-const TogglePasswordButton = styled.button`
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgb(156 163 175);
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-
-  &:hover {
-    color: rgb(75 85 99);
-  }
-`;
-
-const FullWidthPrimaryButton = styled(Button)`
-  width: 100%;
-  background-color: #22c55e;
-  color: white;
-
-  &:hover:not(:disabled) {
-    background-color: #16a34a;
-  }
-`;
-
-const BottomText = styled.div`
-  text-align: center;
+const StyledInput = styled(Input)`
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid rgb(219 219 219);
+  background: rgb(250 250 250);
   font-size: 0.875rem;
-  color: rgb(107 114 128);
+  padding: 0 0.5rem;
+  &::placeholder {
+    color: rgb(142 142 142);
+  }
+  &:focus {
+    border-color: rgb(168 168 168);
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
-const TextLinkButton = styled.button`
+const LogInButton = styled.button<{ $disabled?: boolean }>`
+  width: 100%;
+  height: 32px;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: ${(p) => (p.$disabled ? "rgba(0, 149, 246, 0.3)" : "#0095f6")};
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: ${(p) => (p.$disabled ? "not-allowed" : "pointer")};
+  &:hover:not(:disabled) {
+    background: #1877f2;
+  }
+  &:disabled {
+    opacity: 1;
+  }
+`;
+
+const ForgotLink = styled.a`
+  font-size: 0.75rem;
+  color: #00376b;
+  text-decoration: none;
+  margin-top: 0.75rem;
+  align-self: center;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0 0.75rem;
+`;
+
+const DividerLine = styled.div`
+  flex: 1;
+  height: 1px;
+  background: rgb(219 219 219);
+`;
+
+const DividerText = styled.span`
+  font-size: 0.8125rem;
+  color: rgb(142 142 142);
+  font-weight: 600;
+`;
+
+const SecondaryButton = styled.button`
+  width: 100%;
+  height: 32px;
+  border: 1px solid rgb(219 219 219);
+  border-radius: 8px;
+  background: #fff;
+  color: #385185;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  &:hover {
+    background: rgb(250 250 250);
+  }
+`;
+
+const MetaLink = styled.a`
+  font-size: 0.75rem;
+  color: #8e8e8e;
+  text-decoration: none;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const MetaLogo = styled.span`
+  font-size: 1rem;
+  font-weight: 300;
+`;
+
+const ErrorMessage = styled.div`
+  font-size: 0.8125rem;
+  color: #ed4956;
+  text-align: center;
+  margin-bottom: 0.5rem;
+`;
+
+const Footer = styled.footer`
+  padding: 1rem 1.5rem 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: rgb(142 142 142);
+`;
+
+const FooterLink = styled.a`
+  color: rgb(142 142 142);
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const LanguageRow = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+`;
+
+const LanguageSelect = styled.button`
   background: none;
   border: none;
   padding: 0;
-  margin-left: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #22c55e;
+  font-size: 0.75rem;
+  color: rgb(142 142 142);
   cursor: pointer;
-
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   &:hover {
-    color: #16a34a;
+    text-decoration: underline;
   }
 `;
+
+const TopBar = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  @media (min-width: 877px) {
+    right: calc(50% - 467px + 1rem);
+  }
+`;
+
+const SettingsButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #262626;
+  cursor: pointer;
+  border-radius: 50%;
+  &:hover {
+    background: rgb(239 239 239);
+  }
+`;
+
+function FacebookIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#385185" aria-hidden>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("cristiano@whatschat.com");
   const [password, setPassword] = useState("123456");
-  const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const { login, isAuthenticated, isLoading, error } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
@@ -156,7 +360,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      const result = await login(email, password);
+      const result = await login(email.trim(), password);
       if (result.success) {
         router.push("/");
       }
@@ -172,87 +376,89 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthPageShell>
-      <AuthCard>
-        <CardHeader>
-          <LogoCircle>
-            <LogoIcon fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
-            </LogoIcon>
-          </LogoCircle>
-          <CardTitle>
-            登录 WhatsApp
-          </CardTitle>
-          <CardDescription>请输入您的邮箱和密码登录</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form onSubmit={handleSubmit}>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <PageShell>
+      <TopBar>
+        <SettingsButton type="button" aria-label={t("login.settings")}>
+          <Settings size={24} strokeWidth={1.5} />
+        </SettingsButton>
+      </TopBar>
 
-            <FieldGroup>
-              <Label htmlFor="email">邮箱</Label>
-              <FieldInner>
-                <LeftIconWrapper>
-                  <Mail size={16} />
-                </LeftIconWrapper>
-                <InputWithLeftIcon
-                  id="email"
-                  type="email"
-                  placeholder="请输入邮箱"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </FieldInner>
-            </FieldGroup>
+      <Main>
+        <LeftColumn>
+          <InstagramLogo aria-hidden />
+          <Tagline>
+            {t("login.taglinePart1")} <TaglineHighlight>{t("login.taglinePart2")}</TaglineHighlight>
+          </Tagline>
+          <PhoneGraphic aria-hidden />
+        </LeftColumn>
 
-            <FieldGroup>
-              <Label htmlFor="password">密码</Label>
-              <FieldInner>
-                <LeftIconWrapper>
-                  <Lock size={16} />
-                </LeftIconWrapper>
-                <InputWithSideIcons
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="请输入密码"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <TogglePasswordButton
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
-                </TogglePasswordButton>
-              </FieldInner>
-            </FieldGroup>
+        <RightColumn>
+          <FormCard>
+            <FormHeader>
+              <BackButton type="button" onClick={() => router.back()} aria-label={t("common.cancel")}>
+                <ChevronLeft size={24} strokeWidth={2} />
+              </BackButton>
+              <FormTitle>{t("login.logIntoInstagram")}</FormTitle>
+            </FormHeader>
 
-            <FullWidthPrimaryButton type="submit" disabled={isLoading}>
-              {isLoading ? "登录中..." : "登录"}
-            </FullWidthPrimaryButton>
+            <Form onSubmit={handleSubmit}>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
+              <StyledInput
+                type="text"
+                placeholder={t("login.usernamePlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="username"
+                aria-label={t("login.usernamePlaceholder")}
+              />
+              <StyledInput
+                type="password"
+                placeholder={t("login.passwordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                aria-label={t("login.passwordPlaceholder")}
+              />
+              <LogInButton type="submit" disabled={isLoading} $disabled={isLoading}>
+                {isLoading ? t("login.loggingIn") : t("login.logIn")}
+              </LogInButton>
+              <ForgotLink href="#">{t("login.forgotPassword")}</ForgotLink>
+              <Divider>
+                <DividerLine />
+                <DividerText>OR</DividerText>
+                <DividerLine />
+              </Divider>
+              <SecondaryButton type="button">
+                <FacebookIcon />
+                {t("login.logInWithFacebook")}
+              </SecondaryButton>
+              <SecondaryButton type="button" onClick={() => router.push("/register")}>
+                {t("login.createNewAccount")}
+              </SecondaryButton>
+              <MetaLink href="#">
+                <MetaLogo>∞</MetaLogo>
+                {t("login.meta")}
+              </MetaLink>
+            </Form>
+          </FormCard>
+        </RightColumn>
+      </Main>
 
-            <BottomText>
-              还没有账号？
-              <TextLinkButton
-                type="button"
-                onClick={() => router.push("/register")}
-              >
-                立即注册
-              </TextLinkButton>
-            </BottomText>
-          </Form>
-        </CardContent>
-      </AuthCard>
-    </AuthPageShell>
+      <Footer>
+        {t("login.footerLinks").split(" ").map((word, index) => (
+          <FooterLink key={`${word}-${index}`} href="#">
+            {word}
+          </FooterLink>
+        ))}
+        <LanguageRow>
+          <LanguageSelect type="button">
+            {t("login.language")} ▼
+          </LanguageSelect>
+          <span>{t("login.copyright")}</span>
+        </LanguageRow>
+      </Footer>
+    </PageShell>
   );
 }

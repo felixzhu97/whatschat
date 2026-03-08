@@ -4,7 +4,7 @@ User journey, strategy, and design style. Content is maintained in Chinese under
 
 ## Design style
 
-- [WhatsApp-style design guidelines](whatsapp-design-style.md) — Color, typography, layout, components (en/zh)
+- **Web app** — Instagram-style UI: three-column layout (left nav 72px / 238px expanded, center feed, right sidebar), i18n (default English, changeable in Settings).
 
 - [User journey map](../zh/product/user-journey-map/user-journey-map.puml)
 - [User persona map](../zh/product/user-journey-map/user-persona-map.puml)

@@ -12,7 +12,9 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 🌐 **Web App** – Next.js SPA on port 4000
+- 📷 **Feed & Posts** – Create posts (image/video + caption), feed (own + followed), Reels, comments (MongoDB), search (Elasticsearch); posts/feed in Cassandra; Kafka for post.created; video cover in profile grid
+- 👤 **Social** – Follow/unfollow, suggestions (friend-of-friend), profile followers/following counts and list modals
+- 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, DM-style messages, right sidebar suggestions), i18n (en/zh, footer language switch)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
@@ -56,7 +58,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Elasticsearch (optional)
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed) · MongoDB (comments) · Elasticsearch (search)
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
@@ -65,7 +67,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - Node.js 18+
 - pnpm 8+
-- Docker & Docker Compose (PostgreSQL, Redis, Kafka via `apps/server/docker-compose.yml`)
+- Docker & Docker Compose (PostgreSQL, Redis, Kafka, Cassandra, MongoDB, Elasticsearch via `apps/server/docker-compose.yml`)
 
 ### Setup
 
@@ -97,7 +99,7 @@ pnpm start:mobile:ios   # or start:mobile:android
 
 ```
 apps/
-  web        # Next.js web app (whatschat-web, :4000)
+  web        # Next.js web app, Instagram-style UI + i18n (whatschat-web, :4000)
   admin      # Admin dashboard (whatschat-admin, :4001)
   mobile     # Expo mobile app (react-native-app)
   server     # NestJS API (whatschat-server, :3001)
@@ -121,17 +123,11 @@ packages/
 - `@whatschat/image-generation` – Image generation: HTTP client (jobId poll) or Replicate adapter.
 - `@whatschat/video-generation` – Video generation: HTTP client (jobId poll).
 
-## 📚 Docs & Diagrams
+## 📚 Docs
 
-- [文档索引](docs/README.md)
-- [C4 Model](docs/en/rd/c4/README.md)
-  - [System Context](docs/en/rd/c4/system-context.puml)
-  - [Containers](docs/en/rd/c4/containers.puml)
-  - [Components: API Server](docs/en/rd/c4/components-api-server.puml)
-  - [Components: Web App](docs/en/rd/c4/components-web-app.puml)
-  - [Components: Mobile App](docs/en/rd/c4/components-mobile-app.puml)
-  - [Components: Admin App](docs/en/rd/c4/components-admin-app.puml)
-- [TOGAF](docs/en/rd/togaf/overview.puml) · [Business](docs/en/rd/togaf/business-architecture.puml) · [Application](docs/en/rd/togaf/application-architecture.puml)
+- [Docs index](docs/README.md)
+- [C4](docs/en/rd/c4/README.md) – System context, containers, components (API, Web, Mobile, Admin)
+- [TOGAF](docs/en/rd/togaf/README.md) – Business, Application, Data, Technology
 
 ## 📄 License
 

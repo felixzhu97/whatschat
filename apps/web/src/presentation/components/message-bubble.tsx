@@ -33,6 +33,7 @@ interface MessageBubbleProps {
   isGroup?: boolean;
   isOwn?: boolean;
   showAvatar?: boolean;
+  sameSenderAbove?: boolean;
   onReply?: (message: Message) => void;
   onEdit?: (messageId: string, text: string) => void;
   onDelete?: (messageId: string) => void;
@@ -41,10 +42,11 @@ interface MessageBubbleProps {
   onInfo?: (message: Message) => void;
 }
 
-const Row = styled.div<{ $isSent: boolean }>`
+const Row = styled.div<{ $isSent: boolean; $compactTop?: boolean }>`
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   column-gap: 0.5rem;
+  margin-top: ${(p) => (p.$compactTop ? "2px" : "0.5rem")};
   ${({ $isSent }) =>
     $isSent
       ? `
@@ -58,19 +60,19 @@ const Row = styled.div<{ $isSent: boolean }>`
 const Bubble = styled.div<{ $isSent: boolean }>`
   position: relative;
   max-width: 20rem;
-  border-radius: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  border-radius: 1.125rem;
+  padding: 0.5rem 0.875rem;
   ${({ $isSent }) =>
     $isSent
       ? `
-    background-color: #22c55e;
-    color: white;
+    background-color: rgb(0 149 246);
+    color: rgb(255 255 255);
+    border-bottom-right-radius: 4px;
   `
       : `
-    background-color: white;
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    background-color: rgb(239 239 239);
+    color: rgb(38 38 38);
+    border-bottom-left-radius: 4px;
   `}
 
   @media (min-width: 1024px) {
@@ -102,11 +104,11 @@ const TimeRow = styled.div<{ $isSent: boolean }>`
   justify-content: flex-end;
   column-gap: 0.25rem;
   margin-top: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   ${({ $isSent }) =>
     $isSent
       ? `
-    color: rgb(187 247 208);
+    color: rgb(255 255 255 / 0.85);
   `
       : `
     color: rgb(107 114 128);
@@ -251,6 +253,7 @@ export function MessageBubble({
   isGroup = false,
   isOwn,
   showAvatar,
+  sameSenderAbove = false,
   onReply,
   onEdit,
   onDelete,
@@ -334,7 +337,7 @@ export function MessageBubble({
   };
 
   return (
-    <Row $isSent={isSent}>
+    <Row $isSent={isSent} $compactTop={sameSenderAbove}>
       {/* Avatar for received messages in groups */}
       {!isSent && isGroup && (
         <Avatar>

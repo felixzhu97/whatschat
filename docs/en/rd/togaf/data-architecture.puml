@@ -15,6 +15,9 @@ package "Data Entities" {
   component [Contact] as Contact
   component [Notification] as Notification
   component [FileUpload] as FileUpload
+  component [Post] as Post
+  component [FeedEntry] as FeedEntry
+  component [Comment] as Comment
 }
 
 package "Association Entities" {
@@ -26,11 +29,15 @@ package "Association Entities" {
   component [StatusView] as StatusView
   component [UserSettings] as UserSettings
   component [BlockedUser] as BlockedUser
+  component [Follow] as Follow
 }
 
 package "Data Storage" {
   database [PostgreSQL\nPrimary DB] as PostgreSQL #LightBlue
   database [Redis\nCache & Session] as Redis #LightCoral
+  database [Cassandra\nPosts & Feed] as Cassandra #LightYellow
+  database [MongoDB\nComments] as MongoDB #LightGreen
+  database [Elasticsearch\nSearch] as Elasticsearch #Wheat
   component [File Storage\nLocal] as FileStorage #LightGreen
 }
 
@@ -48,6 +55,10 @@ User --> Notification : receives
 User --> FileUpload : uploads
 User --> UserSettings : owns
 User --> BlockedUser : blocks/blocked by
+User --> Post : creates
+User --> Follow : follows / followed by
+Post --> Comment : has
+Post --> FeedEntry : source for
 
 Chat --> Message : contains
 Chat --> ChatParticipant : participants
@@ -81,10 +92,17 @@ MessageReaction --> PostgreSQL : persisted in
 StatusView --> PostgreSQL : persisted in
 UserSettings --> PostgreSQL : persisted in
 BlockedUser --> PostgreSQL : persisted in
+Follow --> PostgreSQL : persisted in
 
 User --> Redis : session cache
 Chat --> Redis : presence cache
 Message --> Redis : message queue
+FeedEntry --> Redis : feed cache
+
+Post --> Cassandra : persisted in
+FeedEntry --> Cassandra : persisted in
+Comment --> MongoDB : persisted in
+Post --> Elasticsearch : indexed for search
 
 FileUpload --> FileStorage : file stored in
 
@@ -100,6 +118,9 @@ rectangle "Data Entity Notes" {
     - Contact: contact entries
     - Notification: system/user notifications
     - FileUpload: file upload records
+    - Post: author, media (image/video), caption, type, timestamps
+    - FeedEntry: feed item (own + followed)
+    - Comment: post comments, replies
   end note
   
   note as N2
@@ -112,6 +133,7 @@ rectangle "Data Entity Notes" {
     - StatusView: views of status posts
     - UserSettings: user preferences (theme, language, notifications, privacy, chat)
     - BlockedUser: block relationships between users
+    - Follow: follow graph (for feed)
   end note
 }
 
@@ -172,20 +194,37 @@ note right of FileStorage
   - File versioning
 end note
 
+note right of Cassandra
+  **Cassandra**
+  - Posts by id, by user
+  - Feed by user (paginated)
+  - Kafka post.created populates feed
+end note
+
+note right of MongoDB
+  **MongoDB**
+  - Comments by post
+  - Nested replies
+end note
+
+note right of Elasticsearch
+  **Elasticsearch**
+  - Post, user, hashtag search
+end note
+
 note bottom
   **Data architecture description**
   
-  WhatsChat uses PostgreSQL as the primary relational store and Redis for caching and
-  messaging:
+  WhatsChat uses PostgreSQL as the primary relational store; Redis for caching and
+  messaging; Cassandra for posts and feed; MongoDB for comments; Elasticsearch for search:
   
-  1. **Core entities** – User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload.
+  1. **Core entities** – User, Chat, Message, Group, Call, Status, Contact, Notification, FileUpload, Post, FeedEntry, Comment.
      TypeScript types for core entities are defined in the shared package **@whatschat/domain** and consumed by server, web, and mobile.
   2. **Association entities** – ChatParticipant, GroupParticipant, CallParticipant, MessageRead,
-     MessageReaction, StatusView, UserSettings, BlockedUser
+     MessageReaction, StatusView, UserSettings, BlockedUser, Follow
   3. **Relationships** – one‑to‑one, one‑to‑many, and many‑to‑many modeled via foreign keys
      and junction tables
-  4. **Storage** – PostgreSQL for persistent data, Redis for cache and sessions, object storage
-     for media files
+  4. **Storage** – PostgreSQL for users, chats, messages, follow; Redis for cache and sessions; Cassandra for posts and feed; MongoDB for comments; Elasticsearch for post/user/hashtag search; object storage for media files
   5. **Data flows** – write, read, and realtime flows ensure both consistency and low‑latency reads
   
   The data model follows normalization principles to ensure integrity and consistency.

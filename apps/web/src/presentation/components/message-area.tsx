@@ -23,7 +23,7 @@ const MessageAreaShell = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgb(249 250 251);
+  background-color: rgb(255 255 255);
 `;
 
 const EmptyText = styled.p`
@@ -34,11 +34,10 @@ const EmptyText = styled.p`
 const MessageList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 1rem 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  row-gap: 1rem;
-  background-color: rgb(249 250 251);
+  background-color: rgb(255 255 255);
 `;
 
 const InnerEmpty = styled.div`
@@ -82,26 +81,31 @@ export function MessageArea({
           <EmptyText>还没有消息，开始聊天吧！</EmptyText>
         </InnerEmpty>
       ) : (
-        messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            isGroup={isGroup}
-            isOwn={
-              currentUserId != null
-                ? message.senderId === currentUserId ||
-                  message.senderId === "current-user" ||
-                  message.senderId === "me"
-                : undefined
-            }
-            onReply={onReply}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onForward={onForward}
-            onStar={onStar}
-            onInfo={onInfo}
-          />
-        ))
+        messages.map((message, index) => {
+          const isOwn =
+            currentUserId != null
+              ? message.senderId === currentUserId ||
+                message.senderId === "current-user" ||
+                message.senderId === "me"
+              : undefined;
+          const prev = messages[index - 1];
+          const sameSenderAbove = !!prev && prev.senderId === message.senderId;
+          return (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isGroup={isGroup}
+              isOwn={isOwn}
+              sameSenderAbove={sameSenderAbove}
+              onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onForward={onForward}
+              onStar={onStar}
+              onInfo={onInfo}
+            />
+          );
+        })
       )}
       <div ref={messagesEndRef} />
     </MessageList>

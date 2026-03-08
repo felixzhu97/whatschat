@@ -56,8 +56,8 @@ export function WelcomeScreen() {
         <IconWrap>
           <Icon />
         </IconWrap>
-        <Title>欢迎使用 WhatsApp Web</Title>
-        <Subtitle>发送和接收消息，无需保持手机在线。</Subtitle>
+        <Title>欢迎使用 Instagram</Title>
+        <Subtitle>发送和接收消息，与好友保持联系。</Subtitle>
         <Hint>选择一个聊天开始对话</Hint>
       </Center>
     </Root>

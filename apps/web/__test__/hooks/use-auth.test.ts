@@ -89,7 +89,7 @@ describe("useAuth Hook", () => {
       expect(result.current.user).toEqual(mockUser);
       expect(result.current.error).toBeNull();
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "whatsapp_user",
+        "instagram_user",
         JSON.stringify(mockUser)
       );
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
@@ -290,7 +290,7 @@ describe("useAuth Hook", () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("whatsapp_user");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("instagram_user");
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("access_token");
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("refresh_token");
     });
@@ -312,7 +312,7 @@ describe("useAuth Hook", () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.user).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("whatsapp_user");
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("instagram_user");
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("access_token");
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("refresh_token");
     });
@@ -359,7 +359,7 @@ describe("useAuth Hook", () => {
 
       localStorageMock.getItem.mockImplementation((key) => {
         if (key === "access_token") return "existing-token";
-        if (key === "whatsapp_user") return JSON.stringify(mockUser);
+        if (key === "instagram_user") return JSON.stringify(mockUser);
         return null;
       });
 

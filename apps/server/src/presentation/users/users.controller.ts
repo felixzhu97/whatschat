@@ -13,13 +13,30 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { UsersService } from "../../application/services/users.service";
+import { FollowService } from "../../application/services/follow.service";
 
 @ApiTags("用户")
 @Controller("users")
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly followService: FollowService
+  ) {}
+
+  @Get("suggestions")
+  @ApiOperation({ summary: "获取推荐关注用户" })
+  async getSuggestions(
+    @CurrentUser() user: { id: string },
+    @Query("limit") limit?: string
+  ) {
+    const data = await this.followService.getSuggestions(
+      user.id,
+      limit ? Math.min(parseInt(limit, 10) || 10, 50) : 10
+    );
+    return { success: true, data };
+  }
 
   @Get()
   @ApiOperation({ summary: "获取用户列表" })
@@ -42,15 +59,49 @@ export class UsersController {
     };
   }
 
+  @Get(":id/followers")
+  @ApiOperation({ summary: "获取粉丝列表" })
+  async getFollowers(
+    @Param("id") id: string,
+    @Query("limit") limit?: string,
+    @Query("pageState") pageState?: string
+  ) {
+    const result = await this.followService.getFollowers(
+      id,
+      limit ? parseInt(limit, 10) || 20 : 20,
+      pageState
+    );
+    return { success: true, data: result.list, total: result.total, pageState: result.pageState };
+  }
+
+  @Get(":id/following")
+  @ApiOperation({ summary: "获取关注列表" })
+  async getFollowing(
+    @Param("id") id: string,
+    @Query("limit") limit?: string,
+    @Query("pageState") pageState?: string
+  ) {
+    const result = await this.followService.getFollowing(
+      id,
+      limit ? parseInt(limit, 10) || 20 : 20,
+      pageState
+    );
+    return { success: true, data: result.list, total: result.total, pageState: result.pageState };
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "获取用户详情" })
   async getUser(@Param("id") id: string) {
     const user = await this.usersService.getUserById(id);
+    const [followersCount, followingCount] = await Promise.all([
+      this.followService.getFollowersCount(id),
+      this.followService.getFollowingCount(id),
+    ]);
 
     return {
       success: true,
       message: "获取用户详情成功",
-      data: user,
+      data: { ...user, followersCount, followingCount },
     };
   }
 

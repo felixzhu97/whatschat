@@ -1,316 +1,630 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Camera, Edit2, Check, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { LayoutGrid, Bookmark, UserCheck, Plus, Play } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
-import { Input } from "@/src/presentation/components/ui/input";
-import { Label } from "@/src/presentation/components/ui/label";
-import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
-import { Separator } from "@/src/presentation/components/ui/separator";
 import { styled } from "@/src/shared/utils/emotion";
-import { useAuth } from "../hooks/use-auth";
+import { useTranslation, setStoredLocale, getLocale, type AppLocale } from "@/src/shared/i18n";
+import type { FeedPost } from "@/shared/types";
 
-interface ProfilePageProps {
-  onBack: () => void;
+const FOOTER_LANG_OPTIONS: { value: AppLocale; label: string }[] = [
+  { value: "en", label: "English" },
+  { value: "zh", label: "中文" },
+];
+
+const TEXT_PRIMARY = "rgb(38 38 38)";
+const TEXT_SECONDARY = "rgb(142 142 142)";
+const BORDER = "1px solid rgb(219 219 219)";
+const BG_BUTTON = "rgb(239 239 239)";
+
+const VIDEO_COVER_PLACEHOLDER = "/placeholder.svg?height=400&width=400&text=Video";
+
+function isVideoUrl(url: string): boolean {
+  if (!url || url.startsWith("data:")) return false;
+  return /\.(mp4|webm|mov|m4v|ogv)(\?|$)/i.test(url) || url.includes("/video/");
+}
+
+function getVideoUrl(post: FeedPost): string | null {
+  if (post.type !== "VIDEO") return null;
+  const u = post.videoUrl ?? post.imageUrl ?? "";
+  return u && isVideoUrl(u) ? u : null;
+}
+
+const VideoFirstFrameWrap = styled.div`
+  position: absolute;
+  inset: 0;
+  background-color: rgb(239 239 239);
+`;
+
+const VideoFirstFrameImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const VideoFirstFrameVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+`;
+
+function VideoFirstFrameCover({
+  videoUrl,
+  placeholderSrc,
+}: {
+  videoUrl: string;
+  placeholderSrc: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showFrame, setShowFrame] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !videoUrl || failed) return;
+    el.currentTime = 0;
+    const onLoaded = () => {
+      el.currentTime = 0;
+      setShowFrame(true);
+    };
+    const onErr = () => setFailed(true);
+    el.addEventListener("loadeddata", onLoaded);
+    el.addEventListener("error", onErr);
+    if (el.readyState >= 2) {
+      el.currentTime = 0;
+      setShowFrame(true);
+    }
+    return () => {
+      el.removeEventListener("loadeddata", onLoaded);
+      el.removeEventListener("error", onErr);
+    };
+  }, [videoUrl, failed]);
+
+  useEffect(() => {
+    setShowFrame(false);
+    setFailed(false);
+  }, [videoUrl]);
+
+  if (failed) {
+    return <VideoFirstFrameImg src={placeholderSrc} alt="" />;
+  }
+
+  return (
+    <VideoFirstFrameWrap>
+      <VideoFirstFrameImg src={placeholderSrc} alt="" style={{ opacity: showFrame ? 0 : 1 }} />
+      <VideoFirstFrameVideo
+        ref={videoRef}
+        src={videoUrl}
+        preload="auto"
+        muted
+        playsInline
+        style={{ opacity: showFrame ? 1 : 0, position: "absolute", inset: 0 }}
+        onLoadedData={() => {
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+            setShowFrame(true);
+          }
+        }}
+        onError={() => setFailed(true)}
+      />
+    </VideoFirstFrameWrap>
+  );
 }
 
 const PageRoot = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: white;
-`;
-
-const Header = styled.div`
-  background-color: #16a34a;
-  color: white;
-  padding: 1rem;
-`;
-
-const HeaderRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`;
-
-const BackBtn = styled(Button)`
-  color: white;
-
-  &:hover {
-    background-color: #15803d;
-  }
-`;
-
-const Title = styled.h1`
-  font-size: 1.25rem;
-  font-weight: 500;
-`;
-
-const ArrowIcon = styled(ArrowLeft)`
-  height: 1.25rem;
-  width: 1.25rem;
-`;
-
-const Body = styled(ScrollArea)`
   flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background-color: rgb(255 255 255);
 `;
 
-const Inner = styled.div`
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+const ContentWrap = styled.div`
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 30px 20px 0;
 `;
 
-const AvatarSection = styled.div`
+const ProfileHeader = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: row;
+  margin-bottom: 44px;
+  gap: 80px;
+  padding-bottom: 44px;
+  border-bottom: ${BORDER};
 `;
 
 const AvatarWrap = styled.div`
-  position: relative;
+  flex-shrink: 0;
 `;
 
 const AvatarLarge = styled(Avatar)`
-  height: 8rem;
-  width: 8rem;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
 `;
 
 const FallbackLarge = styled(AvatarFallback)`
-  font-size: 1.5rem;
+  font-size: 48px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366);
+  color: white;
 `;
 
-const CameraBtn = styled(Button)`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  border-radius: 9999px;
-  background-color: #22c55e;
+const InfoBlock = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
 
+const UsernameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const Username = styled.h1`
+  margin: 0;
+  font-size: 28px;
+  font-weight: 300;
+  color: ${TEXT_PRIMARY};
+  line-height: 1.2;
+`;
+
+const VerifiedDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${TEXT_PRIMARY};
+`;
+
+const FullName = styled.p`
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${TEXT_PRIMARY};
+`;
+
+const StatsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 16px;
+  color: ${TEXT_PRIMARY};
+`;
+
+const Stat = styled.span`
+  font-weight: 400;
+`;
+
+const StatButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 400;
   &:hover {
-    background-color: #16a34a;
+    text-decoration: underline;
   }
 `;
 
-const CameraIcon = styled(Camera)`
-  height: 1rem;
-  width: 1rem;
+const Handle = styled.p`
+  margin: 0;
+  font-size: 16px;
+  color: ${TEXT_SECONDARY};
 `;
 
-const AvatarHint = styled.p`
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-`;
-
-const FieldGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
-const LabelGreen = styled(Label)`
-  color: #16a34a;
-  font-weight: 500;
-`;
-
-const EditRow = styled.div`
+const ActionsRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
 `;
 
-const InputFlex = styled(Input)`
-  flex: 1;
+const ActionBtn = styled(Button)`
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: ${BG_BUTTON};
+  color: ${TEXT_PRIMARY};
+  border: none;
+
+  &:hover {
+    background-color: rgb(219 219 219);
+  }
 `;
 
-const CheckIcon = styled(Check)`
-  height: 1rem;
-  width: 1rem;
-  color: #16a34a;
+const NewSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 44px;
 `;
 
-const XIcon = styled(X)`
-  height: 1rem;
-  width: 1rem;
-  color: rgb(75 85 99);
+const NewBtn = styled.button`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid ${TEXT_PRIMARY};
+  background: transparent;
+  color: ${TEXT_PRIMARY};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgb(239 239 239);
+  }
 `;
 
-const ViewRow = styled.div`
+const NewLabel = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${TEXT_PRIMARY};
+`;
+
+const TabsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-top: ${BORDER};
+  margin-bottom: 0;
+`;
+
+const Tab = styled.button<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  margin-top: -1px;
+  border: none;
+  border-top: 1px solid ${(p) => (p.$active ? TEXT_PRIMARY : "transparent")};
+  background: none;
+  cursor: pointer;
+  color: ${(p) => (p.$active ? TEXT_PRIMARY : TEXT_SECONDARY)};
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  min-width: 80px;
+  justify-content: center;
+
+  &:hover {
+    color: ${TEXT_PRIMARY};
+  }
+`;
+
+const TabIcon = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const GridWrap = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+`;
+
+const GridCell = styled.button`
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  background: rgb(239 239 239);
+  cursor: pointer;
+  overflow: hidden;
+  display: block;
+  position: relative;
+`;
+
+const GridImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: rgb(239 239 239);
+`;
+
+const VideoCoverOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+`;
+
+const PlayIcon = styled(Play)`
+  width: 28px;
+  height: 28px;
+  color: rgb(255 255 255);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
+`;
+
+const Footer = styled.footer`
+  margin-top: 48px;
+  padding: 24px 0 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+`;
+
+const FooterLinks = styled.div`
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+  text-align: center;
+  line-height: 1.6;
+`;
+
+const FooterLangWrap = styled.div`
+  position: relative;
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+`;
+
+const FooterLangTrigger = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+  cursor: pointer;
+  border-radius: 4px;
+  &:hover {
+    color: ${TEXT_PRIMARY};
+    background: rgb(239 239 239);
+  }
+`;
+
+const FooterLangDropdown = styled.div`
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  min-width: 160px;
+  padding: 8px 0;
+  background: rgb(255 255 255);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+  border: 1px solid rgb(219 219 219);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+`;
+
+const FooterLangOption = styled.button<{ $selected?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
+  cursor: pointer;
+  text-align: left;
   &:hover {
-    background-color: rgb(249 250 251);
+    background: rgb(250 250 250);
   }
+  ${(p) => p.$selected && "font-weight: 600;"}
 `;
 
-const ViewText = styled.span`
-  color: rgb(17 24 31);
+const FooterCopy = styled.span`
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
 `;
 
-const EditIcon = styled(Edit2)`
-  height: 1rem;
-  width: 1rem;
-  color: rgb(75 85 99);
-`;
+export interface ProfilePageProps {
+  user: {
+    id: string;
+    username?: string;
+    name?: string;
+    avatar?: string;
+  } | null | undefined;
+  posts: FeedPost[];
+  followersCount?: number;
+  followingCount?: number;
+  onEditProfile?: () => void;
+  onViewArchive?: () => void;
+  onNewPost?: () => void;
+  onPostClick?: (post: FeedPost) => void;
+  onFollowersClick?: () => void;
+  onFollowingClick?: () => void;
+}
 
-const FieldHint = styled.p`
-  font-size: 0.75rem;
-  color: rgb(107 114 128);
-`;
+type ProfileTab = "grid" | "saved" | "tagged";
 
-const ContactGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
+export function ProfilePage({
+  user,
+  posts,
+  followersCount = 0,
+  followingCount = 0,
+  onEditProfile,
+  onViewArchive,
+  onNewPost,
+  onPostClick,
+  onFollowersClick,
+  onFollowingClick,
+}: ProfilePageProps) {
+  const { t, i18n } = useTranslation();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("grid");
+  const [langOpen, setLangOpen] = useState(false);
+  const currentLocale = getLocale();
 
-const ContactLabel = styled(Label)`
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-`;
+  const handleLocaleChange = (locale: AppLocale) => {
+    setStoredLocale(locale);
+    i18n.changeLanguage(locale);
+    setLangOpen(false);
+  };
 
-const ContactValue = styled.div`
-  padding: 0.75rem;
-  background-color: rgb(249 250 251);
-  border-radius: 0.5rem;
-`;
+  const myPosts = posts.filter((p) => p.userId === user?.id);
+  const postCount = myPosts.length;
+  const username = user?.username ?? "";
+  const fullName = user?.name ?? "";
+  const handleStr = username ? `@${username}` : "";
 
-const ContactText = styled.span`
-  color: rgb(17 24 31);
-`;
-
-export function ProfilePage({ onBack }: ProfilePageProps) {
-  const { user, updateUser } = useAuth();
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingAbout, setIsEditingAbout] = useState(false);
-  const [tempName, setTempName] = useState(user?.name || "");
-  const [tempAbout, setTempAbout] = useState(user?.about || "");
-
-  const handleSaveName = () => {
-    if (tempName.trim()) {
-      updateUser({ name: tempName.trim() });
-      setIsEditingName(false);
+  const gridCoverUrl = (post: FeedPost): string => {
+    if (post.type === "VIDEO") {
+      const raw = post.coverImageUrl ?? post.imageUrl ?? post.videoUrl ?? "";
+      return raw && !isVideoUrl(raw) ? raw : VIDEO_COVER_PLACEHOLDER;
     }
-  };
-
-  const handleSaveAbout = () => {
-    updateUser({ about: tempAbout.trim() });
-    setIsEditingAbout(false);
-  };
-
-  const handleCancelName = () => {
-    setTempName(user?.name || "");
-    setIsEditingName(false);
-  };
-
-  const handleCancelAbout = () => {
-    setTempAbout(user?.about || "");
-    setIsEditingAbout(false);
+    return post.imageUrl ?? "";
   };
 
   return (
     <PageRoot>
-      <Header>
-        <HeaderRow>
-          <BackBtn variant="ghost" size="icon" onClick={onBack}>
-            <ArrowIcon />
-          </BackBtn>
-          <Title>个人资料</Title>
-        </HeaderRow>
-      </Header>
+      <ContentWrap>
+        <ProfileHeader>
+          <AvatarWrap>
+            <AvatarLarge>
+              <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+              <FallbackLarge>{(fullName || username || "?")[0]}</FallbackLarge>
+            </AvatarLarge>
+          </AvatarWrap>
+          <InfoBlock>
+            <UsernameRow>
+              <Username>{username || fullName || "—"}</Username>
+              <VerifiedDot />
+            </UsernameRow>
+            {fullName && <FullName>{fullName}</FullName>}
+            <StatsRow>
+              <Stat>{t("profile.postsCount", { count: String(postCount) } as Record<string, string>)}</Stat>
+              {onFollowersClick ? (
+                <StatButton type="button" onClick={onFollowersClick}>
+                  {t("profile.followersCount", { count: String(followersCount) } as Record<string, string>)}
+                </StatButton>
+              ) : (
+                <Stat>{t("profile.followersCount", { count: String(followersCount) } as Record<string, string>)}</Stat>
+              )}
+              {onFollowingClick ? (
+                <StatButton type="button" onClick={onFollowingClick}>
+                  {t("profile.followingCount", { count: String(followingCount) } as Record<string, string>)}</StatButton>
+              ) : (
+                <Stat>{t("profile.followingCount", { count: String(followingCount) } as Record<string, string>)}</Stat>
+              )}
+            </StatsRow>
+            {handleStr && <Handle>{handleStr}</Handle>}
+            <ActionsRow>
+              <ActionBtn onClick={onEditProfile}>{t("profile.editProfile")}</ActionBtn>
+              <ActionBtn onClick={onViewArchive}>{t("profile.viewArchive")}</ActionBtn>
+            </ActionsRow>
+          </InfoBlock>
+        </ProfileHeader>
 
-      <Body>
-        <Inner>
-          <AvatarSection>
-            <AvatarWrap>
-              <AvatarLarge>
-                <AvatarImage src={user?.avatar || "/placeholder.svg"} />
-                <FallbackLarge>{user?.name?.[0] || "我"}</FallbackLarge>
-              </AvatarLarge>
-              <CameraBtn size="icon">
-                <CameraIcon />
-              </CameraBtn>
-            </AvatarWrap>
-            <AvatarHint>点击更换头像</AvatarHint>
-          </AvatarSection>
+        <NewSection>
+          <NewBtn type="button" onClick={onNewPost} aria-label={t("profile.new")}>
+            <Plus size={24} strokeWidth={2} />
+          </NewBtn>
+          <NewLabel>{t("profile.new")}</NewLabel>
+        </NewSection>
 
-          <Separator />
+        <TabsRow>
+          <Tab $active={activeTab === "grid"} onClick={() => setActiveTab("grid")}>
+            <TabIcon>
+              <LayoutGrid size={12} strokeWidth={2} />
+            </TabIcon>
+            {t("profile.tabGrid")}
+          </Tab>
+          <Tab $active={activeTab === "saved"} onClick={() => setActiveTab("saved")}>
+            <TabIcon>
+              <Bookmark size={12} strokeWidth={2} />
+            </TabIcon>
+            {t("profile.tabSaved")}
+          </Tab>
+          <Tab $active={activeTab === "tagged"} onClick={() => setActiveTab("tagged")}>
+            <TabIcon>
+              <UserCheck size={12} strokeWidth={2} />
+            </TabIcon>
+            {t("profile.tabTagged")}
+          </Tab>
+        </TabsRow>
 
-          <FieldGroup>
-            <LabelGreen>姓名</LabelGreen>
-            {isEditingName ? (
-              <EditRow>
-                <InputFlex value={tempName} onChange={(e) => setTempName(e.target.value)} autoFocus />
-                <Button size="icon" variant="ghost" onClick={handleSaveName}>
-                  <CheckIcon />
-                </Button>
-                <Button size="icon" variant="ghost" onClick={handleCancelName}>
-                  <XIcon />
-                </Button>
-              </EditRow>
-            ) : (
-              <ViewRow>
-                <ViewText>{user?.name || "未设置"}</ViewText>
-                <Button size="icon" variant="ghost" onClick={() => setIsEditingName(true)}>
-                  <EditIcon />
-                </Button>
-              </ViewRow>
+        {activeTab === "grid" && (
+          <GridWrap>
+            {myPosts.map((post) => {
+              const videoUrl = getVideoUrl(post);
+              const isVideo = post.type === "VIDEO";
+              return (
+                <GridCell key={post.id} type="button" onClick={() => onPostClick?.(post)}>
+                  {isVideo && videoUrl ? (
+                    <VideoFirstFrameCover
+                      videoUrl={videoUrl}
+                      placeholderSrc={VIDEO_COVER_PLACEHOLDER}
+                    />
+                  ) : (
+                    <GridImg
+                      src={gridCoverUrl(post) || VIDEO_COVER_PLACEHOLDER}
+                      alt=""
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        if (el.src !== VIDEO_COVER_PLACEHOLDER) el.src = VIDEO_COVER_PLACEHOLDER;
+                      }}
+                    />
+                  )}
+                  {isVideo && (
+                    <VideoCoverOverlay>
+                      <PlayIcon size={28} fill="currentColor" />
+                    </VideoCoverOverlay>
+                  )}
+                </GridCell>
+              );
+            })}
+          </GridWrap>
+        )}
+        {activeTab === "saved" && <GridWrap />}
+        {activeTab === "tagged" && <GridWrap />}
+
+        <Footer>
+          <FooterLinks>{t("profile.footerLinks")}</FooterLinks>
+          <FooterLangWrap>
+            <FooterLangTrigger
+              type="button"
+              onClick={() => setLangOpen((o) => !o)}
+              aria-expanded={langOpen}
+              aria-haspopup="listbox"
+              aria-label={t("profile.language")}
+            >
+              {currentLocale === "zh" ? "中文" : "English"} ▼
+            </FooterLangTrigger>
+            {langOpen && (
+              <>
+                <div
+                  role="presentation"
+                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                  onClick={() => setLangOpen(false)}
+                />
+                <FooterLangDropdown role="listbox">
+                  {FOOTER_LANG_OPTIONS.map((opt) => (
+                    <FooterLangOption
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      $selected={currentLocale === opt.value}
+                      aria-selected={currentLocale === opt.value}
+                      onClick={() => handleLocaleChange(opt.value)}
+                    >
+                      {opt.value === currentLocale ? "✓ " : ""}
+                      {opt.label}
+                    </FooterLangOption>
+                  ))}
+                </FooterLangDropdown>
+              </>
             )}
-            <FieldHint>这不是用户名或PIN码。此名称将对您的WhatsApp联系人可见。</FieldHint>
-          </FieldGroup>
-
-          <Separator />
-
-          <FieldGroup>
-            <LabelGreen>关于</LabelGreen>
-            {isEditingAbout ? (
-              <EditRow>
-                <InputFlex value={tempAbout} onChange={(e) => setTempAbout(e.target.value)} autoFocus />
-                <Button size="icon" variant="ghost" onClick={handleSaveAbout}>
-                  <CheckIcon />
-                </Button>
-                <Button size="icon" variant="ghost" onClick={handleCancelAbout}>
-                  <XIcon />
-                </Button>
-              </EditRow>
-            ) : (
-              <ViewRow>
-                <ViewText>{user?.about || "嗨，我正在使用 WhatsApp！"}</ViewText>
-                <Button size="icon" variant="ghost" onClick={() => setIsEditingAbout(true)}>
-                  <EditIcon />
-                </Button>
-              </ViewRow>
-            )}
-          </FieldGroup>
-
-          <Separator />
-
-          <ContactGroup>
-            <LabelGreen>联系信息</LabelGreen>
-            <FieldGroup>
-              <div>
-                <ContactLabel>邮箱</ContactLabel>
-                <ContactValue>
-                  <ContactText>{user?.email || "未设置"}</ContactText>
-                </ContactValue>
-              </div>
-              <div>
-                <ContactLabel>手机号</ContactLabel>
-                <ContactValue>
-                  <ContactText>{user?.phone || "未设置"}</ContactText>
-                </ContactValue>
-              </div>
-            </FieldGroup>
-          </ContactGroup>
-        </Inner>
-      </Body>
+          </FooterLangWrap>
+          <FooterCopy>{t("profile.copyright")}</FooterCopy>
+        </Footer>
+      </ContentWrap>
     </PageRoot>
   );
 }

@@ -67,7 +67,10 @@
     "@whatschat/domain": "workspace:*",
     "@whatschat/llm": "workspace:*",
     "@whatschat/video-generation": "workspace:*",
-    "@whatschat/image-generation": "workspace:*"
+    "@whatschat/image-generation": "workspace:*",
+    "cassandra-driver": "^4.7.2",
+    "mongodb": "^6.3.0",
+    "@elastic/elasticsearch": "^8.11.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",

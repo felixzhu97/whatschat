@@ -35,22 +35,31 @@ pkill -f "apps/image-gen/app.py" 2>/dev/null || true
 pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
 sleep 1
 
-echo "[2/4] Docker (Postgres, Redis, Kafka)..."
+echo "[2/4] Docker + env..."
 COMPOSE_CMD="docker compose"
 docker compose version >/dev/null 2>&1 || COMPOSE_CMD="docker-compose"
 cd "$SERVER_DIR"
 export COMPOSE_PROJECT_NAME=whatschat
 $COMPOSE_CMD -f docker-compose.yml down 2>/dev/null || true
-$COMPOSE_CMD -f docker-compose.yml up -d --wait postgres redis kafka 2>/dev/null || true
-for i in $(seq 1 45); do
-  nc -z 127.0.0.1 5433 2>/dev/null && nc -z 127.0.0.1 6379 2>/dev/null && nc -z 127.0.0.1 9092 2>/dev/null && break
+$COMPOSE_CMD -f docker-compose.yml up -d --wait postgres redis kafka cassandra mongodb elasticsearch 2>/dev/null || true
+for i in $(seq 1 60); do
+  nc -z 127.0.0.1 5433 2>/dev/null && nc -z 127.0.0.1 6379 2>/dev/null && nc -z 127.0.0.1 9092 2>/dev/null && \
+  nc -z 127.0.0.1 9042 2>/dev/null && nc -z 127.0.0.1 27017 2>/dev/null && nc -z 127.0.0.1 9200 2>/dev/null && break
   sleep 1
 done
-sleep 3
+sleep 2
+export DATABASE_URL="${DATABASE_URL:-postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public}"
+export REDIS_URL="${REDIS_URL:-redis://localhost:6379}"
+export KAFKA_BROKERS="${KAFKA_BROKERS:-localhost:9092}"
+export JWT_SECRET="${JWT_SECRET:-whatschat-dev-jwt-secret}"
+export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-whatschat-dev-refresh-secret}"
+export CASSANDRA_CONTACT_POINTS="${CASSANDRA_CONTACT_POINTS:-127.0.0.1:9042}"
+export MONGODB_URI="${MONGODB_URI:-mongodb://localhost:27017/whatschat}"
+export ELASTICSEARCH_NODE="${ELASTICSEARCH_NODE:-http://localhost:9200}"
+export NODE_ENV=$([ "$ENV" == "prod" ] && echo production || echo development)
 cd "$ROOT_DIR"
 
 echo "[3/4] Migrate + seed..."
-[ "$ENV" == "dev" ] && export DATABASE_URL="postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public"
 pnpm --filter whatschat-server migrate >/dev/null 2>&1 || true
 [ "$ENV" == "dev" ] && "$SCRIPT_DIR/../db/seed.sh" dev >/dev/null 2>&1 || true
 
@@ -70,11 +79,11 @@ SERVER_PID=$!
 sleep 2
 kill -0 $SERVER_PID 2>/dev/null || { echo -e "${RED}Server failed${NC}"; exit 1; }
 
-for i in $(seq 1 60); do
+for i in $(seq 1 90); do
   kill -0 $SERVER_PID 2>/dev/null || { echo -e "${RED}Server exited${NC}"; exit 1; }
-  curl -sf http://localhost:3001/api/v1/health >/dev/null 2>&1 && break
-  [ $i -eq 60 ] && { kill $SERVER_PID 2>/dev/null; echo -e "${RED}Health timeout${NC}"; exit 1; }
-  sleep 2
+  nc -z 127.0.0.1 3001 2>/dev/null && break
+  [ $i -eq 90 ] && { kill $SERVER_PID 2>/dev/null; echo -e "${RED}Server listen timeout${NC}"; exit 1; }
+  sleep 3
 done
 
 echo -e "\n${GREEN}Ready. API: http://localhost:3001  (Ctrl+C to stop)${NC}\n"

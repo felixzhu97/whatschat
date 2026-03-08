@@ -94,7 +94,7 @@ describe("useRealChat Hook", () => {
       // 当 localStorage 为空时，hook 会设置欢迎消息
       expect(result.current.messages).toHaveLength(2);
       expect(result.current.messages[0].content).toBe(
-        "欢迎使用 WhatsApp Web！"
+        "欢迎使用 Instagram！"
       );
       expect(result.current.messages[1].content).toBe(
         "这是一个功能完整的聊天应用演示"
@@ -489,7 +489,7 @@ describe("useRealChat Hook", () => {
       // 当 contactId 为空时，hook 仍然会设置欢迎消息
       expect(result.current.messages).toHaveLength(2);
       expect(result.current.messages[0].content).toBe(
-        "欢迎使用 WhatsApp Web！"
+        "欢迎使用 Instagram！"
       );
       expect(result.current.messages[1].content).toBe(
         "这是一个功能完整的聊天应用演示"

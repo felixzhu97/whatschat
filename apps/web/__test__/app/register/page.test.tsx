@@ -4,8 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import RegisterPage from "@/app/register/page";
 
-// Mock the useAuth hook
 const mockRegister = vi.fn().mockResolvedValue({ success: true });
+const mockPush = vi.fn();
+
 const mockUseAuth: any = {
   register: mockRegister,
   isAuthenticated: false,
@@ -13,25 +14,54 @@ const mockUseAuth: any = {
   error: null as string | null,
 };
 
-vi.mock("../../../hooks/use-auth", () => ({
+vi.mock("../../../src/presentation/hooks/use-auth", () => ({
   useAuth: () => mockUseAuth,
 }));
 
-// Mock next/navigation
-const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
+    back: vi.fn(),
   }),
 }));
 
-// Mock UI components
-vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, disabled, type, ...props }: any) => (
-    <button onClick={onClick} disabled={disabled} type={type} {...props}>
-      {children}
-    </button>
-  ),
+vi.mock("@/src/shared/i18n", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        "register.title": "Get started on Instagram",
+        "register.subtitle": "Sign up to see photos and videos from your friends.",
+        "register.mobileOrEmail": "Mobile number or email",
+        "register.mobileOrEmailPlaceholder": "Mobile number or email",
+        "register.contactInfoNotePrefix": "You may receive notifications from us. ",
+        "register.learnWhyContact": "Learn why we ask for your contact information.",
+        "register.password": "Password",
+        "register.passwordPlaceholder": "Password",
+        "register.birthday": "Birthday",
+        "register.month": "Month",
+        "register.day": "Day",
+        "register.year": "Year",
+        "register.name": "Name",
+        "register.fullNamePlaceholder": "Full name",
+        "register.username": "Username",
+        "register.usernamePlaceholder": "Username",
+        "register.contactUploadPrefix": "People who use our service may have uploaded your contact information to Instagram. ",
+        "register.learnMore": "Learn more.",
+        "register.agreeTermsPrefix": "By tapping Submit, you agree to create an account and to Instagram's ",
+        "register.terms": "Terms",
+        "register.privacyPolicy": "Privacy Policy",
+        "register.cookiesPolicy": "Cookies Policy",
+        "register.agreeTermsSuffix": ".",
+        "register.privacyNote": "The Privacy Policy describes...",
+        "register.submit": "Submit",
+        "register.submitting": "Submitting...",
+        "register.alreadyHaveAccount": "I already have an account",
+        "register.meta": "Meta",
+        "common.cancel": "Cancel",
+      };
+      return map[key] ?? key;
+    },
+  }),
 }));
 
 vi.mock("@/components/ui/input", () => ({
@@ -40,42 +70,14 @@ vi.mock("@/components/ui/input", () => ({
   ),
 }));
 
-vi.mock("@/components/ui/label", () => ({
-  Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
-}));
-
-vi.mock("@/components/ui/card", () => ({
-  Card: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CardContent: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-  CardDescription: ({ children, ...props }: any) => (
-    <p {...props}>{children}</p>
-  ),
-  CardHeader: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CardTitle: ({ children, ...props }: any) => <h1 {...props}>{children}</h1>,
-}));
-
-vi.mock("@/components/ui/alert", () => ({
-  Alert: ({ children, ...props }: any) => (
-    <div role="alert" {...props}>
-      {children}
-    </div>
-  ),
-  AlertDescription: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-}));
-
-// Mock Lucide React icons
-vi.mock("lucide-react", () => ({
-  Eye: () => <div data-testid="eye-icon" />,
-  EyeOff: () => <div data-testid="eye-off-icon" />,
-  Mail: () => <div data-testid="mail-icon" />,
-  Lock: () => <div data-testid="lock-icon" />,
-  User: () => <div data-testid="user-icon" />,
-  Phone: () => <div data-testid="phone-icon" />,
-}));
+vi.mock("lucide-react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("lucide-react")>();
+  return {
+    ...actual,
+    ChevronLeft: () => React.createElement("span", { "data-testid": "chevron-left" }),
+    HelpCircle: () => React.createElement("span", { "data-testid": "help-circle" }),
+  };
+});
 
 describe("RegisterPage", () => {
   beforeEach(() => {
@@ -86,464 +88,121 @@ describe("RegisterPage", () => {
   });
 
   describe("Basic Rendering", () => {
-    it("should render registration form", () => {
+    it("should render title and subtitle", () => {
       render(<RegisterPage />);
-
-      expect(screen.getByText("注册 WhatsApp")).toBeInTheDocument();
-      expect(screen.getByText("创建您的新账号")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /get started on instagram/i })).toBeInTheDocument();
+      expect(screen.getByText(/Sign up to see photos and videos from your friends/)).toBeInTheDocument();
     });
 
-    it("should render all form inputs", () => {
+    it("should render form inputs", () => {
       render(<RegisterPage />);
-
-      expect(screen.getByPlaceholderText("请输入姓名")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("请输入邮箱")).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText("请输入密码（至少6位）")
-      ).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("请再次输入密码")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("请输入手机号")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Mobile number or email")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Password")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Full name")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Username")).toBeInTheDocument();
     });
 
     it("should render submit button", () => {
       render(<RegisterPage />);
-
-      expect(screen.getByRole("button", { name: "注册" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument();
     });
 
-    it("should render login link", () => {
+    it("should render already have account button", () => {
       render(<RegisterPage />);
+      expect(screen.getByRole("button", { name: "I already have an account" })).toBeInTheDocument();
+    });
 
-      expect(screen.getByText("已有账号？")).toBeInTheDocument();
-      expect(screen.getByText("立即登录")).toBeInTheDocument();
+    it("should render header with back and Meta", () => {
+      render(<RegisterPage />);
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+      expect(screen.getByText("Meta")).toBeInTheDocument();
     });
   });
 
   describe("Form Interactions", () => {
-    it("should update username field", async () => {
+    it("should update mobile or email field", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      await user.type(usernameInput, "testuser");
-
-      expect(usernameInput).toHaveValue("testuser");
-    });
-
-    it("should update email field", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      await user.type(emailInput, "test@example.com");
-
-      expect(emailInput).toHaveValue("test@example.com");
+      const input = screen.getByPlaceholderText("Mobile number or email");
+      await user.type(input, "test@example.com");
+      expect(input).toHaveValue("test@example.com");
     });
 
     it("should update password field", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      await user.type(passwordInput, "password123");
-
-      expect(passwordInput).toHaveValue("password123");
+      const input = screen.getByPlaceholderText("Password");
+      await user.type(input, "password123");
+      expect(input).toHaveValue("password123");
     });
 
-    it("should update confirm password field", async () => {
+    it("should update username field", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-      await user.type(confirmPasswordInput, "password123");
-
-      expect(confirmPasswordInput).toHaveValue("password123");
+      const input = screen.getByPlaceholderText("Username");
+      await user.type(input, "testuser");
+      expect(input).toHaveValue("testuser");
     });
 
-    it("should update phone field", async () => {
+    it("should navigate to login on I already have an account", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      const phoneInput = screen.getByPlaceholderText("请输入手机号");
-      await user.type(phoneInput, "+1234567890");
-
-      expect(phoneInput).toHaveValue("+1234567890");
-    });
-
-    it("should toggle password visibility", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      const toggleButtons = screen.getAllByTestId("eye-icon");
-      const toggleButton = toggleButtons[0]?.closest("button");
-
-      expect(passwordInput).toHaveAttribute("type", "password");
-
-      if (toggleButton) {
-        await user.click(toggleButton);
-        expect(passwordInput).toHaveAttribute("type", "text");
-      }
-    });
-
-    it("should toggle confirm password visibility", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-      const toggleButtons = screen.getAllByTestId("eye-icon");
-      const toggleButton = toggleButtons[1]?.closest("button");
-
-      expect(confirmPasswordInput).toHaveAttribute("type", "password");
-
-      if (toggleButton) {
-        await user.click(toggleButton);
-        expect(confirmPasswordInput).toHaveAttribute("type", "text");
-      }
-    });
-  });
-
-  describe("Form Validation", () => {
-    it("should have required fields", () => {
-      render(<RegisterPage />);
-
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-
-      // 由于我们移除了HTML5验证，这些字段不再有required属性
-      // 但我们仍然可以通过JavaScript验证来确保它们是必填的
-      expect(usernameInput).toBeInTheDocument();
-      expect(emailInput).toBeInTheDocument();
-      expect(passwordInput).toBeInTheDocument();
-      expect(confirmPasswordInput).toBeInTheDocument();
-    });
-
-    it("should have correct input types", () => {
-      render(<RegisterPage />);
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-
-      // 邮箱字段现在是email类型，因为我们重新添加了HTML5验证
-      expect(emailInput).toHaveAttribute("type", "email");
-      expect(passwordInput).toHaveAttribute("type", "password");
-      expect(confirmPasswordInput).toHaveAttribute("type", "password");
-    });
-
-    it("should validate password match", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      // 填写其他必填字段
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "test@example.com"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入手机号"),
-        "1234567890"
-      );
-
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-
-      await user.type(passwordInput, "password123");
-      await user.type(confirmPasswordInput, "different123");
-
-      // 按钮应该被禁用，因为密码不匹配
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      expect(submitButton).toBeDisabled();
-    });
-
-    it("should validate password strength", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      // 填写其他必填字段
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "test@example.com"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入手机号"),
-        "1234567890"
-      );
-
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      await user.type(passwordInput, "123");
-      await user.type(screen.getByPlaceholderText("请再次输入密码"), "123");
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
-      expect(screen.getByText("密码至少需要6位")).toBeInTheDocument();
-      expect(mockRegister).not.toHaveBeenCalled();
+      await user.click(screen.getByRole("button", { name: "I already have an account" }));
+      expect(mockPush).toHaveBeenCalledWith("/login");
     });
   });
 
   describe("Form Submission", () => {
-    it("should submit form with valid data", async () => {
+    it("should submit with valid email, password and username", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "test@example.com"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入密码（至少6位）"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请再次输入密码"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入手机号"),
-        "+1234567890"
-      );
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
+      await user.type(screen.getByPlaceholderText("Mobile number or email"), "test@example.com");
+      await user.type(screen.getByPlaceholderText("Password"), "password123");
+      await user.type(screen.getByPlaceholderText("Username"), "testuser");
+      await user.click(screen.getByRole("button", { name: "Submit" }));
       expect(mockRegister).toHaveBeenCalledWith({
-        username: "testuser",
         email: "test@example.com",
         password: "password123",
-        phone: "+1234567890",
+        username: "testuser",
       });
     });
 
-    it("should not submit form with invalid data", async () => {
+    it("should not submit with invalid email", async () => {
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "invalid-email"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入密码（至少6位）"),
-        "123"
-      );
-      await user.type(screen.getByPlaceholderText("请再次输入密码"), "456");
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
+      await user.type(screen.getByPlaceholderText("Mobile number or email"), "notanemail");
+      await user.type(screen.getByPlaceholderText("Password"), "password123");
+      await user.type(screen.getByPlaceholderText("Username"), "testuser");
+      await user.click(screen.getByRole("button", { name: "Submit" }));
       expect(mockRegister).not.toHaveBeenCalled();
+      expect(screen.getByText(/Please enter a valid email/)).toBeInTheDocument();
     });
 
-    it("should handle registration success", async () => {
+    it("should navigate to home on success", async () => {
       mockRegister.mockResolvedValueOnce({ success: true });
       const user = userEvent.setup();
       render(<RegisterPage />);
-
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "test@example.com"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入密码（至少6位）"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请再次输入密码"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入手机号"),
-        "1234567890"
-      );
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
+      await user.type(screen.getByPlaceholderText("Mobile number or email"), "test@example.com");
+      await user.type(screen.getByPlaceholderText("Password"), "password123");
+      await user.type(screen.getByPlaceholderText("Username"), "testuser");
+      await user.click(screen.getByRole("button", { name: "Submit" }));
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith("/");
       });
     });
   });
 
-  describe("Loading States", () => {
+  describe("Loading and Error", () => {
     it("should show loading state", () => {
       mockUseAuth.isLoading = true;
       render(<RegisterPage />);
-
-      const submitButton = screen.getByRole("button", { name: "注册中..." });
-      expect(submitButton).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Submitting..." })).toBeDisabled();
     });
 
-    it("should disable form inputs when loading", () => {
-      mockUseAuth.isLoading = true;
-      render(<RegisterPage />);
-
-      const submitButton = screen.getByRole("button", { name: "注册中..." });
-      expect(submitButton).toBeDisabled();
-    });
-  });
-
-  describe("Error Handling", () => {
     it("should display error message", () => {
-      mockUseAuth.error = "注册失败，邮箱已被使用";
+      mockUseAuth.error = "Email already in use";
       render(<RegisterPage />);
-
-      expect(screen.getByText("注册失败，邮箱已被使用")).toBeInTheDocument();
-    });
-
-    it("should clear error when form is resubmitted", async () => {
-      mockUseAuth.error = "Previous error";
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      await user.type(screen.getByPlaceholderText("请输入姓名"), "testuser");
-      await user.type(
-        screen.getByPlaceholderText("请输入邮箱"),
-        "test@example.com"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入密码（至少6位）"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请再次输入密码"),
-        "password123"
-      );
-      await user.type(
-        screen.getByPlaceholderText("请输入手机号"),
-        "1234567890"
-      );
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
-      // Error should be cleared when new submission starts
-      expect(mockRegister).toHaveBeenCalled();
-    });
-  });
-
-  describe("Icons and Styling", () => {
-    it("should render all required icons", () => {
-      render(<RegisterPage />);
-
-      expect(screen.getByTestId("user-icon")).toBeInTheDocument();
-      expect(screen.getByTestId("mail-icon")).toBeInTheDocument();
-      expect(screen.getAllByTestId("lock-icon")).toHaveLength(2);
-      expect(screen.getByTestId("phone-icon")).toBeInTheDocument();
-      expect(screen.getAllByTestId("eye-icon")).toHaveLength(2);
-    });
-
-    it("should have proper form structure", () => {
-      render(<RegisterPage />);
-
-      const form = screen.getByRole("button", { name: "注册" }).closest("form");
-      expect(form).toBeInTheDocument();
-    });
-  });
-
-  describe("Accessibility", () => {
-    it("should have proper labels", () => {
-      render(<RegisterPage />);
-
-      expect(screen.getByText("姓名")).toBeInTheDocument();
-      expect(screen.getByText("邮箱")).toBeInTheDocument();
-      expect(screen.getByText("密码")).toBeInTheDocument();
-      expect(screen.getByText("确认密码")).toBeInTheDocument();
-      expect(screen.getByText("手机号")).toBeInTheDocument();
-    });
-
-    it("should have proper input IDs", () => {
-      render(<RegisterPage />);
-
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      const passwordInput =
-        screen.getByPlaceholderText("请输入密码（至少6位）");
-      const confirmPasswordInput =
-        screen.getByPlaceholderText("请再次输入密码");
-      const phoneInput = screen.getByPlaceholderText("请输入手机号");
-
-      expect(usernameInput).toHaveAttribute("id", "name");
-      expect(emailInput).toHaveAttribute("id", "email");
-      expect(passwordInput).toHaveAttribute("id", "password");
-      expect(confirmPasswordInput).toHaveAttribute("id", "confirmPassword");
-      expect(phoneInput).toHaveAttribute("id", "phone");
-    });
-
-    it("should have proper button types", () => {
-      render(<RegisterPage />);
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      const loginButton = screen.getByText("立即登录");
-
-      expect(submitButton).toHaveAttribute("type", "submit");
-      expect(loginButton).toHaveAttribute("type", "button");
-    });
-
-    it("should support keyboard navigation", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      await user.type(usernameInput, "testuser");
-      await user.keyboard("{Tab}");
-
-      const emailInput = screen.getByPlaceholderText("请输入邮箱");
-      expect(document.activeElement).toBe(emailInput);
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle empty form submission", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const submitButton = screen.getByRole("button", { name: "注册" });
-      await user.click(submitButton);
-
-      expect(mockRegister).not.toHaveBeenCalled();
-    });
-
-    it("should handle very long input values", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const longString = "A".repeat(100);
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      await user.type(usernameInput, longString);
-
-      expect(usernameInput).toHaveValue(longString);
-    });
-
-    it("should handle special characters in inputs", async () => {
-      const user = userEvent.setup();
-      render(<RegisterPage />);
-
-      const specialString = "test@123";
-      const usernameInput = screen.getByPlaceholderText("请输入姓名");
-      await user.clear(usernameInput);
-      await user.type(usernameInput, specialString);
-
-      expect(usernameInput).toHaveValue(specialString);
+      expect(screen.getByText("Email already in use")).toBeInTheDocument();
     });
   });
 });

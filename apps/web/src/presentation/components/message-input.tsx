@@ -4,15 +4,15 @@ import type React from "react";
 
 import { useState, useRef } from "react";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import { useAbTest } from "@/presentation/hooks/use-ab-test";
 import { Button } from "@/src/presentation/components/ui/button";
 import { Textarea } from "@/src/presentation/components/ui/textarea";
-import { Smile, Paperclip, Send, X, Sparkles } from "lucide-react";
+import { Smile, Send, X, Sparkles, Camera, ImageIcon } from "lucide-react";
 import { AiActionMenu } from "./ai-action-menu";
 import { EmojiPicker } from "./emoji-picker";
 import { FileUpload } from "./file-upload";
 import { VoiceRecorder } from "./voice-recorder";
 import type { Message } from "../../../types";
+import { useTranslation } from "@/src/shared/i18n";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface MessageInputProps {
@@ -39,9 +39,19 @@ interface MessageInputProps {
 }
 
 const InputShell = styled.div`
-  border-top: 1px solid hsl(var(--border));
-  background-color: hsl(var(--card));
-  padding: 1rem;
+  border-top: 1px solid rgb(219 219 219);
+  background-color: rgb(255 255 255);
+  padding: 0.75rem 1rem 1rem;
+`;
+
+const RoundedBar = styled.div`
+  display: flex;
+  align-items: flex-end;
+  column-gap: 0.5rem;
+  padding: 8px 12px;
+  border-radius: 24px;
+  background-color: rgb(239 239 239);
+  min-height: 44px;
 `;
 
 const DisabledBanner = styled.div`
@@ -85,8 +95,8 @@ const ReplyExcerpt = styled.p`
 
 const ToolbarRow = styled.div`
   display: flex;
-  align-items: flex-end;
-  column-gap: 0.5rem;
+  align-items: center;
+  width: 100%;
 `;
 
 const IconButtonWrapper = styled.div`
@@ -99,20 +109,51 @@ const PopoverContainer = styled.div`
   bottom: 3rem;
   z-index: 50;
   overflow: visible;
+  max-width: min(100%, calc(100vw - 1.5rem));
+`;
+
+const PopoverContainerRight = styled.div`
+  position: absolute;
+  right: 0;
+  bottom: 3rem;
+  z-index: 50;
+  overflow: visible;
+  max-width: min(100%, calc(100vw - 1.5rem));
 `;
 
 const MessageTextarea = styled(Textarea)`
-  min-height: 2.5rem;
+  min-height: 28px;
   max-height: 8rem;
   resize: none;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 0.9375rem;
+  box-shadow: none;
+  &:focus {
+    box-shadow: none;
+  }
 `;
 
 const PrimarySendButton = styled(Button)`
-  background-color: #22c55e;
+  background-color: rgb(0 149 246);
   color: white;
-
+  flex-shrink: 0;
   &:hover:not(:disabled) {
-    background-color: #16a34a;
+    background-color: rgb(0 119 197);
+  }
+`;
+
+const BarIconBtn = styled(Button)`
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  color: rgb(38 38 38);
+  &:hover {
+    background: rgb(219 219 219);
+    color: rgb(38 38 38);
   }
 `;
 
@@ -150,10 +191,9 @@ export function MessageInput({
     onGenerateImageClick != null ||
     onGenerateVideoClick != null ||
     onGenerateVoiceClick != null;
+  const { t } = useTranslation();
   const sendMessageEnabled = useFeatureIsOn("send_message");
-  const inputPlaceholderVariant = useAbTest("message-input-placeholder");
-  const placeholder =
-    inputPlaceholderVariant === "variant" ? "Type a message..." : "输入消息...";
+  const placeholder = t("dm.messagePlaceholder");
 
   const handleSend = () => {
     if (messageText.trim()) {
@@ -211,53 +251,91 @@ export function MessageInput({
       )}
 
       <ToolbarRow>
-        <IconButtonWrapper>
-          <Button variant="ghost" size="sm" onClick={onToggleEmojiPicker}>
-            <Smile size={20} />
-          </Button>
-          {showEmojiPicker && (
-            <PopoverContainer>
-              <EmojiPicker
-                isOpen={showEmojiPicker}
-                onClose={onToggleEmojiPicker}
-                onEmojiSelect={onEmojiSelect}
-              />
-            </PopoverContainer>
-          )}
-        </IconButtonWrapper>
+        <RoundedBar style={{ flex: 1 }}>
+          <IconButtonWrapper>
+            <BarIconBtn variant="ghost" size="icon" onClick={onToggleEmojiPicker}>
+              <Smile size={22} />
+            </BarIconBtn>
+            {showEmojiPicker && (
+              <PopoverContainer>
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onClose={onToggleEmojiPicker}
+                  onEmojiSelect={onEmojiSelect}
+                />
+              </PopoverContainer>
+            )}
+          </IconButtonWrapper>
 
-        <IconButtonWrapper>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowFileUpload(!showFileUpload);
-              setShowAiMenu(false);
-            }}
-          >
-            <Paperclip size={20} />
-          </Button>
-          {showFileUpload && (
-            <PopoverContainer>
-              <FileUpload onFileSelect={handleFileUpload} />
-            </PopoverContainer>
+          <TextareaWrapper style={{ flex: 1, minWidth: 0 }}>
+            <MessageTextarea
+              ref={textareaRef}
+              value={messageText}
+              onChange={(e) => onMessageChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              rows={1}
+            />
+          </TextareaWrapper>
+
+          {messageText.trim() ? (
+            <PrimarySendButton onClick={handleSend} size="sm">
+              <Send size={18} />
+            </PrimarySendButton>
+          ) : (
+            <IconButtonWrapper>
+              <VoiceRecorder onSendVoice={onSendVoice} onRecordingChange={onRecordingChange} />
+            </IconButtonWrapper>
           )}
-        </IconButtonWrapper>
+
+          <IconButtonWrapper>
+            <BarIconBtn
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setShowFileUpload(!showFileUpload);
+                setShowAiMenu(false);
+              }}
+              aria-label="Camera"
+            >
+              <Camera size={22} />
+            </BarIconBtn>
+          </IconButtonWrapper>
+
+          <IconButtonWrapper>
+            <BarIconBtn
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setShowFileUpload(!showFileUpload);
+                setShowAiMenu(false);
+              }}
+              aria-label="Gallery"
+            >
+              <ImageIcon size={22} />
+            </BarIconBtn>
+            {showFileUpload && (
+              <PopoverContainerRight>
+                <FileUpload onFileSelect={handleFileUpload} />
+              </PopoverContainerRight>
+            )}
+          </IconButtonWrapper>
+        </RoundedBar>
 
         {(hasAiActions || onSmartReplyClick != null) && (
-          <IconButtonWrapper>
-            <Button
+          <IconButtonWrapper style={{ marginLeft: "0.5rem" }}>
+            <BarIconBtn
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => {
                 setShowAiMenu(!showAiMenu);
                 setShowFileUpload(false);
               }}
             >
               <Sparkles size={20} />
-            </Button>
+            </BarIconBtn>
             {showAiMenu && (
-              <PopoverContainer>
+              <PopoverContainerRight>
                 <AiActionMenu
                   onSmartReply={
                     onSmartReplyClick
@@ -300,28 +378,9 @@ export function MessageInput({
                       : undefined
                   }
                 />
-              </PopoverContainer>
+              </PopoverContainerRight>
             )}
           </IconButtonWrapper>
-        )}
-
-        <TextareaWrapper>
-          <MessageTextarea
-            ref={textareaRef}
-            value={messageText}
-            onChange={(e) => onMessageChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            rows={1}
-          />
-        </TextareaWrapper>
-
-        {messageText.trim() ? (
-          <PrimarySendButton onClick={handleSend} size="sm">
-            <Send size={16} />
-          </PrimarySendButton>
-        ) : (
-          <VoiceRecorder onSendVoice={onSendVoice} onRecordingChange={onRecordingChange} />
         )}
       </ToolbarRow>
     </InputShell>
