@@ -5,6 +5,8 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import { Sidebar } from "./sidebar";
+import { InstagramMessagesSidebar } from "./instagram-messages-sidebar";
+import { InstagramMessagesEmpty } from "./instagram-messages-empty";
 import { ChatArea } from "./chat-area";
 import { WelcomeScreen } from "./welcome-screen";
 import { ProfilePage } from "./profile-page";
@@ -36,10 +38,11 @@ import { useDialogs } from "../hooks/use-dialogs";
 import { useNavigation } from "../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
 import { useAuth } from "../hooks/use-auth";
-import { useFeed } from "../hooks/use-feed";
+import { useFeed, useProfileStats } from "../hooks/use-feed";
 import { useTranslation } from "@/src/shared/i18n";
 import { FeedCommentsDialog } from "./feed-comments-dialog";
 import { CreatePostDialog } from "./create-post-dialog";
+import { FollowListModal } from "./follow-list-modal";
 import { styled } from "@/src/shared/utils/emotion";
 import {
   mockContacts,
@@ -47,7 +50,6 @@ import {
   mockUser,
   mockStories,
   mockFeedPosts,
-  mockSuggestedUsers,
 } from "@/infrastructure/data/mock-data";
 import {
   getMessagesForContact,
@@ -137,9 +139,11 @@ export function InstagramMain() {
   const [showVoiceDialog, setShowVoiceDialog] = useState(false);
   const [commentPost, setCommentPost] = useState<FeedPost | null>(null);
   const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
+  const [followListModal, setFollowListModal] = useState<"followers" | "following" | null>(null);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
   const feed = useFeed(currentUser?.id);
+  const profileStats = useProfileStats(currentUser?.id);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -152,7 +156,10 @@ export function InstagramMain() {
   }, [selectedContactId, analytics]);
 
   useEffect(() => {
-    if (currentUser?.id && instagramView === "feed") feed.loadFeed();
+    if (currentUser?.id && instagramView === "feed") {
+      feed.loadFeed();
+      feed.loadSuggestions();
+    }
   }, [currentUser?.id, instagramView]);
 
   const chatsWithLive = useChatsWithLiveMessages(
@@ -180,6 +187,10 @@ export function InstagramMain() {
     handleSearchPageClick,
     handleBackToChat,
   } = useNavigation();
+
+  useEffect(() => {
+    if (currentUser?.id && currentPage === "profile") profileStats.load();
+  }, [currentUser?.id, currentPage]);
 
   useEffect(() => {
     if (currentUser?.id && currentPage === "reels") feed.loadFeed();
@@ -477,31 +488,14 @@ export function InstagramMain() {
     if (currentPage === "chat" && instagramView === "messages") {
       return (
         <MessagesRow>
-          <Sidebar
-            user={mockUser}
+          <InstagramMessagesSidebar
+            user={currentUser ?? mockUser}
             contacts={filteredContacts}
             selectedContact={selectedContact ?? null}
             searchQuery={searchQuery}
-            isConnected={isConnected}
-            showSearchSuggestions={showSearchSuggestions}
-            recentSearches={recentSearches}
-            onContactSelect={handleContactSelect}
-            onContactAction={handleContactActionWrapper}
             onSearchChange={handleSearchChange}
-            onSearchFocus={handleSearchFocus}
-            onSearchBlur={handleSearchBlur}
-            onGlobalSearch={handleGlobalSearchWrapper}
-            onSearchSuggestion={handleSearchSuggestionWrapper}
-            onRemoveRecentSearch={handleRemoveRecentSearch}
-            onProfileClick={handleProfileClick}
-            onStatusClick={handleStatusClick}
-            onCallsClick={handleCallsClick}
-            onAddFriendClick={handleAddFriendClick}
-            onCreateGroupClick={handleCreateGroupClick}
-            onSearchPageClick={handleSearchPageClick}
-            onAdvancedSearchClick={handleAdvancedSearchClick}
-            onStarredClick={handleStarredClick}
-            onSettingsClick={handleSettingsClick}
+            onContactSelect={handleContactSelect}
+            onComposeClick={handleAddFriendClick}
             searchInputRef={searchInputRef}
           />
           <MainContent>
@@ -553,7 +547,7 @@ export function InstagramMain() {
                 }
               />
             ) : (
-              <WelcomeScreen />
+              <InstagramMessagesEmpty onSendMessage={handleAddFriendClick} />
             )}
           </MainContent>
         </MessagesRow>
@@ -584,15 +578,31 @@ export function InstagramMain() {
             <ProfilePage
               user={currentUser ?? null}
               posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              followersCount={profileStats.followersCount}
+              followingCount={profileStats.followingCount}
               onEditProfile={handleSettingsClick}
               onNewPost={() => setShowCreatePostDialog(true)}
               onPostClick={setCommentPost}
+              onFollowersClick={() => setFollowListModal("followers")}
+              onFollowingClick={() => setFollowListModal("following")}
             />
             <FeedCommentsDialog
               post={commentPost}
               open={!!commentPost}
               onClose={() => setCommentPost(null)}
               currentUser={currentUser ?? undefined}
+            />
+            <FollowListModal
+              open={followListModal !== null}
+              onClose={() => {
+                setFollowListModal(null);
+                profileStats.load();
+              }}
+              title={followListModal ?? "followers"}
+              userId={currentUser?.id ?? ""}
+              currentUserId={currentUser?.id}
+              onFollow={feed.followUser}
+              onUnfollow={feed.unfollowUser}
             />
           </CenterColumn>
         );
@@ -695,7 +705,8 @@ export function InstagramMain() {
       {currentPage === "chat" && instagramView === "feed" && (
         <InstagramRightSidebar
           user={currentUser ?? mockUser}
-          suggestions={mockSuggestedUsers}
+          suggestions={feed.suggestions}
+          onFollow={currentUser?.id ? feed.followSuggestion : undefined}
         />
       )}
 

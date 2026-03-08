@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 import { FeedApiAdapter } from "@/infrastructure/adapters/api/feed-api.adapter";
-import type { FeedPost } from "@/shared/types";
+import type { FeedPost, SuggestedUser } from "@/shared/types";
 
 const api = new FeedApiAdapter(getApiClient());
 
@@ -17,11 +17,22 @@ function formatTime(iso: string): string {
   return `${Math.floor(diff / 604800000)}周前`;
 }
 
+function toSuggestedUser(raw: { id: string; username: string; avatar: string | null; description: string }): SuggestedUser {
+  return {
+    id: raw.id,
+    username: raw.username,
+    avatar: raw.avatar ?? "",
+    description: raw.description,
+  };
+}
+
 export function useFeed(currentUserId: string | undefined) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageState, setPageState] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   const loadFeed = useCallback(async () => {
     if (!currentUserId) return;
@@ -49,6 +60,7 @@ export function useFeed(currentUserId: string | undefined) {
           isSaved: false,
           type: p.type,
           videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+          coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
         }));
       setPosts((prev) => (pageState ? [...prev, ...list] : list));
     } catch (e) {
@@ -84,6 +96,7 @@ export function useFeed(currentUserId: string | undefined) {
             isSaved: false,
             type: p.type,
             videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+            coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
           };
           setPosts((prev) => [newPost, ...prev]);
         }
@@ -92,8 +105,24 @@ export function useFeed(currentUserId: string | undefined) {
     [currentUserId]
   );
 
+  const loadSuggestions = useCallback(async () => {
+    if (!currentUserId) return;
+    setSuggestionsLoading(true);
+    try {
+      const list = await api.getSuggestions(10);
+      setSuggestions(list.map(toSuggestedUser));
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }, [currentUserId]);
+
   const followUser = useCallback((userId: string) => api.followUser(userId), []);
   const unfollowUser = useCallback((userId: string) => api.unfollowUser(userId), []);
+
+  const followSuggestion = useCallback(async (userId: string) => {
+    await api.followUser(userId);
+    setSuggestions((prev) => prev.filter((s) => s.id !== userId));
+  }, []);
 
   return {
     posts,
@@ -101,7 +130,11 @@ export function useFeed(currentUserId: string | undefined) {
     error,
     loadFeed,
     createPost,
+    suggestions,
+    suggestionsLoading,
+    loadSuggestions,
     followUser,
+    followSuggestion,
     unfollowUser,
   };
 }
@@ -157,4 +190,24 @@ export function usePostComments(postId: string | null) {
   );
 
   return { comments, loading, load, add };
+}
+
+export function useProfileStats(userId: string | undefined) {
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const stats = await api.getProfileStats(userId);
+      setFollowersCount(stats.followersCount);
+      setFollowingCount(stats.followingCount);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  return { followersCount, followingCount, loading, load };
 }

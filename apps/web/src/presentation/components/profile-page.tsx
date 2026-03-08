@@ -1,17 +1,117 @@
 "use client";
 
-import { useState } from "react";
-import { LayoutGrid, Bookmark, UserCheck, Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { LayoutGrid, Bookmark, UserCheck, Plus, Play } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
 import { styled } from "@/src/shared/utils/emotion";
-import { useTranslation } from "@/src/shared/i18n";
+import { useTranslation, setStoredLocale, getLocale, type AppLocale } from "@/src/shared/i18n";
 import type { FeedPost } from "@/shared/types";
+
+const FOOTER_LANG_OPTIONS: { value: AppLocale; label: string }[] = [
+  { value: "en", label: "English" },
+  { value: "zh", label: "中文" },
+];
 
 const TEXT_PRIMARY = "rgb(38 38 38)";
 const TEXT_SECONDARY = "rgb(142 142 142)";
 const BORDER = "1px solid rgb(219 219 219)";
 const BG_BUTTON = "rgb(239 239 239)";
+
+const VIDEO_COVER_PLACEHOLDER = "/placeholder.svg?height=400&width=400&text=Video";
+
+function isVideoUrl(url: string): boolean {
+  if (!url || url.startsWith("data:")) return false;
+  return /\.(mp4|webm|mov|m4v|ogv)(\?|$)/i.test(url) || url.includes("/video/");
+}
+
+function getVideoUrl(post: FeedPost): string | null {
+  if (post.type !== "VIDEO") return null;
+  const u = post.videoUrl ?? post.imageUrl ?? "";
+  return u && isVideoUrl(u) ? u : null;
+}
+
+const VideoFirstFrameWrap = styled.div`
+  position: absolute;
+  inset: 0;
+  background-color: rgb(239 239 239);
+`;
+
+const VideoFirstFrameImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const VideoFirstFrameVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+`;
+
+function VideoFirstFrameCover({
+  videoUrl,
+  placeholderSrc,
+}: {
+  videoUrl: string;
+  placeholderSrc: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showFrame, setShowFrame] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !videoUrl || failed) return;
+    el.currentTime = 0;
+    const onLoaded = () => {
+      el.currentTime = 0;
+      setShowFrame(true);
+    };
+    const onErr = () => setFailed(true);
+    el.addEventListener("loadeddata", onLoaded);
+    el.addEventListener("error", onErr);
+    if (el.readyState >= 2) {
+      el.currentTime = 0;
+      setShowFrame(true);
+    }
+    return () => {
+      el.removeEventListener("loadeddata", onLoaded);
+      el.removeEventListener("error", onErr);
+    };
+  }, [videoUrl, failed]);
+
+  useEffect(() => {
+    setShowFrame(false);
+    setFailed(false);
+  }, [videoUrl]);
+
+  if (failed) {
+    return <VideoFirstFrameImg src={placeholderSrc} alt="" />;
+  }
+
+  return (
+    <VideoFirstFrameWrap>
+      <VideoFirstFrameImg src={placeholderSrc} alt="" style={{ opacity: showFrame ? 0 : 1 }} />
+      <VideoFirstFrameVideo
+        ref={videoRef}
+        src={videoUrl}
+        preload="auto"
+        muted
+        playsInline
+        style={{ opacity: showFrame ? 1 : 0, position: "absolute", inset: 0 }}
+        onLoadedData={() => {
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+            setShowFrame(true);
+          }
+        }}
+        onError={() => setFailed(true)}
+      />
+    </VideoFirstFrameWrap>
+  );
+}
 
 const PageRoot = styled.div`
   flex: 1;
@@ -97,6 +197,19 @@ const StatsRow = styled.div`
 
 const Stat = styled.span`
   font-weight: 400;
+`;
+
+const StatButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 400;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const Handle = styled.p`
@@ -207,12 +320,30 @@ const GridCell = styled.button`
   cursor: pointer;
   overflow: hidden;
   display: block;
+  position: relative;
 `;
 
 const GridImg = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background-color: rgb(239 239 239);
+`;
+
+const VideoCoverOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+`;
+
+const PlayIcon = styled(Play)`
+  width: 28px;
+  height: 28px;
+  color: rgb(255 255 255);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
 `;
 
 const Footer = styled.footer`
@@ -231,9 +362,62 @@ const FooterLinks = styled.div`
   line-height: 1.6;
 `;
 
-const FooterLang = styled.span`
+const FooterLangWrap = styled.div`
+  position: relative;
   font-size: 12px;
   color: ${TEXT_SECONDARY};
+`;
+
+const FooterLangTrigger = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+  cursor: pointer;
+  border-radius: 4px;
+  &:hover {
+    color: ${TEXT_PRIMARY};
+    background: rgb(239 239 239);
+  }
+`;
+
+const FooterLangDropdown = styled.div`
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  min-width: 160px;
+  padding: 8px 0;
+  background: rgb(255 255 255);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+  border: 1px solid rgb(219 219 219);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+`;
+
+const FooterLangOption = styled.button<{ $selected?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY};
+  cursor: pointer;
+  text-align: left;
+  &:hover {
+    background: rgb(250 250 250);
+  }
+  ${(p) => p.$selected && "font-weight: 600;"}
 `;
 
 const FooterCopy = styled.span`
@@ -249,10 +433,14 @@ export interface ProfilePageProps {
     avatar?: string;
   } | null | undefined;
   posts: FeedPost[];
+  followersCount?: number;
+  followingCount?: number;
   onEditProfile?: () => void;
   onViewArchive?: () => void;
   onNewPost?: () => void;
   onPostClick?: (post: FeedPost) => void;
+  onFollowersClick?: () => void;
+  onFollowingClick?: () => void;
 }
 
 type ProfileTab = "grid" | "saved" | "tagged";
@@ -260,21 +448,39 @@ type ProfileTab = "grid" | "saved" | "tagged";
 export function ProfilePage({
   user,
   posts,
+  followersCount = 0,
+  followingCount = 0,
   onEditProfile,
   onViewArchive,
   onNewPost,
   onPostClick,
+  onFollowersClick,
+  onFollowingClick,
 }: ProfilePageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ProfileTab>("grid");
+  const [langOpen, setLangOpen] = useState(false);
+  const currentLocale = getLocale();
+
+  const handleLocaleChange = (locale: AppLocale) => {
+    setStoredLocale(locale);
+    i18n.changeLanguage(locale);
+    setLangOpen(false);
+  };
 
   const myPosts = posts.filter((p) => p.userId === user?.id);
   const postCount = myPosts.length;
-  const followersCount = 0;
-  const followingCount = 0;
   const username = user?.username ?? "";
   const fullName = user?.name ?? "";
   const handleStr = username ? `@${username}` : "";
+
+  const gridCoverUrl = (post: FeedPost): string => {
+    if (post.type === "VIDEO") {
+      const raw = post.coverImageUrl ?? post.imageUrl ?? post.videoUrl ?? "";
+      return raw && !isVideoUrl(raw) ? raw : VIDEO_COVER_PLACEHOLDER;
+    }
+    return post.imageUrl ?? "";
+  };
 
   return (
     <PageRoot>
@@ -294,8 +500,19 @@ export function ProfilePage({
             {fullName && <FullName>{fullName}</FullName>}
             <StatsRow>
               <Stat>{t("profile.postsCount", { count: String(postCount) } as Record<string, string>)}</Stat>
-              <Stat>{t("profile.followersCount", { count: String(followersCount) } as Record<string, string>)}</Stat>
-              <Stat>{t("profile.followingCount", { count: String(followingCount) } as Record<string, string>)}</Stat>
+              {onFollowersClick ? (
+                <StatButton type="button" onClick={onFollowersClick}>
+                  {t("profile.followersCount", { count: String(followersCount) } as Record<string, string>)}
+                </StatButton>
+              ) : (
+                <Stat>{t("profile.followersCount", { count: String(followersCount) } as Record<string, string>)}</Stat>
+              )}
+              {onFollowingClick ? (
+                <StatButton type="button" onClick={onFollowingClick}>
+                  {t("profile.followingCount", { count: String(followingCount) } as Record<string, string>)}</StatButton>
+              ) : (
+                <Stat>{t("profile.followingCount", { count: String(followingCount) } as Record<string, string>)}</Stat>
+              )}
             </StatsRow>
             {handleStr && <Handle>{handleStr}</Handle>}
             <ActionsRow>
@@ -335,11 +552,34 @@ export function ProfilePage({
 
         {activeTab === "grid" && (
           <GridWrap>
-            {myPosts.map((post) => (
-              <GridCell key={post.id} type="button" onClick={() => onPostClick?.(post)}>
-                <GridImg src={post.imageUrl} alt="" />
-              </GridCell>
-            ))}
+            {myPosts.map((post) => {
+              const videoUrl = getVideoUrl(post);
+              const isVideo = post.type === "VIDEO";
+              return (
+                <GridCell key={post.id} type="button" onClick={() => onPostClick?.(post)}>
+                  {isVideo && videoUrl ? (
+                    <VideoFirstFrameCover
+                      videoUrl={videoUrl}
+                      placeholderSrc={VIDEO_COVER_PLACEHOLDER}
+                    />
+                  ) : (
+                    <GridImg
+                      src={gridCoverUrl(post) || VIDEO_COVER_PLACEHOLDER}
+                      alt=""
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        if (el.src !== VIDEO_COVER_PLACEHOLDER) el.src = VIDEO_COVER_PLACEHOLDER;
+                      }}
+                    />
+                  )}
+                  {isVideo && (
+                    <VideoCoverOverlay>
+                      <PlayIcon size={28} fill="currentColor" />
+                    </VideoCoverOverlay>
+                  )}
+                </GridCell>
+              );
+            })}
           </GridWrap>
         )}
         {activeTab === "saved" && <GridWrap />}
@@ -347,7 +587,41 @@ export function ProfilePage({
 
         <Footer>
           <FooterLinks>{t("profile.footerLinks")}</FooterLinks>
-          <FooterLang>{t("profile.language")} ▼</FooterLang>
+          <FooterLangWrap>
+            <FooterLangTrigger
+              type="button"
+              onClick={() => setLangOpen((o) => !o)}
+              aria-expanded={langOpen}
+              aria-haspopup="listbox"
+              aria-label={t("profile.language")}
+            >
+              {currentLocale === "zh" ? "中文" : "English"} ▼
+            </FooterLangTrigger>
+            {langOpen && (
+              <>
+                <div
+                  role="presentation"
+                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                  onClick={() => setLangOpen(false)}
+                />
+                <FooterLangDropdown role="listbox">
+                  {FOOTER_LANG_OPTIONS.map((opt) => (
+                    <FooterLangOption
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      $selected={currentLocale === opt.value}
+                      aria-selected={currentLocale === opt.value}
+                      onClick={() => handleLocaleChange(opt.value)}
+                    >
+                      {opt.value === currentLocale ? "✓ " : ""}
+                      {opt.label}
+                    </FooterLangOption>
+                  ))}
+                </FooterLangDropdown>
+              </>
+            )}
+          </FooterLangWrap>
           <FooterCopy>{t("profile.copyright")}</FooterCopy>
         </Footer>
       </ContentWrap>

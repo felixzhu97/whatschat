@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone, Video, MoreVertical, Users, BellOff } from "lucide-react";
+import { Info, Users, BellOff } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -22,48 +22,48 @@ interface ChatHeaderProps {
 const HeaderRoot = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid hsl(var(--border));
-  background-color: hsl(var(--card));
+  justify-content: center;
+  position: relative;
+  padding: 1rem 1rem 1.25rem;
+  border-bottom: 1px solid rgb(219 219 219);
+  background-color: rgb(255 255 255);
 `;
 
-const LeftSection = styled.div`
+const CenterBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const HeaderAvatar = styled(Avatar)`
+  width: 56px;
+  height: 56px;
+`;
+
+const ContactName = styled.div`
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(38 38 38);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.25rem;
 `;
 
-const TitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  column-gap: 0.5rem;
-  font-weight: 500;
-`;
-
-const MetaRow = styled.div`
-  display: flex;
-  align-items: center;
-  column-gap: 0.5rem;
-  font-size: 0.875rem;
-  color: rgb(107 114 128);
-`;
-
-const OnlineDot = styled.div`
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background-color: #22c55e;
-`;
-
-const RightActions = styled.div`
-  display: flex;
-  align-items: center;
-  column-gap: 0.5rem;
-`;
-
-const TypingText = styled.span`
-  color: #16a34a;
+const InfoBtn = styled(Button)`
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: none;
+  color: rgb(38 38 38);
+  &:hover {
+    background: rgb(239 239 239);
+    color: rgb(38 38 38);
+  }
 `;
 
 export function ChatHeader({
@@ -76,43 +76,20 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   return (
     <HeaderRoot>
-      <LeftSection>
-        <Avatar>
+      <CenterBlock>
+        <HeaderAvatar>
           <AvatarImage src={contact.avatar || "/placeholder.svg"} />
-          <AvatarFallback>{contact.name[0]}</AvatarFallback>
-        </Avatar>
-        <div>
-          <TitleRow>
-            {contact.name}
-            {contact.isGroup && <Users size={16} color="#6b7280" />}
-            {contact.muted && <BellOff size={16} color="#9ca3af" />}
-          </TitleRow>
-          <MetaRow>
-            {contact.isGroup ? (
-              <span>{contact.members?.length || 3} 位成员</span>
-            ) : contact.isOnline ? (
-              <>
-                <OnlineDot />
-                <span>在线</span>
-              </>
-            ) : (
-              <span>离线</span>
-            )}
-            {isTyping && <TypingText>正在输入...</TypingText>}
-          </MetaRow>
-        </div>
-      </LeftSection>
-      <RightActions>
-        <Button variant="ghost" size="icon" onClick={onVoiceCall}>
-          <Phone size={16} />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={onVideoCall}>
-          <Video size={16} />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={onShowInfo}>
-          <MoreVertical size={16} />
-        </Button>
-      </RightActions>
+          <AvatarFallback>{(contact.name ?? "?")[0]}</AvatarFallback>
+        </HeaderAvatar>
+        <ContactName>
+          {contact.name}
+          {contact.isGroup && <Users size={14} color="rgb(142 142 142)" />}
+          {contact.muted && <BellOff size={14} color="rgb(142 142 142)" />}
+        </ContactName>
+      </CenterBlock>
+      <InfoBtn variant="ghost" size="icon" onClick={onShowInfo} aria-label="Info">
+        <Info size={20} />
+      </InfoBtn>
     </HeaderRoot>
   );
 }

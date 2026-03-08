@@ -139,9 +139,10 @@ const FooterCopyright = styled.div`
 interface InstagramRightSidebarProps {
   user: User | null;
   suggestions: SuggestedUser[];
+  onFollow?: (userId: string) => void;
 }
 
-export function InstagramRightSidebar({ user, suggestions }: InstagramRightSidebarProps) {
+export function InstagramRightSidebar({ user, suggestions, onFollow }: InstagramRightSidebarProps) {
   const { t } = useTranslation();
   return (
     <SidebarRoot>
@@ -165,14 +166,16 @@ export function InstagramRightSidebar({ user, suggestions }: InstagramRightSideb
         {suggestions.map((s) => (
           <SuggestionItem key={s.id}>
             <Avatar style={{ width: 32, height: 32 }}>
-              <AvatarImage src={s.avatar} />
+              <AvatarImage src={s.avatar || undefined} />
               <AvatarFallback>{s.username[0]}</AvatarFallback>
             </Avatar>
             <SuggestionInfo>
               <SuggestionUsername>{s.username}</SuggestionUsername>
               <SuggestionDesc>{s.description}</SuggestionDesc>
             </SuggestionInfo>
-            <FollowBtn>{t("sidebar.follow")}</FollowBtn>
+            <FollowBtn type="button" onClick={() => onFollow?.(s.id)}>
+              {t("sidebar.follow")}
+            </FollowBtn>
           </SuggestionItem>
         ))}
       </SuggestionList>

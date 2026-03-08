@@ -13,10 +13,10 @@ package "Business Architecture" as BA {
   note right of BA
     **business-architecture.puml**
     User management, instant messaging,
-    feed & posts, Reels (short-form video),
+    feed & posts, Reels, follow/suggestions,
     comments, voice & video calls,
     file sharing, groups, contacts, notifications,
-    platform administration (admin dashboard)
+    admin dashboard
   end note
 }
 

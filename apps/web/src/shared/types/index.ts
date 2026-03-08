@@ -222,6 +222,7 @@ export interface FeedPost {
   isSaved?: boolean;
   type?: string;
   videoUrl?: string;
+  coverImageUrl?: string;
 }
 
 export interface SuggestedUser {

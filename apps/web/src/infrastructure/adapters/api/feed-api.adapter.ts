@@ -84,4 +84,40 @@ export class FeedApiAdapter {
     );
     return (res.data as { hits: unknown[] })?.hits ?? [];
   }
+
+  async getSuggestions(limit: number = 10) {
+    const res = await this.api.get<Array<{ id: string; username: string; avatar: string | null; description: string }>>(
+      `/users/suggestions?limit=${limit}`
+    );
+    return Array.isArray((res as { data?: unknown }).data) ? (res as { data: unknown[] }).data : [];
+  }
+
+  async getFollowers(userId: string, limit: number = 20, pageState?: string) {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (pageState) q.set("pageState", pageState);
+    const res = await this.api.get<{ data?: Array<{ id: string; username: string; avatar: string | null }>; total?: number; pageState?: string }>(
+      `/users/${userId}/followers?${q}`
+    );
+    const r = res as { data?: unknown[]; total?: number; pageState?: string };
+    return { list: Array.isArray(r.data) ? r.data : [], total: r.total ?? 0, pageState: r.pageState };
+  }
+
+  async getFollowing(userId: string, limit: number = 20, pageState?: string) {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (pageState) q.set("pageState", pageState);
+    const res = await this.api.get<{ data?: Array<{ id: string; username: string; avatar: string | null }>; total?: number; pageState?: string }>(
+      `/users/${userId}/following?${q}`
+    );
+    const r = res as { data?: unknown[]; total?: number; pageState?: string };
+    return { list: Array.isArray(r.data) ? r.data : [], total: r.total ?? 0, pageState: r.pageState };
+  }
+
+  async getProfileStats(userId: string): Promise<{ followersCount: number; followingCount: number }> {
+    const res = await this.api.get<{ followersCount?: number; followingCount?: number }>(`/users/${userId}`);
+    const d = (res as { data?: { followersCount?: number; followingCount?: number } }).data;
+    return {
+      followersCount: d?.followersCount ?? 0,
+      followingCount: d?.followingCount ?? 0,
+    };
+  }
 }
