@@ -1,5 +1,5 @@
 import { IApiClient } from "../../../domain/interfaces/adapters/api-client.interface";
-import { ApiResponse } from "../../../application/dto/api-response.dto";
+import type { ApiResponse } from "@/domain/dto/api-response.dto";
 import { API_CONFIG } from "../../config/api.config";
 
 export class ApiClientAdapter implements IApiClient {

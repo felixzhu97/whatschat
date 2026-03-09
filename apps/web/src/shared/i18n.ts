@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { en } from "@/src/locales/en";
-import { zh } from "@/src/locales/zh";
+import { en } from "@/shared/locales/en";
+import { zh } from "@/shared/locales/zh";
 
 export type AppLocale = "en" | "zh";
 

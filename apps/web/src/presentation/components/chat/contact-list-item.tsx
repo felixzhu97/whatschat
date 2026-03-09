@@ -25,8 +25,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/src/presentation/components/ui/dropdown-menu";
-import type { Contact } from "../../../types";
-import { useLongPress } from "../hooks/use-long-press";
+import type { Contact } from "@/shared/types";
+import { useLongPress } from "../../hooks/use-long-press";
 import {
   styled,
   instagramListRowColors,

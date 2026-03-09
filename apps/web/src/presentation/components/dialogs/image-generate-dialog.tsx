@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/src/presentation/components/ui/button";
 import {
   Dialog,
@@ -11,8 +11,7 @@ import {
 } from "@/src/presentation/components/ui/dialog";
 import { Input } from "@/src/presentation/components/ui/input";
 import { Label } from "@/src/presentation/components/ui/label";
-import { VideoApiAdapter } from "@/infrastructure/adapters/api/video-api.adapter";
-import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
+import type { IImageGenerateService } from "./dialog-services.types";
 import { styled } from "@/src/shared/utils/emotion";
 
 const PollInterval = 2000;
@@ -29,9 +28,10 @@ const StatusText = styled.p`
   margin-top: 0.5rem;
 `;
 
-const VideoPreview = styled.video`
+const ImagePreview = styled.img`
   max-width: 100%;
   max-height: 16rem;
+  object-fit: contain;
   border-radius: 0.5rem;
   margin-top: 0.5rem;
   border: 1px solid rgb(229 231 235);
@@ -46,40 +46,41 @@ const PrimaryButton = styled(Button)`
   }
 `;
 
-interface VideoGenerateDialogProps {
+interface ImageGenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (videoUrl: string) => void;
+  onSuccess: (imageUrl: string) => void;
   onTrackGenerateSuccess?: () => void;
+  service: IImageGenerateService;
 }
 
-export function VideoGenerateDialog({
+export function ImageGenerateDialog({
   isOpen,
   onClose,
   onSuccess,
   onTrackGenerateSuccess,
-}: VideoGenerateDialogProps) {
+  service,
+}: ImageGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("");
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const videoApiRef = useRef(new VideoApiAdapter(getApiClient()));
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!jobId) return;
-    const api = videoApiRef.current;
     const timer = setInterval(async () => {
       try {
-        const res = await api.getResult(jobId);
+        const res = await service.getResult(jobId);
         if (!res.success || !res.data) return;
         const data = res.data;
-        if (data.status === "succeeded" && data.videoUrl) {
+        if (data.status === "succeeded" && data.imageUrl) {
           setJobId(null);
           setStatus("");
           setIsSubmitting(false);
-          setVideoUrl(data.videoUrl);
+          setImageUrl(data.imageUrl);
           onTrackGenerateSuccess?.();
         } else if (data.status === "failed") {
           setJobId(null);
@@ -97,16 +98,19 @@ export function VideoGenerateDialog({
       }
     }, PollInterval);
     return () => clearInterval(timer);
-  }, [jobId]);
+  }, [jobId, service]);
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isSubmitting) return;
     setError("");
-    setVideoUrl(null);
+    setImageUrl(null);
     setStatus("提交中...");
     setIsSubmitting(true);
     try {
-      const res = await videoApiRef.current.generate(prompt.trim());
+      const res = await service.generate(
+        prompt.trim(),
+        negativePrompt.trim() || undefined
+      );
       if (!res.success || !res.data?.jobId) {
         setStatus("");
         setError("提交失败");
@@ -123,14 +127,14 @@ export function VideoGenerateDialog({
   };
 
   const handleSendToChat = () => {
-    if (videoUrl) {
-      onSuccess(videoUrl);
+    if (imageUrl) {
+      onSuccess(imageUrl);
       handleClose();
     }
   };
 
   const handleRegenerate = () => {
-    setVideoUrl(null);
+    setImageUrl(null);
     setError("");
     void handleSubmit();
   };
@@ -138,10 +142,11 @@ export function VideoGenerateDialog({
   const handleClose = () => {
     if (!isSubmitting) {
       setPrompt("");
+      setNegativePrompt("");
       setStatus("");
       setError("");
       setJobId(null);
-      setVideoUrl(null);
+      setImageUrl(null);
       onClose();
     }
   };
@@ -150,21 +155,30 @@ export function VideoGenerateDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>生成视频</DialogTitle>
+          <DialogTitle>生成图片</DialogTitle>
         </DialogHeader>
         <div>
-          <Label htmlFor="video-prompt">描述</Label>
+          <Label htmlFor="image-prompt">描述</Label>
           <Input
-            id="video-prompt"
+            id="image-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="输入视频描述"
+            placeholder="输入图片描述"
             disabled={isSubmitting}
             style={{ marginTop: "0.5rem" }}
           />
-          {videoUrl ? (
-            <VideoPreview src={videoUrl} controls />
-          ) : null}
+          <Label htmlFor="image-negative" style={{ marginTop: "0.75rem", display: "block" }}>
+            负面描述（可选）
+          </Label>
+          <Input
+            id="image-negative"
+            value={negativePrompt}
+            onChange={(e) => setNegativePrompt(e.target.value)}
+            placeholder="不希望出现的内容"
+            disabled={isSubmitting}
+            style={{ marginTop: "0.5rem" }}
+          />
+          {imageUrl ? <ImagePreview src={imageUrl} alt="Generated" /> : null}
           {error ? <ErrorText>{error}</ErrorText> : null}
           {status ? <StatusText>{status}</StatusText> : null}
         </div>
@@ -172,7 +186,7 @@ export function VideoGenerateDialog({
           <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
             取消
           </Button>
-          {videoUrl ? (
+          {imageUrl ? (
             <>
               <Button variant="outline" onClick={handleRegenerate} disabled={!prompt.trim()}>
                 重新生成
@@ -180,7 +194,10 @@ export function VideoGenerateDialog({
               <PrimaryButton onClick={handleSendToChat}>发送到聊天</PrimaryButton>
             </>
           ) : (
-            <PrimaryButton onClick={handleSubmit} disabled={!prompt.trim() || isSubmitting}>
+            <PrimaryButton
+              onClick={handleSubmit}
+              disabled={!prompt.trim() || isSubmitting}
+            >
               生成
             </PrimaryButton>
           )}

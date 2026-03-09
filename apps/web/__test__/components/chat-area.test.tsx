@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { ChatArea } from "@/src/presentation/components/chat-area";
+import { ChatArea } from "@/src/presentation/components/chat/chat-area";
 
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({

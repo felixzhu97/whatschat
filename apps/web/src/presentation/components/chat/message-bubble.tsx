@@ -25,7 +25,7 @@ import {
   Download,
   FileText,
 } from "lucide-react";
-import type { Message } from "../../../types";
+import type { Message } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface MessageBubbleProps {

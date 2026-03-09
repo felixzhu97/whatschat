@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/src/presentation/components/ui/select";
 import { styled } from "@/src/shared/utils/emotion";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../../hooks/use-auth";
 import { useTranslation, setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 
 const BORDER = "1px solid rgb(219 219 219)";

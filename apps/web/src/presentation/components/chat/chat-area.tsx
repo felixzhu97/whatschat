@@ -5,7 +5,7 @@ import type React from "react";
 import { ChatHeader } from "./chat-header";
 import { MessageArea } from "./message-area";
 import { MessageInput } from "./message-input";
-import type { Contact, Message } from "../../../types";
+import type { Contact, Message } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface ChatAreaProps {

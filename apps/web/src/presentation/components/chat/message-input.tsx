@@ -7,11 +7,11 @@ import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { Button } from "@/src/presentation/components/ui/button";
 import { Textarea } from "@/src/presentation/components/ui/textarea";
 import { Smile, Send, X, Sparkles, Camera, ImageIcon } from "lucide-react";
-import { AiActionMenu } from "./ai-action-menu";
-import { EmojiPicker } from "./emoji-picker";
-import { FileUpload } from "./file-upload";
-import { VoiceRecorder } from "./voice-recorder";
-import type { Message } from "../../../types";
+import { AiActionMenu } from "../common/ai-action-menu";
+import { EmojiPicker } from "../common/emoji-picker";
+import { FileUpload } from "../common/file-upload";
+import { VoiceRecorder } from "../common/voice-recorder";
+import type { Message } from "@/shared/types";
 import { useTranslation } from "@/src/shared/i18n";
 import { styled } from "@/src/shared/utils/emotion";
 

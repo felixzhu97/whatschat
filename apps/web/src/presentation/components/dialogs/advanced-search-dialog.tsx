@@ -26,7 +26,7 @@ import {
 import { CalendarIcon, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { styled } from "@/src/shared/utils/emotion";
-import type { Contact } from "../../../types";
+import type { Contact } from "@/shared/types";
 
 interface AdvancedSearchDialogProps {
   isOpen: boolean;

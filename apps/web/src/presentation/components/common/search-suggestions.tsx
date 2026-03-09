@@ -12,8 +12,8 @@ import { Button } from "@/src/presentation/components/ui/button";
 import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
 import { Separator } from "@/src/presentation/components/ui/separator";
 import { styled } from "@/src/shared/utils/emotion";
-import type { Contact } from "../../../types";
-import { useLongPress } from "../hooks/use-long-press";
+import type { Contact } from "@/shared/types";
+import { useLongPress } from "../../hooks/use-long-press";
 
 interface SearchSuggestion {
   id: string;

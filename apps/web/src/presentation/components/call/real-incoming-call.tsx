@@ -4,7 +4,7 @@ import { Phone, PhoneOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
 import { styled } from "@/src/shared/utils/emotion";
-import type { RTCCallState } from "@/src/lib/webrtc";
+import type { RTCCallState } from "@/shared/utils/webrtc";
 
 interface RealIncomingCallProps {
   callState: RTCCallState;

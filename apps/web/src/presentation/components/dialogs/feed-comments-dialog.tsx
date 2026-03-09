@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
-import { usePostComments } from "../hooks/use-feed";
+import { usePostComments } from "../../hooks/use-feed";
 import {
   InstagramSpinnerRing,
   InstagramSpinnerWrap,

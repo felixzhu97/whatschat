@@ -10,7 +10,7 @@ import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
 import { Textarea } from "@/src/presentation/components/ui/textarea";
 import { X, Search, Users, Camera, ArrowLeft, ArrowRight } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
-import type { Contact } from "../../../types";
+import type { Contact } from "@/shared/types";
 
 interface CreateGroupDialogProps {
   isOpen: boolean;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/presentation/hooks";
-import { InstagramMain } from "@/src/presentation/components/instagram-main";
+import { InstagramMain } from "@/src/presentation/components/containers/instagram-main";
 import {
   InstagramLoadingSplash,
   FromMetaBadge,

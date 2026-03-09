@@ -5,7 +5,7 @@ import { PhoneOff, Mic, MicOff, Video, VideoOff, Volume2, VolumeX } from "lucide
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
 import { styled } from "@/src/shared/utils/emotion";
-import type { RTCCallState } from "@/src/lib/webrtc";
+import type { RTCCallState } from "@/shared/utils/webrtc";
 
 interface RealCallInterfaceProps {
   callState: RTCCallState;

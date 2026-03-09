@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/src/presentation/components/ui/button";
 import {
@@ -11,8 +11,7 @@ import {
   DialogFooter,
 } from "@/src/presentation/components/ui/dialog";
 import { Label } from "@/src/presentation/components/ui/label";
-import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
-import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
+import type { ITextGenerateService } from "./dialog-services.types";
 import { styled } from "@/src/shared/utils/emotion";
 
 const ErrorText = styled.p`
@@ -63,6 +62,7 @@ interface TextGenerateDialogProps {
   onClose: () => void;
   onSuccess: (content: string) => void;
   onTrackGenerateSuccess?: () => void;
+  service: ITextGenerateService;
 }
 
 export function TextGenerateDialog({
@@ -70,13 +70,13 @@ export function TextGenerateDialog({
   onClose,
   onSuccess,
   onTrackGenerateSuccess,
+  service,
 }: TextGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const aiApiRef = useRef(new AiApiAdapter(getApiClient()));
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isSubmitting) return;
@@ -85,7 +85,7 @@ export function TextGenerateDialog({
     setOutput("");
     setIsSubmitting(true);
     try {
-      await aiApiRef.current.postChatStream(
+      await service.postChatStream(
         [{ role: "user", content: prompt.trim() }],
         (chunk) => setOutput((prev) => prev + chunk)
       );

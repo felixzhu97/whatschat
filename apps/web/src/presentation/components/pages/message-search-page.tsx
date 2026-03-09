@@ -22,7 +22,7 @@ import {
   InstagramSpinnerWrap,
   InstagramSpinnerText,
 } from "@/src/presentation/components/ui/instagram-spinner";
-import type { Contact, Message } from "../../../types";
+import type { Contact, Message } from "@/shared/types";
 
 interface MessageSearchPageProps {
   isOpen: boolean;

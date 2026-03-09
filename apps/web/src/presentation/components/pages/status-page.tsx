@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/componen
 import { Button } from "@/src/presentation/components/ui/button";
 import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
 import { styled } from "@/src/shared/utils/emotion";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../../hooks/use-auth";
 
 interface Status {
   id: string;

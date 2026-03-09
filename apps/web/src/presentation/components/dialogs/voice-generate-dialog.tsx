@@ -19,8 +19,7 @@ import {
   SelectValue,
 } from "@/src/presentation/components/ui/select";
 import ReactMarkdown from "react-markdown";
-import { VoiceApiAdapter } from "@/infrastructure/adapters/api/voice-api.adapter";
-import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
+import type { IVoiceGenerateService } from "./dialog-services.types";
 import { Play, Pause } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
 
@@ -169,6 +168,7 @@ interface VoiceGenerateDialogProps {
   onClose: () => void;
   onSuccess: (audioUrl: string) => void;
   onTrackGenerateSuccess?: () => void;
+  service: IVoiceGenerateService;
 }
 
 type TargetLang = "auto" | "zh" | "en";
@@ -184,6 +184,7 @@ export function VoiceGenerateDialog({
   onClose,
   onSuccess,
   onTrackGenerateSuccess,
+  service,
 }: VoiceGenerateDialogProps) {
   const [prompt, setPrompt] = useState("");
   const [targetLang, setTargetLang] = useState<TargetLang>("auto");
@@ -198,7 +199,6 @@ export function VoiceGenerateDialog({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const voiceApiRef = useRef(new VoiceApiAdapter(getApiClient()));
 
   useEffect(() => {
     const el = audioRef.current;
@@ -231,7 +231,7 @@ export function VoiceGenerateDialog({
     setStatus("生成中...");
     setIsSubmitting(true);
     try {
-      const res = await voiceApiRef.current.generate(prompt.trim(), targetLang);
+      const res = await service.generate(prompt.trim(), targetLang === "auto" ? undefined : targetLang);
       setStatus("");
       setIsSubmitting(false);
       if (!res.success || !res.data?.audioUrl) {
@@ -253,7 +253,7 @@ export function VoiceGenerateDialog({
     setIsTranslating(true);
     setTranslatedText("");
     try {
-      const res = await voiceApiRef.current.translate(generatedText.trim(), lang);
+      const res = await service.translate(generatedText.trim(), lang);
       const raw = res.success ? res.data?.translatedText : undefined;
       const value =
         typeof raw === "string"

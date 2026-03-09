@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./message-bubble";
-import type { Contact, Message } from "../../../types";
+import type { Contact, Message } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface MessageAreaProps {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/src/presentation/components/ui/button";
 import { Mic, Square, Send, X } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
-import { useVoiceRecorder } from "../hooks/use-voice-recorder";
+import { useVoiceRecorder } from "../../hooks/use-voice-recorder";
 
 interface VoiceRecorderProps {
   onSendVoice: (audioBlob: Blob, duration: number) => void;

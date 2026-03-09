@@ -7,7 +7,7 @@ import {
   AvatarImage,
 } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
-import type { Contact } from "../../../types";
+import type { Contact } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
 
 interface ChatHeaderProps {

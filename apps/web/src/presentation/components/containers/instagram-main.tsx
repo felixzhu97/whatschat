@@ -4,44 +4,44 @@ import type React from "react";
 
 import { useEffect, useMemo, useState } from "react";
 import { Send } from "lucide-react";
-import { Sidebar } from "./sidebar";
-import { InstagramMessagesSidebar } from "./instagram-messages-sidebar";
-import { InstagramMessagesEmpty } from "./instagram-messages-empty";
-import { ChatArea } from "./chat-area";
-import { WelcomeScreen } from "./welcome-screen";
-import { ProfilePage } from "./profile-page";
-import { InstagramNav } from "./instagram-nav";
-import { InstagramFeed } from "./instagram-feed";
-import { InstagramReels } from "./instagram-reels";
-import { InstagramRightSidebar } from "./instagram-right-sidebar";
-import { CallsPage } from "./calls-page";
-import { StatusPage } from "./status-page";
-import { StarredMessagesPage } from "./starred-messages-page";
-import { MessageSearchPage } from "./message-search-page";
-import { SettingsPage } from "./settings-page";
-import { CreateGroupDialog } from "./create-group-dialog";
-import { AddFriendDialog } from "./add-friend-dialog";
-import { AdvancedSearchDialog } from "./advanced-search-dialog";
-import { VideoGenerateDialog } from "./video-generate-dialog";
-import { TextGenerateDialog } from "./text-generate-dialog";
-import { ImageGenerateDialog } from "./image-generate-dialog";
-import { VoiceGenerateDialog } from "./voice-generate-dialog";
-import { RealIncomingCall } from "./real-incoming-call";
-import { RealCallInterface } from "./real-call-interface";
-import { useRealCall } from "../hooks/use-real-call";
-import { useMessages } from "../hooks/use-messages";
+import { Sidebar } from "../common/sidebar";
+import { InstagramMessagesSidebar } from "../instagram/instagram-messages-sidebar";
+import { InstagramMessagesEmpty } from "../instagram/instagram-messages-empty";
+import { ChatArea } from "../chat/chat-area";
+import { WelcomeScreen } from "../pages/welcome-screen";
+import { ProfilePage } from "../pages/profile-page";
+import { InstagramNav } from "../instagram/instagram-nav";
+import { InstagramFeed } from "../instagram/instagram-feed";
+import { InstagramReels } from "../instagram/instagram-reels";
+import { InstagramRightSidebar } from "../instagram/instagram-right-sidebar";
+import { CallsPage } from "../pages/calls-page";
+import { StatusPage } from "../pages/status-page";
+import { StarredMessagesPage } from "../pages/starred-messages-page";
+import { MessageSearchPage } from "../pages/message-search-page";
+import { SettingsPage } from "../pages/settings-page";
+import { CreateGroupDialog } from "../dialogs/create-group-dialog";
+import { AddFriendDialog } from "../dialogs/add-friend-dialog";
+import { AdvancedSearchDialog } from "../dialogs/advanced-search-dialog";
+import { VideoGenerateDialog } from "../dialogs/video-generate-dialog";
+import { TextGenerateDialog } from "../dialogs/text-generate-dialog";
+import { ImageGenerateDialog } from "../dialogs/image-generate-dialog";
+import { VoiceGenerateDialog } from "../dialogs/voice-generate-dialog";
+import { RealIncomingCall } from "../call/real-incoming-call";
+import { RealCallInterface } from "../call/real-call-interface";
+import { useRealCall } from "../../hooks/use-real-call";
+import { useMessages } from "../../hooks/use-messages";
 import { useAnalytics } from "@whatschat/analytics";
 import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION } from "@whatschat/analytics";
-import { useSearch } from "../hooks/use-search";
-import { useDialogs } from "../hooks/use-dialogs";
-import { useNavigation } from "../hooks/use-navigation";
-import { useChatsWithLiveMessages } from "../hooks/use-chats-with-live-messages";
-import { useAuth } from "../hooks/use-auth";
-import { useFeed, useProfileStats } from "../hooks/use-feed";
+import { useSearch } from "../../hooks/use-search";
+import { useDialogs } from "../../hooks/use-dialogs";
+import { useNavigation } from "../../hooks/use-navigation";
+import { useChatsWithLiveMessages } from "../../hooks/use-chats-with-live-messages";
+import { useAuth } from "../../hooks/use-auth";
+import { useFeed, useProfileStats } from "../../hooks/use-feed";
 import { useTranslation } from "@/src/shared/i18n";
-import { FeedCommentsDialog } from "./feed-comments-dialog";
-import { CreatePostDialog } from "./create-post-dialog";
-import { FollowListModal } from "./follow-list-modal";
+import { FeedCommentsDialog } from "../dialogs/feed-comments-dialog";
+import { CreatePostDialog } from "../dialogs/create-post-dialog";
+import { FollowListModal } from "../dialogs/follow-list-modal";
 import { styled } from "@/src/shared/utils/emotion";
 import {
   mockContacts,
@@ -52,7 +52,12 @@ import {
 } from "@/infrastructure/data/mock-data";
 import { getMessagesForContact } from "@/shared/utils/message-utils";
 import type { Contact, User, Message, FeedPost } from "@/shared/types";
+import type { FollowListItem, IFollowListService } from "../dialogs/dialog-services.types";
 import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
+import { ImageApiAdapter } from "@/infrastructure/adapters/api/image-api.adapter";
+import { VideoApiAdapter } from "@/infrastructure/adapters/api/video-api.adapter";
+import { VoiceApiAdapter } from "@/infrastructure/adapters/api/voice-api.adapter";
+import { FeedApiAdapter } from "@/infrastructure/adapters/api/feed-api.adapter";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 
 const AppShell = styled.div`
@@ -274,7 +279,18 @@ export function InstagramMain() {
     }
   };
 
-  const aiApi = useMemo(() => new AiApiAdapter(getApiClient()), []);
+  const apiClient = useMemo(() => getApiClient(), []);
+  const aiApi = useMemo(() => new AiApiAdapter(apiClient), [apiClient]);
+  const imageGenerateService = useMemo(() => new ImageApiAdapter(apiClient), [apiClient]);
+  const videoGenerateService = useMemo(() => new VideoApiAdapter(apiClient), [apiClient]);
+  const voiceGenerateService = useMemo(() => new VoiceApiAdapter(apiClient), [apiClient]);
+  const feedApi = useMemo(() => new FeedApiAdapter(apiClient), [apiClient]);
+  const followListService = useMemo((): IFollowListService => ({
+    getFollowers: (userId, limit) =>
+      feedApi.getFollowers(userId, limit).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
+    getFollowing: (userId, limit) =>
+      feedApi.getFollowing(userId, limit).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
+  }), [feedApi]);
   const handleSmartReplyClick = () => {
     const recent = chatsWithLive.messagesForSelected.slice(-10).map((m) => ({
       role: m.senderId === currentUser?.id ? "user" : "assistant",
@@ -567,6 +583,7 @@ export function InstagramMain() {
               currentUserId={currentUser?.id}
               onFollow={feed.followUser}
               onUnfollow={feed.unfollowUser}
+              followListService={followListService}
             />
           </CenterColumn>
         );
@@ -743,6 +760,7 @@ export function InstagramMain() {
         onTrackGenerateSuccess={() =>
           analytics.track(AI_ACTION, { action: "video", step: "generate_success", chatId: chatIdForAnalytics })
         }
+        service={videoGenerateService}
       />
 
       <TextGenerateDialog
@@ -752,6 +770,7 @@ export function InstagramMain() {
         onTrackGenerateSuccess={() =>
           analytics.track(AI_ACTION, { action: "text", step: "generate_success", chatId: chatIdForAnalytics })
         }
+        service={aiApi}
       />
 
       <ImageGenerateDialog
@@ -761,6 +780,7 @@ export function InstagramMain() {
         onTrackGenerateSuccess={() =>
           analytics.track(AI_ACTION, { action: "image", step: "generate_success", chatId: chatIdForAnalytics })
         }
+        service={imageGenerateService}
       />
 
       <VoiceGenerateDialog
@@ -770,6 +790,7 @@ export function InstagramMain() {
         onTrackGenerateSuccess={() =>
           analytics.track(AI_ACTION, { action: "voice", step: "generate_success", chatId: chatIdForAnalytics })
         }
+        service={voiceGenerateService}
       />
     </AppShell>
   );

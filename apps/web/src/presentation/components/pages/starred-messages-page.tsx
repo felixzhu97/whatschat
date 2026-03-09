@@ -6,9 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/componen
 import { Button } from "@/src/presentation/components/ui/button";
 import { Input } from "@/src/presentation/components/ui/input";
 import { ScrollArea } from "@/src/presentation/components/ui/scroll-area";
-import { MessageBubble } from "./message-bubble";
+import { MessageBubble } from "../chat/message-bubble";
 import { styled } from "@/src/shared/utils/emotion";
-import type { Message } from "../../../types";
+import type { Message } from "@/shared/types";
 
 interface StarredMessage extends Message {
   chatName: string;

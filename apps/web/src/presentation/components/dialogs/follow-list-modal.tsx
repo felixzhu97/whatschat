@@ -11,10 +11,7 @@ import {
 } from "@/src/presentation/components/ui/dialog";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
-import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
-import { FeedApiAdapter } from "@/infrastructure/adapters/api/feed-api.adapter";
-
-const api = new FeedApiAdapter(getApiClient());
+import type { IFollowListService } from "./dialog-services.types";
 
 const SearchWrap = styled.div`
   display: flex;
@@ -108,6 +105,7 @@ export interface FollowListModalProps {
   currentUserId: string | undefined;
   onFollow?: (userId: string) => void;
   onUnfollow?: (userId: string) => void;
+  followListService: IFollowListService;
 }
 
 export function FollowListModal({
@@ -118,6 +116,7 @@ export function FollowListModal({
   currentUserId,
   onFollow,
   onUnfollow,
+  followListService,
 }: FollowListModalProps) {
   const { t } = useTranslation();
   const [list, setList] = useState<Array<{ id: string; username: string; avatar: string | null }>>([]);
@@ -128,14 +127,14 @@ export function FollowListModal({
   const load = useCallback(() => {
     if (!userId) return;
     setLoading(true);
-    const promise = title === "followers" ? api.getFollowers(userId, 20) : api.getFollowing(userId, 20);
+    const promise = title === "followers" ? followListService.getFollowers(userId, 20) : followListService.getFollowing(userId, 20);
     promise
       .then((res) => {
         setList(res.list);
         setPageState(res.pageState);
       })
       .finally(() => setLoading(false));
-  }, [userId, title]);
+  }, [userId, title, followListService]);
 
   useEffect(() => {
     if (open && userId) load();

@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../../application/dto/api-response.dto";
+import type { ApiResponse } from "../../dto/api-response.dto";
 
 export interface IApiClient {
   setToken(token: string | null): void;
