@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import type { Contact } from "../types";
+import type { Contact } from "@/shared/types";
 
 export function useSearch() {
   const [searchQuery, setSearchQuery] = useState("");

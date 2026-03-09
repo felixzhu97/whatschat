@@ -5,6 +5,11 @@ import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "luci
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
 import { usePostComments } from "../hooks/use-feed";
+import {
+  InstagramSpinnerRing,
+  InstagramSpinnerWrap,
+  InstagramSpinnerText,
+} from "@/src/presentation/components/ui/instagram-spinner";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
 import type { FeedPost } from "@/shared/types";
@@ -292,11 +297,8 @@ const PostBtn = styled.button`
   }
 `;
 
-const LoadingRow = styled.div`
+const LoadingRow = styled(InstagramSpinnerWrap)`
   padding: 24px 16px;
-  font-size: 14px;
-  color: ${TEXT_SECONDARY};
-  text-align: center;
 `;
 
 function formatCommentTime(
@@ -432,7 +434,12 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
               </CaptionBlock>
             )}
             <CommentList>
-              {loading && <LoadingRow>{t("comments.loading")}</LoadingRow>}
+              {loading && (
+                <LoadingRow>
+                  <InstagramSpinnerRing $size={24} />
+                  <InstagramSpinnerText>{t("comments.loading")}</InstagramSpinnerText>
+                </LoadingRow>
+              )}
               {!loading &&
                 comments.map((c) => (
                   <CommentItem key={c.id}>

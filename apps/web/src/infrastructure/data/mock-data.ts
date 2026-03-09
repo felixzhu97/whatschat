@@ -1,4 +1,4 @@
-import type { Contact, Message, StoryItem, FeedPost, SuggestedUser } from "@/shared/types";
+import type { Contact, Message, StoryItem, FeedPost } from "@/shared/types";
 
 export const mockContacts: Contact[] = [
   {
@@ -157,12 +157,4 @@ export const mockFeedPosts: FeedPost[] = [
     isLiked: false,
     isSaved: false,
   },
-];
-
-export const mockSuggestedUsers: SuggestedUser[] = [
-  { id: "su1", username: "lara", avatar: "/placeholder.svg?height=32&width=32&text=L", description: "Suggested for you" },
-  { id: "su2", username: "Elena", avatar: "/placeholder.svg?height=32&width=32&text=E", description: "Followed by l_kno_u_00" },
-  { id: "su3", username: "Kanika Arora", avatar: "/placeholder.svg?height=32&width=32&text=K", description: "Following university assigne" },
-  { id: "su4", username: "adrianna", avatar: "/placeholder.svg?height=32&width=32&text=A", description: "Suggested for you" },
-  { id: "su5", username: "Rosa Verges", avatar: "/placeholder.svg?height=32&width=32&text=R", description: "Followed by 2 people you follow" },
 ];

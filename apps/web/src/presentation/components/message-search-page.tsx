@@ -17,6 +17,11 @@ import {
   File,
 } from "lucide-react";
 import { styled } from "@/src/shared/utils/emotion";
+import {
+  InstagramSpinnerRing,
+  InstagramSpinnerWrap,
+  InstagramSpinnerText,
+} from "@/src/presentation/components/ui/instagram-spinner";
 import type { Contact, Message } from "../../../types";
 
 interface MessageSearchPageProps {
@@ -107,29 +112,8 @@ const BodyInner = styled.div`
   padding: 1rem;
 `;
 
-const SpinnerWrap = styled.div`
-  text-align: center;
+const SpinnerWrap = styled(InstagramSpinnerWrap)`
   padding: 2rem 0;
-`;
-
-const Spinner = styled.div`
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  border-bottom-color: rgb(59 130 246);
-  margin: 0 auto 0.5rem;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const SpinnerText = styled.p`
-  color: rgb(107 114 128);
 `;
 
 const EmptyState = styled.div`
@@ -395,8 +379,8 @@ export function MessageSearchPage({
         <BodyInner>
           {isSearching ? (
             <SpinnerWrap>
-              <Spinner />
-              <SpinnerText>搜索中...</SpinnerText>
+              <InstagramSpinnerRing $size={32} />
+              <InstagramSpinnerText>搜索中...</InstagramSpinnerText>
             </SpinnerWrap>
           ) : searchQuery.trim() === "" ? (
             <EmptyState>

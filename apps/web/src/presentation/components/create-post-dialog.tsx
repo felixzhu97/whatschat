@@ -219,8 +219,8 @@ const StepTitle = styled.h2`
 `;
 
 const SpinnerWrap = styled.div`
-  color: ${BLUE};
-  animation: spin 1s linear infinite;
+  color: ${TEXT_SECONDARY};
+  animation: spin 0.8s linear infinite;
   @keyframes spin {
     to { transform: rotate(360deg); }
   }

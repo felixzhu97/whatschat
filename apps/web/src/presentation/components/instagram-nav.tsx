@@ -133,7 +133,12 @@ const FlyoutList = styled.ul`
   box-sizing: border-box;
 `;
 
-const FlyoutRow = styled.li<{ $active?: boolean; $hovered?: boolean; $visible?: boolean }>`
+const FlyoutRow = styled.li<{
+  $active?: boolean;
+  $hovered?: boolean;
+  $visible?: boolean;
+  $clickable?: boolean;
+}>`
   display: flex;
   align-items: center;
   width: 100%;
@@ -145,7 +150,7 @@ const FlyoutRow = styled.li<{ $active?: boolean; $hovered?: boolean; $visible?: 
   font-weight: ${(p) => (p.$active ? 600 : 400)};
   color: rgb(38 38 38);
   background-color: ${(p) => (p.$hovered ? HoverBg : "transparent")};
-  cursor: default;
+  cursor: ${(p) => (p.$clickable ? "pointer" : "default")};
   box-sizing: border-box;
   opacity: ${(p) => (p.$visible ? 1 : 0)};
   transform: translateX(${(p) => (p.$visible ? 0 : -12)}px);
@@ -279,13 +284,27 @@ export function InstagramNav({
         <FlyoutTop />
         <Spacer />
         <FlyoutList>
-          {mainItems.map(({ id, label, tab }) => (
+          {mainItems.map(({ id, label, tab, onClick }) => (
             <FlyoutRow
               key={id}
               $active={active(tab)}
               $hovered={isHovered(id)}
               $visible={expanded}
+              $clickable={!!onClick}
               onMouseEnter={() => setHovered(id)}
+              onClick={onClick}
+              role={onClick ? "button" : undefined}
+              tabIndex={onClick ? 0 : undefined}
+              onKeyDown={
+                onClick
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onClick();
+                      }
+                    }
+                  : undefined
+              }
             >
               {label}
             </FlyoutRow>

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Send } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { InstagramMessagesSidebar } from "./instagram-messages-sidebar";
@@ -29,7 +29,6 @@ import { VoiceGenerateDialog } from "./voice-generate-dialog";
 import { RealIncomingCall } from "./real-incoming-call";
 import { RealCallInterface } from "./real-call-interface";
 import { useRealCall } from "../hooks/use-real-call";
-import { getWebRTCManager } from "@/src/lib/webrtc";
 import { useMessages } from "../hooks/use-messages";
 import { useAnalytics } from "@whatschat/analytics";
 import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION } from "@whatschat/analytics";
@@ -51,10 +50,7 @@ import {
   mockStories,
   mockFeedPosts,
 } from "@/infrastructure/data/mock-data";
-import {
-  getMessagesForContact,
-  handleContactAction,
-} from "@/shared/utils/message-utils";
+import { getMessagesForContact } from "@/shared/utils/message-utils";
 import type { Contact, User, Message, FeedPost } from "@/shared/types";
 import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
@@ -204,8 +200,6 @@ export function InstagramMain() {
     handleSearchChange,
     handleSearchFocus,
     handleSearchBlur,
-    handleGlobalSearch,
-    handleSearchSuggestion,
     handleRemoveRecentSearch,
     filterContacts,
   } = useSearch();
@@ -256,6 +250,7 @@ export function InstagramMain() {
   } = useMessages({
     selectedContactId,
     selectedContact: selectedContact ?? null,
+    messages: mockMessages,
   });
 
   type SendMessageFn = (
@@ -279,7 +274,7 @@ export function InstagramMain() {
     }
   };
 
-  const aiApi = new AiApiAdapter(getApiClient());
+  const aiApi = useMemo(() => new AiApiAdapter(getApiClient()), []);
   const handleSmartReplyClick = () => {
     const recent = chatsWithLive.messagesForSelected.slice(-10).map((m) => ({
       role: m.senderId === currentUser?.id ? "user" : "assistant",
@@ -353,33 +348,6 @@ export function InstagramMain() {
     handleBackToChat();
   };
 
-  const handleContactActionWrapper = (action: string, contact: Contact) => {
-    const startCallWithOptions = (
-      contactId: string,
-      contactName: string,
-      contactAvatar: string,
-      callType: "voice" | "video"
-    ) => {
-      startCall(
-        contactId,
-        contactName,
-        contactAvatar,
-        callType,
-        isConnected ? { chatId: contactId } : undefined
-      );
-    };
-    handleContactAction(action, contact, startCallWithOptions);
-  };
-
-  const handleGlobalSearchWrapper = (query: string) => {
-    handleGlobalSearch(query);
-    handleSearchPageClick();
-  };
-
-  const handleSearchSuggestionWrapper = (suggestion: any) => {
-    handleSearchSuggestion(suggestion, mockContacts, handleContactSelect);
-  };
-
   const handleStartCall = (callType: "voice" | "video") => {
     if (!selectedContact?.id) return;
     const id = selectedContact.id;
@@ -397,7 +365,6 @@ export function InstagramMain() {
   };
 
   const handleCreateGroup = (name: string, selectedMembers: Contact[]) => {
-    console.log("Creating group:", name, selectedMembers);
     const newGroup: Contact = {
       id: `group_${Date.now()}`,
       name,
@@ -426,18 +393,15 @@ export function InstagramMain() {
   };
 
   const handleAddFriend = (friendId: string) => {
-    console.log("Adding friend:", friendId);
     closeAddFriendDialog();
   };
 
   const handleAdvancedSearch = (filters: any) => {
-    console.log("Advanced search with filters:", filters);
     closeAdvancedSearchDialog();
     handleSearchPageClick();
   };
 
   const handleSelectMessage = (contactId: string, messageId: string) => {
-    console.log("Select message:", contactId, messageId);
     const contact = mockContacts.find((c) => c.id === contactId);
     if (contact) {
       handleContactSelect(contact);

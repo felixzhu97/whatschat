@@ -16,6 +16,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import { Button } from "@/src/presentation/components/ui/button";
 import type { FeedPost } from "@/shared/types";
+import {
+  InstagramSpinnerRing,
+  InstagramSpinnerWrap,
+  InstagramSpinnerText,
+} from "@/src/presentation/components/ui/instagram-spinner";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
 
@@ -286,8 +291,9 @@ const EmptyWrap = styled.div`
   text-align: center;
 `;
 
-const LoadingWrap = styled(EmptyWrap)`
-  color: ${TEXT_PRIMARY};
+const LoadingWrap = styled(InstagramSpinnerWrap)`
+  padding: 24px;
+  min-height: 200px;
 `;
 
 export interface InstagramReelsProps {
@@ -373,7 +379,10 @@ export function InstagramReels({
   if (loading) {
     return (
       <ReelsRoot>
-        <LoadingWrap>{t("reels.loading")}</LoadingWrap>
+        <LoadingWrap>
+          <InstagramSpinnerRing $size={32} />
+          <InstagramSpinnerText>{t("reels.loading")}</InstagramSpinnerText>
+        </LoadingWrap>
       </ReelsRoot>
     );
   }

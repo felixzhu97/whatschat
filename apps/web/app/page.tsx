@@ -4,40 +4,27 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/presentation/hooks";
 import { InstagramMain } from "@/src/presentation/components/instagram-main";
+import {
+  InstagramLoadingSplash,
+  FromMetaBadge,
+} from "@/src/presentation/components/ui/instagram-loading-splash";
 import { styled } from "@/src/shared/utils/emotion";
 
 const LoadingScreen = styled.div`
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: rgb(255 255 255);
+  position: relative;
 `;
 
 const LoadingContent = styled.div`
-  text-align: center;
-`;
-
-const Spinner = styled.div`
-  margin: 0 auto 1rem;
-  height: 2rem;
-  width: 2rem;
-  border-radius: 9999px;
-  border-width: 2px;
-  border-style: solid;
-  border-color: transparent;
-  border-bottom-color: #22c55e;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const LoadingText = styled.p`
-  font-size: 0.875rem;
-  color: rgb(107 114 128);
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
 `;
 
 export default function HomePage() {
@@ -59,9 +46,9 @@ export default function HomePage() {
     return (
       <LoadingScreen>
         <LoadingContent>
-          <Spinner />
-          <LoadingText>加载中...</LoadingText>
+          <InstagramLoadingSplash logoSize={64} />
         </LoadingContent>
+        <FromMetaBadge />
       </LoadingScreen>
     );
   }

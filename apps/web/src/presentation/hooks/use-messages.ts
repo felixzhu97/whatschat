@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import type { Message, Contact } from "@/shared/types";
-import { mockMessages } from "@/infrastructure/data/mock-data";
 import {
   createMessage,
   addMessageToContact,
@@ -8,14 +7,16 @@ import {
   simulateIndividualResponse,
 } from "@/shared/utils/message-utils";
 
-interface UseMessagesProps {
+export interface UseMessagesProps {
   selectedContactId: string | null;
   selectedContact: Contact | null;
+  messages: Record<string, Message[]>;
 }
 
 export function useMessages({
   selectedContactId,
   selectedContact,
+  messages,
 }: UseMessagesProps) {
   const [messageText, setMessageText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -47,7 +48,7 @@ export function useMessages({
       const newMessage = createMessage(content, type);
 
       // Add to messages
-      addMessageToContact(selectedContactId, newMessage, mockMessages);
+      addMessageToContact(selectedContactId, newMessage, messages);
 
       // Clear input
       setMessageText("");
@@ -58,7 +59,7 @@ export function useMessages({
       // Simulate response
       simulateResponse(selectedContactId, selectedContact);
     },
-    [selectedContactId, selectedContact]
+    [selectedContactId, selectedContact, messages]
   );
 
   const handleKeyDown = useCallback(
@@ -81,19 +82,19 @@ export function useMessages({
       setTimeout(
         () => {
           if (isGroupChat) {
-            simulateGroupResponse(contactId, mockMessages);
+            simulateGroupResponse(contactId, messages);
           } else {
             simulateIndividualResponse(
               contactId,
               contact?.name || "联系人",
-              mockMessages
+              messages
             );
           }
         },
         1000 + Math.random() * 2000
       );
     },
-    []
+    [messages]
   );
 
   const handleEmojiSelect = useCallback((emoji: string) => {
@@ -106,7 +107,6 @@ export function useMessages({
 
   const handleFileSelect = useCallback(
     (file: File) => {
-      console.log("File selected:", file.name);
       const fileType = file.type.startsWith("image/")
         ? "image"
         : file.type.startsWith("video/")
@@ -122,7 +122,6 @@ export function useMessages({
 
   const handleSendVoice = useCallback(
     (audioBlob: Blob, duration: number) => {
-      console.log("Voice message sent:", duration);
       handleSendMessage(`语音消息 ${Math.round(duration)}秒`, "audio");
     },
     [handleSendMessage]
@@ -137,21 +136,13 @@ export function useMessages({
     setMessageText(message.content);
   }, []);
 
-  const handleDelete = useCallback((message: Message) => {
-    console.log("Delete message:", message.id);
-  }, []);
+  const handleDelete = useCallback((_message: Message) => {}, []);
 
-  const handleForward = useCallback((message: Message) => {
-    console.log("Forward message:", message.id);
-  }, []);
+  const handleForward = useCallback((_message: Message) => {}, []);
 
-  const handleStar = useCallback((message: Message) => {
-    console.log("Star message:", message.id);
-  }, []);
+  const handleStar = useCallback((_message: Message) => {}, []);
 
-  const handleInfo = useCallback((message: Message) => {
-    console.log("Message info:", message.id);
-  }, []);
+  const handleInfo = useCallback((_message: Message) => {}, []);
 
   const handleCancelReply = useCallback(() => {
     setReplyingTo(null);

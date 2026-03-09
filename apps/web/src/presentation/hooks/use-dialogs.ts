@@ -7,17 +7,14 @@ export function useDialogs() {
     useState(false);
 
   const handleCreateGroupClick = useCallback(() => {
-    console.log("Opening create group dialog");
     setShowCreateGroupDialog(true);
   }, []);
 
   const handleAddFriendClick = useCallback(() => {
-    console.log("Opening add friend dialog");
     setShowAddFriendDialog(true);
   }, []);
 
   const handleAdvancedSearchClick = useCallback(() => {
-    console.log("Opening advanced search dialog");
     setShowAdvancedSearchDialog(true);
   }, []);
 

@@ -1,17 +1,13 @@
-import { styled } from "@/src/shared/utils/emotion";
+import { styled, keyframes } from "@/src/shared/utils/emotion";
+
+const shimmer = keyframes`
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+`;
 
 export const Skeleton = styled.div`
-  border-radius: 0.375rem;
-  background-color: hsl(var(--muted));
-  animation: pulse 1.5s ease-in-out infinite;
-
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.4;
-    }
-  }
+  border-radius: 4px;
+  background-color: rgb(239 239 239);
+  animation: ${shimmer} 1.2s ease-in-out infinite;
 `;

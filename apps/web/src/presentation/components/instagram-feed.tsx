@@ -3,6 +3,11 @@
 import { useRef, useState, useCallback } from "react";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
+import {
+  InstagramSpinnerRing,
+  InstagramSpinnerWrap,
+  InstagramSpinnerText,
+} from "@/src/presentation/components/ui/instagram-spinner";
 import type { StoryItem, FeedPost } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
@@ -224,6 +229,10 @@ const FeedError = styled.div`
   color: rgb(237 73 86);
 `;
 
+const FeedLoading = styled(InstagramSpinnerWrap)`
+  padding: 24px 16px;
+`;
+
 interface InstagramFeedProps {
   stories: StoryItem[];
   posts: FeedPost[];
@@ -260,7 +269,12 @@ export function InstagramFeed({
   return (
     <FeedRoot>
       {error && <FeedError>{error}</FeedError>}
-      {loading && <FeedError>{t("feed.loading")}</FeedError>}
+      {loading && (
+        <FeedLoading>
+          <InstagramSpinnerRing $size={28} />
+          <InstagramSpinnerText>{t("feed.loading")}</InstagramSpinnerText>
+        </FeedLoading>
+      )}
       <StoriesWrap>
         <StoriesScroll>
           {stories.map((s) => (
