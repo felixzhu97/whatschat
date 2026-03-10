@@ -1,0 +1,51 @@
+@startuml
+!global RELATIVE_INCLUDE = 1
+!include ../../../c4-lib/C4-PlantUML/C4_Container.puml
+
+title C4 Level 2 - 容器：WhatsChat
+
+Person(user_web, "Web 用户", "通过浏览器使用聊天")
+Person(user_mobile, "移动端用户", "通过应用使用聊天")
+
+System_Boundary(whatschat, "WhatsChat") {
+  Container(web_app, "Web 应用", "Next.js、React、TypeScript、Emotion、i18next", "Instagram 风格 UI（导航、信息流、Reels、探索、个人页、侧栏）、聊天、通话、联系人、认证、AI 对话；点赞/收藏、粉丝/关注弹窗（无限滚动、isFollowing）、视频暂停/播放")
+  Container(admin_app, "管理端应用", "Next.js、React、TypeScript、Emotion、AG Grid、Recharts、i18next", "仪表盘、用户、内容安全、运营监控、业务、分析、系统配置、权限与审计")
+  Container(mobile_app, "移动端应用", "React Native、Expo、TypeScript、Emotion", "聊天 UI、通话、联系人、认证")
+  Container(api_server, "API 服务", "NestJS、TypeScript", "REST API、WebSocket、认证、业务逻辑、分析、AI 代理；信息流（排序）、探索、推荐、互动（点赞/收藏）、粉丝/关注（isFollowing）")
+  Container(media_gen, "媒体生成服务", "Python、FastAPI、diffusers、CogVideoX、edge-tts", "图片、视频、语音（TTS），:3456")
+  Container(recommendation_svc, "推荐服务", "Python、Celery、LightFM、implicit、Annoy", "批任务：关注推荐、探索热门列表；写入 Redis")
+  ContainerDb(postgres, "PostgreSQL", "关系型数据库", "用户、消息、聊天、群组、关注")
+  ContainerDb(redis, "Redis", "缓存与发布订阅", "会话、在线状态、信息流缓存、推荐/探索缓存、Celery broker、Pub/Sub")
+  ContainerDb(kafka, "Kafka", "消息队列", "离线消息、post.created 事件")
+  ContainerDb(cassandra, "Cassandra", "宽表存储", "帖子、按用户信息流、互动（点赞、收藏、计数）")
+  ContainerDb(mongodb, "MongoDB", "文档库", "评论")
+  ContainerDb(elasticsearch, "Elasticsearch", "搜索", "帖子/用户/话题搜索")
+  Container_Ext(file_storage, "文件存储", "本地", "文件、媒体")
+  Container_Ext(growthbook, "GrowthBook", "A/B 与功能开关", "功能开关、实验")
+  Container_Ext(ollama, "Ollama", "LLM 运行时", "流式聊天，可选")
+}
+
+Person(admin_user, "管理员", "通过管理后台管理系统")
+
+Rel(user_web, web_app, "使用", "HTTPS、WebSocket、WebRTC")
+Rel(admin_user, admin_app, "使用", "HTTPS")
+Rel(user_mobile, mobile_app, "使用", "HTTPS、WebSocket、WebRTC")
+Rel(web_app, api_server, "API、WebSocket、通话信令、分析事件", "REST、Socket.IO")
+Rel(admin_app, api_server, "API", "REST")
+Rel(mobile_app, api_server, "API、WebSocket、通话信令、分析事件", "REST、Socket.IO")
+Rel(web_app, growthbook, "功能开关", "HTTPS，可选")
+Rel(api_server, postgres, "读写", "Prisma")
+Rel(api_server, redis, "缓存、Pub/Sub、信息流缓存、推荐、探索")
+Rel(api_server, kafka, "生产/消费", "KafkaJS")
+Rel(api_server, cassandra, "帖子、信息流、互动", "cassandra-driver")
+Rel(recommendation_svc, redis, "写入推荐/探索缓存、Celery broker", "Redis")
+Rel(recommendation_svc, postgres, "ETL 关注图", "psycopg2")
+Rel(recommendation_svc, cassandra, "ETL 互动、帖子", "cassandra-driver")
+Rel(api_server, mongodb, "评论", "MongoDB driver")
+Rel(api_server, elasticsearch, "搜索", "Elasticsearch client")
+Rel(api_server, file_storage, "上传/下载")
+Rel(api_server, media_gen, "图片/视频/语音 API", "HTTP，:3456")
+Rel(api_server, ollama, "聊天流", "HTTP，可选")
+
+SHOW_LEGEND()
+@enduml
