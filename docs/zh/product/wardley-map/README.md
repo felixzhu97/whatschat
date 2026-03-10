@@ -71,10 +71,10 @@ brew install java
 brew install plantuml
 
 # 生成 PNG 图片
-plantuml docs/wardley-map/wardley-map.puml
+plantuml docs/zh/product/wardley-map/wardley-map.puml
 
 # 生成 SVG 图片
-plantuml -tsvg docs/wardley-map/wardley-map.puml
+plantuml -tsvg docs/zh/product/wardley-map/wardley-map.puml
 ```
 
 ## 📚 相关文档
