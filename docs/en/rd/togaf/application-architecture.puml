@@ -43,10 +43,9 @@ package "Client Applications" {
     - TypeScript
     - Tailwind CSS
     - Redux Toolkit + React Redux
-    Features: feed (real posts from followed users,
-    multi-photo/video carousel, pause/play), Reels,
-    create post (multi media), comments dialog
-    (carousel, video pause/play), profile, i18n
+    Features: feed (engagement ranking, like/save), Reels,
+    explore tab, create post (multi media), comments dialog,
+    profile (followers/following modals, infinite scroll, isFollowing), i18n
   end note
   
   component [Admin App] as AdminApp #LightGray
@@ -95,12 +94,25 @@ package "Application Services Layer" {
   component [Chat Service] as ChatService
   component [Post Service] as PostService
   component [Feed Service] as FeedService
+  component [Explore Service] as ExploreService
+  component [Follow Service] as FollowService
   component [Comment Service] as CommentService
   component [Call Service] as CallService
   component [Group Service] as GroupService
   component [Status Service] as StatusService
   component [File Service] as FileService
   component [Notification Service] as NotificationService
+}
+
+package "Recommendation Application" {
+  component [Recommendation Jobs] as RecJobs #LightYellow
+  note right of RecJobs
+    Python (apps/recommendation)
+    Celery worker + beat
+    LightFM, implicit (ALS), Annoy
+    Batch: suggestions, explore hot list
+    Writes to Redis
+  end note
 }
 
 AuthService --> DomainPkg : uses types
@@ -150,6 +162,8 @@ RestGateway --> StatusService : routes to
 RestGateway --> FileService : routes to
 RestGateway --> PostService : routes to
 RestGateway --> FeedService : routes to
+RestGateway --> ExploreService : routes to
+RestGateway --> FollowService : routes to
 RestGateway --> CommentService : routes to
 
 WsGateway --> MessageService : realtime messages
@@ -182,7 +196,13 @@ PostService --> DataRepository : author/follow
 FeedService --> PostFeedRepo : data access
 FeedService --> CacheService : feed cache
 FeedService --> UserService : follow list
+ExploreService --> CacheService : explore list
+FollowService --> DataRepository : data access
+FollowService --> CacheService : suggestions
 CommentService --> CommentRepo : data access
+RecJobs --> CacheService : write suggestions, explore
+RecJobs --> PostgreSQL : ETL follow (read)
+RecJobs --> Cassandra : ETL engagement, posts (read)
 
 MessageService --> CacheService : cache access
 ChatService --> CacheService : cache access

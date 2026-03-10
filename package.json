@@ -23,6 +23,7 @@
     "setup": "./scripts/setup/dev.sh",
     "setup:inline": "cd apps/server && pnpm db:generate && cd ../..",
     "start:server": "bash scripts/app/start.sh dev",
+    "start:recommendation": "cd apps/recommendation && (test -d .venv && . .venv/bin/activate; celery -A celery_app worker -l info -B)",
     "start:mobile": "pnpm --filter react-native-app start",
     "start:mobile:ios": "pnpm --filter react-native-app ios",
     "start:mobile:android": "pnpm --filter react-native-app android",
@@ -39,7 +40,7 @@
     "turbo": "^2.5.4",
     "typescript": "5.8.2"
   },
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@10.32.0",
   "engines": {
     "node": ">=18"
   }

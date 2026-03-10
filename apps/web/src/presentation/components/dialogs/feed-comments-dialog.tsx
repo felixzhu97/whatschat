@@ -392,8 +392,15 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
   }, [open, postId, load]);
 
   useEffect(() => {
-    if (!open) setVideoPaused(false);
-  }, [open]);
+    if (!open) return;
+    setVideoPaused(false);
+    const sync = () => {
+      const video = videoRef.current;
+      if (video) setVideoPaused(video.paused);
+    };
+    const t = setTimeout(sync, 100);
+    return () => clearTimeout(t);
+  }, [open, post?.id, commentMediaIndex]);
 
   useEffect(() => {
     setCommentMediaIndex(0);
@@ -461,6 +468,7 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
                         muted
                         loop
                         playsInline
+                        autoPlay
                       />
                       {videoPaused && (
                         <CommentPlayOverlay>
@@ -501,6 +509,7 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
                     muted
                     loop
                     playsInline
+                    autoPlay
                   />
                   {videoPaused && (
                     <CommentPlayOverlay>

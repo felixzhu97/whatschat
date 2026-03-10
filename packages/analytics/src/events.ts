@@ -5,6 +5,11 @@ export const CALL_START = "call_start";
 export const CALL_END = "call_end";
 export const EXPERIMENT_VIEWED = "experiment_viewed";
 export const AI_ACTION = "ai_action";
+export const POST_VIEW = "post_view";
+export const POST_LIKE = "post_like";
+export const POST_UNLIKE = "post_unlike";
+export const POST_SAVE = "post_save";
+export const POST_UNSAVE = "post_unsave";
 
 export type KnownEventName =
   | typeof PAGE_VIEW
@@ -13,7 +18,12 @@ export type KnownEventName =
   | typeof CALL_START
   | typeof CALL_END
   | typeof EXPERIMENT_VIEWED
-  | typeof AI_ACTION;
+  | typeof AI_ACTION
+  | typeof POST_VIEW
+  | typeof POST_LIKE
+  | typeof POST_UNLIKE
+  | typeof POST_SAVE
+  | typeof POST_UNSAVE;
 
 export interface PageViewPayload {
   path?: string;
@@ -55,6 +65,20 @@ export interface AiActionPayload {
   chatId?: string;
 }
 
+export interface PostViewPayload {
+  postId: string;
+  authorId?: string;
+  durationMs?: number;
+}
+
+export interface PostLikePayload {
+  postId: string;
+}
+
+export interface PostSavePayload {
+  postId: string;
+}
+
 export type KnownEventPayload =
   | PageViewPayload
   | ChatOpenPayload
@@ -62,7 +86,10 @@ export type KnownEventPayload =
   | CallStartPayload
   | CallEndPayload
   | ExperimentViewedPayload
-  | AiActionPayload;
+  | AiActionPayload
+  | PostViewPayload
+  | PostLikePayload
+  | PostSavePayload;
 
 export type KnownEventPayloadMap = {
   [PAGE_VIEW]: PageViewPayload;
@@ -72,4 +99,9 @@ export type KnownEventPayloadMap = {
   [CALL_END]: CallEndPayload;
   [EXPERIMENT_VIEWED]: ExperimentViewedPayload;
   [AI_ACTION]: AiActionPayload;
+  [POST_VIEW]: PostViewPayload;
+  [POST_LIKE]: PostLikePayload;
+  [POST_UNLIKE]: PostLikePayload;
+  [POST_SAVE]: PostSavePayload;
+  [POST_UNSAVE]: PostSavePayload;
 };

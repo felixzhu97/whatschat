@@ -11,6 +11,11 @@ export {
   CALL_END,
   EXPERIMENT_VIEWED,
   AI_ACTION,
+  POST_VIEW,
+  POST_LIKE,
+  POST_UNLIKE,
+  POST_SAVE,
+  POST_UNSAVE,
 } from "./events";
 export type {
   KnownEventName,
@@ -25,6 +30,9 @@ export type {
   AiActionPayload,
   AiActionType,
   AiActionStep,
+  PostViewPayload,
+  PostLikePayload,
+  PostSavePayload,
 } from "./events";
 export type { IAnalyticsTransport } from "./transport";
 export { ConsoleTransport, HttpTransport } from "./transport";

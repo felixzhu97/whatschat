@@ -53,8 +53,7 @@ package "Application Server" {
     Backend framework
     - Modular architecture
     - Dependency injection
-    - Middleware support
-    - Decorator pattern
+    - Feed, Explore, Follow (suggestions), engagement (like/save)
   end note
   
   package "Core Framework" {
@@ -158,6 +157,19 @@ package "Message Queue" {
   end note
 }
 
+package "Recommendation Stack" {
+  component [Python 3] as Python
+  component [Celery] as Celery
+  component [LightFM] as LightFM
+  component [implicit] as Implicit
+  component [Annoy] as Annoy
+  note right of Celery
+    Batch jobs (apps/recommendation)
+    - Redis broker, beat schedule
+    - Suggestions, explore hot list
+  end note
+}
+
 package "Monitoring & Logging" {
   component [Winston] as Winston
   component [Health Check] as HealthCheck
@@ -235,8 +247,17 @@ NestJS --> Redis : connects to
 NestJS --> RedisPubSub : uses
 NestJS --> BullQueue : uses
 NestJS --> Kafka : offline messages, post.created
-NestJS --> Cassandra : posts, feed
+NestJS --> Cassandra : posts, feed, engagement
 NestJS --> MongoDB : comments
+NestJS --> Redis : suggestions, explore (read)
+
+Celery --> Redis : broker, result
+Celery --> Python : runs in
+Python --> LightFM : hybrid recommendations
+Python --> Implicit : ALS
+Python --> Annoy : approximate NN
+Python --> PostgreSQL : ETL (read)
+Python --> Cassandra : ETL (read)
 
 \' Service connections
 NestJS --> FileStorage : file storage
@@ -269,9 +290,10 @@ rectangle "Tech Stack Summary" {
     - Framework: NestJS (Node.js)
     - Language: TypeScript
     - Database: PostgreSQL + Prisma ORM
-    - Cache: Redis
+    - Cache: Redis (sessions, feed, suggestions, explore)
     - Auth: JWT + Passport
     - Realtime: Socket.IO + WebRTC
+    - Recommendation: Python, Celery, LightFM, implicit, Annoy (batch jobs to Redis)
   end note
   
   note as N3
@@ -292,11 +314,12 @@ note bottom
   
   1. **Clients** – Web app (Next.js + React); admin app (Next.js + React + Emotion); mobile app (React Native + Expo + Emotion + i18next, theme)
   2. **Server** – NestJS framework provides modular, extensible backend services
-  3. **Data layer** – PostgreSQL as primary DB; Redis for cache and Pub/Sub; Cassandra for posts and feed; MongoDB for comments; Elasticsearch for search
-  4. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video
-  5. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
-  6. **Storage** – Local file storage, Elasticsearch for full‑text search
-  7. **Deployment** – Docker‑based containerization across development, test, and production
+  3. **Data layer** – PostgreSQL as primary DB; Redis for cache, Pub/Sub, suggestion/explore caches, Celery broker; Cassandra for posts, feed, engagement; MongoDB for comments; Elasticsearch for search
+  4. **Recommendation** – Python (Celery, LightFM, implicit, Annoy) batch jobs write suggestions and explore list to Redis; API reads from Redis
+  5. **Protocols** – REST API for synchronous calls, WebSocket for realtime messaging, WebRTC for audio/video
+  6. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
+  7. **Storage** – Local file storage, Elasticsearch for full‑text search
+  8. **Deployment** – Docker‑based containerization across development, test, and production
   
   The technology choices emphasize performance, scalability, security, and developer productivity.
 end note

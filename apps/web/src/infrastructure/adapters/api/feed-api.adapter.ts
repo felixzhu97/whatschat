@@ -16,6 +16,11 @@ export interface PostDetailRes {
   createdAt: string;
   username?: string;
   avatar?: string;
+  likeCount?: number;
+  commentCount?: number;
+  saveCount?: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
 }
 
 export interface CommentRes {
@@ -41,9 +46,34 @@ export class FeedApiAdapter {
     };
   }
 
+  async getExplore(limit: number = 20, offset: number = 0) {
+    const q = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    const res = await this.api.get<{ entries?: FeedEntryRes[]; total?: number }>(`/posts/explore?${q}`);
+    return {
+      entries: Array.isArray((res as any).entries) ? (res as any).entries : [],
+      total: (res as any).total ?? 0,
+    };
+  }
+
   async getPost(postId: string) {
     const res = await this.api.get<PostDetailRes>(`/posts/${postId}`);
-    return res.data;
+    return (res as { data?: PostDetailRes }).data;
+  }
+
+  async likePost(postId: string) {
+    await this.api.post(`/posts/${postId}/like`);
+  }
+
+  async unlikePost(postId: string) {
+    await this.api.delete(`/posts/${postId}/like`);
+  }
+
+  async savePost(postId: string) {
+    await this.api.post(`/posts/${postId}/save`);
+  }
+
+  async unsavePost(postId: string) {
+    await this.api.delete(`/posts/${postId}/save`);
   }
 
   async createPost(caption: string, type: string, mediaUrls?: string[]) {
@@ -95,9 +125,11 @@ export class FeedApiAdapter {
   async getFollowers(userId: string, limit: number = 20, pageState?: string) {
     const q = new URLSearchParams({ limit: String(limit) });
     if (pageState) q.set("pageState", pageState);
-    const res = await this.api.get<{ data?: Array<{ id: string; username: string; avatar: string | null }>; total?: number; pageState?: string }>(
-      `/users/${userId}/followers?${q}`
-    );
+    const res = await this.api.get<{
+      data?: Array<{ id: string; username: string; avatar: string | null; isFollowing?: boolean }>;
+      total?: number;
+      pageState?: string;
+    }>(`/users/${userId}/followers?${q}`);
     const r = res as { data?: unknown[]; total?: number; pageState?: string };
     return { list: Array.isArray(r.data) ? r.data : [], total: r.total ?? 0, pageState: r.pageState };
   }
@@ -105,9 +137,11 @@ export class FeedApiAdapter {
   async getFollowing(userId: string, limit: number = 20, pageState?: string) {
     const q = new URLSearchParams({ limit: String(limit) });
     if (pageState) q.set("pageState", pageState);
-    const res = await this.api.get<{ data?: Array<{ id: string; username: string; avatar: string | null }>; total?: number; pageState?: string }>(
-      `/users/${userId}/following?${q}`
-    );
+    const res = await this.api.get<{
+      data?: Array<{ id: string; username: string; avatar: string | null; isFollowing?: boolean }>;
+      total?: number;
+      pageState?: string;
+    }>(`/users/${userId}/following?${q}`);
     const r = res as { data?: unknown[]; total?: number; pageState?: string };
     return { list: Array.isArray(r.data) ? r.data : [], total: r.total ?? 0, pageState: r.pageState };
   }

@@ -53,11 +53,11 @@ export function useFeed(currentUserId: string | undefined) {
           avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
           timestamp: formatTime(p.createdAt),
           imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-          likeCount: "0",
-          commentCount: "0",
+          likeCount: String(p.likeCount ?? 0),
+          commentCount: String(p.commentCount ?? 0),
           caption: p.caption ?? "",
-          isLiked: false,
-          isSaved: false,
+          isLiked: Boolean(p.isLiked),
+          isSaved: Boolean(p.isSaved),
           type: p.type,
           videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
           coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
@@ -90,11 +90,11 @@ export function useFeed(currentUserId: string | undefined) {
             avatar: author?.avatar ?? p.avatar ?? "/placeholder.svg?height=32&width=32",
             timestamp: formatTime(p.createdAt),
             imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-            likeCount: "0",
-            commentCount: "0",
+            likeCount: String(p.likeCount ?? 0),
+            commentCount: String(p.commentCount ?? 0),
             caption: p.caption ?? "",
-            isLiked: false,
-            isSaved: false,
+            isLiked: Boolean(p.isLiked),
+            isSaved: Boolean(p.isSaved),
             type: p.type,
             videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
             coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
@@ -126,6 +126,47 @@ export function useFeed(currentUserId: string | undefined) {
     setSuggestions((prev) => prev.filter((s) => s.id !== userId));
   }, []);
 
+  const toggleLike = useCallback(async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    const wasLiked = post?.isLiked ?? false;
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !wasLiked;
+        const delta = nextLiked ? 1 : -1;
+        return {
+          ...p,
+          isLiked: nextLiked,
+          likeCount: String(Math.max(0, parseInt(p.likeCount, 10) + delta)),
+        };
+      })
+    );
+    try {
+      if (wasLiked) await api.unlikePost(postId);
+      else await api.likePost(postId);
+    } catch {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, isLiked: !p.isLiked, likeCount: p.likeCount } : p))
+      );
+    }
+  }, [posts]);
+
+  const toggleSave = useCallback(async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    const wasSaved = post?.isSaved ?? false;
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, isSaved: !wasSaved } : p))
+    );
+    try {
+      if (wasSaved) await api.unsavePost(postId);
+      else await api.savePost(postId);
+    } catch {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, isSaved: !p.isSaved } : p))
+      );
+    }
+  }, [posts]);
+
   return {
     posts,
     loading,
@@ -138,6 +179,115 @@ export function useFeed(currentUserId: string | undefined) {
     followUser,
     followSuggestion,
     unfollowUser,
+    toggleLike,
+    toggleSave,
+  };
+}
+
+function mapDetailToFeedPost(p: {
+  postId: string;
+  userId: string;
+  username?: string;
+  avatar?: string;
+  createdAt: string;
+  mediaUrls?: string[];
+  likeCount?: number;
+  commentCount?: number;
+  caption?: string;
+  isLiked?: boolean;
+  isSaved?: boolean;
+  type?: string;
+}): FeedPost {
+  return {
+    id: p.postId,
+    userId: p.userId,
+    username: p.username ?? p.userId?.slice(0, 8) ?? "",
+    avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
+    timestamp: formatTime(p.createdAt),
+    imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
+    likeCount: String(p.likeCount ?? 0),
+    commentCount: String(p.commentCount ?? 0),
+    caption: p.caption ?? "",
+    isLiked: Boolean(p.isLiked),
+    isSaved: Boolean(p.isSaved),
+    type: p.type,
+    videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+    coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+    mediaUrls: p.mediaUrls ?? [],
+  };
+}
+
+export function useExplore(currentUserId: string | undefined) {
+  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadExplore = useCallback(async () => {
+    if (!currentUserId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const { entries } = await api.getExplore(20, 0);
+      const details = await Promise.all(
+        entries.map((e: { postId: string }) => api.getPost(e.postId).catch(() => null))
+      );
+      const list = details.filter(Boolean).map((p: any) => mapDetailToFeedPost(p));
+      setPosts(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "加载失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId]);
+
+  const toggleLike = useCallback(async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    const wasLiked = post?.isLiked ?? false;
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !wasLiked;
+        const delta = nextLiked ? 1 : -1;
+        return {
+          ...p,
+          isLiked: nextLiked,
+          likeCount: String(Math.max(0, parseInt(p.likeCount, 10) + delta)),
+        };
+      })
+    );
+    try {
+      if (wasLiked) await api.unlikePost(postId);
+      else await api.likePost(postId);
+    } catch {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, isLiked: !p.isLiked, likeCount: p.likeCount } : p))
+      );
+    }
+  }, [posts]);
+
+  const toggleSave = useCallback(async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    const wasSaved = post?.isSaved ?? false;
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, isSaved: !wasSaved } : p))
+    );
+    try {
+      if (wasSaved) await api.unsavePost(postId);
+      else await api.savePost(postId);
+    } catch {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, isSaved: !p.isSaved } : p))
+      );
+    }
+  }, [posts]);
+
+  return {
+    posts,
+    loading,
+    error,
+    loadExplore,
+    toggleLike,
+    toggleSave,
   };
 }
 

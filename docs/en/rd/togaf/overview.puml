@@ -13,8 +13,8 @@ package "Business Architecture" as BA {
   note right of BA
     **business-architecture.puml**
     User management, instant messaging,
-    feed & posts, Reels, follow/suggestions,
-    comments, voice & video calls,
+    feed & posts, Reels, follow, recommendations & explore,
+    comments, engagement (like/save), voice & video calls,
     file sharing, groups, contacts, notifications,
     admin dashboard
   end note
@@ -28,10 +28,9 @@ package "Application Architecture" as AA {
   note right of AA
     **application-architecture.puml**
     Web/Mobile/Admin, REST/WebSocket/WebRTC,
-    NestJS services (Post, Feed, Comment, Search),
-    Web: feed, Reels (video feed), comments dialog.
-    PostgreSQL/Redis/Kafka/Cassandra/MongoDB/Elasticsearch.
-    Admin: AG Grid, Recharts, i18n.
+    NestJS (Post, Feed, Explore, Comment, Follow, Search, engagement),
+    Python Recommendation (Celery, LightFM, implicit, Annoy),
+    Redis (suggestions, explore caches). Admin: AG Grid, Recharts, i18n.
   end note
 }
 
@@ -42,9 +41,9 @@ package "Data Architecture" as DA {
   note right of DA
     **data-architecture.puml**
     User/Chat/Message/Group/Call/Status,
-    Post (image/video)/FeedEntry/Comment,
-    Contact/Notification/FileUpload,
-    PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch
+    Post (mediaUrls)/FeedEntry/Comment/Engagement (likes, saves, counts),
+    Contact/Notification/FileUpload, Follow (isFollowing),
+    PostgreSQL, Redis (caches + recommendation), Cassandra, MongoDB, Elasticsearch, Kafka
   end note
 }
 
@@ -55,8 +54,9 @@ package "Technology Architecture" as TA {
   component [Deployment Infrastructure] as Deploy
   note right of TA
     **technology-architecture.puml**
-    Next.js, React Native, NestJS,
-    Prisma, JWT, Cassandra, MongoDB, Elasticsearch, Docker
+    Next.js, React Native, NestJS, Python, Celery,
+    Prisma, JWT, Cassandra, MongoDB, Elasticsearch, Redis, Docker,
+    LightFM, implicit (ALS), Annoy
   end note
 }
 

@@ -177,15 +177,16 @@ const MetaLogo = styled.div`
 
 interface InstagramNavProps {
   user: User | null;
-  activeTab: "home" | "messages" | "profile" | "reels";
+  activeTab: "home" | "messages" | "profile" | "reels" | "explore";
   onHomeClick: () => void;
   onMessagesClick: () => void;
   onProfileClick: () => void;
   onReelsClick?: () => void;
+  onExploreClick?: () => void;
   onCreateClick?: () => void;
 }
 
-type TabKey = "home" | "messages" | "profile" | "reels" | null;
+type TabKey = "home" | "messages" | "profile" | "reels" | "explore" | null;
 
 interface NavEntry {
   id: number;
@@ -202,6 +203,7 @@ export function InstagramNav({
   onMessagesClick,
   onProfileClick,
   onReelsClick,
+  onExploreClick,
   onCreateClick,
 }: InstagramNavProps) {
   const { t } = useTranslation();
@@ -213,7 +215,7 @@ export function InstagramNav({
     { id: 1, label: t("nav.reels"), tab: "reels", Icon: Clapperboard, onClick: onReelsClick },
     { id: 2, label: t("nav.messages"), tab: "messages", Icon: Send, onClick: onMessagesClick },
     { id: 3, label: t("nav.search"), tab: null, Icon: Search },
-    { id: 4, label: t("nav.explore"), tab: null, Icon: Compass },
+    { id: 4, label: t("nav.explore"), tab: "explore", Icon: Compass, onClick: onExploreClick },
     { id: 5, label: t("nav.notifications"), tab: null, Icon: Heart },
     { id: 6, label: t("nav.create"), tab: null, Icon: SquarePlus, onClick: onCreateClick },
     { id: 7, label: t("nav.profile"), tab: "profile", Icon: Heart, onClick: onProfileClick },

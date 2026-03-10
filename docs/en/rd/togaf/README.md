@@ -6,11 +6,11 @@ TOGAF views for the four architecture domains (PlantUML).
 
 | Domain | File | Description |
 |--------|------|-------------|
-| Overview | [overview.puml](./overview.puml) | Relationships between Business → Application → Data → Technology |
-| Business | [business-architecture.puml](./business-architecture.puml) | Actors, capabilities (messaging, feed with multi-media, Reels, follow, calls, file, groups), processes |
-| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/WebSocket/WebRTC, NestJS (Post with mediaUrls[], Feed from followed users, Comment, Follow, Search) |
-| Data | [data-architecture.puml](./data-architecture.puml) | User, Chat, Message, Post (mediaUrls), FeedEntry, Comment, UserFollow; PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch |
-| Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, Socket.IO, WebRTC, Docker |
+| Overview | [overview.puml](./overview.puml) | Relationships between Business → Application → Data → Technology, including recommendation flows |
+| Business | [business-architecture.puml](./business-architecture.puml) | Actors, capabilities (messaging, feed with multi-media, Reels, follow, recommendations, explore, calls, file, groups), processes |
+| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/WebSocket/WebRTC, NestJS (Post with mediaUrls[], Feed from followed users, Comment, Follow, Search, Explore, Suggestions) and Python recommendation app (batch jobs via Celery, Redis, Cassandra/PostgreSQL) |
+| Data | [data-architecture.puml](./data-architecture.puml) | User, Chat, Message, Post (mediaUrls), FeedEntry, Comment, UserFollow, engagement counters; PostgreSQL, Redis (caches + recommendation results), Cassandra (posts, feed, engagement), MongoDB, Elasticsearch, Kafka events |
+| Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, Socket.IO, WebRTC, Docker, Python, Celery, LightFM, implicit (ALS), Annoy, Redis |
 
 ## View
 

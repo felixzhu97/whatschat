@@ -35,6 +35,10 @@ export function useNavigation() {
     setCurrentPage("reels");
   }, []);
 
+  const handleExploreClick = useCallback(() => {
+    setCurrentPage("explore");
+  }, []);
+
   const handleBackToChat = useCallback(() => {
     setCurrentPage("chat");
   }, []);
@@ -44,6 +48,7 @@ export function useNavigation() {
     navigateToPage,
     handleProfileClick,
     handleReelsClick,
+    handleExploreClick,
     handleStatusClick,
     handleCallsClick,
     handleStarredClick,

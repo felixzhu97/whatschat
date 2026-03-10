@@ -13,10 +13,11 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
 - 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB; search in Elasticsearch
-- 👤 **Social** – Follow/unfollow, suggestions (friend-of-friend), profile followers/following counts and list modals
+- 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream backed by a Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data
+- 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
 - 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, DM-style messages, right sidebar suggestions), i18n (en/zh, footer language switch)
 - 📱 **Mobile App** – React Native + Expo
-- 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events; API ingests; Admin shows overview
+- 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (including post view/like/save); API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
 
 ## 📸 Screenshots
@@ -58,7 +59,8 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed) · MongoDB (comments) · Elasticsearch (search)
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement) · MongoDB (comments) · Elasticsearch (search)
+- **Recommendations** – Python (apps/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
@@ -84,6 +86,7 @@ pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
 pnpm start:mobile:ios   # or start:mobile:android
+pnpm start:recommendation # Python recommendation worker + Celery beat (optional, runs in apps/recommendation)
 ```
 
 ### Environment

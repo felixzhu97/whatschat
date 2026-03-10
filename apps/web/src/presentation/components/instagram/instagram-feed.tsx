@@ -296,6 +296,8 @@ interface InstagramFeedProps {
   error?: string | null;
   currentUser?: { avatar?: string; username?: string } | null;
   onCommentClick?: (post: FeedPost) => void;
+  onLikeClick?: (post: FeedPost) => void;
+  onSaveClick?: (post: FeedPost) => void;
 }
 
 export function InstagramFeed({
@@ -305,6 +307,8 @@ export function InstagramFeed({
   error,
   currentUser,
   onCommentClick,
+  onLikeClick,
+  onSaveClick,
 }: InstagramFeedProps) {
   const { t } = useTranslation();
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
@@ -469,7 +473,7 @@ export function InstagramFeed({
             );
           })()}
           <PostActions>
-            <PostActionBtn $active={post.isLiked}>
+            <PostActionBtn $active={post.isLiked} onClick={() => onLikeClick?.(post)}>
               <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />
             </PostActionBtn>
             <PostActionBtn onClick={() => onCommentClick?.(post)}>
@@ -479,7 +483,7 @@ export function InstagramFeed({
               <Send size={24} strokeWidth={1.5} />
             </PostActionBtn>
             <PostActionRight>
-              <PostActionBtn $active={post.isSaved}>
+              <PostActionBtn $active={post.isSaved} onClick={() => onSaveClick?.(post)}>
                 <Bookmark size={24} fill={post.isSaved ? "currentColor" : "none"} strokeWidth={1.5} />
               </PostActionBtn>
             </PostActionRight>

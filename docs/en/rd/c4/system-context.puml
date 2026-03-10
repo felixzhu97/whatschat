@@ -9,7 +9,7 @@ Person(user_mobile, "Mobile User", "Uses chat, calls, and contacts via mobile ap
 Person(admin_user, "Admin User", "Manages users, content, ops via admin dashboard")
 
 System_Boundary(whatschat, "WhatsChat") {
-  System(whatschat_sys, "WhatsChat", "Instant messaging: chat, voice/video calls, file sharing, feed & posts, comments, contacts, groups")
+  System(whatschat_sys, "WhatsChat", "Instant messaging: chat, voice/video calls, file sharing, feed & posts, comments, follow, recommendations & explore, contacts, groups")
 }
 
 System_Ext(email, "Email Service", "Sends transactional email (e.g. SMTP/SES)")

@@ -8,6 +8,7 @@ import { MongoService } from "./mongo.service";
 import { ElasticsearchService } from "./elasticsearch.service";
 import { CassandraPostRepository } from "./cassandra-post.repository";
 import { CassandraFeedRepository } from "./cassandra-feed.repository";
+import { CassandraEngagementRepository } from "./cassandra-engagement.repository";
 import { MongoCommentRepository } from "./mongo-comment.repository";
 
 @Global()
@@ -22,6 +23,7 @@ import { MongoCommentRepository } from "./mongo-comment.repository";
     ElasticsearchService,
     CassandraPostRepository,
     CassandraFeedRepository,
+    CassandraEngagementRepository,
     MongoCommentRepository,
   ],
   exports: [
@@ -34,6 +36,7 @@ import { MongoCommentRepository } from "./mongo-comment.repository";
     ElasticsearchService,
     CassandraPostRepository,
     CassandraFeedRepository,
+    CassandraEngagementRepository,
     MongoCommentRepository,
   ],
 })

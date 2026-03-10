@@ -62,6 +62,7 @@ export class UsersController {
   @Get(":id/followers")
   @ApiOperation({ summary: "获取粉丝列表" })
   async getFollowers(
+    @CurrentUser() user: { id: string },
     @Param("id") id: string,
     @Query("limit") limit?: string,
     @Query("pageState") pageState?: string
@@ -69,7 +70,8 @@ export class UsersController {
     const result = await this.followService.getFollowers(
       id,
       limit ? parseInt(limit, 10) || 20 : 20,
-      pageState
+      pageState,
+      user.id
     );
     return { success: true, data: result.list, total: result.total, pageState: result.pageState };
   }
@@ -77,6 +79,7 @@ export class UsersController {
   @Get(":id/following")
   @ApiOperation({ summary: "获取关注列表" })
   async getFollowing(
+    @CurrentUser() user: { id: string },
     @Param("id") id: string,
     @Query("limit") limit?: string,
     @Query("pageState") pageState?: string
@@ -84,7 +87,8 @@ export class UsersController {
     const result = await this.followService.getFollowing(
       id,
       limit ? parseInt(limit, 10) || 20 : 20,
-      pageState
+      pageState,
+      user.id
     );
     return { success: true, data: result.list, total: result.total, pageState: result.pageState };
   }

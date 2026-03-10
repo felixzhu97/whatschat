@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
+import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { UsersService } from "./users.service";
 import { v4 as uuidv4 } from "uuid";
@@ -15,6 +16,7 @@ export interface CreatePostData {
 export class PostService {
   constructor(
     private readonly postRepo: CassandraPostRepository,
+    private readonly engagementRepo: CassandraEngagementRepository,
     private readonly kafka: KafkaProducerService,
     private readonly usersService: UsersService,
   ) {}
@@ -42,7 +44,7 @@ export class PostService {
     return { postId, userId, createdAt, ...data };
   }
 
-  async getPost(postId: string) {
+  async getPost(postId: string, currentUserId?: string) {
     const row = await this.postRepo.getPostById(postId);
     if (!row) throw new NotFoundException("Post not found");
     let username: string | undefined;
@@ -54,7 +56,8 @@ export class PostService {
     } catch {
       // author not found, leave username/avatar undefined
     }
-    return {
+    const counts = await this.engagementRepo.getEngagementCounts(postId);
+    const result: Record<string, unknown> = {
       postId: row.post_id,
       userId: row.user_id,
       createdAt: row.created_at,
@@ -62,9 +65,21 @@ export class PostService {
       type: row.type,
       mediaUrls: row.media_urls,
       location: row.location,
+      likeCount: counts.likeCount,
+      commentCount: counts.commentCount,
+      saveCount: counts.saveCount,
       ...(username != null && { username }),
       ...(avatar != null && { avatar }),
     };
+    if (currentUserId) {
+      const [isLiked, isSaved] = await Promise.all([
+        this.engagementRepo.isLiked(currentUserId, postId),
+        this.engagementRepo.isSaved(currentUserId, postId),
+      ]);
+      result["isLiked"] = isLiked;
+      result["isSaved"] = isSaved;
+    }
+    return result;
   }
 
   async getPostsByUser(userId: string, limit: number, pageState?: string) {

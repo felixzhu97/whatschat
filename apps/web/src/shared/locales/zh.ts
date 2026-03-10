@@ -183,6 +183,9 @@ export const zh = {
     muted: "已静音",
     originalAudio: "原声",
   },
+  explore: {
+    empty: "暂无探索内容。多关注一些人，或稍后再来。",
+  },
   feed: {
     reels: "Reels",
     like: "赞",

@@ -301,6 +301,8 @@ export interface InstagramReelsProps {
   loading?: boolean;
   onCommentClick?: (post: FeedPost) => void;
   onFollow?: (userId: string) => void;
+  onLikeClick?: (post: FeedPost) => void;
+  onSaveClick?: (post: FeedPost) => void;
 }
 
 export function InstagramReels({
@@ -308,6 +310,8 @@ export function InstagramReels({
   loading,
   onCommentClick,
   onFollow,
+  onLikeClick,
+  onSaveClick,
 }: InstagramReelsProps) {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -479,7 +483,7 @@ export function InstagramReels({
           </NavArrowsWrap>
           {activePost && (
             <ReelsActionsColumn>
-              <RightAction $active={activePost.isLiked}>
+              <RightAction $active={activePost.isLiked} onClick={() => onLikeClick?.(activePost)}>
                 <RightIcon>
                   <Heart
                     size={24}
@@ -502,7 +506,7 @@ export function InstagramReels({
                 </RightIcon>
                 <span>{t("feed.share")}</span>
               </RightAction>
-              <RightAction $active={activePost.isSaved}>
+              <RightAction $active={activePost.isSaved} onClick={() => onSaveClick?.(activePost)}>
                 <RightIcon>
                   <Bookmark
                     size={24}

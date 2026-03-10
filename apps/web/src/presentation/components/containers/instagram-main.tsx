@@ -31,13 +31,13 @@ import { RealCallInterface } from "../call/real-call-interface";
 import { useRealCall } from "../../hooks/use-real-call";
 import { useMessages } from "../../hooks/use-messages";
 import { useAnalytics } from "@whatschat/analytics";
-import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION } from "@whatschat/analytics";
+import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION, POST_VIEW, POST_LIKE, POST_SAVE } from "@whatschat/analytics";
 import { useSearch } from "../../hooks/use-search";
 import { useDialogs } from "../../hooks/use-dialogs";
 import { useNavigation } from "../../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../../hooks/use-chats-with-live-messages";
 import { useAuth } from "../../hooks/use-auth";
-import { useFeed, useProfileStats } from "../../hooks/use-feed";
+import { useFeed, useExplore, useProfileStats } from "../../hooks/use-feed";
 import { useTranslation } from "@/src/shared/i18n";
 import { FeedCommentsDialog } from "../dialogs/feed-comments-dialog";
 import { CreatePostDialog } from "../dialogs/create-post-dialog";
@@ -143,6 +143,7 @@ export function InstagramMain() {
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
   const feed = useFeed(currentUser?.id);
+  const explore = useExplore(currentUser?.id);
   const profileStats = useProfileStats(currentUser?.id);
   const { t } = useTranslation();
 
@@ -180,6 +181,7 @@ export function InstagramMain() {
     currentPage,
     handleProfileClick,
     handleReelsClick,
+    handleExploreClick,
     handleStatusClick,
     handleCallsClick,
     handleStarredClick,
@@ -194,6 +196,10 @@ export function InstagramMain() {
 
   useEffect(() => {
     if (currentUser?.id && currentPage === "reels") feed.loadFeed();
+  }, [currentUser?.id, currentPage]);
+
+  useEffect(() => {
+    if (currentUser?.id && currentPage === "explore") explore.loadExplore();
   }, [currentUser?.id, currentPage]);
 
   const {
@@ -285,10 +291,10 @@ export function InstagramMain() {
   const voiceGenerateService = useMemo(() => new VoiceApiAdapter(apiClient), [apiClient]);
   const feedApi = useMemo(() => new FeedApiAdapter(apiClient), [apiClient]);
   const followListService = useMemo((): IFollowListService => ({
-    getFollowers: (userId, limit) =>
-      feedApi.getFollowers(userId, limit).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
-    getFollowing: (userId, limit) =>
-      feedApi.getFollowing(userId, limit).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
+    getFollowers: (userId, limit, pageState) =>
+      feedApi.getFollowers(userId, limit, pageState).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
+    getFollowing: (userId, limit, pageState) =>
+      feedApi.getFollowing(userId, limit, pageState).then((r) => ({ list: r.list as FollowListItem[], pageState: r.pageState })),
   }), [feedApi]);
   const handleSmartReplyClick = () => {
     const recent = chatsWithLive.messagesForSelected.slice(-10).map((m) => ({
@@ -452,7 +458,18 @@ export function InstagramMain() {
             loading={feed.loading}
             error={feed.error}
             currentUser={currentUser ?? undefined}
-            onCommentClick={setCommentPost}
+            onCommentClick={(post) => {
+              setCommentPost(post);
+              analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+            }}
+            onLikeClick={(post) => {
+              feed.toggleLike(post.id);
+              analytics.track(POST_LIKE, { postId: post.id });
+            }}
+            onSaveClick={(post) => {
+              feed.toggleSave(post.id);
+              analytics.track(POST_SAVE, { postId: post.id });
+            }}
           />
           <FeedCommentsDialog
             post={commentPost}
@@ -540,8 +557,19 @@ export function InstagramMain() {
             <InstagramReels
               reels={feed.posts.filter((p) => p.type === "VIDEO")}
               loading={feed.loading}
-              onCommentClick={setCommentPost}
+              onCommentClick={(post) => {
+                setCommentPost(post);
+                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+              }}
               onFollow={feed.followUser}
+              onLikeClick={(post) => {
+                feed.toggleLike(post.id);
+                analytics.track(POST_LIKE, { postId: post.id });
+              }}
+              onSaveClick={(post) => {
+                feed.toggleSave(post.id);
+                analytics.track(POST_SAVE, { postId: post.id });
+              }}
             />
             <FeedCommentsDialog
               post={commentPost}
@@ -631,7 +659,43 @@ export function InstagramMain() {
             />
           </CenterColumn>
         );
-        default:
+      case "explore":
+        return (
+          <CenterColumn style={{ overflow: "auto" }}>
+            {!explore.loading && !explore.error && explore.posts.length === 0 ? (
+              <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", padding: 24, color: "rgb(142 142 142)", fontSize: 14, textAlign: "center" }}>
+                {t("explore.empty")}
+              </div>
+            ) : (
+              <InstagramFeed
+                stories={[]}
+                posts={explore.posts}
+                loading={explore.loading}
+                error={explore.error}
+                currentUser={currentUser ?? undefined}
+                onCommentClick={(post) => {
+                  setCommentPost(post);
+                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                }}
+                onLikeClick={(post) => {
+                  explore.toggleLike(post.id);
+                  analytics.track(POST_LIKE, { postId: post.id });
+                }}
+                onSaveClick={(post) => {
+                  explore.toggleSave(post.id);
+                  analytics.track(POST_SAVE, { postId: post.id });
+                }}
+              />
+            )}
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
+            />
+          </CenterColumn>
+        );
+      default:
         return (
           <CenterColumn style={{ overflow: "auto" }}>
             <InstagramFeed
@@ -640,7 +704,18 @@ export function InstagramMain() {
               loading={feed.loading}
               error={feed.error}
               currentUser={currentUser ?? undefined}
-              onCommentClick={setCommentPost}
+              onCommentClick={(post) => {
+                setCommentPost(post);
+                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+              }}
+              onLikeClick={(post) => {
+                feed.toggleLike(post.id);
+                analytics.track(POST_LIKE, { postId: post.id });
+              }}
+              onSaveClick={(post) => {
+                feed.toggleSave(post.id);
+                analytics.track(POST_SAVE, { postId: post.id });
+              }}
             />
             <FeedCommentsDialog
               post={commentPost}
@@ -658,9 +733,11 @@ export function InstagramMain() {
       ? "profile"
       : currentPage === "reels"
         ? "reels"
-        : currentPage === "chat" && instagramView === "messages"
-          ? "messages"
-          : "home";
+        : currentPage === "explore"
+          ? "explore"
+          : currentPage === "chat" && instagramView === "messages"
+            ? "messages"
+            : "home";
 
   return (
     <AppShell>
@@ -677,6 +754,7 @@ export function InstagramMain() {
         }}
         onProfileClick={handleProfileClick}
         onReelsClick={handleReelsClick}
+        onExploreClick={handleExploreClick}
         onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
       />
 

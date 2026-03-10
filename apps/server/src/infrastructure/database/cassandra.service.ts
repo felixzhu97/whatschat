@@ -73,6 +73,33 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
         location text
       )
     `);
+
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS ${keyspace}.post_likes (
+        user_id text,
+        post_id text,
+        created_at timestamp,
+        PRIMARY KEY (user_id, post_id)
+      )
+    `);
+
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS ${keyspace}.post_saves (
+        user_id text,
+        post_id text,
+        created_at timestamp,
+        PRIMARY KEY (user_id, post_id)
+      )
+    `);
+
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS ${keyspace}.post_engagement_counts (
+        post_id text PRIMARY KEY,
+        like_count counter,
+        comment_count counter,
+        save_count counter
+      )
+    `);
   }
 
   async onModuleDestroy() {

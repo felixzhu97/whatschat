@@ -1,5 +1,8 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { RedisService } from "../../infrastructure/database/redis.service";
+
+const RECOMMENDATION_KEY_PREFIX = "recommendation:user:";
 
 export interface SuggestedUserDto {
   id: string;
@@ -12,6 +15,7 @@ export interface FollowUserDto {
   id: string;
   username: string;
   avatar: string | null;
+  isFollowing?: boolean;
 }
 
 export interface FollowListResult {
@@ -22,7 +26,10 @@ export interface FollowListResult {
 
 @Injectable()
 export class FollowService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async follow(followerId: string, followingId: string) {
     if (followerId === followingId) throw new BadRequestException("Cannot follow self");
@@ -44,10 +51,29 @@ export class FollowService {
   }
 
   async getSuggestions(currentUserId: string, limit: number = 10): Promise<SuggestedUserDto[]> {
+    const cached = await this.redis.get<string[]>(`${RECOMMENDATION_KEY_PREFIX}${currentUserId}`);
+    if (Array.isArray(cached) && cached.length > 0) {
+      const ids = cached.slice(0, limit);
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, username: true, avatar: true },
+      });
+      const orderMap = new Map(ids.map((id, i) => [id, i]));
+      const sorted = users.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+      return sorted.map((u) => ({
+        id: u.id,
+        username: u.username,
+        avatar: u.avatar,
+        description: "Suggested for you",
+      }));
+    }
+
+    const FOLLOWING_CAP = 500;
     const followingIds = await this.prisma.userFollow
       .findMany({
         where: { followerId: currentUserId },
         select: { followingId: true },
+        take: FOLLOWING_CAP,
       })
       .then((rows) => rows.map((r) => r.followingId));
 
@@ -130,7 +156,12 @@ export class FollowService {
     return this.prisma.userFollow.count({ where: { followerId: userId } });
   }
 
-  async getFollowers(userId: string, limit: number = 20, pageState?: string): Promise<FollowListResult> {
+  async getFollowers(
+    userId: string,
+    limit: number = 20,
+    pageState?: string,
+    currentUserId?: string
+  ): Promise<FollowListResult> {
     const total = await this.prisma.userFollow.count({ where: { followingId: userId } });
     const skip = pageState ? parseInt(pageState, 10) : 0;
     const rows = await this.prisma.userFollow.findMany({
@@ -147,14 +178,32 @@ export class FollowService {
       select: { id: true, username: true, avatar: true },
     });
     const orderMap = new Map(ids.map((id, i) => [id, i]));
+    let followingByCurrent: Set<string> = new Set();
+    if (currentUserId && ids.length > 0) {
+      const rels = await this.prisma.userFollow.findMany({
+        where: { followerId: currentUserId, followingId: { in: ids } },
+        select: { followingId: true },
+      });
+      followingByCurrent = new Set(rels.map((r) => r.followingId));
+    }
     const list = users
       .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-      .map((u) => ({ id: u.id, username: u.username, avatar: u.avatar }));
+      .map((u) => ({
+        id: u.id,
+        username: u.username,
+        avatar: u.avatar,
+        ...(currentUserId !== undefined && { isFollowing: followingByCurrent.has(u.id) }),
+      }));
     const nextPageState = skip + list.length < total ? String(skip + limit) : undefined;
     return { list, total, ...(nextPageState !== undefined && { pageState: nextPageState }) };
   }
 
-  async getFollowing(userId: string, limit: number = 20, pageState?: string): Promise<FollowListResult> {
+  async getFollowing(
+    userId: string,
+    limit: number = 20,
+    pageState?: string,
+    currentUserId?: string
+  ): Promise<FollowListResult> {
     const total = await this.prisma.userFollow.count({ where: { followerId: userId } });
     const skip = pageState ? parseInt(pageState, 10) : 0;
     const rows = await this.prisma.userFollow.findMany({
@@ -171,9 +220,22 @@ export class FollowService {
       select: { id: true, username: true, avatar: true },
     });
     const orderMap = new Map(ids.map((id, i) => [id, i]));
+    let followingByCurrent: Set<string> = new Set();
+    if (currentUserId && ids.length > 0) {
+      const rels = await this.prisma.userFollow.findMany({
+        where: { followerId: currentUserId, followingId: { in: ids } },
+        select: { followingId: true },
+      });
+      followingByCurrent = new Set(rels.map((r) => r.followingId));
+    }
     const list = users
       .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-      .map((u) => ({ id: u.id, username: u.username, avatar: u.avatar }));
+      .map((u) => ({
+        id: u.id,
+        username: u.username,
+        avatar: u.avatar,
+        ...(currentUserId !== undefined && { isFollowing: followingByCurrent.has(u.id) }),
+      }));
     const nextPageState = skip + list.length < total ? String(skip + limit) : undefined;
     return { list, total, ...(nextPageState !== undefined && { pageState: nextPageState }) };
   }

@@ -37,9 +37,10 @@ export interface FollowListItem {
   id: string;
   username: string;
   avatar: string | null;
+  isFollowing?: boolean;
 }
 
 export interface IFollowListService {
-  getFollowers(userId: string, limit: number): Promise<{ list: FollowListItem[]; pageState?: string }>;
-  getFollowing(userId: string, limit: number): Promise<{ list: FollowListItem[]; pageState?: string }>;
+  getFollowers(userId: string, limit: number, pageState?: string): Promise<{ list: FollowListItem[]; pageState?: string }>;
+  getFollowing(userId: string, limit: number, pageState?: string): Promise<{ list: FollowListItem[]; pageState?: string }>;
 }

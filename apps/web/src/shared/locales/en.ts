@@ -183,6 +183,9 @@ export const en = {
     muted: "Muted",
     originalAudio: "Original audio",
   },
+  explore: {
+    empty: "No posts to explore yet. Follow more people or check back later.",
+  },
   feed: {
     reels: "Reels",
     like: "Like",
