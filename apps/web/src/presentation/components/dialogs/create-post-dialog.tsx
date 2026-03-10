@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { ArrowLeft, ImageIcon, Check, Loader2 } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { ArrowLeft, ImageIcon, Check, Loader2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
 import { styled } from "@/src/shared/utils/emotion";
@@ -119,6 +119,87 @@ const CropImage = styled.img`
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+`;
+
+const MediaCarousel = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+`;
+
+const CarouselNav = styled.button`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255 255 255 / 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${TEXT_PRIMARY};
+  z-index: 1;
+  &:hover {
+    background: white;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`;
+
+const CarouselNavLeft = styled(CarouselNav)`
+  left: 12px;
+`;
+
+const CarouselNavRight = styled(CarouselNav)`
+  right: 12px;
+`;
+
+const MediaDots = styled.div`
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 1;
+`;
+
+const MediaDot = styled.span<{ $active?: boolean }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${(p) => (p.$active ? "white" : "rgba(255 255 255 / 0.5)")};
+`;
+
+const RemoveMediaBtn = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0 0 0 / 0.6);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 1;
+  &:hover {
+    background: rgba(0 0 0 / 0.8);
+  }
 `;
 
 const CaptionLayout = styled.div`
@@ -278,6 +359,8 @@ interface CreatePostDialogProps {
   currentUser?: { avatar?: string; username?: string } | null;
 }
 
+const isMediaFile = (f: File) => f.type.startsWith("image/") || f.type.startsWith("video/");
+
 export function CreatePostDialog({
   open,
   onClose,
@@ -286,40 +369,56 @@ export function CreatePostDialog({
 }: CreatePostDialogProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState<"select" | "crop" | "caption" | "sharing" | "success">("select");
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [caption, setCaption] = useState("");
+  const [cropIndex, setCropIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
 
   const reset = useCallback(() => {
     setStep("select");
-    setFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(null);
+    setPreviewUrls((prev) => {
+      prev.forEach((url) => URL.revokeObjectURL(url));
+      return [];
+    });
+    setFiles([]);
     setCaption("");
-  }, [previewUrl]);
+    setCropIndex(0);
+  }, []);
 
   const handleClose = useCallback(() => {
     reset();
     onClose();
   }, [onClose, reset]);
 
+  const addFiles = useCallback((newFiles: File[]) => {
+    const valid = newFiles.filter(isMediaFile);
+    if (valid.length === 0) return;
+    setFiles((prev) => [...prev, ...valid]);
+    setPreviewUrls((prev) => [...prev, ...valid.map((f) => URL.createObjectURL(f))]);
+    setStep("crop");
+    setCropIndex((prev) => prev);
+  }, []);
+
   const handleFileSelect = useCallback(
-    (f: File | null) => {
-      if (!f) return;
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setFile(f);
-      setPreviewUrl(URL.createObjectURL(f));
-      setStep("crop");
+    (list: FileList | null) => {
+      if (!list?.length) return;
+      addFiles(Array.from(list));
     },
-    [previewUrl]
+    [addFiles]
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      const f = e.dataTransfer.files?.[0];
-      if (f && (f.type.startsWith("image/") || f.type.startsWith("video/"))) handleFileSelect(f);
+      const list = e.dataTransfer.files;
+      if (list?.length) handleFileSelect(list);
     },
     [handleFileSelect]
   );
@@ -328,21 +427,44 @@ export function CreatePostDialog({
 
   const handleSelectClick = () => fileInputRef.current?.click();
 
+  const removeFileAt = useCallback((index: number) => {
+    setFiles((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length === 0) setStep("select");
+      return next;
+    });
+    setPreviewUrls((prev) => {
+      const url = prev[index];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
+    });
+    setCropIndex((i) => (i > index ? i - 1 : i === index ? Math.max(0, index - 1) : i));
+  }, []);
+
+  const currentFile = files[cropIndex] ?? null;
+  const currentPreview = previewUrls[cropIndex] ?? null;
+  const hasVideo = files.some((f) => f.type.startsWith("video/"));
+
   const handleCropNext = () => setStep("caption");
 
   const handleShare = useCallback(async () => {
     const trimmed = caption.trim();
     setStep("sharing");
     try {
-      if (file) {
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        const postType = file.type.startsWith("video/") ? "VIDEO" : "IMAGE";
-        await Promise.resolve(onSubmit(trimmed || "", [dataUrl], postType));
+      if (files.length > 0) {
+        const dataUrls = await Promise.all(
+          files.map(
+            (file) =>
+              new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              })
+          )
+        );
+        const postType = hasVideo ? "VIDEO" : "IMAGE";
+        await Promise.resolve(onSubmit(trimmed || "", dataUrls, postType));
       } else {
         await Promise.resolve(onSubmit(trimmed || "", [], "TEXT"));
       }
@@ -350,7 +472,7 @@ export function CreatePostDialog({
     } catch {
       setStep("caption");
     }
-  }, [caption, file, onSubmit]);
+  }, [caption, files, hasVideo, onSubmit]);
 
   if (!open) return null;
 
@@ -390,7 +512,11 @@ export function CreatePostDialog({
                     ref={fileInputRef}
                     type="file"
                     accept="image/*,video/*"
-                    onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
+                    multiple
+                    onChange={(e) => {
+                      handleFileSelect(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
                   {t("createPost.selectFromComputer")}
                 </SelectBtn>
@@ -398,15 +524,16 @@ export function CreatePostDialog({
             </>
           )}
 
-          {step === "crop" && (
+          {step === "crop" && files.length > 0 && (
             <>
               <HeaderBar>
                 <BackBtn
                   type="button"
                   onClick={() => {
-                    if (previewUrl) URL.revokeObjectURL(previewUrl);
-                    setPreviewUrl(null);
-                    setFile(null);
+                    previewUrls.forEach((url) => URL.revokeObjectURL(url));
+                    setPreviewUrls([]);
+                    setFiles([]);
+                    setCropIndex(0);
                     setStep("select");
                   }}
                 >
@@ -418,17 +545,57 @@ export function CreatePostDialog({
                 </HeaderAction>
               </HeaderBar>
               <CropContent>
-                {previewUrl &&
-                  (file?.type.startsWith("video/") ? (
-                    <video src={previewUrl} controls style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
-                  ) : (
-                    <CropImage src={previewUrl} alt="" />
-                  ))}
+                <MediaCarousel>
+                  <CarouselNavLeft
+                    type="button"
+                    disabled={files.length <= 1}
+                    onClick={() => setCropIndex((i) => (i <= 0 ? i : i - 1))}
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft size={24} />
+                  </CarouselNavLeft>
+                  {currentPreview && (
+                    <>
+                      <RemoveMediaBtn
+                        type="button"
+                        onClick={() => removeFileAt(cropIndex)}
+                        aria-label="Remove"
+                      >
+                        <X size={16} />
+                      </RemoveMediaBtn>
+                      {currentFile?.type.startsWith("video/") ? (
+                        <video
+                          key={cropIndex}
+                          src={currentPreview}
+                          controls
+                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                        />
+                      ) : (
+                        <CropImage src={currentPreview} alt="" />
+                      )}
+                    </>
+                  )}
+                  <CarouselNavRight
+                    type="button"
+                    disabled={files.length <= 1}
+                    onClick={() => setCropIndex((i) => (i >= files.length - 1 ? i : i + 1))}
+                    aria-label="Next"
+                  >
+                    <ChevronRight size={24} />
+                  </CarouselNavRight>
+                  {files.length > 1 && (
+                    <MediaDots>
+                      {previewUrls.map((_, i) => (
+                        <MediaDot key={i} $active={i === cropIndex} />
+                      ))}
+                    </MediaDots>
+                  )}
+                </MediaCarousel>
               </CropContent>
             </>
           )}
 
-          {step === "caption" && (
+          {step === "caption" && files.length > 0 && (
             <>
               <HeaderBar>
                 <BackBtn type="button" onClick={() => setStep("crop")}>
@@ -440,18 +607,46 @@ export function CreatePostDialog({
                 </HeaderAction>
               </HeaderBar>
               <CaptionLayout style={{ flex: 1, minHeight: 0 }}>
-                <CaptionLeft>
-                  {previewUrl &&
-                    (file?.type.startsWith("video/") ? (
+                <CaptionLeft style={{ position: "relative" }}>
+                  {files.length > 1 && (
+                    <>
+                      <CarouselNavLeft
+                        type="button"
+                        style={{ position: "absolute", left: 8 }}
+                        disabled={cropIndex <= 0}
+                        onClick={() => setCropIndex((i) => Math.max(0, i - 1))}
+                        aria-label="Previous"
+                      >
+                        <ChevronLeft size={24} />
+                      </CarouselNavLeft>
+                      <CarouselNavRight
+                        type="button"
+                        style={{ position: "absolute", right: 8 }}
+                        disabled={cropIndex >= files.length - 1}
+                        onClick={() => setCropIndex((i) => Math.min(files.length - 1, i + 1))}
+                        aria-label="Next"
+                      >
+                        <ChevronRight size={24} />
+                      </CarouselNavRight>
+                      <MediaDots style={{ position: "absolute", bottom: 16 }}>
+                        {previewUrls.map((_, i) => (
+                          <MediaDot key={i} $active={i === cropIndex} />
+                        ))}
+                      </MediaDots>
+                    </>
+                  )}
+                  {currentPreview &&
+                    (currentFile?.type.startsWith("video/") ? (
                       <video
-                        src={previewUrl}
+                        key={cropIndex}
+                        src={currentPreview}
                         muted
                         loop
                         playsInline
                         style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
                       />
                     ) : (
-                      <CaptionImage src={previewUrl} alt="" />
+                      <CaptionImage src={currentPreview} alt="" />
                     ))}
                 </CaptionLeft>
                 <CaptionRight>

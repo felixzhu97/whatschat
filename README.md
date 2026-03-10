@@ -12,7 +12,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts (image/video + caption), feed (own + followed), Reels, comments (MongoDB), search (Elasticsearch); posts/feed in Cassandra; Kafka for post.created; video cover in profile grid
+- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB; search in Elasticsearch
 - 👤 **Social** – Follow/unfollow, suggestions (friend-of-friend), profile followers/following counts and list modals
 - 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, DM-style messages, right sidebar suggestions), i18n (en/zh, footer language switch)
 - 📱 **Mobile App** – React Native + Expo
@@ -126,8 +126,8 @@ packages/
 ## 📚 Docs
 
 - [Docs index](docs/README.md)
-- [C4](docs/en/rd/c4/README.md) – System context, containers, components (API, Web, Mobile, Admin)
-- [TOGAF](docs/en/rd/togaf/README.md) – Business, Application, Data, Technology
+- [C4 Model](docs/en/rd/c4/README.md) – System context, containers, components (API, Web, Mobile, Admin); feed from followed users, multi-media posts
+- [TOGAF](docs/en/rd/togaf/README.md) – Business, Application, Data, Technology (four architecture domains)
 
 ## 📄 License
 

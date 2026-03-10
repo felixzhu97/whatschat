@@ -61,6 +61,7 @@ export function useFeed(currentUserId: string | undefined) {
           type: p.type,
           videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
           coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+          mediaUrls: p.mediaUrls ?? [],
         }));
       setPosts((prev) => (pageState ? [...prev, ...list] : list));
     } catch (e) {
@@ -97,6 +98,7 @@ export function useFeed(currentUserId: string | undefined) {
             type: p.type,
             videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
             coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+            mediaUrls: p.mediaUrls ?? [],
           };
           setPosts((prev) => [newPost, ...prev]);
         }

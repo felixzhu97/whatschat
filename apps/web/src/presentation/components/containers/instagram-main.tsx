@@ -48,7 +48,6 @@ import {
   mockMessages,
   mockUser,
   mockStories,
-  mockFeedPosts,
 } from "@/infrastructure/data/mock-data";
 import { getMessagesForContact } from "@/shared/utils/message-utils";
 import type { Contact, User, Message, FeedPost } from "@/shared/types";
@@ -449,7 +448,7 @@ export function InstagramMain() {
         <CenterColumn style={{ overflow: "auto" }}>
           <InstagramFeed
             stories={mockStories}
-            posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+            posts={feed.posts}
             loading={feed.loading}
             error={feed.error}
             currentUser={currentUser ?? undefined}
@@ -557,7 +556,7 @@ export function InstagramMain() {
           <CenterColumn style={{ overflow: "auto" }}>
             <ProfilePage
               user={currentUser ?? null}
-              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              posts={feed.posts}
               followersCount={profileStats.followersCount}
               followingCount={profileStats.followingCount}
               onEditProfile={handleSettingsClick}
@@ -637,7 +636,7 @@ export function InstagramMain() {
           <CenterColumn style={{ overflow: "auto" }}>
             <InstagramFeed
               stories={mockStories}
-              posts={feed.posts.length > 0 ? feed.posts : mockFeedPosts}
+              posts={feed.posts}
               loading={feed.loading}
               error={feed.error}
               currentUser={currentUser ?? undefined}

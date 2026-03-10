@@ -115,7 +115,7 @@ note bottom
   
   1. **User management** – user registration, login, profile management, access control
   2. **Instant messaging** – multiple message types: text, image, video, voice, file
-  3. **Feed & posts** – create posts (image + caption), feed (own + followed), comments; posts/feed in Cassandra, comments in MongoDB, search in Elasticsearch; Kafka for post.created
+  3. **Feed & posts** – create posts (multiple photos/videos + caption); home feed shows real posts from followed users (Cassandra + Kafka post.created); multi-media carousel on feed and in comments; comments in MongoDB; search in Elasticsearch
   4. **Voice & video calls** – high‑quality real‑time calls based on WebRTC
   5. **File sharing** – upload, download, and preview for various file types
   6. **Group management** – create groups, manage members, configure group settings

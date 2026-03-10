@@ -48,13 +48,13 @@ docs/
 
 ### R&D
 
-- [C4 Model](rd/c4/README.md) — system context, containers, components (API server, web app, mobile app)
+- [C4 Model](rd/c4/README.md) — system context, containers, components (API server, web app, mobile app); feed from followed users, multi-media posts
   - [Level 1 – System Context](rd/c4/system-context.puml)
   - [Level 2 – Containers](rd/c4/containers.puml)
   - [Level 3 – API Server Components](rd/c4/components-api-server.puml)
   - [Level 3 – Web App Components](rd/c4/components-web-app.puml)
   - [Level 3 – Mobile App Components](rd/c4/components-mobile-app.puml)
-- [TOGAF](rd/togaf/README.md) — overview, business, application, data, technology
+- [TOGAF](rd/togaf/README.md) — four architecture domains: overview, business, application, data, technology
 - [API](../zh/rd/api/README.md) — API docs and Postman collection
 - [Distributed systems](../zh/rd/distributed-systems/README.md) — architecture, service discovery, transaction, load balancing, message queue
 

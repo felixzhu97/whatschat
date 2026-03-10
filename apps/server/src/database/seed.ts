@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./client";
 import { ConfigService } from "../infrastructure/config/config.service";
 import logger from "@/shared/utils/logger";
 
@@ -7,13 +7,6 @@ if (!process.env["DATABASE_URL"]) {
   process.env["DATABASE_URL"] =
       "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public";
 }
-
-const prisma = new PrismaClient({
-  log:
-      process.env["NODE_ENV"] === "development"
-          ? ["query", "info", "warn", "error"]
-          : ["error"],
-});
 
 const config = ConfigService.loadConfig();
 
@@ -156,31 +149,10 @@ export async function main() {
   PERSON_DATA.sort((a, b) => a.name.localeCompare(b.name, "en"));
 
   try {
-    if (config.server.isDevelopment) {
-      try {
-        logger.info("清理现有数据...");
-        await prisma.messageReaction.deleteMany();
-        await prisma.messageRead.deleteMany();
-        await prisma.message.deleteMany();
-        await prisma.chatParticipant.deleteMany();
-        await prisma.chat.deleteMany();
-        await prisma.callParticipant.deleteMany();
-        await prisma.call.deleteMany();
-        await prisma.statusView.deleteMany();
-        await prisma.status.deleteMany();
-        await prisma.groupParticipant.deleteMany();
-        await prisma.group.deleteMany();
-        await prisma.contact.deleteMany();
-        await prisma.blockedUser.deleteMany();
-        await prisma.notification.deleteMany();
-        await prisma.fileUpload.deleteMany();
-        await prisma.userSettings.deleteMany();
-        await prisma.user.deleteMany();
-      } catch (e) {
-        logger.warn(
-            "清理失败（可能是权限或未使用 Docker 数据库），请先执行 pnpm start 再执行 db:seed。跳过清理继续..."
-        );
-      }
+    const existingUserCount = await prisma.user.count();
+    if (existingUserCount > 0) {
+      logger.info("数据库已有数据，跳过种子写入以保留现有数据。");
+      return;
     }
 
     const saltRounds = config.security.bcrypt.saltRounds;

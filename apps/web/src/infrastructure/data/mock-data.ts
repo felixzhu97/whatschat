@@ -1,4 +1,4 @@
-import type { Contact, Message, StoryItem, FeedPost } from "@/shared/types";
+import type { Contact, Message, StoryItem } from "@/shared/types";
 
 export const mockContacts: Contact[] = [
   {
@@ -128,33 +128,4 @@ export const mockStories: StoryItem[] = [
   { id: "s4", userId: "u4", username: "olympics", avatar: "/placeholder.svg?height=64&width=64&text=O" },
   { id: "s5", userId: "u5", username: "dezeen", avatar: "/placeholder.svg?height=64&width=64&text=D" },
   { id: "s6", userId: "u6", username: "archdaily", avatar: "/placeholder.svg?height=64&width=64&text=Ad" },
-];
-
-export const mockFeedPosts: FeedPost[] = [
-  {
-    id: "p1",
-    userId: "u7",
-    username: "zuck",
-    avatar: "/placeholder.svg?height=32&width=32&text=Z",
-    timestamp: "6d",
-    imageUrl: "https://picsum.photos/600/600?random=1",
-    likeCount: "334.1K",
-    commentCount: "7.6K",
-    caption: "Thanks to Prada for having us in Milan!",
-    isLiked: false,
-    isSaved: false,
-  },
-  {
-    id: "p2",
-    userId: "u8",
-    username: "turn_point",
-    avatar: "/placeholder.svg?height=32&width=32&text=T",
-    timestamp: "1w",
-    imageUrl: "https://picsum.photos/600/600?random=2",
-    likeCount: "12.2K",
-    commentCount: "89",
-    caption: "Sunset at the beach.",
-    isLiked: false,
-    isSaved: false,
-  },
 ];

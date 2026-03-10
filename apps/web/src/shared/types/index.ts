@@ -223,6 +223,7 @@ export interface FeedPost {
   type?: string;
   videoUrl?: string;
   coverImageUrl?: string;
+  mediaUrls?: string[];
 }
 
 export interface SuggestedUser {

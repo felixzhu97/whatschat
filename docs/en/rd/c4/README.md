@@ -8,8 +8,8 @@ C4 diagrams in PlantUML ([C4-PlantUML](https://github.com/plantuml-stdlib/C4-Pla
 |-------|------|-------------|
 | 1 | [system-context.puml](./system-context.puml) | System context: WhatsChat, users, external systems |
 | 2 | [containers.puml](./containers.puml) | Containers: Web (:4000), Admin (:4001), Mobile, API (:3001), Media Gen (:3456), PostgreSQL, Redis, Kafka, Cassandra, MongoDB, Elasticsearch |
-| 3 | [components-api-server.puml](./components-api-server.puml) | API server: Auth, Users, Messages, Chats, Posts, Feed, Comments, Follow, Search, WebSocket, repos |
-| 3 | [components-web-app.puml](./components-web-app.puml) | Web app: nav, feed, Reels, profile (followers/following), DM (messages sidebar + chat), right sidebar (suggestions, follow), i18n, hooks, API/WS clients |
+| 3 | [components-api-server.puml](./components-api-server.puml) | API server: Auth, Users, Messages, Chats, Posts, Feed (followed users), Comments, Follow, Search, WebSocket, repos |
+| 3 | [components-web-app.puml](./components-web-app.puml) | Web app: nav, feed (real posts from followed users, multi-photo/video carousel), Reels, profile, create post (multi media), DM, right sidebar, i18n, hooks, API/WS clients |
 | 3 | [components-mobile-app.puml](./components-mobile-app.puml) | Mobile app: screens, chat/call/settings, hooks, API/WS |
 | 3 | [components-admin-app.puml](./components-admin-app.puml) | Admin: dashboard, users, content safety, analytics, API client |
 

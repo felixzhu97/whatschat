@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
 import { usePostComments } from "../../hooks/use-feed";
@@ -80,6 +80,59 @@ const CommentPlayButtonCircle = styled.div`
   align-items: center;
   justify-content: center;
   color: rgb(38 38 38);
+`;
+
+const CommentMediaCarousel = styled.div`
+  flex: 1;
+  min-width: 0;
+  background: rgb(0 0 0);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const CommentCarouselNav = styled.button<{ $side: "left" | "right" }>`
+  position: absolute;
+  top: 50%;
+  ${(p: { $side: "left" | "right" }) => (p.$side === "left" ? "left: 12px" : "right: 12px")};
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255 255 255 / 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${TEXT_PRIMARY};
+  z-index: 1;
+  &:hover {
+    background: white;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`;
+
+const CommentCarouselDots = styled.div`
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 1;
+`;
+
+const CommentCarouselDot = styled.span<{ $active?: boolean }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${(p: { $active?: boolean }) => (p.$active ? "white" : "rgba(255 255 255 / 0.5)")};
 `;
 
 const RightSection = styled.div`
@@ -301,6 +354,11 @@ const LoadingRow = styled(InstagramSpinnerWrap)`
   padding: 24px 16px;
 `;
 
+function isVideoUrl(url: string): boolean {
+  if (url.startsWith("data:")) return url.startsWith("data:video/");
+  return /\.(mp4|webm|mov)(\?|$)/i.test(url) || /video\//i.test(url);
+}
+
 function formatCommentTime(
   iso: string,
   t: (key: string, opts?: Record<string, string | number>) => string
@@ -326,6 +384,7 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
   const { comments, loading, load, add } = usePostComments(postId);
   const [input, setInput] = useState("");
   const [videoPaused, setVideoPaused] = useState(false);
+  const [commentMediaIndex, setCommentMediaIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -335,6 +394,10 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
   useEffect(() => {
     if (!open) setVideoPaused(false);
   }, [open]);
+
+  useEffect(() => {
+    setCommentMediaIndex(0);
+  }, [post?.id]);
 
   const toggleCommentVideo = useCallback(() => {
     const video = videoRef.current;
@@ -371,30 +434,90 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
         }}
       >
         <ModalBox>
-          {post && (
-            post.type === "VIDEO" || post.videoUrl ? (
-              <ImageSectionClickable onClick={toggleCommentVideo}>
-                <PostVideo
-                  ref={videoRef}
-                  src={post.videoUrl ?? post.imageUrl}
-                  muted
-                  loop
-                  playsInline
-                />
-                {videoPaused && (
-                  <CommentPlayOverlay>
-                    <CommentPlayButtonCircle>
-                      <Play size={36} fill="currentColor" stroke="none" />
-                    </CommentPlayButtonCircle>
-                  </CommentPlayOverlay>
-                )}
-              </ImageSectionClickable>
-            ) : (
+          {post && (() => {
+            const urls = post.mediaUrls?.length ? post.mediaUrls : [post.imageUrl];
+            const multi = urls.length > 1;
+            const idx = multi ? commentMediaIndex : 0;
+            const currentUrl = urls[idx] ?? post.imageUrl;
+            const isVideo = isVideoUrl(currentUrl);
+
+            if (multi) {
+              return (
+                <CommentMediaCarousel>
+                  <CommentCarouselNav
+                    type="button"
+                    $side="left"
+                    disabled={idx <= 0}
+                    onClick={() => setCommentMediaIndex((i) => Math.max(0, i - 1))}
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft size={24} />
+                  </CommentCarouselNav>
+                  {isVideo ? (
+                    <ImageSectionClickable onClick={toggleCommentVideo}>
+                      <PostVideo
+                        ref={videoRef}
+                        src={currentUrl}
+                        muted
+                        loop
+                        playsInline
+                      />
+                      {videoPaused && (
+                        <CommentPlayOverlay>
+                          <CommentPlayButtonCircle>
+                            <Play size={36} fill="currentColor" stroke="none" />
+                          </CommentPlayButtonCircle>
+                        </CommentPlayOverlay>
+                      )}
+                    </ImageSectionClickable>
+                  ) : (
+                    <ImageSection>
+                      <PostImage src={currentUrl} alt="" />
+                    </ImageSection>
+                  )}
+                  <CommentCarouselNav
+                    type="button"
+                    $side="right"
+                    disabled={idx >= urls.length - 1}
+                    onClick={() => setCommentMediaIndex((i) => Math.min(urls.length - 1, i + 1))}
+                    aria-label="Next"
+                  >
+                    <ChevronRight size={24} />
+                  </CommentCarouselNav>
+                  <CommentCarouselDots>
+                    {urls.map((_, i) => (
+                      <CommentCarouselDot key={i} $active={i === idx} />
+                    ))}
+                  </CommentCarouselDots>
+                </CommentMediaCarousel>
+              );
+            }
+            if (post.type === "VIDEO" || post.videoUrl) {
+              return (
+                <ImageSectionClickable onClick={toggleCommentVideo}>
+                  <PostVideo
+                    ref={videoRef}
+                    src={post.videoUrl ?? post.imageUrl}
+                    muted
+                    loop
+                    playsInline
+                  />
+                  {videoPaused && (
+                    <CommentPlayOverlay>
+                      <CommentPlayButtonCircle>
+                        <Play size={36} fill="currentColor" stroke="none" />
+                      </CommentPlayButtonCircle>
+                    </CommentPlayOverlay>
+                  )}
+                </ImageSectionClickable>
+              );
+            }
+            return (
               <ImageSection>
                 <PostImage src={post.imageUrl} alt="" />
               </ImageSection>
-            )
-          )}
+            );
+          })()}
           <RightSection>
             {post && (
               <PostHeaderRow>

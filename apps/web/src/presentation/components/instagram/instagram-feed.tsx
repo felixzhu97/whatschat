@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import {
   InstagramSpinnerRing,
@@ -163,6 +163,57 @@ const PostVideo = styled.video`
   display: block;
 `;
 
+const PostMediaCarousel = styled.div`
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgb(0 0 0);
+  position: relative;
+  overflow: hidden;
+`;
+
+const PostMediaCarouselNav = styled.button<{ $side: "left" | "right" }>`
+  position: absolute;
+  top: 50%;
+  ${(p: { $side: "left" | "right" }) => (p.$side === "left" ? "left: 8px" : "right: 8px")};
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255 255 255 / 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${TEXT_PRIMARY};
+  z-index: 1;
+  &:hover {
+    background: white;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`;
+
+const PostMediaDots = styled.div`
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 1;
+`;
+
+const PostMediaDot = styled.span<{ $active?: boolean }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${(p: { $active?: boolean }) => (p.$active ? "white" : "rgba(255 255 255 / 0.5)")};
+`;
+
 const FeedPlayOverlay = styled.div`
   position: absolute;
   inset: 0;
@@ -233,6 +284,11 @@ const FeedLoading = styled(InstagramSpinnerWrap)`
   padding: 24px 16px;
 `;
 
+function isVideoUrl(url: string): boolean {
+  if (url.startsWith("data:")) return url.startsWith("data:video/");
+  return /\.(mp4|webm|mov)(\?|$)/i.test(url) || /video\//i.test(url);
+}
+
 interface InstagramFeedProps {
   stories: StoryItem[];
   posts: FeedPost[];
@@ -253,6 +309,11 @@ export function InstagramFeed({
   const { t } = useTranslation();
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [pausedPostId, setPausedPostId] = useState<string | null>(null);
+  const [mediaIndexByPostId, setMediaIndexByPostId] = useState<Record<string, number>>({});
+
+  const setPostMediaIndex = useCallback((postId: string, index: number) => {
+    setMediaIndexByPostId((prev) => ({ ...prev, [postId]: index }));
+  }, []);
 
   const toggleFeedVideo = useCallback((postId: string) => {
     const video = videoRefs.current[postId];
@@ -310,31 +371,103 @@ export function InstagramFeed({
               <MoreHorizontal size={20} />
             </PostMoreBtn>
           </PostHeader>
-          {post.type === "VIDEO" || post.videoUrl ? (
-            <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
-              <PostVideo
-                ref={(el: HTMLVideoElement | null) => {
-                  videoRefs.current[post.id] = el;
-                }}
-                src={post.videoUrl ?? post.imageUrl}
-                muted
-                playsInline
-                autoPlay
-                loop
-              />
-              {pausedPostId === post.id && (
-                <FeedPlayOverlay>
-                  <FeedPlayButtonCircle>
-                    <Play size={32} fill="currentColor" stroke="none" />
-                  </FeedPlayButtonCircle>
-                </FeedPlayOverlay>
-              )}
-            </PostImageWrapClickable>
-          ) : (
-            <PostImageWrap>
-              <PostImg src={post.imageUrl} alt="" />
-            </PostImageWrap>
-          )}
+          {(() => {
+            const urls = post.mediaUrls?.length ? post.mediaUrls : [post.imageUrl];
+            const multi = urls.length > 1;
+            const idx = multi ? (mediaIndexByPostId[post.id] ?? 0) : 0;
+            const currentUrl = urls[idx] ?? post.imageUrl;
+            const isVideo = isVideoUrl(currentUrl);
+
+            if (multi) {
+              return (
+                <PostMediaCarousel>
+                  <PostMediaCarouselNav
+                    type="button"
+                    $side="left"
+                    disabled={idx <= 0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPostMediaIndex(post.id, Math.max(0, idx - 1));
+                    }}
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft size={20} />
+                  </PostMediaCarouselNav>
+                  {isVideo ? (
+                    <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+                      <PostVideo
+                        ref={(el: HTMLVideoElement | null) => {
+                          videoRefs.current[post.id] = el;
+                        }}
+                        src={currentUrl}
+                        muted
+                        playsInline
+                        autoPlay
+                        loop
+                      />
+                      {pausedPostId === post.id && (
+                        <FeedPlayOverlay>
+                          <FeedPlayButtonCircle>
+                            <Play size={32} fill="currentColor" stroke="none" />
+                          </FeedPlayButtonCircle>
+                        </FeedPlayOverlay>
+                      )}
+                    </PostImageWrapClickable>
+                  ) : (
+                    <PostImageWrap>
+                      <PostImg src={currentUrl} alt="" />
+                    </PostImageWrap>
+                  )}
+                  <PostMediaCarouselNav
+                    type="button"
+                    $side="right"
+                    disabled={idx >= urls.length - 1}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPostMediaIndex(post.id, Math.min(urls.length - 1, idx + 1));
+                    }}
+                    aria-label="Next"
+                  >
+                    <ChevronRight size={20} />
+                  </PostMediaCarouselNav>
+                  <PostMediaDots>
+                    {urls.map((_, i) => (
+                      <PostMediaDot key={i} $active={i === idx} />
+                    ))}
+                  </PostMediaDots>
+                </PostMediaCarousel>
+              );
+            }
+
+            if (post.type === "VIDEO" || post.videoUrl) {
+              return (
+                <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+                  <PostVideo
+                    ref={(el: HTMLVideoElement | null) => {
+                      videoRefs.current[post.id] = el;
+                    }}
+                    src={post.videoUrl ?? post.imageUrl}
+                    muted
+                    playsInline
+                    autoPlay
+                    loop
+                  />
+                  {pausedPostId === post.id && (
+                    <FeedPlayOverlay>
+                      <FeedPlayButtonCircle>
+                        <Play size={32} fill="currentColor" stroke="none" />
+                      </FeedPlayButtonCircle>
+                    </FeedPlayOverlay>
+                  )}
+                </PostImageWrapClickable>
+              );
+            }
+            return (
+              <PostImageWrap>
+                <PostImg src={post.imageUrl} alt="" />
+              </PostImageWrap>
+            );
+          })()}
           <PostActions>
             <PostActionBtn $active={post.isLiked}>
               <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />

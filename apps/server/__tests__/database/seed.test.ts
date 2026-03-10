@@ -66,6 +66,7 @@ const mockPrisma = {
     create: vi.fn(),
   },
   user: {
+    count: vi.fn(),
     deleteMany: vi.fn(),
     create: vi.fn().mockResolvedValue({ id: "user-123", username: "serena" }),
   },
@@ -116,6 +117,7 @@ describe("Database Seed", () => {
     vi.clearAllMocks();
 
     // 重新设置默认的 mock 返回值
+    mockPrisma.user.count.mockResolvedValue(0);
     mockPrisma.user.create.mockResolvedValue({
       id: "user-123",
       username: "testuser",
@@ -132,61 +134,16 @@ describe("Database Seed", () => {
   });
 
   describe("main function", () => {
-    it("should clean existing data in development mode", async () => {
-      const mockHash = vi.mocked(bcrypt.hash);
-      mockHash.mockResolvedValue("hashed-password");
+    it("should skip seeding when database already has users", async () => {
+      mockPrisma.user.count.mockResolvedValue(1);
 
-      // Mock user creation
-      const mockUsers = [
-        { id: "user-1", username: "serena", email: "serena@whatschat.com" },
-        { id: "user-2", username: "beyonce", email: "beyonce@whatschat.com" },
-        { id: "user-3", username: "messi", email: "messi@whatschat.com" },
-        { id: "user-4", username: "adele", email: "adele@whatschat.com" },
-        { id: "user-5", username: "leonardo", email: "leonardo@whatschat.com" },
-        { id: "user-6", username: "gisele", email: "gisele@whatschat.com" },
-      ];
-      mockUsers.forEach((u) => mockPrisma.user.create.mockResolvedValueOnce(u));
-
-      mockPrisma.userSettings.create.mockResolvedValue({});
-      const mockPrivateChat = { id: "chat-1", type: "PRIVATE" };
-      const mockGroupChat = { id: "chat-2", type: "GROUP", name: "All Stars" };
-      const mockPrivateChat2 = { id: "chat-3", type: "PRIVATE" };
-      mockPrisma.chat.create.mockResolvedValueOnce(mockPrivateChat);
-      mockPrisma.chat.create.mockResolvedValueOnce(mockGroupChat);
-      mockPrisma.chat.create.mockResolvedValueOnce(mockPrivateChat2);
-
-      // Mock message creation
-      mockPrisma.message.create.mockResolvedValue({});
-
-      // Mock contact creation
-      mockPrisma.contact.create.mockResolvedValue({});
-
-      // Mock status creation
-      mockPrisma.status.create.mockResolvedValue({});
-
-      // Import and run the seed function
       const { main } = await import("@/database/seed");
-
       await main();
 
-      // Verify cleanup operations were called
-      expect(mockPrisma.messageReaction.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.messageRead.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.message.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.chatParticipant.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.chat.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.callParticipant.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.call.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.statusView.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.status.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.groupParticipant.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.group.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.contact.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.blockedUser.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.notification.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.fileUpload.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.userSettings.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.user.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.user.count).toHaveBeenCalled();
+      expect(mockPrisma.user.create).not.toHaveBeenCalled();
+      expect(mockPrisma.messageReaction.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrisma.user.deleteMany).not.toHaveBeenCalled();
     });
 
     it("should create test users with correct data", async () => {

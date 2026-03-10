@@ -43,9 +43,10 @@ package "Client Applications" {
     - TypeScript
     - Tailwind CSS
     - Redux Toolkit + React Redux
-    Features: feed (image/video posts, pause/play),
-    Reels (vertical video feed), comments dialog
-    (video, pause/play, no control bar), profile, i18n
+    Features: feed (real posts from followed users,
+    multi-photo/video carousel, pause/play), Reels,
+    create post (multi media), comments dialog
+    (carousel, video pause/play), profile, i18n
   end note
   
   component [Admin App] as AdminApp #LightGray
