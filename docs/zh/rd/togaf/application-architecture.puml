@@ -43,7 +43,7 @@ package "客户端应用" {
     - Tailwind CSS
     - Redux Toolkit + React Redux
     功能：信息流（互动排序、点赞/收藏）、Reels、
-    探索页、发帖（多媒体）、评论弹窗、
+    探索页、全局搜索（帖子/用户/话题、游标、高亮）、发帖（多媒体）、评论弹窗、
     个人页（粉丝/关注弹窗、无限滚动、isFollowing）、i18n
   end note
   
@@ -164,6 +164,7 @@ RestGateway --> FeedService : 路由到
 RestGateway --> ExploreService : 路由到
 RestGateway --> FollowService : 路由到
 RestGateway --> CommentService : 路由到
+RestGateway --> SearchService : 路由到
 
 WsGateway --> MessageService : 实时消息
 WsGateway --> ChatService : 聊天事件
@@ -213,8 +214,9 @@ CacheService --> Redis : 缓存存储
 PostFeedRepo --> Cassandra : 帖子、信息流
 CommentRepo --> MongoDB : 评论
 FileService --> FileStorage : 文件存储
-MessageService --> SearchService : 全文搜索
-SearchService --> Elasticsearch : 帖子/用户/话题搜索
+MessageService --> SearchService : 全文搜索（消息）
+SearchService --> Elasticsearch : 帖子/用户/话题搜索（游标、高亮、限流）
+SearchService --> DataRepository : ES 不可用时用户搜索回退
 
 rectangle "应用交互模式" {
   note as N1

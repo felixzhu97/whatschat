@@ -28,7 +28,7 @@ trap cleanup SIGINT SIGTERM
 
 echo -e "${GREEN}WhatsChat (${ENV})${NC}\n"
 
-echo "[1/5] Stopping old processes..."
+echo "[1/6] Stopping old processes..."
 lsof -ti:3001 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:3456 2>/dev/null | xargs kill -9 2>/dev/null || true
 pkill -f "whatschat-server.*dev" 2>/dev/null || true
@@ -39,7 +39,7 @@ pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
 pkill -f "celery.*celery_app" 2>/dev/null || true
 sleep 1
 
-echo "[2/5] Docker + env..."
+echo "[2/6] Docker + env..."
 COMPOSE_CMD="docker compose"
 docker compose version >/dev/null 2>&1 || COMPOSE_CMD="docker-compose"
 cd "$SERVER_DIR"
@@ -63,11 +63,14 @@ export ELASTICSEARCH_NODE="${ELASTICSEARCH_NODE:-http://localhost:9200}"
 export NODE_ENV=$([ "$ENV" == "prod" ] && echo production || echo development)
 cd "$ROOT_DIR"
 
-echo "[3/5] Migrate + seed..."
+echo "[3/6] Migrate + seed..."
 pnpm --filter whatschat-server migrate >/dev/null 2>&1 || true
 [ "$ENV" == "dev" ] && "$SCRIPT_DIR/../db/seed.sh" dev >/dev/null 2>&1 || true
 
-echo "[4/5] Starting..."
+echo "[4/6] Sync users to Elasticsearch..."
+(cd "$SERVER_DIR" && pnpm run search:sync-users 2>/dev/null) || true
+
+echo "[5/6] Starting server..."
 if [ -f "$MEDIA_GEN_DIR/app.py" ] && command -v python3 >/dev/null 2>&1; then
   if [ -f "$MEDIA_GEN_DIR/requirements.txt" ]; then
     (cd "$MEDIA_GEN_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null) || true
@@ -90,7 +93,7 @@ for i in $(seq 1 90); do
   sleep 3
 done
 
-echo "[5/5] Recommendation (optional)..."
+echo "[6/6] Recommendation (optional)..."
 if [ -d "$RECOMMENDATION_DIR" ] && [ -f "$RECOMMENDATION_DIR/celery_app.py" ] && command -v python3 >/dev/null 2>&1; then
   if [ -d "$RECOMMENDATION_DIR/.venv" ]; then
     (cd "$RECOMMENDATION_DIR" && . .venv/bin/activate && pip install -r requirements.txt -q 2>/dev/null; celery -A celery_app worker -l info -B 2>/dev/null) &

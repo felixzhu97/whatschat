@@ -16,7 +16,7 @@ Container_Boundary(api_server, "API 服务") {
   Component(explore_svc, "探索服务", "NestJS", "探索流来自 Redis 缓存")
   Component(comment_svc, "评论服务", "NestJS", "创建、列表评论；MongoDB；互动计数")
   Component(follow_svc, "关注服务", "NestJS", "关注/取关、推荐来自 Redis、粉丝/关注列表")
-  Component(search_svc, "搜索服务", "NestJS", "用户、帖子、话题；Elasticsearch")
+  Component(search_svc, "搜索服务", "NestJS", "用户、帖子、话题；游标分页、高亮、限流；ES 不可用时用户回退 Prisma；Elasticsearch")
   Component(call_svc, "通话服务", "NestJS", "通话信令（WebSocket）")
   Component(file_svc, "文件服务", "NestJS", "上传、本地存储")
   Component(analytics_svc, "分析服务", "NestJS", "事件接入、概览、事件列表")

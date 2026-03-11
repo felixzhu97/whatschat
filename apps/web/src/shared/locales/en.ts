@@ -250,4 +250,14 @@ export const en = {
     createAnother: "Create another post",
     done: "Done",
   },
+  search: {
+    placeholder: "Search",
+    tabAll: "All",
+    tabPosts: "Posts",
+    tabUsers: "Accounts",
+    tabTopics: "Tags",
+    noResults: "No results found",
+    loadMore: "Load more",
+    resultsCount: "{{count}} results",
+  },
 };

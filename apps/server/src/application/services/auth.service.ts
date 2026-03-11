@@ -16,6 +16,7 @@ import { IUserRepository } from "@/domain/interfaces/repositories/user.repositor
 import { User } from "@/domain/entities/user.entity";
 import { ConfigService } from "@/infrastructure/config/config.service";
 import { PrismaService } from "@/infrastructure/database/prisma.service";
+import { ElasticsearchService } from "@/infrastructure/database/elasticsearch.service";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -23,7 +24,8 @@ export class AuthService implements IAuthService {
     @Inject("IUserRepository")
     private readonly userRepository: IUserRepository,
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly elasticsearch: ElasticsearchService,
   ) {}
 
   async register(
@@ -38,7 +40,6 @@ export class AuthService implements IAuthService {
     // Hash password
     const hashedPassword = await this.hashPassword(data.password);
 
-    // Create user
     const user = await this.prisma.user.create({
       data: {
         username: data.username || data.email,
@@ -46,6 +47,13 @@ export class AuthService implements IAuthService {
         password: hashedPassword,
         ...(data.phone && { phone: data.phone }),
       },
+    });
+
+    await this.elasticsearch.indexUser({
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      createdAt: user.createdAt.toISOString(),
     });
 
     const domainUser = User.create({
@@ -61,7 +69,6 @@ export class AuthService implements IAuthService {
       updatedAt: user.updatedAt,
     });
 
-    // Generate tokens
     const tokens = await this.generateTokens(
       user.id,
       user.email,

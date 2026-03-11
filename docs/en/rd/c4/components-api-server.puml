@@ -16,7 +16,7 @@ Container_Boundary(api_server, "API Server") {
   Component(explore_svc, "Explore Service", "NestJS", "Explore stream from Redis cache")
   Component(comment_svc, "Comment Service", "NestJS", "Create, list comments; MongoDB; engagement count")
   Component(follow_svc, "Follow Service", "NestJS", "Follow/unfollow, suggestions from Redis, followers/following lists")
-  Component(search_svc, "Search Service", "NestJS", "Users, posts, hashtags; Elasticsearch")
+  Component(search_svc, "Search Service", "NestJS", "Users, posts, hashtags; cursor pagination, highlight, rate limit; user fallback via Prisma when ES unavailable; Elasticsearch")
   Component(call_svc, "Call Service", "NestJS", "Call signaling (WebSocket)")
   Component(file_svc, "File Service", "NestJS", "Upload, local storage")
   Component(analytics_svc, "Analytics Service", "NestJS", "Event ingest, overview, event list")

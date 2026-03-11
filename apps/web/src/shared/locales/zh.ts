@@ -250,4 +250,14 @@ export const zh = {
     createAnother: "再发一条",
     done: "完成",
   },
+  search: {
+    placeholder: "搜索",
+    tabAll: "全部",
+    tabPosts: "帖子",
+    tabUsers: "用户",
+    tabTopics: "话题",
+    noResults: "未找到结果",
+    loadMore: "加载更多",
+    resultsCount: "共 {{count}} 条结果",
+  },
 };

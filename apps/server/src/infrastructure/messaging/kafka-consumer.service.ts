@@ -90,6 +90,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                 await this.cache.del(`${FEED_CACHE_KEY_PREFIX}${f.followerId}`);
               }
               const es = this.elasticsearch.getClient();
+              const rawTags = (payload.caption || "").match(/#\w+/g) || [];
               if (es) {
                 await es.index({
                   index: "posts",
@@ -99,10 +100,22 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                     userId: payload.userId,
                     caption: payload.caption,
                     type: payload.type,
-                    hashtags: (payload.caption || "").match(/#\w+/g) || [],
+                    hashtags: rawTags,
                     createdAt: payload.createdAt,
                   },
                 });
+                const tagSet = new Set<string>();
+                for (const t of rawTags) {
+                  const normalized = t.replace(/^#/, "").toLowerCase();
+                  if (normalized && !tagSet.has(normalized)) {
+                    tagSet.add(normalized);
+                    await es.index({
+                      index: "hashtags",
+                      id: normalized,
+                      document: { tag: normalized, createdAt: payload.createdAt },
+                    });
+                  }
+                }
               }
             } catch (err) {
               logger.error(`Kafka post.created consumer error: ${err}`);

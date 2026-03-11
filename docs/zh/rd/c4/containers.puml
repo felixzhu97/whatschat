@@ -8,10 +8,10 @@ Person(user_web, "Web 用户", "通过浏览器使用聊天")
 Person(user_mobile, "移动端用户", "通过应用使用聊天")
 
 System_Boundary(whatschat, "WhatsChat") {
-  Container(web_app, "Web 应用", "Next.js、React、TypeScript、Emotion、i18next", "Instagram 风格 UI（导航、信息流、Reels、探索、个人页、侧栏）、聊天、通话、联系人、认证、AI 对话；点赞/收藏、粉丝/关注弹窗（无限滚动、isFollowing）、视频暂停/播放")
+  Container(web_app, "Web 应用", "Next.js、React、TypeScript、Emotion、i18next", "Instagram 风格 UI（导航、信息流、Reels、探索、全局搜索、个人页、侧栏）、聊天、通话、联系人、认证、AI 对话；点赞/收藏、粉丝/关注弹窗（无限滚动、isFollowing）、视频暂停/播放")
   Container(admin_app, "管理端应用", "Next.js、React、TypeScript、Emotion、AG Grid、Recharts、i18next", "仪表盘、用户、内容安全、运营监控、业务、分析、系统配置、权限与审计")
   Container(mobile_app, "移动端应用", "React Native、Expo、TypeScript、Emotion", "聊天 UI、通话、联系人、认证")
-  Container(api_server, "API 服务", "NestJS、TypeScript", "REST API、WebSocket、认证、业务逻辑、分析、AI 代理；信息流（排序）、探索、推荐、互动（点赞/收藏）、粉丝/关注（isFollowing）")
+  Container(api_server, "API 服务", "NestJS、TypeScript", "REST API、WebSocket、认证、业务逻辑、分析、AI 代理；信息流（排序）、探索、推荐、互动（点赞/收藏）、粉丝/关注（isFollowing）；搜索（帖子/用户/话题、游标分页、高亮、限流）")
   Container(media_gen, "媒体生成服务", "Python、FastAPI、diffusers、CogVideoX、edge-tts", "图片、视频、语音（TTS），:3456")
   Container(recommendation_svc, "推荐服务", "Python、Celery、LightFM、implicit、Annoy", "批任务：关注推荐、探索热门列表；写入 Redis")
   ContainerDb(postgres, "PostgreSQL", "关系型数据库", "用户、消息、聊天、群组、关注")

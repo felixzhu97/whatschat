@@ -44,7 +44,7 @@ package "Client Applications" {
     - Tailwind CSS
     - Redux Toolkit + React Redux
     Features: feed (engagement ranking, like/save), Reels,
-    explore tab, create post (multi media), comments dialog,
+    explore tab, global search (posts/users/hashtags, cursor, highlight), create post (multi media), comments dialog,
     profile (followers/following modals, infinite scroll, isFollowing), i18n
   end note
   
@@ -165,6 +165,7 @@ RestGateway --> FeedService : routes to
 RestGateway --> ExploreService : routes to
 RestGateway --> FollowService : routes to
 RestGateway --> CommentService : routes to
+RestGateway --> SearchService : routes to
 
 WsGateway --> MessageService : realtime messages
 WsGateway --> ChatService : chat events
@@ -214,8 +215,9 @@ CacheService --> Redis : cache storage
 PostFeedRepo --> Cassandra : posts, feed
 CommentRepo --> MongoDB : comments
 FileService --> FileStorage : file storage
-MessageService --> SearchService : full‑text search
-SearchService --> Elasticsearch : post/user/hashtag search
+MessageService --> SearchService : full‑text search (messages)
+SearchService --> Elasticsearch : post/user/hashtag search (cursor, highlight, rate limit)
+SearchService --> DataRepository : user search fallback when ES unavailable
 
 rectangle "Application Interaction Patterns" {
   note as N1

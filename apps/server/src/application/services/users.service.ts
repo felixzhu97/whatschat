@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { ElasticsearchService } from '../../infrastructure/database/elasticsearch.service';
 
 export interface GetUsersOptions {
   page: number;
@@ -17,7 +18,10 @@ export interface UpdateUserData {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly elasticsearch: ElasticsearchService,
+  ) {}
 
   async getUsers(options: GetUsersOptions) {
     const { page, limit, search } = options;
@@ -134,7 +138,7 @@ export class UsersService {
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
     if (data.status !== undefined) updateData.status = data.status;
 
-    return await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: updateData,
       select: {
@@ -146,9 +150,17 @@ export class UsersService {
         status: true,
         isOnline: true,
         lastSeen: true,
+        createdAt: true,
         updatedAt: true,
       },
     });
+    await this.elasticsearch.indexUser({
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      createdAt: user.createdAt.toISOString(),
+    });
+    return user;
   }
 
   async deleteUser(id: string) {
@@ -163,7 +175,7 @@ export class UsersService {
     await this.prisma.user.delete({
       where: { id },
     });
-
+    await this.elasticsearch.deleteUser(id);
     return { message: '用户已删除' };
   }
 

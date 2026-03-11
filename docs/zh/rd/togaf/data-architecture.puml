@@ -105,7 +105,8 @@ Post --> Cassandra : 持久化于
 FeedEntry --> Cassandra : 持久化于
 Engagement --> Cassandra : post_likes、post_saves、post_engagement_counts
 Comment --> MongoDB : 持久化于
-Post --> Elasticsearch : 建索引供搜索
+Post --> Elasticsearch : 建索引供搜索；发帖时话题入索引
+User --> Elasticsearch : 注册/更新时入索引；全量同步脚本
 
 FileUpload --> FileStorage : 文件存储于
 
@@ -215,6 +216,8 @@ end note
 note right of Elasticsearch
   **Elasticsearch**
   - 帖子、用户、话题搜索
+  - 用户：注册/更新时写入；话题：post.created 时写入
+  - 游标分页、高亮、限流（60/分钟）；同步脚本 search:sync-users
 end note
 
 note bottom
@@ -227,7 +230,7 @@ note bottom
   2. **关联实体** – ChatParticipant、GroupParticipant、CallParticipant、MessageRead、
      MessageReaction、StatusView、UserSettings、BlockedUser、Follow
   3. **关系** – 一对一、一对多、多对多通过外键与关联表建模
-  4. **存储** – PostgreSQL 存用户、聊天、消息、关注；Redis 存缓存与会话；Cassandra 存帖子与信息流；MongoDB 存评论；Elasticsearch 做帖子/用户/话题搜索；对象存储存媒体文件
+  4. **存储** – PostgreSQL 存用户、聊天、消息、关注；Redis 存缓存与会话；Cassandra 存帖子与信息流；MongoDB 存评论；Elasticsearch 做帖子/用户/话题搜索（游标分页、高亮、限流；用户注册/更新入索引、话题 post.created 入索引）；对象存储存媒体文件
   5. **数据流** – 写、读、实时流保证一致性与低延迟读取
   
   数据模型遵循规范化原则以保证完整性与一致性。

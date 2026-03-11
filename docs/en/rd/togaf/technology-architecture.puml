@@ -140,8 +140,8 @@ package "Search Service" {
   database [Elasticsearch] as Elasticsearch #LightYellow
   note right of Elasticsearch
     Full‑text search engine
-    - Post, user, hashtag search
-    - Message search
+    - Post, user, hashtag search (cursor pagination, highlight, rate limit)
+    - User index on register/update; hashtags on post.created; sync script
     - Fuzzy matching
   end note
 }

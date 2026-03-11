@@ -18,6 +18,7 @@ import { CallsPage } from "../pages/calls-page";
 import { StatusPage } from "../pages/status-page";
 import { StarredMessagesPage } from "../pages/starred-messages-page";
 import { MessageSearchPage } from "../pages/message-search-page";
+import { GlobalSearchPage } from "../pages/global-search-page";
 import { SettingsPage } from "../pages/settings-page";
 import { CreateGroupDialog } from "../dialogs/create-group-dialog";
 import { AddFriendDialog } from "../dialogs/add-friend-dialog";
@@ -635,18 +636,10 @@ export function InstagramMain() {
       case "search":
         return (
           <CenterColumn style={{ overflow: "auto" }}>
-            <MessageSearchPage
-              isOpen={true}
-              onClose={handleBackToChat}
-              initialQuery={searchQuery}
-              allMessages={Object.entries(mockMessages).map(
-                ([contactId, messages]) => ({
-                  contactId,
-                  messages,
-                })
-              )}
-              contacts={mockContacts}
-              onSelectMessage={handleSelectMessage}
+            <GlobalSearchPage
+              onBack={handleBackToChat}
+              onPostClick={() => {}}
+              onUserClick={() => {}}
             />
           </CenterColumn>
         );
@@ -735,9 +728,11 @@ export function InstagramMain() {
         ? "reels"
         : currentPage === "explore"
           ? "explore"
-          : currentPage === "chat" && instagramView === "messages"
-            ? "messages"
-            : "home";
+          : currentPage === "search"
+            ? "search"
+            : currentPage === "chat" && instagramView === "messages"
+              ? "messages"
+              : "home";
 
   return (
     <AppShell>
@@ -755,6 +750,7 @@ export function InstagramMain() {
         onProfileClick={handleProfileClick}
         onReelsClick={handleReelsClick}
         onExploreClick={handleExploreClick}
+        onSearchClick={handleSearchPageClick}
         onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
       />
 

@@ -12,10 +12,11 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB; search in Elasticsearch
+- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB
+- 🔎 **Global Search** – Search posts, users, and hashtags (topics) via Elasticsearch; cursor-based pagination and highlight; rate limit (60/min); users indexed on register/update, hashtags on post.created; optional sync script `pnpm run search:sync-users`; startup script runs user sync after seed
 - 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream backed by a Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data
 - 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
-- 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, DM-style messages, right sidebar suggestions), i18n (en/zh, footer language switch)
+- 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, global search, DM-style messages, right sidebar suggestions), i18n (en/zh, footer language switch)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (including post view/like/save); API ingests; Admin shows overview
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
@@ -81,13 +82,15 @@ pnpm setup
 ### Run
 
 ```bash
-pnpm start           # Full: Docker + media-gen (:3456) + API (:3001)
+pnpm start           # Full: Docker (postgres, redis, kafka, cassandra, mongodb, elasticsearch) + migrate + seed + search:sync-users + media-gen (:3456) + API (:3001)
 pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
 pnpm start:mobile:ios   # or start:mobile:android
 pnpm start:recommendation # Python recommendation worker + Celery beat (optional, runs in apps/recommendation)
 ```
+
+From repo root, `scripts/app/start.sh [dev|prod]` runs Docker, migrate, seed, **user sync to Elasticsearch**, then server (and optional media-gen, recommendation).
 
 ### Environment
 

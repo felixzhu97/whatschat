@@ -105,7 +105,8 @@ Post --> Cassandra : persisted in
 FeedEntry --> Cassandra : persisted in
 Engagement --> Cassandra : post_likes, post_saves, post_engagement_counts
 Comment --> MongoDB : persisted in
-Post --> Elasticsearch : indexed for search
+Post --> Elasticsearch : indexed for search; hashtags indexed on post.created
+User --> Elasticsearch : indexed on register/update (search); sync script for bulk
 
 FileUpload --> FileStorage : file stored in
 
@@ -215,6 +216,9 @@ end note
 note right of Elasticsearch
   **Elasticsearch**
   - Post, user, hashtag search
+  - User index on register/update; hashtags on post.created
+  - Cursor pagination, highlight, rate limit (60/min)
+  - Sync script: search:sync-users
 end note
 
 note bottom
@@ -229,7 +233,7 @@ note bottom
      MessageReaction, StatusView, UserSettings, BlockedUser, Follow
   3. **Relationships** – one‑to‑one, one‑to‑many, and many‑to‑many modeled via foreign keys
      and junction tables
-  4. **Storage** – PostgreSQL for users, chats, messages, follow; Redis for cache and sessions; Cassandra for posts and feed; MongoDB for comments; Elasticsearch for post/user/hashtag search; object storage for media files
+  4. **Storage** – PostgreSQL for users, chats, messages, follow; Redis for cache and sessions; Cassandra for posts and feed; MongoDB for comments; Elasticsearch for post/user/hashtag search (cursor pagination, highlight, rate limit; user index on register/update, hashtags on post.created); object storage for media files
   5. **Data flows** – write, read, and realtime flows ensure both consistency and low‑latency reads
   
   The data model follows normalization principles to ensure integrity and consistency.

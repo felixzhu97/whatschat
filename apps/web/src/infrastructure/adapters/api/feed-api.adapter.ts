@@ -108,11 +108,27 @@ export class FeedApiAdapter {
     await this.api.delete(`/users/${userId}/follow`);
   }
 
-  async search(q: string, type: "users" | "posts" | "hashtags", limit: number) {
-    const res = await this.api.get<{ hits: unknown[] }>(
-      `/search?q=${encodeURIComponent(q)}&type=${type}&limit=${limit}`
+  async search(
+    q: string,
+    type: "users" | "posts" | "hashtags",
+    limit: number,
+    cursor?: string
+  ): Promise<{ hits: unknown[]; nextCursor?: string; total?: number }> {
+    const params = new URLSearchParams({
+      q,
+      type,
+      limit: String(limit),
+    });
+    if (cursor) params.set("cursor", cursor);
+    const res = await this.api.get<{ hits: unknown[]; nextCursor?: string; total?: number }>(
+      `/search?${params.toString()}`
     );
-    return (res.data as { hits: unknown[] })?.hits ?? [];
+    const data = (res as { data?: { hits: unknown[]; nextCursor?: string; total?: number } }).data;
+    return {
+      hits: Array.isArray(data?.hits) ? data.hits : [],
+      ...(data?.nextCursor != null && { nextCursor: data.nextCursor }),
+      ...(data?.total != null && { total: data.total }),
+    };
   }
 
   async getSuggestions(limit: number = 10) {

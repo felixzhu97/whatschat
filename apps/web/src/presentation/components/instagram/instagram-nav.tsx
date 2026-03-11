@@ -177,16 +177,17 @@ const MetaLogo = styled.div`
 
 interface InstagramNavProps {
   user: User | null;
-  activeTab: "home" | "messages" | "profile" | "reels" | "explore";
+  activeTab: "home" | "messages" | "profile" | "reels" | "explore" | "search";
   onHomeClick: () => void;
   onMessagesClick: () => void;
   onProfileClick: () => void;
   onReelsClick?: () => void;
   onExploreClick?: () => void;
   onCreateClick?: () => void;
+  onSearchClick?: () => void;
 }
 
-type TabKey = "home" | "messages" | "profile" | "reels" | "explore" | null;
+type TabKey = "home" | "messages" | "profile" | "reels" | "explore" | "search" | null;
 
 interface NavEntry {
   id: number;
@@ -205,6 +206,7 @@ export function InstagramNav({
   onReelsClick,
   onExploreClick,
   onCreateClick,
+  onSearchClick,
 }: InstagramNavProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -214,7 +216,7 @@ export function InstagramNav({
     { id: 0, label: t("nav.home"), tab: "home", Icon: Home, onClick: onHomeClick },
     { id: 1, label: t("nav.reels"), tab: "reels", Icon: Clapperboard, onClick: onReelsClick },
     { id: 2, label: t("nav.messages"), tab: "messages", Icon: Send, onClick: onMessagesClick },
-    { id: 3, label: t("nav.search"), tab: null, Icon: Search },
+    { id: 3, label: t("nav.search"), tab: "search", Icon: Search, onClick: onSearchClick },
     { id: 4, label: t("nav.explore"), tab: "explore", Icon: Compass, onClick: onExploreClick },
     { id: 5, label: t("nav.notifications"), tab: null, Icon: Heart },
     { id: 6, label: t("nav.create"), tab: null, Icon: SquarePlus, onClick: onCreateClick },

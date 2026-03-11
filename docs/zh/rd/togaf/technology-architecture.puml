@@ -140,8 +140,8 @@ package "搜索服务" {
   database [Elasticsearch] as Elasticsearch #LightYellow
   note right of Elasticsearch
     全文搜索引擎
-    - 帖子、用户、话题搜索
-    - 消息搜索
+    - 帖子、用户、话题搜索（游标分页、高亮、限流）
+    - 用户：注册/更新入索引；话题：post.created 入索引；同步脚本
     - 模糊匹配
   end note
 }
