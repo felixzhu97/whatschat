@@ -11,6 +11,9 @@ import logger from "@/shared/utils/logger";
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
+    if (String(host.getType()) === "graphql") {
+      throw exception;
+    }
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
@@ -32,9 +35,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof Error) {
       logger.error(`堆栈: ${exception.stack}`);
     }
-    logger.error(`请求URL: ${request.url}`);
-    logger.error(`请求方法: ${request.method}`);
-    logger.error(`请求IP: ${request.ip}`);
+    if (request && typeof request === "object" && "url" in request) {
+      logger.error(`请求URL: ${(request as { url?: string }).url}`);
+      logger.error(`请求方法: ${(request as { method?: string }).method}`);
+      logger.error(`请求IP: ${(request as { ip?: string }).ip}`);
+    }
 
     // Prisma错误处理
     if (exception && typeof exception === "object" && "name" in exception) {

@@ -12,7 +12,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB
+- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed + post details in one request (replaces N+1 REST getPost); Reels and profile grid; multi-media carousel on feed and in comments dialog; comments in MongoDB
 - 🔎 **Global Search** – Search posts, users, and hashtags (topics) via Elasticsearch; cursor-based pagination and highlight; rate limit (60/min); users indexed on register/update, hashtags on post.created; optional sync script `pnpm run search:sync-users`; startup script runs user sync after seed
 - 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream backed by a Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data
 - 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
@@ -60,7 +60,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement) · MongoDB (comments) · Elasticsearch (search)
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement) · MongoDB (comments) · Elasticsearch (search) · **GraphQL** (Apollo Server, code-first feed query + DataLoader)
 - **Recommendations** – Python (apps/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
@@ -132,7 +132,7 @@ packages/
 ## 📚 Docs
 
 - [Docs index](docs/README.md)
-- [C4 Model](docs/en/rd/c4/README.md) – System context, containers, components (API, Web, Mobile, Admin); feed from followed users, multi-media posts
+- [C4 Model](docs/en/rd/c4/README.md) – System context, containers, components (API incl. GraphQL feed, Web, Mobile, Admin); feed from followed users, multi-media posts
 - [TOGAF](docs/en/rd/togaf/README.md) – Business, Application, Data, Technology (four architecture domains)
 
 ## 📄 License

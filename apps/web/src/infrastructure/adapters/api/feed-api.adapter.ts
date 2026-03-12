@@ -36,6 +36,47 @@ export interface CommentRes {
 export class FeedApiAdapter {
   constructor(private api: IApiClient) {}
 
+  async getFeedGraphql(limit: number, pageState?: string) {
+    const query = `query Feed($limit: Int, $pageState: String) {
+      feed(limit: $limit, pageState: $pageState) {
+        pageState
+        entries {
+          postId
+          authorId
+          createdAt
+          post {
+            postId
+            userId
+            caption
+            type
+            mediaUrls
+            location
+            createdAt
+            username
+            avatar
+            likeCount
+            commentCount
+            saveCount
+            isLiked
+            isSaved
+          }
+        }
+      }
+    }`;
+    const variables: { limit: number; pageState?: string } = { limit };
+    if (pageState) variables.pageState = pageState;
+    const res = await this.api.post<unknown>("/graphql", { query, variables });
+    const body = res as { errors?: Array<{ message: string }>; data?: { feed?: { pageState?: string | null; entries?: Array<{ postId: string; post?: PostDetailRes | null }> } } };
+    if (body.errors?.length) {
+      throw new Error(body.errors[0]?.message ?? "GraphQL error");
+    }
+    const feed = body.data?.feed;
+    return {
+      entries: Array.isArray(feed?.entries) ? feed.entries : [],
+      pageState: feed?.pageState ?? undefined,
+    };
+  }
+
   async getFeed(limit: number, pageState?: string) {
     const q = new URLSearchParams({ limit: String(limit) });
     if (pageState) q.set("pageState", pageState);

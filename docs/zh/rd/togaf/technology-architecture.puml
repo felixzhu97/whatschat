@@ -64,6 +64,13 @@ package "应用服务" {
   
   package "通信协议" {
     component [REST API] as RestAPI
+    component [GraphQL API] as GraphQLAPI
+    note right of GraphQLAPI
+      Apollo Server 4
+      graphql、@nestjs/graphql
+      POST /api/v1/graphql
+      feed 查询 + DataLoader
+    end note
     component [WebSocket\n(Socket.IO)] as SocketIO
     component [WebRTC 信令] as WebRTCSignal
   }
@@ -231,6 +238,7 @@ NestJS --> Express : 基于
 NestJS --> ServerTS : 语言
 NestJS --> NodeJS : 运行时
 NestJS --> RestAPI : 暴露
+NestJS --> GraphQLAPI : 暴露
 NestJS --> SocketIO : 暴露
 NestJS --> WebRTCSignal : 暴露
 
@@ -316,7 +324,7 @@ note bottom
   2. **服务端** – NestJS 提供模块化、可扩展的后端服务
   3. **数据层** – PostgreSQL 为主库；Redis 做缓存、Pub/Sub、推荐/探索缓存、Celery broker；Cassandra 存帖子、信息流、互动；MongoDB 存评论；Elasticsearch 做搜索
   4. **推荐** – Python（Celery、LightFM、implicit、Annoy）批任务将推荐与探索列表写入 Redis；API 从 Redis 读取
-  5. **协议** – REST API 同步调用、WebSocket 实时消息、WebRTC 音视频
+  5. **协议** – REST API 同步调用、GraphQL 信息流读取（批量 post 详情）、WebSocket 实时消息、WebRTC 音视频
   6. **安全** – JWT 认证、bcrypt 密码哈希、Helmet 安全头、CORS 控制
   7. **存储** – 本地文件存储、Elasticsearch 全文搜索
   8. **部署** – 基于 Docker 的容器化，覆盖开发、测试、生产

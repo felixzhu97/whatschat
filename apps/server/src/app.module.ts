@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { KafkaModule } from './infrastructure/messaging/kafka.module';
 import { ConfigService } from './infrastructure/config/config.service';
 import { AuthModule } from './presentation/auth/auth.module';
 import { HealthModule } from './presentation/health/health.module';
@@ -22,6 +23,7 @@ import { PostModule } from './presentation/post/post.module';
 import { CommentsModule } from './presentation/comments/comments.module';
 import { SearchModule } from './presentation/search/search.module';
 import { FollowModule } from './presentation/follow/follow.module';
+import { GraphqlModule } from './presentation/graphql/graphql.module';
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { FollowModule } from './presentation/follow/follow.module';
     ]),
     // Database module
     DatabaseModule,
+    KafkaModule,
     AuthModule,
     HealthModule,
     WebSocketModule,
@@ -59,6 +62,7 @@ import { FollowModule } from './presentation/follow/follow.module';
     CommentsModule,
     SearchModule,
     FollowModule,
+    GraphqlModule,
   ],
 })
 export class AppModule {}

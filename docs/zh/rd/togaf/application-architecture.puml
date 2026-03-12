@@ -82,6 +82,13 @@ MobileApp --> DomainPkg : 使用类型
 
 package "API 网关层" {
   component [REST API 网关] as RestGateway
+  component [GraphQL API] as GraphQLGateway
+  note right of GraphQLGateway
+    Apollo Server
+    POST /api/v1/graphql
+    Query feed + FeedEntry.post
+    JWT；DataLoader 批量 PostService
+  end note
   component [WebSocket 网关] as WsGateway
   component [WebRTC 信令] as WebRTCGateway
 }
@@ -143,10 +150,12 @@ package "基础设施服务" {
 
 /' 客户端到网关
 WebApp --> RestGateway : HTTP/REST
+WebApp --> GraphQLGateway : HTTP GraphQL
 WebApp --> WsGateway : WebSocket
 WebApp --> WebRTCGateway : WebRTC 信令
 AdminApp --> RestGateway : HTTP/REST
 MobileApp --> RestGateway : HTTP/REST
+MobileApp --> GraphQLGateway : HTTP GraphQL
 MobileApp --> WsGateway : WebSocket
 MobileApp --> WebRTCGateway : WebRTC 信令
 
@@ -161,6 +170,8 @@ RestGateway --> StatusService : 路由到
 RestGateway --> FileService : 路由到
 RestGateway --> PostService : 路由到
 RestGateway --> FeedService : 路由到
+GraphQLGateway --> FeedService : feed 查询
+GraphQLGateway --> PostService : post 字段 / DataLoader
 RestGateway --> ExploreService : 路由到
 RestGateway --> FollowService : 路由到
 RestGateway --> CommentService : 路由到

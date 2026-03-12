@@ -9,6 +9,9 @@ import { Response } from 'express';
 @Catch(BadRequestException)
 export class ValidationExceptionFilter implements ExceptionFilter {
   catch(exception: BadRequestException, host: ArgumentsHost) {
+    if (String(host.getType()) === "graphql") {
+      throw exception;
+    }
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const exceptionResponse = exception.getResponse();

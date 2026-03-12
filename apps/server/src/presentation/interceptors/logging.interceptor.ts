@@ -11,8 +11,16 @@ import logger from "@/shared/utils/logger";
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    if (String(context.getType()) === "graphql") {
+      return next.handle();
+    }
     const request = context.switchToHttp().getRequest();
-    const { method, url, ip } = request;
+    if (!request || typeof request !== "object") {
+      return next.handle();
+    }
+    const method = (request as { method?: string }).method ?? "";
+    const url = (request as { url?: string }).url ?? "";
+    const ip = (request as { ip?: string }).ip ?? "";
     const now = Date.now();
 
     return next.handle().pipe(

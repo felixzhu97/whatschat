@@ -83,6 +83,13 @@ MobileApp --> DomainPkg : uses types
 
 package "API Gateway Layer" {
   component [REST API Gateway] as RestGateway
+  component [GraphQL API] as GraphQLGateway
+  note right of GraphQLGateway
+    Apollo Server
+    POST /api/v1/graphql
+    Query feed + FeedEntry.post
+    JWT; DataLoader batches PostService
+  end note
   component [WebSocket Gateway] as WsGateway
   component [WebRTC Signaling] as WebRTCGateway
 }
@@ -144,10 +151,12 @@ package "Infrastructure Services" {
 
 /' Client to gateway connections
 WebApp --> RestGateway : HTTP/REST
+WebApp --> GraphQLGateway : HTTP GraphQL
 WebApp --> WsGateway : WebSocket
 WebApp --> WebRTCGateway : WebRTC signaling
 AdminApp --> RestGateway : HTTP/REST
 MobileApp --> RestGateway : HTTP/REST
+MobileApp --> GraphQLGateway : HTTP GraphQL
 MobileApp --> WsGateway : WebSocket
 MobileApp --> WebRTCGateway : WebRTC signaling
 
@@ -162,6 +171,8 @@ RestGateway --> StatusService : routes to
 RestGateway --> FileService : routes to
 RestGateway --> PostService : routes to
 RestGateway --> FeedService : routes to
+GraphQLGateway --> FeedService : feed query
+GraphQLGateway --> PostService : post field / DataLoader
 RestGateway --> ExploreService : routes to
 RestGateway --> FollowService : routes to
 RestGateway --> CommentService : routes to
@@ -229,6 +240,7 @@ rectangle "Application Interaction Patterns" {
     - Group management
     - File upload & download
     - Status management
+    - GraphQL feed query (single request for feed entries + post details; REST remains for mutations)
   end note
   
   note as N2
@@ -254,7 +266,7 @@ note bottom
   WhatsChat adopts a layered application architecture:
   
   1. **Client applications layer** – Web app (Next.js), Admin app (Next.js), and mobile app (React Native/Expo) providing user interfaces
-  2. **API gateway layer** – REST API gateway, WebSocket gateway, and WebRTC signaling gateway as unified entrypoints
+  2. **API gateway layer** – REST API gateway, GraphQL API (Apollo, feed + DataLoader), WebSocket gateway, and WebRTC signaling gateway as unified entrypoints
   3. **Application services layer** – fine‑grained services for auth, users, messages, chats, posts, feed, comments, search, calls, groups, status, files, and notifications
   4. **Business logic layer** – core business logic and rules processing
   5. **Data access layer** – data repository and cache service abstracting data access

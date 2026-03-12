@@ -19,12 +19,14 @@ export class TransformInterceptor<T>
   implements NestInterceptor<T, Response<T>>
 {
   intercept(
-    _context: ExecutionContext,
+    context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
+    if (String(context.getType()) === "graphql") {
+      return next.handle();
+    }
     return next.handle().pipe(
       map((data) => {
-        // 如果响应已经包含success字段，直接返回
         if (data && typeof data === 'object' && 'success' in data) {
           return {
             ...data,
@@ -32,7 +34,6 @@ export class TransformInterceptor<T>
           };
         }
 
-        // 否则包装为标准格式
         return {
           success: true,
           data,

@@ -47,7 +47,7 @@ docs/
 
 ### 研发 · R&D
 
-- [C4 模型](rd/c4/README.md) — 系统上下文、容器、组件（中文图见本目录 [rd/c4](rd/c4/)）
+- [C4 模型](rd/c4/README.md) — 系统上下文、容器、组件（API 含 GraphQL feed；中文图见本目录 [rd/c4](rd/c4/)）
   - [Level 1 系统上下文](rd/c4/system-context.puml) · [Level 2 容器](rd/c4/containers.puml)
   - [Level 3 API 服务组件](rd/c4/components-api-server.puml) · [Level 3 Web 组件](rd/c4/components-web-app.puml) · [Level 3 移动端组件](rd/c4/components-mobile-app.puml) · [Level 3 管理端组件](rd/c4/components-admin-app.puml)
 - [TOGAF](rd/togaf/README.md) — 四大架构域：概览、业务、应用、数据、技术（中文图见本目录 [rd/togaf](rd/togaf/)）

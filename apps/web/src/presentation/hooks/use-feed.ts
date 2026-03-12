@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
-import { FeedApiAdapter } from "@/infrastructure/adapters/api/feed-api.adapter";
+import { FeedApiAdapter, type PostDetailRes } from "@/infrastructure/adapters/api/feed-api.adapter";
 import type { FeedPost, SuggestedUser } from "@/shared/types";
 
 const api = new FeedApiAdapter(getApiClient());
@@ -39,30 +39,28 @@ export function useFeed(currentUserId: string | undefined) {
     setLoading(true);
     setError(null);
     try {
-      const { entries, pageState: next } = await api.getFeed(20, pageState);
-      setPageState(next);
-      const details = await Promise.all(
-        entries.map((e) => api.getPost(e.postId).catch(() => null))
-      );
-      const list: FeedPost[] = details
-        .filter(Boolean)
-        .map((p: any) => ({
-          id: p.postId,
-          userId: p.userId,
-          username: p.username ?? p.userId?.slice(0, 8) ?? "",
-          avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
-          timestamp: formatTime(p.createdAt),
-          imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-          likeCount: String(p.likeCount ?? 0),
-          commentCount: String(p.commentCount ?? 0),
-          caption: p.caption ?? "",
-          isLiked: Boolean(p.isLiked),
-          isSaved: Boolean(p.isSaved),
-          type: p.type,
-          videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-          coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-          mediaUrls: p.mediaUrls ?? [],
-        }));
+      const { entries, pageState: next } = await api.getFeedGraphql(20, pageState);
+      setPageState(next ?? undefined);
+      const details = entries
+        .map((e) => e.post)
+        .filter((p): p is PostDetailRes => p != null);
+      const list: FeedPost[] = details.map((p) => ({
+        id: p.postId,
+        userId: p.userId,
+        username: p.username ?? p.userId?.slice(0, 8) ?? "",
+        avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
+        timestamp: formatTime(p.createdAt),
+        imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
+        likeCount: String(p.likeCount ?? 0),
+        commentCount: String(p.commentCount ?? 0),
+        caption: p.caption ?? "",
+        isLiked: Boolean(p.isLiked),
+        isSaved: Boolean(p.isSaved),
+        type: p.type,
+        videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+        coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+        mediaUrls: p.mediaUrls ?? [],
+      }));
       setPosts((prev) => (pageState ? [...prev, ...list] : list));
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");

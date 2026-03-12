@@ -41,6 +41,7 @@ src/
 │   ├── calls/      # 通话模块
 │   ├── status/     # 状态模块
 │   ├── websocket/  # WebSocket 网关
+│   ├── graphql/    # GraphQL（Apollo，feed 查询，JWT，DataLoader）
 │   ├── filters/    # 异常过滤器
 │   └── interceptors/ # 拦截器
 └── shared/         # 共享工具

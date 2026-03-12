@@ -3,7 +3,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '../../infrastructure/config/config.service';
 import { ChatGateway } from './chat.gateway';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
-import { KafkaModule } from '../../infrastructure/messaging/kafka.module';
 import { OfflineMessageQueueService } from '../../application/services/offline-message-queue.service';
 
 @Module({
@@ -17,7 +16,6 @@ import { OfflineMessageQueueService } from '../../application/services/offline-m
       },
     }),
     DatabaseModule,
-    KafkaModule,
   ],
   providers: [OfflineMessageQueueService, ChatGateway],
   exports: [OfflineMessageQueueService, ChatGateway],
