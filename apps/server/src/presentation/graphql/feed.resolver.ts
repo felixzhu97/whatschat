@@ -26,7 +26,10 @@ export class FeedEntryResolver {
 
 @Resolver()
 export class FeedResolver {
-  constructor(private readonly feedService: FeedService) {}
+  constructor(
+    private readonly feedService: FeedService,
+    private readonly postLoader: PostLoader
+  ) {}
 
   @Query(() => FeedPageType)
   @UseGuards(GqlJwtAuthGuard)
@@ -35,6 +38,7 @@ export class FeedResolver {
     @Args("limit", { type: () => Int, nullable: true, defaultValue: 20 }) limit: number,
     @Args("pageState", { nullable: true }) pageState?: string
   ): Promise<FeedPageType> {
+    this.postLoader.setCurrentUserId(user.id);
     const data = await this.feedService.getFeed(user.id, limit, pageState);
     const page = new FeedPageType();
     page.pageState = data.pageState ?? null;

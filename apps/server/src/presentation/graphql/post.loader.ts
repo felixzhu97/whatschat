@@ -30,6 +30,7 @@ function toIso(value: unknown): string {
 @Injectable({ scope: Scope.REQUEST })
 export class PostLoader {
   private loader: DataLoader<string, PostGql | null>;
+  private currentUserId: string | undefined;
 
   constructor(
     private readonly postService: PostService,
@@ -38,7 +39,9 @@ export class PostLoader {
     this.loader = new DataLoader<string, PostGql | null>(
       async (postIds) => {
         const user = this.req.user as { id?: string } | undefined;
-        const userId = typeof user?.id === "string" ? user.id : undefined;
+        const userId =
+          this.currentUserId ??
+          (typeof user?.id === "string" ? user.id : undefined);
         const rows = await Promise.all(
           postIds.map((postId) =>
             this.postService.getPost(postId, userId).catch(() => null)
@@ -70,6 +73,10 @@ export class PostLoader {
       },
       { cache: true }
     );
+  }
+
+  setCurrentUserId(userId: string) {
+    this.currentUserId = userId;
   }
 
   load(postId: string) {
