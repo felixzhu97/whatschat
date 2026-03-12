@@ -22,6 +22,9 @@ export class PostType {
   mediaUrls!: string[];
 
   @Field(() => String, { nullable: true })
+  coverUrl!: string | null;
+
+  @Field(() => String, { nullable: true })
   location!: string | null;
 
   @Field(() => Int, { nullable: true })
@@ -53,6 +56,7 @@ export class PostType {
     t.caption = p.caption;
     t.type = p.type;
     t.mediaUrls = p.mediaUrls;
+    t.coverUrl = typeof p.coverUrl === "string" ? p.coverUrl : null;
     t.location = (p.location as string | null) ?? null;
     t.likeCount = p.likeCount ?? null;
     t.commentCount = p.commentCount ?? null;

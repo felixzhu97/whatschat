@@ -10,6 +10,7 @@ import { CassandraPostRepository } from "./cassandra-post.repository";
 import { CassandraFeedRepository } from "./cassandra-feed.repository";
 import { CassandraEngagementRepository } from "./cassandra-engagement.repository";
 import { MongoCommentRepository } from "./mongo-comment.repository";
+import { MongoNotificationRepository } from "./mongo-notification.repository";
 
 @Global()
 @Module({
@@ -25,6 +26,7 @@ import { MongoCommentRepository } from "./mongo-comment.repository";
     CassandraFeedRepository,
     CassandraEngagementRepository,
     MongoCommentRepository,
+    MongoNotificationRepository,
   ],
   exports: [
     PrismaService,
@@ -38,6 +40,7 @@ import { MongoCommentRepository } from "./mongo-comment.repository";
     CassandraFeedRepository,
     CassandraEngagementRepository,
     MongoCommentRepository,
+    MongoNotificationRepository,
   ],
 })
 export class DatabaseModule implements OnModuleInit, OnModuleDestroy {

@@ -74,30 +74,20 @@ export function useFeed(currentUserId: string | undefined) {
       caption: string,
       type: string = "TEXT",
       author?: { username?: string; avatar?: string },
-      mediaUrls?: string[]
+      mediaUrls?: string[],
+      coverUrl?: string
     ) => {
       if (!currentUserId) return;
-      const data = await api.createPost(caption, type, mediaUrls);
+      const data = await api.createPost(caption, type, mediaUrls, coverUrl);
       if (data?.postId) {
         const p = await api.getPost(data.postId);
         if (p) {
-          const newPost: FeedPost = {
-            id: p.postId,
-            userId: p.userId,
-            username: author?.username ?? p.username ?? p.userId?.slice(0, 8) ?? "",
-            avatar: author?.avatar ?? p.avatar ?? "/placeholder.svg?height=32&width=32",
-            timestamp: formatTime(p.createdAt),
-            imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-            likeCount: String(p.likeCount ?? 0),
-            commentCount: String(p.commentCount ?? 0),
-            caption: p.caption ?? "",
-            isLiked: Boolean(p.isLiked),
-            isSaved: Boolean(p.isSaved),
-            type: p.type,
-            videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-            coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-            mediaUrls: p.mediaUrls ?? [],
-          };
+          const newPost = mapDetailToFeedPost({
+            ...p,
+            postId: p.postId,
+            username: author?.username ?? p.username,
+            avatar: author?.avatar ?? p.avatar,
+          });
           setPosts((prev) => [newPost, ...prev]);
         }
       }
@@ -182,13 +172,22 @@ export function useFeed(currentUserId: string | undefined) {
   };
 }
 
-function mapDetailToFeedPost(p: {
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+
+function isVideoUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith("data:")) return /^data:video\//i.test(url);
+  return VIDEO_EXT.test(url);
+}
+
+export function mapDetailToFeedPost(p: {
   postId: string;
   userId: string;
   username?: string;
   avatar?: string;
   createdAt: string;
   mediaUrls?: string[];
+  coverUrl?: string;
   likeCount?: number;
   commentCount?: number;
   caption?: string;
@@ -196,22 +195,45 @@ function mapDetailToFeedPost(p: {
   isSaved?: boolean;
   type?: string;
 }): FeedPost {
+  const urls = p.mediaUrls ?? [];
+  const first = urls[0];
+  const isVideoType = p.type === "VIDEO" || (first != null && isVideoUrl(first));
+  let imageUrl = first ?? "/placeholder.svg?height=600&width=600";
+  let videoUrl: string | undefined;
+  let coverImageUrl: string | undefined;
+  const storedCover =
+    p.coverUrl != null && p.coverUrl !== "" ? p.coverUrl : undefined;
+
+  if (isVideoType && first != null && isVideoUrl(first)) {
+    videoUrl = first;
+    const poster =
+      storedCover ?? urls.find((u) => u && !isVideoUrl(u));
+    if (poster) {
+      coverImageUrl = poster;
+      imageUrl = poster;
+    } else {
+      coverImageUrl = undefined;
+      imageUrl = first;
+    }
+  }
+
   return {
     id: p.postId,
     userId: p.userId,
     username: p.username ?? p.userId?.slice(0, 8) ?? "",
     avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
     timestamp: formatTime(p.createdAt),
-    imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
+    imageUrl,
     likeCount: String(p.likeCount ?? 0),
     commentCount: String(p.commentCount ?? 0),
     caption: p.caption ?? "",
     isLiked: Boolean(p.isLiked),
     isSaved: Boolean(p.isSaved),
     type: p.type,
-    videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-    coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-    mediaUrls: p.mediaUrls ?? [],
+    videoUrl,
+    coverImageUrl,
+    ...(storedCover && { coverUrl: storedCover }),
+    mediaUrls: urls,
   };
 }
 

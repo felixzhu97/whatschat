@@ -223,6 +223,7 @@ export interface FeedPost {
   type?: string;
   videoUrl?: string;
   coverImageUrl?: string;
+  coverUrl?: string;
   mediaUrls?: string[];
 }
 

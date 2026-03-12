@@ -4,6 +4,7 @@ import { EmotionRegistry } from "./emotion-registry";
 import { I18nProvider } from "@/presentation/providers/i18n-provider";
 import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
 import { AnalyticsProvider } from "@/presentation/providers/analytics-provider";
+import { StoreProvider } from "@/presentation/providers/StoreProvider";
 
 export const metadata: Metadata = {
   title: "whats chat",
@@ -20,11 +21,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <EmotionRegistry>
-          <I18nProvider>
-            <GrowthBookProviderWrapper>
-              <AnalyticsProvider>{children}</AnalyticsProvider>
-            </GrowthBookProviderWrapper>
-          </I18nProvider>
+          <StoreProvider>
+            <I18nProvider>
+              <GrowthBookProviderWrapper>
+                <AnalyticsProvider>{children}</AnalyticsProvider>
+              </GrowthBookProviderWrapper>
+            </I18nProvider>
+          </StoreProvider>
         </EmotionRegistry>
       </body>
     </html>

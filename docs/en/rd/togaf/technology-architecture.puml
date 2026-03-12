@@ -115,14 +115,14 @@ package "Data Persistence" {
   database [Cassandra] as Cassandra #LightYellow
   note right of Cassandra
     Wide-column store
-    - Posts, feed by user
+    - Posts, feed by user, cover_url
     - cassandra-driver
   end note
   
   database [MongoDB] as MongoDB #LightGreen
   note right of MongoDB
     Document store
-    - Comments
+    - Comments, activity notifications
   end note
 }
 
@@ -256,7 +256,7 @@ NestJS --> RedisPubSub : uses
 NestJS --> BullQueue : uses
 NestJS --> Kafka : offline messages, post.created
 NestJS --> Cassandra : posts, feed, engagement
-NestJS --> MongoDB : comments
+NestJS --> MongoDB : comments, notifications
 NestJS --> Redis : suggestions, explore (read)
 
 Celery --> Redis : broker, result
@@ -322,9 +322,9 @@ note bottom
   
   1. **Clients** – Web app (Next.js + React); admin app (Next.js + React + Emotion); mobile app (React Native + Expo + Emotion + i18next, theme)
   2. **Server** – NestJS framework provides modular, extensible backend services
-  3. **Data layer** – PostgreSQL as primary DB; Redis for cache, Pub/Sub, suggestion/explore caches, Celery broker; Cassandra for posts, feed, engagement; MongoDB for comments; Elasticsearch for search
+  3. **Data layer** – PostgreSQL as primary DB; Redis for cache, Pub/Sub, suggestion/explore caches, Celery broker; Cassandra for posts, feed, engagement, post cover_url; MongoDB for comments and activity notifications; Elasticsearch for search
   4. **Recommendation** – Python (Celery, LightFM, implicit, Annoy) batch jobs write suggestions and explore list to Redis; API reads from Redis
-  5. **Protocols** – REST API for synchronous calls, GraphQL for feed read (batch post details), WebSocket for realtime messaging, WebRTC for audio/video
+  5. **Protocols** – REST API for synchronous calls, GraphQL for feed read (batch post details, coverUrl), WebSocket for realtime messaging and notification:new, WebRTC for audio/video
   6. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
   7. **Storage** – Local file storage, Elasticsearch for full‑text search
   8. **Deployment** – Docker‑based containerization across development, test, and production

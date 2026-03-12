@@ -249,6 +249,16 @@ export const zh = {
     viewPost: "查看帖子",
     createAnother: "再发一条",
     done: "完成",
+    coverPhoto: "封面",
+    selectFrameHint: "拖动选择画面",
+  },
+  notifications: {
+    activityTitle: "你帖子的动态",
+    activityEmpty: "当有人点赞或评论你的帖子时，会显示在这里。",
+    suggestedTitle: "为你推荐",
+    suggestedForYou: "为你推荐",
+    likedYourPost: "有人赞了你的帖子。",
+    commentedOnPost: "有人评论了你的帖子。",
   },
   search: {
     placeholder: "搜索",

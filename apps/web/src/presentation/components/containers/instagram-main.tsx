@@ -12,13 +12,15 @@ import { WelcomeScreen } from "../pages/welcome-screen";
 import { ProfilePage } from "../pages/profile-page";
 import { InstagramNav } from "../instagram/instagram-nav";
 import { InstagramFeed } from "../instagram/instagram-feed";
+import { InstagramExploreGrid } from "../instagram/instagram-explore-grid";
 import { InstagramReels } from "../instagram/instagram-reels";
 import { InstagramRightSidebar } from "../instagram/instagram-right-sidebar";
+import { NotificationsSheet } from "../instagram/notifications-sheet";
 import { CallsPage } from "../pages/calls-page";
 import { StatusPage } from "../pages/status-page";
 import { StarredMessagesPage } from "../pages/starred-messages-page";
 import { MessageSearchPage } from "../pages/message-search-page";
-import { GlobalSearchPage } from "../pages/global-search-page";
+import { SearchDrawer } from "../instagram/search-drawer";
 import { SettingsPage } from "../pages/settings-page";
 import { CreateGroupDialog } from "../dialogs/create-group-dialog";
 import { AddFriendDialog } from "../dialogs/add-friend-dialog";
@@ -140,6 +142,8 @@ export function InstagramMain() {
   const [showVoiceDialog, setShowVoiceDialog] = useState(false);
   const [commentPost, setCommentPost] = useState<FeedPost | null>(null);
   const [showCreatePostDialog, setShowCreatePostDialog] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
   const [followListModal, setFollowListModal] = useState<"followers" | "following" | null>(null);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
@@ -187,7 +191,6 @@ export function InstagramMain() {
     handleCallsClick,
     handleStarredClick,
     handleSettingsClick,
-    handleSearchPageClick,
     handleBackToChat,
   } = useNavigation();
 
@@ -418,9 +421,17 @@ export function InstagramMain() {
     closeAddFriendDialog();
   };
 
-  const handleAdvancedSearch = (filters: any) => {
+  const handleAdvancedSearch = (_filters: unknown) => {
     closeAdvancedSearchDialog();
-    handleSearchPageClick();
+    setSearchDrawerOpen(true);
+    handleBackToChat();
+    setInstagramView("feed");
+  };
+
+  const openSearchDrawer = () => {
+    setSearchDrawerOpen(true);
+    handleBackToChat();
+    setInstagramView("feed");
   };
 
   const handleSelectMessage = (contactId: string, messageId: string) => {
@@ -636,10 +647,30 @@ export function InstagramMain() {
       case "search":
         return (
           <CenterColumn style={{ overflow: "auto" }}>
-            <GlobalSearchPage
-              onBack={handleBackToChat}
-              onPostClick={() => {}}
-              onUserClick={() => {}}
+            <InstagramFeed
+              stories={mockStories}
+              posts={feed.posts}
+              loading={feed.loading}
+              error={feed.error}
+              currentUser={currentUser ?? undefined}
+              onCommentClick={(post) => {
+                setCommentPost(post);
+                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+              }}
+              onLikeClick={(post) => {
+                feed.toggleLike(post.id);
+                analytics.track(POST_LIKE, { postId: post.id });
+              }}
+              onSaveClick={(post) => {
+                feed.toggleSave(post.id);
+                analytics.track(POST_SAVE, { postId: post.id });
+              }}
+            />
+            <FeedCommentsDialog
+              post={commentPost}
+              open={!!commentPost}
+              onClose={() => setCommentPost(null)}
+              currentUser={currentUser ?? undefined}
             />
           </CenterColumn>
         );
@@ -654,32 +685,16 @@ export function InstagramMain() {
         );
       case "explore":
         return (
-          <CenterColumn style={{ overflow: "auto" }}>
-            {!explore.loading && !explore.error && explore.posts.length === 0 ? (
-              <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", padding: 24, color: "rgb(142 142 142)", fontSize: 14, textAlign: "center" }}>
-                {t("explore.empty")}
-              </div>
-            ) : (
-              <InstagramFeed
-                stories={[]}
-                posts={explore.posts}
-                loading={explore.loading}
-                error={explore.error}
-                currentUser={currentUser ?? undefined}
-                onCommentClick={(post) => {
-                  setCommentPost(post);
-                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
-                }}
-                onLikeClick={(post) => {
-                  explore.toggleLike(post.id);
-                  analytics.track(POST_LIKE, { postId: post.id });
-                }}
-                onSaveClick={(post) => {
-                  explore.toggleSave(post.id);
-                  analytics.track(POST_SAVE, { postId: post.id });
-                }}
-              />
-            )}
+          <CenterColumn style={{ overflow: "auto", maxWidth: "none" }}>
+            <InstagramExploreGrid
+              posts={explore.posts}
+              loading={explore.loading}
+              error={explore.error}
+              onPostClick={(post) => {
+                setCommentPost(post);
+                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+              }}
+            />
             <FeedCommentsDialog
               post={commentPost}
               open={!!commentPost}
@@ -728,8 +743,10 @@ export function InstagramMain() {
         ? "reels"
         : currentPage === "explore"
           ? "explore"
-          : currentPage === "search"
+          : searchDrawerOpen
             ? "search"
+            : currentPage === "search"
+              ? "search"
             : currentPage === "chat" && instagramView === "messages"
               ? "messages"
               : "home";
@@ -750,8 +767,23 @@ export function InstagramMain() {
         onProfileClick={handleProfileClick}
         onReelsClick={handleReelsClick}
         onExploreClick={handleExploreClick}
-        onSearchClick={handleSearchPageClick}
+        onSearchClick={openSearchDrawer}
         onCreateClick={currentUser ? () => setShowCreatePostDialog(true) : undefined}
+        onNotificationsClick={() => setNotificationsOpen(true)}
+      />
+
+      <SearchDrawer
+        open={searchDrawerOpen}
+        onOpenChange={setSearchDrawerOpen}
+        onPostClick={() => {}}
+        onUserClick={() => {}}
+      />
+
+      <NotificationsSheet
+        open={notificationsOpen}
+        onOpenChange={setNotificationsOpen}
+        suggestions={feed.suggestions}
+        onFollow={currentUser?.id ? feed.followSuggestion : undefined}
       />
 
       {renderCenterContent()}
@@ -764,7 +796,7 @@ export function InstagramMain() {
         />
       )}
 
-      {currentPage === "chat" && instagramView === "feed" && (
+      {((currentPage === "chat" && instagramView === "feed") || currentPage === "explore") && (
         <FloatingMessagesBtn
           type="button"
           onClick={() => {
@@ -799,7 +831,7 @@ export function InstagramMain() {
       <CreatePostDialog
         open={showCreatePostDialog}
         onClose={() => setShowCreatePostDialog(false)}
-        onSubmit={async (caption, mediaUrls, type) => {
+        onSubmit={async (caption, mediaUrls, type, coverUrl) => {
           await feed.createPost(
             caption,
             type ?? (mediaUrls?.length ? "IMAGE" : "TEXT"),
@@ -807,7 +839,8 @@ export function InstagramMain() {
               username: currentUser?.username,
               avatar: currentUser?.avatar,
             },
-            mediaUrls
+            mediaUrls,
+            coverUrl
           );
         }}
         currentUser={currentUser ?? undefined}

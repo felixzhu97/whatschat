@@ -40,6 +40,11 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
     const analytics = this.db.collection("analytics_events");
     await analytics.createIndex({ userId: 1, createdAt: -1 });
     await analytics.createIndex({ eventName: 1, createdAt: -1 });
+    const notifications = this.db.collection("notifications");
+    await notifications.createIndex({ recipientId: 1, createdAt: -1 });
+    await notifications.createIndex({ recipientId: 1, readAt: 1 });
+    await notifications.createIndex({ actorId: 1, postId: 1, type: 1 });
+    await notifications.createIndex({ commentId: 1 }, { sparse: true });
   }
 
   async onModuleDestroy() {

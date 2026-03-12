@@ -185,6 +185,7 @@ interface InstagramNavProps {
   onExploreClick?: () => void;
   onCreateClick?: () => void;
   onSearchClick?: () => void;
+  onNotificationsClick?: () => void;
 }
 
 type TabKey = "home" | "messages" | "profile" | "reels" | "explore" | "search" | null;
@@ -207,6 +208,7 @@ export function InstagramNav({
   onExploreClick,
   onCreateClick,
   onSearchClick,
+  onNotificationsClick,
 }: InstagramNavProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -218,7 +220,13 @@ export function InstagramNav({
     { id: 2, label: t("nav.messages"), tab: "messages", Icon: Send, onClick: onMessagesClick },
     { id: 3, label: t("nav.search"), tab: "search", Icon: Search, onClick: onSearchClick },
     { id: 4, label: t("nav.explore"), tab: "explore", Icon: Compass, onClick: onExploreClick },
-    { id: 5, label: t("nav.notifications"), tab: null, Icon: Heart },
+    {
+      id: 5,
+      label: t("nav.notifications"),
+      tab: null,
+      Icon: Heart,
+      onClick: onNotificationsClick,
+    },
     { id: 6, label: t("nav.create"), tab: null, Icon: SquarePlus, onClick: onCreateClick },
     { id: 7, label: t("nav.profile"), tab: "profile", Icon: Heart, onClick: onProfileClick },
   ];
@@ -294,7 +302,7 @@ export function InstagramNav({
               $active={active(tab)}
               $hovered={isHovered(id)}
               $visible={expanded}
-              $clickable={!!onClick}
+              $clickable={!!onClick || (id === 5 && !!onNotificationsClick)}
               onMouseEnter={() => setHovered(id)}
               onClick={onClick}
               role={onClick ? "button" : undefined}

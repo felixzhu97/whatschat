@@ -37,7 +37,7 @@ package "数据存储" {
   database [PostgreSQL\n主库] as PostgreSQL #LightBlue
   database [Redis\n缓存、会话、推荐、探索] as Redis #LightCoral
   database [Cassandra\n帖子与信息流] as Cassandra #LightYellow
-  database [MongoDB\n评论] as MongoDB #LightGreen
+  database [MongoDB\n评论与通知] as MongoDB #LightGreen
   database [Elasticsearch\n搜索] as Elasticsearch #Wheat
   component [文件存储\n本地] as FileStorage #LightGreen
 }
@@ -84,7 +84,7 @@ Group --> PostgreSQL : 持久化于
 Call --> PostgreSQL : 持久化于
 Status --> PostgreSQL : 持久化于
 Contact --> PostgreSQL : 持久化于
-Notification --> PostgreSQL : 持久化于
+Notification --> MongoDB : 活动通知\n持久化于
 FileUpload --> PostgreSQL : 元数据于
 ChatParticipant --> PostgreSQL : 持久化于
 GroupParticipant --> PostgreSQL : 持久化于
@@ -122,7 +122,7 @@ rectangle "数据实体说明" {
     - Contact：联系人条目
     - Notification：系统/用户通知
     - FileUpload：文件上传记录
-    - Post：作者、mediaUrls（多图/视频）、标题、类型、时间戳
+    - Post：作者、mediaUrls、可选 coverUrl（Cassandra cover_url）、标题、类型、时间戳
     - FeedEntry：信息流项（本人+关注）
     - Comment：帖子评论、回复
     - Engagement：每用户点赞/收藏、每帖子 like_count/comment_count/save_count（Cassandra）
@@ -201,7 +201,7 @@ end note
 
 note right of Cassandra
   **Cassandra**
-  - 按 id、按用户帖子
+  - 按 id、按用户帖子（media_urls + cover_url）
   - 按用户信息流（分页）
   - post_likes、post_saves、post_engagement_counts
   - Kafka post.created 填充信息流
@@ -209,8 +209,8 @@ end note
 
 note right of MongoDB
   **MongoDB**
-  - 按帖子评论
-  - 嵌套回复
+  - 按帖子评论、嵌套回复
+  - 活动通知（点赞/评论）；WS notification:new
 end note
 
 note right of Elasticsearch

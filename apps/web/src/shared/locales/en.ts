@@ -249,6 +249,17 @@ export const en = {
     viewPost: "View post",
     createAnother: "Create another post",
     done: "Done",
+    coverPhoto: "Cover photo",
+    selectFrameHint: "Drag to choose a frame",
+  },
+  notifications: {
+    activityTitle: "Activity on your posts",
+    activityEmpty:
+      "When someone likes or comments on one of your posts, you'll see it here.",
+    suggestedTitle: "Suggested for you",
+    suggestedForYou: "Suggested for you",
+    likedYourPost: "Someone liked your post.",
+    commentedOnPost: "Someone commented on your post.",
   },
   search: {
     placeholder: "Search",

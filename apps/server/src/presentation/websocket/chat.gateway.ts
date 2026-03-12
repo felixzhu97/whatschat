@@ -129,6 +129,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  emitNotification(recipientId: string, payload: unknown): void {
+    this.server.to(`user:${recipientId}`).emit("notification:new", payload);
+  }
+
   async handleDisconnect(socket: AuthenticatedSocket) {
     if (socket.userId) {
       // Remove from online users list

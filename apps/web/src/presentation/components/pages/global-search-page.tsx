@@ -19,20 +19,28 @@ const BORDER = "1px solid rgb(219 219 219)";
 const TEXT_PRIMARY = "rgb(38 38 38)";
 const TEXT_SECONDARY = "rgb(142 142 142)";
 
-const PageRoot = styled.div`
+const PageRoot = styled.div<{ $drawer?: boolean }>`
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 468px;
-  margin: 0 auto;
   width: 100%;
   background: rgb(255 255 255);
+  ${(p) =>
+    p.$drawer
+      ? `
+    max-width: none;
+    margin: 0;
+  `
+      : `
+    max-width: 468px;
+    margin: 0 auto;
+  `}
 `;
 
-const Header = styled.div`
+const Header = styled.div<{ $drawer?: boolean }>`
   flex-shrink: 0;
   padding: 12px 16px;
-  border-bottom: ${BORDER};
+  border-bottom: ${(p) => (p.$drawer ? "none" : BORDER)};
 `;
 
 const SearchWrap = styled.div`
@@ -262,9 +270,15 @@ export interface GlobalSearchPageProps {
   onBack?: () => void;
   onPostClick?: (postId: string) => void;
   onUserClick?: (userId: string) => void;
+  variant?: "page" | "drawer";
 }
 
-export function GlobalSearchPage({ onBack, onPostClick, onUserClick }: GlobalSearchPageProps) {
+export function GlobalSearchPage({
+  onBack,
+  onPostClick,
+  onUserClick,
+  variant = "page",
+}: GlobalSearchPageProps) {
   const { t } = useTranslation();
   const {
     query,
@@ -463,8 +477,8 @@ export function GlobalSearchPage({ onBack, onPostClick, onUserClick }: GlobalSea
   ];
 
   return (
-    <PageRoot>
-      <Header>
+    <PageRoot $drawer={variant === "drawer"}>
+      <Header $drawer={variant === "drawer"}>
         <SearchWrap>
           <SearchIcon />
           <SearchInput

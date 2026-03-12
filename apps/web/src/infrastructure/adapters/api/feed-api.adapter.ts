@@ -12,6 +12,7 @@ export interface PostDetailRes {
   caption: string;
   type: string;
   mediaUrls?: string[];
+  coverUrl?: string;
   location?: string;
   createdAt: string;
   username?: string;
@@ -31,6 +32,18 @@ export interface CommentRes {
   parentId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface NotificationItemRes {
+  id: string;
+  recipientId: string;
+  actorId: string;
+  type: "like" | "comment";
+  postId: string;
+  commentId?: string;
+  contentPreview?: string;
+  createdAt: string;
+  readAt?: string;
 }
 
 export class FeedApiAdapter {
@@ -117,11 +130,12 @@ export class FeedApiAdapter {
     await this.api.delete(`/posts/${postId}/save`);
   }
 
-  async createPost(caption: string, type: string, mediaUrls?: string[]) {
+  async createPost(caption: string, type: string, mediaUrls?: string[], coverUrl?: string) {
     const res = await this.api.post<{ postId: string; userId: string; createdAt: string }>("/posts", {
       caption,
       type: type || "TEXT",
       ...(mediaUrls?.length && { mediaUrls }),
+      ...(coverUrl != null && coverUrl !== "" && { coverUrl }),
     });
     return res.data;
   }
@@ -201,6 +215,31 @@ export class FeedApiAdapter {
     }>(`/users/${userId}/following?${q}`);
     const r = res as { data?: unknown[]; total?: number; pageState?: string };
     return { list: Array.isArray(r.data) ? r.data : [], total: r.total ?? 0, pageState: r.pageState };
+  }
+
+  async getNotifications(limit: number = 20, cursor?: string) {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (cursor) q.set("cursor", cursor);
+    const res = await this.api.get<{
+      data?: { items?: NotificationItemRes[]; nextCursor?: string };
+    }>(`/notifications?${q}`);
+    const d = (res as { data?: { items?: NotificationItemRes[]; nextCursor?: string } }).data;
+    return {
+      items: Array.isArray(d?.items) ? d.items : [],
+      ...(d?.nextCursor != null && d.nextCursor !== "" && { nextCursor: d.nextCursor }),
+    };
+  }
+
+  async markNotificationRead(id: string) {
+    await this.api.patch(`/notifications/${id}/read`, {});
+  }
+
+  async markNotificationsRead(ids: string[]) {
+    await this.api.post("/notifications/read", { ids });
+  }
+
+  async markAllNotificationsRead() {
+    await this.api.post("/notifications/read-all", {});
   }
 
   async getProfileStats(userId: string): Promise<{ followersCount: number; followingCount: number }> {

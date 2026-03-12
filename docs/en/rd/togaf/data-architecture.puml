@@ -84,7 +84,7 @@ Group --> PostgreSQL : persisted in
 Call --> PostgreSQL : persisted in
 Status --> PostgreSQL : persisted in
 Contact --> PostgreSQL : persisted in
-Notification --> PostgreSQL : persisted in
+Notification --> MongoDB : activity notifications\n(like/comment)\npersisted in
 FileUpload --> PostgreSQL : metadata in
 ChatParticipant --> PostgreSQL : persisted in
 GroupParticipant --> PostgreSQL : persisted in
@@ -122,7 +122,7 @@ rectangle "Data Entity Notes" {
     - Contact: contact entries
     - Notification: system/user notifications
     - FileUpload: file upload records
-    - Post: author, mediaUrls (multiple image/video), caption, type, timestamps
+    - Post: author, mediaUrls (multiple image/video), optional coverUrl (Cassandra cover_url), caption, type, timestamps
     - FeedEntry: feed item (own + followed)
     - Comment: post comments, replies
     - Engagement: like/save per user, like_count/comment_count/save_count per post (Cassandra)
@@ -201,7 +201,7 @@ end note
 
 note right of Cassandra
   **Cassandra**
-  - Posts by id, by user
+  - Posts by id, by user (media_urls + cover_url for video poster)
   - Feed by user (paginated)
   - post_likes, post_saves, post_engagement_counts
   - Kafka post.created populates feed
@@ -209,8 +209,8 @@ end note
 
 note right of MongoDB
   **MongoDB**
-  - Comments by post
-  - Nested replies
+  - Comments by post, nested replies
+  - Activity notifications (like/comment); WS notification:new
 end note
 
 note right of Elasticsearch

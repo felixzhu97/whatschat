@@ -92,6 +92,9 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
       )
     `);
 
+    await this.addColumnIfNeeded(keyspace, "posts", "cover_url", "text");
+    await this.addColumnIfNeeded(keyspace, "post_by_id", "cover_url", "text");
+
     await this.client.execute(`
       CREATE TABLE IF NOT EXISTS ${keyspace}.post_engagement_counts (
         post_id text PRIMARY KEY,
@@ -100,6 +103,17 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
         save_count counter
       )
     `);
+  }
+
+  private async addColumnIfNeeded(keyspace: string, table: string, column: string, ctype: string) {
+    if (!this.client) return;
+    try {
+      await this.client.execute(
+        `ALTER TABLE ${keyspace}.${table} ADD ${column} ${ctype}`
+      );
+    } catch {
+      // column may already exist
+    }
   }
 
   async onModuleDestroy() {

@@ -21,8 +21,20 @@ const BG_BUTTON = "rgb(239 239 239)";
 const VIDEO_COVER_PLACEHOLDER = "/placeholder.svg?height=400&width=400&text=Video";
 
 function isVideoUrl(url: string): boolean {
-  if (!url || url.startsWith("data:")) return false;
+  if (!url) return false;
+  if (url.startsWith("data:")) {
+    return /^data:video\//i.test(url);
+  }
   return /\.(mp4|webm|mov|m4v|ogv)(\?|$)/i.test(url) || url.includes("/video/");
+}
+
+function videoPosterUrl(post: FeedPost): string | null {
+  if (post.type !== "VIDEO") return null;
+  const candidates = [post.coverUrl, post.coverImageUrl, post.imageUrl];
+  for (const raw of candidates) {
+    if (raw && !isVideoUrl(raw)) return raw;
+  }
+  return null;
 }
 
 function getVideoUrl(post: FeedPost): string | null {
@@ -476,8 +488,8 @@ export function ProfilePage({
 
   const gridCoverUrl = (post: FeedPost): string => {
     if (post.type === "VIDEO") {
-      const raw = post.coverImageUrl ?? post.imageUrl ?? post.videoUrl ?? "";
-      return raw && !isVideoUrl(raw) ? raw : VIDEO_COVER_PLACEHOLDER;
+      const poster = videoPosterUrl(post);
+      return poster ?? VIDEO_COVER_PLACEHOLDER;
     }
     return post.imageUrl ?? "";
   };
@@ -555,9 +567,10 @@ export function ProfilePage({
             {myPosts.map((post) => {
               const videoUrl = getVideoUrl(post);
               const isVideo = post.type === "VIDEO";
+              const poster = isVideo ? videoPosterUrl(post) : null;
               return (
                 <GridCell key={post.id} type="button" onClick={() => onPostClick?.(post)}>
-                  {isVideo && videoUrl ? (
+                  {isVideo && videoUrl && !poster ? (
                     <VideoFirstFrameCover
                       videoUrl={videoUrl}
                       placeholderSrc={VIDEO_COVER_PLACEHOLDER}

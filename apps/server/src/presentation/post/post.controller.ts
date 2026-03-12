@@ -35,13 +35,21 @@ export class PostController {
   @ApiOperation({ summary: "发帖" })
   async createPost(
     @CurrentUser() user: { id: string },
-    @Body() body: { caption: string; type: string; mediaUrls?: string[]; location?: string }
+    @Body()
+    body: {
+      caption: string;
+      type: string;
+      mediaUrls?: string[];
+      location?: string;
+      coverUrl?: string;
+    }
   ) {
     const data = await this.postService.createPost(user.id, {
       caption: body.caption,
       type: body.type,
       ...(body.mediaUrls != null && { mediaUrls: body.mediaUrls }),
       ...(body.location != null && { location: body.location }),
+      ...(body.coverUrl != null && body.coverUrl !== "" && { coverUrl: body.coverUrl }),
     });
     return { success: true, data };
   }

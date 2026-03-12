@@ -11,6 +11,7 @@ export type PostGql = Record<string, unknown> & {
   caption: string | null;
   type: string;
   mediaUrls: string[];
+  coverUrl?: string | null;
   location?: string | null;
   likeCount?: number;
   commentCount?: number;
@@ -59,6 +60,8 @@ export class PostLoader {
             caption: (r["caption"] as string | null) ?? null,
             type: String(r["type"] ?? ""),
             mediaUrls: Array.isArray(r["mediaUrls"]) ? (r["mediaUrls"] as string[]) : [],
+            ...(typeof r["coverUrl"] === "string" &&
+              r["coverUrl"] !== "" && { coverUrl: r["coverUrl"] }),
             ...(r["location"] != null && { location: r["location"] as string | null }),
             ...(typeof r["likeCount"] === "number" && { likeCount: r["likeCount"] }),
             ...(typeof r["commentCount"] === "number" && { commentCount: r["commentCount"] }),

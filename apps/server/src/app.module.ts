@@ -24,6 +24,7 @@ import { CommentsModule } from './presentation/comments/comments.module';
 import { SearchModule } from './presentation/search/search.module';
 import { FollowModule } from './presentation/follow/follow.module';
 import { GraphqlModule } from './presentation/graphql/graphql.module';
+import { NotificationsModule } from './presentation/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { GraphqlModule } from './presentation/graphql/graphql.module';
     SearchModule,
     FollowModule,
     GraphqlModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

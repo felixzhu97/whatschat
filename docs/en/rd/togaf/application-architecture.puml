@@ -43,9 +43,9 @@ package "Client Applications" {
     - TypeScript
     - Tailwind CSS
     - Redux Toolkit + React Redux
-    Features: feed (engagement ranking, like/save), Reels,
-    explore tab, global search (posts/users/hashtags, cursor, highlight), create post (multi media), comments dialog,
-    profile (followers/following modals, infinite scroll, isFollowing), i18n
+    Features: feed, Reels, explore grid (963px, coverUrl),
+    notifications sheet + search drawer, global search, create post (coverUrl),
+    profile grid (video poster), comments dialog, followers/following modals, Redux notifications + WS, i18n
   end note
   
   component [Admin App] as AdminApp #LightGray
@@ -176,6 +176,7 @@ GraphQLGateway --> PostService : post field / DataLoader
 RestGateway --> ExploreService : routes to
 RestGateway --> FollowService : routes to
 RestGateway --> CommentService : routes to
+RestGateway --> NotificationService : routes to
 RestGateway --> SearchService : routes to
 
 WsGateway --> MessageService : realtime messages
@@ -202,7 +203,7 @@ CallService --> DataRepository : data access
 GroupService --> DataRepository : data access
 StatusService --> DataRepository : data access
 FileService --> DataRepository : data access
-NotificationService --> DataRepository : data access
+NotificationService --> CommentRepo : activity notifications\n(MongoDB)
 PostService --> PostFeedRepo : data access
 PostService --> DataRepository : author/follow
 FeedService --> PostFeedRepo : data access
@@ -225,6 +226,7 @@ DataRepository --> PostgreSQL : persistent storage
 CacheService --> Redis : cache storage
 PostFeedRepo --> Cassandra : posts, feed
 CommentRepo --> MongoDB : comments
+NotificationService --> MongoDB : notifications collection
 FileService --> FileStorage : file storage
 MessageService --> SearchService : full‑text search (messages)
 SearchService --> Elasticsearch : post/user/hashtag search (cursor, highlight, rate limit)
@@ -274,7 +276,7 @@ note bottom
   
   Applications communicate via REST, WebSocket, and WebRTC to support both synchronous and asynchronous interactions.
   
-  **Note**: `FileService` and `NotificationService` are partially implemented via existing message/WebSocket modules today; they can be split into standalone modules in the future.
+  **Note**: Activity notifications use MongoDB + REST + WebSocket `notification:new`. Post video cover uses Cassandra `cover_url` + optional `coverUrl` on create/get/GraphQL.
 end note
 
 @enduml

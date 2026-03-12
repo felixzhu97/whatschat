@@ -6,9 +6,11 @@ import { EngagementService } from "../../application/services/engagement.service
 import { ExploreService } from "../../application/services/explore.service";
 import { KafkaModule } from "../../infrastructure/messaging/kafka.module";
 import { UsersModule } from "../users/users.module";
+import { NotificationsModule } from "../notifications/notifications.module";
+import { WebSocketModule } from "../websocket/websocket.module";
 
 @Module({
-  imports: [KafkaModule, UsersModule],
+  imports: [KafkaModule, UsersModule, NotificationsModule, WebSocketModule],
   controllers: [PostController],
   providers: [PostService, FeedService, EngagementService, ExploreService],
   exports: [PostService, FeedService, EngagementService, ExploreService],

@@ -42,9 +42,9 @@ package "客户端应用" {
     - TypeScript
     - Tailwind CSS
     - Redux Toolkit + React Redux
-    功能：信息流（互动排序、点赞/收藏）、Reels、
-    探索页、全局搜索（帖子/用户/话题、游标、高亮）、发帖（多媒体）、评论弹窗、
-    个人页（粉丝/关注弹窗、无限滚动、isFollowing）、i18n
+    功能：信息流、Reels、探索网格（963px、coverUrl）、
+    通知抽屉与搜索抽屉、全局搜索、发帖（coverUrl）、
+    个人网格（视频封面）、评论弹窗、粉丝/关注弹窗、Redux 通知 + WS、i18n
   end note
   
   component [管理端应用] as AdminApp #LightGray
@@ -175,6 +175,7 @@ GraphQLGateway --> PostService : post 字段 / DataLoader
 RestGateway --> ExploreService : 路由到
 RestGateway --> FollowService : 路由到
 RestGateway --> CommentService : 路由到
+RestGateway --> NotificationService : 路由到
 RestGateway --> SearchService : 路由到
 
 WsGateway --> MessageService : 实时消息
@@ -201,7 +202,7 @@ CallService --> DataRepository : 数据访问
 GroupService --> DataRepository : 数据访问
 StatusService --> DataRepository : 数据访问
 FileService --> DataRepository : 数据访问
-NotificationService --> DataRepository : 数据访问
+NotificationService --> CommentRepo : 活动通知（MongoDB）
 PostService --> PostFeedRepo : 数据访问
 PostService --> DataRepository : 作者/关注
 FeedService --> PostFeedRepo : 数据访问
@@ -224,6 +225,7 @@ DataRepository --> PostgreSQL : 持久化存储
 CacheService --> Redis : 缓存存储
 PostFeedRepo --> Cassandra : 帖子、信息流
 CommentRepo --> MongoDB : 评论
+NotificationService --> MongoDB : notifications 集合
 FileService --> FileStorage : 文件存储
 MessageService --> SearchService : 全文搜索（消息）
 SearchService --> Elasticsearch : 帖子/用户/话题搜索（游标、高亮、限流）

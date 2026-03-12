@@ -9,6 +9,7 @@ export interface PostRow {
   type: string;
   media_urls: string[];
   location: string | null;
+  cover_url: string | null;
 }
 
 export interface CreatePostInput {
@@ -18,6 +19,7 @@ export interface CreatePostInput {
   type: string;
   mediaUrls: string[];
   location?: string;
+  coverUrl?: string;
 }
 
 @Injectable()
@@ -28,8 +30,9 @@ export class CassandraPostRepository {
     const client = this.cassandra.getClient();
     if (!client) return;
     const createdAt = new Date();
+    const coverUrl = input.coverUrl ?? null;
     await client.execute(
-      `INSERT INTO posts (user_id, created_at, post_id, caption, type, media_urls, location) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO posts (user_id, created_at, post_id, caption, type, media_urls, location, cover_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         input.userId,
         createdAt,
@@ -38,11 +41,12 @@ export class CassandraPostRepository {
         input.type,
         input.mediaUrls,
         input.location ?? null,
+        coverUrl,
       ],
       { prepare: true }
     );
     await client.execute(
-      `INSERT INTO post_by_id (post_id, user_id, created_at, caption, type, media_urls, location) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO post_by_id (post_id, user_id, created_at, caption, type, media_urls, location, cover_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         input.postId,
         input.userId,
@@ -51,6 +55,7 @@ export class CassandraPostRepository {
         input.type,
         input.mediaUrls,
         input.location ?? null,
+        coverUrl,
       ],
       { prepare: true }
     );
@@ -60,7 +65,7 @@ export class CassandraPostRepository {
     const client = this.cassandra.getClient();
     if (!client) return null;
     const result = await client.execute(
-      `SELECT post_id, user_id, created_at, caption, type, media_urls, location FROM post_by_id WHERE post_id = ?`,
+      `SELECT post_id, user_id, created_at, caption, type, media_urls, location, cover_url FROM post_by_id WHERE post_id = ?`,
       [postId],
       { prepare: true }
     );
@@ -74,6 +79,7 @@ export class CassandraPostRepository {
       type: row["type"] as string,
       media_urls: (row["media_urls"] as string[] | null) ?? [],
       location: row["location"] as string | null,
+      cover_url: (row["cover_url"] as string | null) ?? null,
     };
   }
 
@@ -83,7 +89,7 @@ export class CassandraPostRepository {
     const opts: { prepare: boolean; fetchSize: number; pageState?: string } = { prepare: true, fetchSize: limit };
     if (pageState !== undefined) opts.pageState = pageState;
     const result = await client.execute(
-      `SELECT user_id, created_at, post_id, caption, type, media_urls, location FROM posts WHERE user_id = ?`,
+      `SELECT user_id, created_at, post_id, caption, type, media_urls, location, cover_url FROM posts WHERE user_id = ?`,
       [userId],
       opts
     );
@@ -95,6 +101,7 @@ export class CassandraPostRepository {
       type: row["type"] as string,
       media_urls: (row["media_urls"] as string[] | null) ?? [],
       location: row["location"] as string | null,
+      cover_url: (row["cover_url"] as string | null) ?? null,
     }));
     const out: { rows: PostRow[]; pageState?: string } = { rows };
     if (result.pageState != null) out.pageState = result.pageState;

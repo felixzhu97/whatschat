@@ -10,6 +10,7 @@ export interface CreatePostData {
   type: string;
   mediaUrls?: string[];
   location?: string;
+  coverUrl?: string;
 }
 
 @Injectable()
@@ -31,6 +32,7 @@ export class PostService {
       type: data.type,
       mediaUrls,
       ...(data.location != null && data.location !== "" && { location: data.location }),
+      ...(data.coverUrl != null && data.coverUrl !== "" && { coverUrl: data.coverUrl }),
     });
     const createdAt = new Date().toISOString();
     await this.kafka.sendPostCreated({
@@ -65,6 +67,7 @@ export class PostService {
       type: row.type,
       mediaUrls: row.media_urls,
       location: row.location,
+      ...(row.cover_url != null && row.cover_url !== "" && { coverUrl: row.cover_url }),
       likeCount: counts.likeCount,
       commentCount: counts.commentCount,
       saveCount: counts.saveCount,
@@ -93,6 +96,7 @@ export class PostService {
         type: r.type,
         mediaUrls: r.media_urls,
         location: r.location,
+        ...(r.cover_url != null && r.cover_url !== "" && { coverUrl: r.cover_url }),
       })),
       pageState: next,
     };

@@ -160,6 +160,11 @@ export class WebSocketAdapter implements IWebSocketAdapter {
       "call:ice-candidate",
       "call:end",
     ] as const;
+    this.ioSocket.on("notification:new", (payload: Record<string, unknown>) => {
+      logSocket("Socket.IO event notification:new", payload);
+      this.emit("notification:new", payload);
+    });
+
     callEvents.forEach((event) => {
       this.ioSocket!.on(event, (payload: Record<string, unknown>) => {
         logSocket("Socket.IO event", event, payload);

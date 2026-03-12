@@ -109,10 +109,63 @@ const CropContent = styled.div`
   flex: 1;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   overflow: hidden;
   background: rgb(0 0 0);
+`;
+
+const VideoEditRow = styled.div`
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+`;
+
+const VideoEditLeft = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: rgb(0 0 0);
+`;
+
+const VideoEditRight = styled.div`
+  width: 280px;
+  min-width: 280px;
+  background: rgb(255 255 255);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  border-left: ${BORDER};
+`;
+
+const CoverSectionLabel = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${TEXT_PRIMARY};
+`;
+
+const CoverPreview = styled.img`
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  background: rgb(239 239 239);
+`;
+
+const CoverSlider = styled.input`
+  width: 100%;
+  accent-color: ${BLUE};
+`;
+
+const CoverHint = styled.p`
+  margin: 0;
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
 `;
 
 const CropImage = styled.img`
@@ -355,7 +408,12 @@ const MAX_CAPTION = 2200;
 interface CreatePostDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (caption: string, mediaUrls?: string[], type?: string) => void | Promise<void>;
+  onSubmit: (
+    caption: string,
+    mediaUrls?: string[],
+    type?: string,
+    coverUrl?: string
+  ) => void | Promise<void>;
   currentUser?: { avatar?: string; username?: string } | null;
 }
 
@@ -373,7 +431,12 @@ export function CreatePostDialog({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [caption, setCaption] = useState("");
   const [cropIndex, setCropIndex] = useState(0);
+  const [videoCoverUrls, setVideoCoverUrls] = useState<string[]>([]);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     return () => {
@@ -390,6 +453,9 @@ export function CreatePostDialog({
     setFiles([]);
     setCaption("");
     setCropIndex(0);
+    setVideoCoverUrls([]);
+    setVideoDuration(0);
+    setVideoCurrentTime(0);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -427,6 +493,62 @@ export function CreatePostDialog({
 
   const handleSelectClick = () => fileInputRef.current?.click();
 
+  const fileToDataUrl = useCallback((file: File) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const captureVideoFrame = useCallback(
+    (time: number) => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || !video.videoWidth) return;
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+      setVideoCoverUrls((prev) => {
+        const next = [...prev];
+        while (next.length <= cropIndex) next.push("");
+        next[cropIndex] = dataUrl;
+        return next;
+      });
+    },
+    [cropIndex]
+  );
+
+  const onVideoLoadedMetadata = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setVideoDuration(video.duration || 0);
+    const t = Math.min(0.1, (video.duration || 1) * 0.01);
+    setVideoCurrentTime(t);
+    video.currentTime = t;
+  }, []);
+
+  const onVideoSeeked = useCallback(() => {
+    captureVideoFrame(videoRef.current?.currentTime ?? 0);
+  }, [captureVideoFrame]);
+
+  const onCoverSliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const video = videoRef.current;
+      if (!video || !videoDuration) return;
+      const t = parseFloat(e.target.value);
+      setVideoCurrentTime(t);
+      video.currentTime = t;
+    },
+    [videoDuration]
+  );
+
   const removeFileAt = useCallback((index: number) => {
     setFiles((prev) => {
       const next = prev.filter((_, i) => i !== index);
@@ -439,6 +561,7 @@ export function CreatePostDialog({
       return prev.filter((_, i) => i !== index);
     });
     setCropIndex((i) => (i > index ? i - 1 : i === index ? Math.max(0, index - 1) : i));
+    setVideoCoverUrls((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const currentFile = files[cropIndex] ?? null;
@@ -452,19 +575,13 @@ export function CreatePostDialog({
     setStep("sharing");
     try {
       if (files.length > 0) {
-        const dataUrls = await Promise.all(
-          files.map(
-            (file) =>
-              new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-              })
-          )
-        );
+        const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
         const postType = hasVideo ? "VIDEO" : "IMAGE";
-        await Promise.resolve(onSubmit(trimmed || "", dataUrls, postType));
+        const coverUrl =
+          hasVideo && videoCoverUrls.length > 0
+            ? videoCoverUrls.find((u) => u && u.length > 0)
+            : undefined;
+        await Promise.resolve(onSubmit(trimmed || "", dataUrls, postType, coverUrl));
       } else {
         await Promise.resolve(onSubmit(trimmed || "", [], "TEXT"));
       }
@@ -472,7 +589,7 @@ export function CreatePostDialog({
     } catch {
       setStep("caption");
     }
-  }, [caption, files, hasVideo, onSubmit]);
+  }, [caption, files, fileToDataUrl, hasVideo, videoCoverUrls, onSubmit]);
 
   if (!open) return null;
 
@@ -490,7 +607,14 @@ export function CreatePostDialog({
           borderRadius: "12px",
         }}
       >
-        <ModalBox $step={step}>
+        <ModalBox
+          $step={step}
+          style={
+            step === "crop" && currentFile?.type.startsWith("video/")
+              ? { width: "min(90vw, 720px)", maxWidth: "720px" }
+              : undefined
+          }
+        >
           {step === "select" && (
             <>
               <HeaderBar>
@@ -545,17 +669,10 @@ export function CreatePostDialog({
                 </HeaderAction>
               </HeaderBar>
               <CropContent>
-                <MediaCarousel>
-                  <CarouselNavLeft
-                    type="button"
-                    disabled={files.length <= 1}
-                    onClick={() => setCropIndex((i) => (i <= 0 ? i : i - 1))}
-                    aria-label="Previous"
-                  >
-                    <ChevronLeft size={24} />
-                  </CarouselNavLeft>
-                  {currentPreview && (
-                    <>
+                {currentFile?.type.startsWith("video/") && currentPreview ? (
+                  <VideoEditRow>
+                    <canvas ref={canvasRef} style={{ display: "none" }} aria-hidden />
+                    <VideoEditLeft>
                       <RemoveMediaBtn
                         type="button"
                         onClick={() => removeFileAt(cropIndex)}
@@ -563,34 +680,106 @@ export function CreatePostDialog({
                       >
                         <X size={16} />
                       </RemoveMediaBtn>
-                      {currentFile?.type.startsWith("video/") ? (
-                        <video
-                          key={cropIndex}
-                          src={currentPreview}
-                          controls
-                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-                        />
-                      ) : (
-                        <CropImage src={currentPreview} alt="" />
+                      {files.length > 1 && (
+                        <>
+                          <CarouselNavLeft
+                            type="button"
+                            style={{ left: 12 }}
+                            disabled={cropIndex <= 0}
+                            onClick={() => setCropIndex((i) => Math.max(0, i - 1))}
+                            aria-label="Previous"
+                          >
+                            <ChevronLeft size={24} />
+                          </CarouselNavLeft>
+                          <CarouselNavRight
+                            type="button"
+                            style={{ right: 12 }}
+                            disabled={cropIndex >= files.length - 1}
+                            onClick={() => setCropIndex((i) => Math.min(files.length - 1, i + 1))}
+                            aria-label="Next"
+                          >
+                            <ChevronRight size={24} />
+                          </CarouselNavRight>
+                        </>
                       )}
-                    </>
-                  )}
-                  <CarouselNavRight
-                    type="button"
-                    disabled={files.length <= 1}
-                    onClick={() => setCropIndex((i) => (i >= files.length - 1 ? i : i + 1))}
-                    aria-label="Next"
-                  >
-                    <ChevronRight size={24} />
-                  </CarouselNavRight>
-                  {files.length > 1 && (
-                    <MediaDots>
-                      {previewUrls.map((_, i) => (
-                        <MediaDot key={i} $active={i === cropIndex} />
-                      ))}
-                    </MediaDots>
-                  )}
-                </MediaCarousel>
+                      <video
+                        ref={videoRef}
+                        key={cropIndex}
+                        src={currentPreview}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        onLoadedMetadata={onVideoLoadedMetadata}
+                        onSeeked={onVideoSeeked}
+                        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                      />
+                    </VideoEditLeft>
+                    <VideoEditRight>
+                      <CoverSectionLabel>{t("createPost.coverPhoto")}</CoverSectionLabel>
+                      {videoCoverUrls[cropIndex] ? (
+                        <CoverPreview src={videoCoverUrls[cropIndex]} alt="" />
+                      ) : (
+                        <div
+                          style={{
+                            width: "100%",
+                            aspectRatio: "1",
+                            background: "rgb(239 239 239)",
+                            borderRadius: 4,
+                          }}
+                        />
+                      )}
+                      <CoverHint>{t("createPost.selectFrameHint")}</CoverHint>
+                      <CoverSlider
+                        type="range"
+                        min={0}
+                        max={videoDuration || 1}
+                        step={0.05}
+                        value={videoCurrentTime}
+                        onChange={onCoverSliderChange}
+                        disabled={!videoDuration}
+                        aria-label={t("createPost.selectFrameHint")}
+                      />
+                    </VideoEditRight>
+                  </VideoEditRow>
+                ) : (
+                  <MediaCarousel>
+                    <CarouselNavLeft
+                      type="button"
+                      disabled={files.length <= 1}
+                      onClick={() => setCropIndex((i) => (i <= 0 ? i : i - 1))}
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft size={24} />
+                    </CarouselNavLeft>
+                    {currentPreview && (
+                      <>
+                        <RemoveMediaBtn
+                          type="button"
+                          onClick={() => removeFileAt(cropIndex)}
+                          aria-label="Remove"
+                        >
+                          <X size={16} />
+                        </RemoveMediaBtn>
+                        <CropImage src={currentPreview} alt="" />
+                      </>
+                    )}
+                    <CarouselNavRight
+                      type="button"
+                      disabled={files.length <= 1}
+                      onClick={() => setCropIndex((i) => (i >= files.length - 1 ? i : i + 1))}
+                      aria-label="Next"
+                    >
+                      <ChevronRight size={24} />
+                    </CarouselNavRight>
+                    {files.length > 1 && (
+                      <MediaDots>
+                        {previewUrls.map((_, i) => (
+                          <MediaDot key={i} $active={i === cropIndex} />
+                        ))}
+                      </MediaDots>
+                    )}
+                  </MediaCarousel>
+                )}
               </CropContent>
             </>
           )}
@@ -637,14 +826,22 @@ export function CreatePostDialog({
                   )}
                   {currentPreview &&
                     (currentFile?.type.startsWith("video/") ? (
-                      <video
-                        key={cropIndex}
-                        src={currentPreview}
-                        muted
-                        loop
-                        playsInline
-                        style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
-                      />
+                      videoCoverUrls[cropIndex] ? (
+                        <CaptionImage
+                          src={videoCoverUrls[cropIndex]}
+                          alt=""
+                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                        />
+                      ) : (
+                        <video
+                          key={cropIndex}
+                          src={currentPreview}
+                          muted
+                          loop
+                          playsInline
+                          style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
+                        />
+                      )
                     ) : (
                       <CaptionImage src={currentPreview} alt="" />
                     ))}

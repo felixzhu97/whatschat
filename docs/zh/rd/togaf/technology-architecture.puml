@@ -115,14 +115,14 @@ package "数据持久化" {
   database [Cassandra] as Cassandra #LightYellow
   note right of Cassandra
     宽表存储
-    - 帖子、按用户信息流
+    - 帖子、按用户信息流、cover_url
     - cassandra-driver
   end note
   
   database [MongoDB] as MongoDB #LightGreen
   note right of MongoDB
     文档存储
-    - 评论
+    - 评论、活动通知
   end note
 }
 
@@ -256,7 +256,7 @@ NestJS --> RedisPubSub : 使用
 NestJS --> BullQueue : 使用
 NestJS --> Kafka : 离线消息、post.created
 NestJS --> Cassandra : 帖子、信息流、互动
-NestJS --> MongoDB : 评论
+NestJS --> MongoDB : 评论、通知
 NestJS --> Redis : 推荐、探索（读）
 
 Celery --> Redis : broker、result
@@ -322,7 +322,7 @@ note bottom
   
   1. **客户端** – Web 应用（Next.js + React）；管理端（Next.js + React + Emotion）；移动端（React Native + Expo + Emotion + i18next、主题）
   2. **服务端** – NestJS 提供模块化、可扩展的后端服务
-  3. **数据层** – PostgreSQL 为主库；Redis 做缓存、Pub/Sub、推荐/探索缓存、Celery broker；Cassandra 存帖子、信息流、互动；MongoDB 存评论；Elasticsearch 做搜索
+  3. **数据层** – PostgreSQL 为主库；Redis；Cassandra（帖子、信息流、互动、cover_url）；MongoDB（评论、活动通知）；Elasticsearch
   4. **推荐** – Python（Celery、LightFM、implicit、Annoy）批任务将推荐与探索列表写入 Redis；API 从 Redis 读取
   5. **协议** – REST API 同步调用、GraphQL 信息流读取（批量 post 详情）、WebSocket 实时消息、WebRTC 音视频
   6. **安全** – JWT 认证、bcrypt 密码哈希、Helmet 安全头、CORS 控制
