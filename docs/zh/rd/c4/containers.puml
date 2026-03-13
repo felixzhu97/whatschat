@@ -13,7 +13,7 @@ System_Boundary(whatschat, "WhatsChat") {
   Container(mobile_app, "移动端应用", "React Native、Expo、TypeScript、Emotion", "聊天 UI、通话、联系人、认证")
   Container(api_server, "API 服务", "NestJS、TypeScript", "REST、GraphQL（feed + Post coverUrl）、WebSocket（notification:new）、通知 MongoDB、信息流、探索、搜索、互动、Cassandra cover_url")
   Container(media_gen, "媒体生成服务", "Python、FastAPI、diffusers、CogVideoX、edge-tts", "图片、视频、语音（TTS），:3456")
-  Container(recommendation_svc, "推荐服务", "Python、Celery、LightFM、implicit、Annoy", "批任务：关注推荐、探索热门列表；写入 Redis")
+  Container(recommendation_svc, "推荐服务", "Python、Celery、PyTorch、LightFM、implicit、Annoy、FastAPI", "批任务：关注推荐、探索热门、向量塔；在线：Feed/Explore/Reels 排序 API + 向量召回；写入 Redis/Faiss")
   ContainerDb(postgres, "PostgreSQL", "关系型数据库", "用户、消息、聊天、群组、关注")
   ContainerDb(redis, "Redis", "缓存与发布订阅", "会话、在线状态、信息流缓存、推荐/探索缓存、Celery broker、Pub/Sub")
   ContainerDb(kafka, "Kafka", "消息队列", "离线消息、post.created 事件")

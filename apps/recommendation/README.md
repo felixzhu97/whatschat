@@ -1,6 +1,10 @@
 # Recommendation Service (Python)
 
-Batch jobs for user suggestions (LightFM + Implicit/Annoy + FoF) and explore. Results are written to Redis for the NestJS API to serve.
+Offline and online recommendation stack for WhatsChat:
+
+- Batch jobs for follow suggestions, explore hot list, and vector embeddings (LightFM + implicit + PyTorch towers)
+- PyTorch ranking models for Feed/Explore/Reels (user/post embeddings + engagement features)
+- FastAPI online service for recall/rank, called by the NestJS API server
 
 ## Setup
 
@@ -14,9 +18,9 @@ cp .env.example .env
 
 Configure `.env` with the same `DATABASE_URL`, `REDIS_URL`, and `CASSANDRA_*` as the server.
 
-## Run (CLI)
+## Batch jobs (CLI)
 
-User suggestions (LightFM with user features + Implicit ALS with Annoy + FoF), write to Redis `recommendation:user:{userId}`:
+User suggestions (LightFM with user features + implicit ALS + FoF), write to Redis `recommendation:user:{userId}`:
 
 ```bash
 python run_user_suggestions.py
@@ -24,15 +28,48 @@ python run_user_suggestions.py
 python run_jobs.py --job suggestions
 ```
 
-Explore hot list:
+Explore hot list (Cassandra engagement + hot score -> Redis `explore:hot`):
 
 ```bash
 python run_jobs.py --job explore
 ```
 
-## Celery (Phase 4)
+Feed ranking model (PyTorch, trained from Cassandra `post_likes` + `post_engagement_counts`, outputs `models/feed_ranker.pt`):
 
-Optional: run jobs on a schedule via Celery with Redis as broker.
+```bash
+python run_jobs.py --job feed_rank
+```
+
+Vector towers for recall (user/post embeddings -> RedisVectorStore `rec:user:vec:{id}`, `rec:post:vec:{id}`):
+
+```bash
+python -m models.pytorch_towers
+```
+
+## Online ranking service (FastAPI)
+
+Run the FastAPI service (used by NestJS `RecommendationService`):
+
+```bash
+python run_service.py
+```
+
+By default it listens on `http://localhost:8000` and exposes:
+
+- `POST /v1/feed/rank` – rank feed candidates for a user
+- `POST /v1/explore/rank` – rank explore candidates (on top of `explore:hot`)
+- `POST /v1/reels/rank` – rank Reels candidates
+- `POST /v1/feed/recall` – vector-based recall using `RedisVectorStore` or `FaissVectorStore`
+
+Environment variables:
+
+- `RECOMMENDATION_API_URL` (server `.env`) – NestJS → FastAPI base URL (default `http://localhost:8000`)
+- `VECTOR_BACKEND` – `redis` (default) or `faiss`
+- `FAISS_DIM`, `FAISS_INDEX_PATH`, `FAISS_IDS_PATH` – optional Faiss index configuration
+
+## Celery (optional)
+
+Optional: run batch jobs on a schedule via Celery with Redis as broker.
 
 Start worker (run tasks):
 
@@ -52,18 +89,14 @@ Or run worker and beat in one process (dev only):
 celery -A celery_app worker -l info -B
 ```
 
-Trigger tasks manually (e.g. from Python or another app):
+Trigger tasks manually (for example from Python or another app):
 
 ```python
 from tasks import run_suggestions, run_explore
+
 run_suggestions.delay()
 run_explore.delay()
 ```
 
 Set `CELERY_BROKER_URL` in `.env` (defaults to `REDIS_URL`).
 
-## Jobs
-
-- **suggestions**: LightFM (WARP + user cohort features), Implicit ALS with Annoy for fast recommend, FoF merge; export to Redis. Node API reads from Redis with fallback to real-time FoF.
-- **feed_rank**: Not implemented; feed ranking is done in Node (engagement + recency).
-- **explore**: Read post engagement and post_by_id from Cassandra, compute hot score, write `explore:hot` to Redis. Node `GET /posts/explore` serves it (filtered by not following).

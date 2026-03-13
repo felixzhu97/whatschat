@@ -116,9 +116,10 @@ package "Recommendation Application" {
   note right of RecJobs
     Python (apps/recommendation)
     Celery worker + beat
-    LightFM, implicit (ALS), Annoy
-    Batch: suggestions, explore hot list
-    Writes to Redis
+    LightFM, implicit (ALS), Annoy, PyTorch
+    Batch: suggestions, explore hot list, vector towers
+    Online: FastAPI ranking service (Feed/Explore/Reels) + vector recall
+    Writes to Redis / Faiss, called by NestJS RecommendationService
   end note
 }
 

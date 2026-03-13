@@ -127,6 +127,9 @@ export interface AppConfig {
     messageRetentionDays: number;
     statusRetentionHours: number;
   };
+  recommendation: {
+    apiBaseUrl: string;
+  };
 }
 
 @Injectable()
@@ -335,6 +338,9 @@ export class ConfigService {
         maxFileSize: 50 * 1024 * 1024, // 50MB
         messageRetentionDays: 365,
         statusRetentionHours: 24,
+      },
+      recommendation: {
+        apiBaseUrl: process.env["RECOMMENDATION_API_URL"] || "http://localhost:8000",
       },
     };
 

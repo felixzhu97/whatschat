@@ -115,9 +115,10 @@ package "推荐应用" {
   note right of RecJobs
     Python（apps/recommendation）
     Celery worker + beat
-    LightFM、implicit（ALS）、Annoy
-    批任务：推荐、探索热门列表
-    写入 Redis
+    LightFM、implicit（ALS）、Annoy、PyTorch
+    批任务：推荐、探索热门、向量塔
+    在线：FastAPI 排序服务（Feed/Explore/Reels）+ 向量召回
+    写入 Redis/Faiss，由 NestJS RecommendationService 调用
   end note
 }
 

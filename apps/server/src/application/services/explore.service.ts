@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { RedisService } from "../../infrastructure/database/redis.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
+import { RecommendationService } from "./recommendation.service";
+import { ExperimentService } from "./experiment.service";
 
 const EXPLORE_HOT_KEY = "explore:hot";
 const FALLBACK_USERS_LIMIT = 25;
@@ -19,6 +21,8 @@ export class ExploreService {
     private readonly redis: RedisService,
     private readonly prisma: PrismaService,
     private readonly postRepo: CassandraPostRepository,
+    private readonly recommendation: RecommendationService,
+    private readonly experiments: ExperimentService,
   ) {}
 
   async getExplore(
@@ -37,8 +41,21 @@ export class ExploreService {
       })
       .then((rows) => new Set(rows.map((r) => r.followingId)));
     const filtered = raw.filter((e) => !following.has(e.authorId));
-    const total = filtered.length;
-    const page = filtered.slice(offset, offset + limit);
+    const assignment = this.experiments.assign(userId, "explore");
+    const ranked = await this.recommendation.rankExplore({
+      userId,
+      candidateIds: filtered.map((e) => e.postId),
+      limit: filtered.length,
+      experimentId: assignment.experimentId,
+      variantId: assignment.variantId,
+    });
+    const byPost = new Map(filtered.map((e) => [e.postId, e]));
+    const ordered = ranked.items
+      .map((item) => byPost.get(item.id))
+      .filter((v): v is ExploreEntryDto => Boolean(v));
+    const orderedOrFallback = ordered.length > 0 ? ordered : filtered;
+    const total = orderedOrFallback.length;
+    const page = orderedOrFallback.slice(offset, offset + limit);
     return { entries: page, total };
   }
 

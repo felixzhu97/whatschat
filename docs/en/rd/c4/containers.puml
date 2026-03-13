@@ -13,7 +13,7 @@ System_Boundary(whatschat, "WhatsChat") {
   Container(mobile_app, "Mobile Application", "React Native, Expo, TypeScript, Emotion", "Chat UI, calls, contacts, auth")
   Container(api_server, "API Server", "NestJS, TypeScript", "REST, GraphQL (feed + Post coverUrl), WebSocket (notification:new), Notifications MongoDB, Feed, Explore, Search, engagement, posts cover_url Cassandra")
   Container(media_gen, "Media Gen Service", "Python, FastAPI, diffusers, CogVideoX, edge-tts", "Image, video, voice (TTS), :3456")
-  Container(recommendation_svc, "Recommendation Service", "Python, Celery, LightFM, implicit, Annoy", "Batch jobs: follow suggestions, explore hot list; writes to Redis")
+  Container(recommendation_svc, "Recommendation Service", "Python, Celery, PyTorch, LightFM, implicit, Annoy, FastAPI", "Batch: suggestions, explore, vector towers; Online: PyTorch feed/explore/Reels ranking API + vector recall; writes to Redis/Faiss")
   ContainerDb(postgres, "PostgreSQL", "Relational DB", "Users, messages, chats, groups, follow")
   ContainerDb(redis, "Redis", "Cache & Pub/Sub", "Sessions, presence, feed cache, suggestion/explore caches, Celery broker, Pub/Sub")
   ContainerDb(kafka, "Kafka", "Message Queue", "Offline messages, post.created events")

@@ -44,6 +44,25 @@ def load_engagement_and_posts(
     return result
 
 
+def load_post_likes(
+    session,
+    max_rows: int = 500000,
+) -> List[Tuple[str, str, str]]:
+    rows = session.execute(
+        "SELECT user_id, post_id, created_at FROM post_likes",
+    )
+    result = []
+    for row in rows:
+        user_id = row.user_id
+        post_id = row.post_id
+        created_at = row.created_at
+        created_at_str = created_at.isoformat() if hasattr(created_at, "isoformat") else str(created_at)
+        result.append((user_id, post_id, created_at_str))
+        if len(result) >= max_rows:
+            break
+    return result
+
+
 def hot_score(created_at_iso: str, like_count: int, comment_count: int) -> float:
     try:
         created = datetime.fromisoformat(created_at_iso.replace("Z", "+00:00"))

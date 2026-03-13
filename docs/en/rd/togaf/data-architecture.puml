@@ -19,6 +19,7 @@ package "Data Entities" {
   component [FeedEntry] as FeedEntry
   component [Comment] as Comment
   component [Engagement] as Engagement
+  component [AnalyticsEvent] as AnalyticsEvent
 }
 
 package "Association Entities" {
@@ -105,6 +106,7 @@ Post --> Cassandra : persisted in
 FeedEntry --> Cassandra : persisted in
 Engagement --> Cassandra : post_likes, post_saves, post_engagement_counts
 Comment --> MongoDB : persisted in
+AnalyticsEvent --> PostgreSQL : analytics_events (Reels view/complete, generic events)
 Post --> Elasticsearch : indexed for search; hashtags indexed on post.created
 User --> Elasticsearch : indexed on register/update (search); sync script for bulk
 
@@ -126,6 +128,7 @@ rectangle "Data Entity Notes" {
     - FeedEntry: feed item (own + followed)
     - Comment: post comments, replies
     - Engagement: like/save per user, like_count/comment_count/save_count per post (Cassandra)
+    - AnalyticsEvent: generic analytics events (eventName, properties, context), including Reels watch/complete used for recommendation features
   end note
   
   note as N2

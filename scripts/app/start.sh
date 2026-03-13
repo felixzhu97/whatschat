@@ -17,11 +17,13 @@ RECOMMENDATION_DIR="$ROOT_DIR/apps/recommendation"
 SERVER_PID=""
 MEDIA_GEN_PID=""
 RECOMMENDATION_PID=""
+RECOMMENDATION_API_PID=""
 
 cleanup() {
   [ -n "$SERVER_PID" ] && kill $SERVER_PID 2>/dev/null || true
   [ -n "$MEDIA_GEN_PID" ] && kill $MEDIA_GEN_PID 2>/dev/null || true
   [ -n "$RECOMMENDATION_PID" ] && kill $RECOMMENDATION_PID 2>/dev/null || true
+  [ -n "$RECOMMENDATION_API_PID" ] && kill $RECOMMENDATION_API_PID 2>/dev/null || true
   exit 0
 }
 trap cleanup SIGINT SIGTERM
@@ -31,12 +33,14 @@ echo -e "${GREEN}WhatsChat (${ENV})${NC}\n"
 echo "[1/6] Stopping old processes..."
 lsof -ti:3001 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:3456 2>/dev/null | xargs kill -9 2>/dev/null || true
+lsof -ti:8000 2>/dev/null | xargs kill -9 2>/dev/null || true
 pkill -f "whatschat-server.*dev" 2>/dev/null || true
 pkill -f "apps/media-gen/app.py" 2>/dev/null || true
 pkill -f "apps/video-gen/app.py" 2>/dev/null || true
 pkill -f "apps/image-gen/app.py" 2>/dev/null || true
 pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
 pkill -f "celery.*celery_app" 2>/dev/null || true
+pkill -f "apps/recommendation/run_service.py" 2>/dev/null || true
 sleep 1
 
 echo "[2/6] Docker + env..."
@@ -94,17 +98,34 @@ for i in $(seq 1 90); do
 done
 
 echo "[6/6] Recommendation (optional)..."
-if [ -d "$RECOMMENDATION_DIR" ] && [ -f "$RECOMMENDATION_DIR/celery_app.py" ] && command -v python3 >/dev/null 2>&1; then
+if [ -d "$RECOMMENDATION_DIR" ] && command -v python3 >/dev/null 2>&1; then
   if [ -d "$RECOMMENDATION_DIR/.venv" ]; then
-    (cd "$RECOMMENDATION_DIR" && . .venv/bin/activate && pip install -r requirements.txt -q 2>/dev/null; celery -A celery_app worker -l info -B 2>/dev/null) &
-  elif command -v celery >/dev/null 2>&1; then
-    (cd "$RECOMMENDATION_DIR" && celery -A celery_app worker -l info -B 2>/dev/null) &
+    (cd "$RECOMMENDATION_DIR" && . .venv/bin/activate && pip install -r requirements.txt -q 2>/dev/null) || true
   else
-    (cd "$RECOMMENDATION_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null; python3 -m celery -A celery_app worker -l info -B 2>/dev/null) &
+    (cd "$RECOMMENDATION_DIR" && python3 -m pip install -r requirements.txt -q 2>/dev/null) || true
   fi
-  RECOMMENDATION_PID=$!
-  sleep 1
-  kill -0 $RECOMMENDATION_PID 2>/dev/null && echo -e "${GREEN}Recommendation worker+beat started${NC}" || RECOMMENDATION_PID=""
+  if [ -f "$RECOMMENDATION_DIR/celery_app.py" ]; then
+    if [ -d "$RECOMMENDATION_DIR/.venv" ]; then
+      (cd "$RECOMMENDATION_DIR" && . .venv/bin/activate && celery -A celery_app worker -l info -B 2>/dev/null) &
+    elif command -v celery >/dev/null 2>&1; then
+      (cd "$RECOMMENDATION_DIR" && celery -A celery_app worker -l info -B 2>/dev/null) &
+    else
+      (cd "$RECOMMENDATION_DIR" && python3 -m celery -A celery_app worker -l info -B 2>/dev/null) &
+    fi
+    RECOMMENDATION_PID=$!
+    sleep 1
+    kill -0 $RECOMMENDATION_PID 2>/dev/null && echo -e "${GREEN}Recommendation worker+beat started${NC}" || RECOMMENDATION_PID=""
+  fi
+  if [ -f "$RECOMMENDATION_DIR/run_service.py" ]; then
+    if [ -d "$RECOMMENDATION_DIR/.venv" ]; then
+      (cd "$RECOMMENDATION_DIR" && . .venv/bin/activate && python3 run_service.py) &
+    else
+      (cd "$RECOMMENDATION_DIR" && python3 run_service.py) &
+    fi
+    RECOMMENDATION_API_PID=$!
+    sleep 1
+    kill -0 $RECOMMENDATION_API_PID 2>/dev/null && echo -e "${GREEN}Recommendation API started on http://localhost:8000${NC}" || RECOMMENDATION_API_PID=""
+  fi
 fi
 
 echo -e "\n${GREEN}Ready. API: http://localhost:3001  (Ctrl+C to stop)${NC}\n"

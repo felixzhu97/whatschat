@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { FeedCacheService } from "../../infrastructure/cache/feed-cache.service";
 import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
 import { PostService } from "./post.service";
+import { RecommendationService } from "./recommendation.service";
+import { ExperimentService } from "./experiment.service";
 
 const RECENCY_HALFLIFE_HOURS = 24;
 const ENGAGEMENT_WEIGHT = 2;
@@ -24,6 +26,8 @@ export class FeedService {
     private readonly feedCache: FeedCacheService,
     private readonly postService: PostService,
     private readonly engagementRepo: CassandraEngagementRepository,
+    private readonly recommendation: RecommendationService,
+    private readonly experiments: ExperimentService,
   ) {}
 
   async getFeed(userId: string, limit: number, pageState?: string) {
@@ -35,25 +39,42 @@ export class FeedService {
       authorId: p.userId,
       createdAt: typeof p.createdAt === "string" ? new Date(p.createdAt) : (p.createdAt as Date),
     }));
-    const byPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
+    const mergedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
     for (const e of [...ownEntries, ...result.entries]) {
-      if (!byPost.has(e.postId)) byPost.set(e.postId, e);
+      if (!mergedByPost.has(e.postId)) mergedByPost.set(e.postId, e);
     }
-    const merged = Array.from(byPost.values());
+    const merged = Array.from(mergedByPost.values());
     const postIds = merged.map((e) => e.postId);
     const countsMap = await this.engagementRepo.getEngagementCountsBatch(postIds);
     const now = new Date();
-    const withScore = merged.map((e) => ({
-      ...e,
-      score: rankScore(
-        e.createdAt,
-        countsMap.get(e.postId)?.likeCount ?? 0,
-        countsMap.get(e.postId)?.commentCount ?? 0,
-        now,
-      ),
-    }));
-    withScore.sort((a, b) => b.score - a.score);
-    const entries = withScore.slice(0, limit).map(({ postId, authorId, createdAt }) => ({
+    const assignment = this.experiments.assign(userId, "feed");
+    const ranked = await this.recommendation.rankFeed({
+      userId,
+      candidateIds: merged.map((e) => e.postId),
+      limit,
+      experimentId: assignment.experimentId,
+      variantId: assignment.variantId,
+    });
+    const rankedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
+    for (const e of merged) {
+      rankedByPost.set(e.postId, e);
+    }
+    const ordered = ranked.items
+      .map((item) => rankedByPost.get(item.id))
+      .filter((v): v is { postId: string; authorId: string; createdAt: Date } => Boolean(v));
+    const fallbackSorted = merged
+      .map((e) => ({
+        ...e,
+        score: rankScore(
+          e.createdAt,
+          countsMap.get(e.postId)?.likeCount ?? 0,
+          countsMap.get(e.postId)?.commentCount ?? 0,
+          now,
+        ),
+      }))
+      .sort((a, b) => b.score - a.score);
+    const combined = ordered.length > 0 ? ordered : fallbackSorted;
+    const entries = combined.slice(0, limit).map(({ postId, authorId, createdAt }) => ({
       postId,
       authorId,
       createdAt,
