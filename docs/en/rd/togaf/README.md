@@ -12,6 +12,16 @@ TOGAF views for the four architecture domains (PlantUML).
 | Data | [data-architecture.puml](./data-architecture.puml) | Post (**mediaUrls** + **coverUrl** Cassandra), FeedEntry, Comment, **activity notifications** (MongoDB), engagement; PostgreSQL, Redis, Cassandra, MongoDB (comments + notifications), Elasticsearch, Kafka |
 | Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, **GraphQL** (Apollo Server, @nestjs/graphql), Socket.IO, WebRTC, Docker, Python, Celery, LightFM, implicit (ALS), Annoy, Redis, Elasticsearch (search with sync script) |
 
+## Code layout
+
+| Layer | Code path |
+|-------|-----------|
+| Clients | `apps/web`, `apps/admin`, `apps/mobile` |
+| API Server | `services/server` |
+| Recommendation | `services/recommendation` |
+| Media Gen | `services/media-gen` |
+| Vision | `services/vision` |
+
 ## View
 
 - [PlantUML Online](https://www.plantuml.com/plantuml/uml/) or VS Code PlantUML extension (`Alt+D`)

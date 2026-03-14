@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { ArrowLeft, ImageIcon, Check, Loader2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/presentation/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/presentation/components/ui/avatar";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
+import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
+import { VisionApiAdapter } from "@/infrastructure/adapters/api/vision-api.adapter";
 
 const BORDER = "1px solid rgb(219 219 219)";
 const TEXT_PRIMARY = "rgb(38 38 38)";
@@ -403,6 +405,27 @@ const StepBtn = styled.button`
   }
 `;
 
+const SuggestedTagsWrap = styled.div`
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+`;
+
+const SuggestedTagChip = styled.button`
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgb(219 219 219);
+  background: rgb(250 250 250);
+  font-size: 13px;
+  color: ${TEXT_PRIMARY};
+  cursor: pointer;
+  &:hover {
+    background: rgb(239 239 239);
+  }
+`;
+
 const MAX_CAPTION = 2200;
 
 interface CreatePostDialogProps {
@@ -434,15 +457,31 @@ export function CreatePostDialog({
   const [videoCoverUrls, setVideoCoverUrls] = useState<string[]>([]);
   const [videoDuration, setVideoDuration] = useState(0);
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [suggestedLabels, setSuggestedLabels] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const visionApi = useMemo(() => new VisionApiAdapter(getApiClient()), []);
 
   useEffect(() => {
     return () => {
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [previewUrls]);
+
+  useEffect(() => {
+    if (step !== "caption" || files.length === 0) return;
+    const imageFile = files.find((f) => f.type.startsWith("image/"));
+    if (!imageFile) return;
+    setLoadingSuggestions(true);
+    setSuggestedLabels([]);
+    visionApi
+      .suggestTags(imageFile)
+      .then((r) => setSuggestedLabels(r.labels || []))
+      .catch(() => setSuggestedLabels([]))
+      .finally(() => setLoadingSuggestions(false));
+  }, [step, files, visionApi]);
 
   const reset = useCallback(() => {
     setStep("select");
@@ -456,6 +495,7 @@ export function CreatePostDialog({
     setVideoCoverUrls([]);
     setVideoDuration(0);
     setVideoCurrentTime(0);
+    setSuggestedLabels([]);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -866,6 +906,31 @@ export function CreatePostDialog({
                       maxLength={MAX_CAPTION}
                     />
                     <CharCount>{t("createPost.charCount", { current: String(caption.length) } as Record<string, string>)}</CharCount>
+                    {(loadingSuggestions || suggestedLabels.length > 0) && (
+                      <SuggestedTagsWrap>
+                        <span style={{ fontSize: 13, color: TEXT_SECONDARY, marginRight: 4 }}>
+                          {t("createPost.recommendedTags")}:
+                        </span>
+                        {loadingSuggestions ? (
+                          <Loader2 size={16} style={{ animation: "spin 0.8s linear infinite" }} />
+                        ) : (
+                          suggestedLabels.slice(0, 10).map((label) => (
+                            <SuggestedTagChip
+                              key={label}
+                              type="button"
+                              onClick={() =>
+                                setCaption((prev) => {
+                                  const tag = `#${label.replace(/\s+/g, "_")}`;
+                                  return prev.trimEnd() ? `${prev.trimEnd()} ${tag}` : tag;
+                                })
+                              }
+                            >
+                              #{label.replace(/\s+/g, "_")}
+                            </SuggestedTagChip>
+                          ))
+                        )}
+                      </SuggestedTagsWrap>
+                    )}
                   </CaptionTextareaWrap>
                   <AddOption type="button">{t("createPost.addLocation")}</AddOption>
                   <AddOption type="button">{t("createPost.addCollaborators")}</AddOption>

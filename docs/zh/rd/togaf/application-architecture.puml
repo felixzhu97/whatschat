@@ -113,12 +113,13 @@ package "应用服务层" {
 package "推荐应用" {
   component [推荐任务] as RecJobs #LightYellow
   note right of RecJobs
-    Python（apps/recommendation）
+    Python（services/recommendation）
     Celery worker + beat
     LightFM、implicit（ALS）、Annoy、PyTorch
     批任务：推荐、探索热门、向量塔
     在线：FastAPI 排序服务（Feed/Explore/Reels）+ 向量召回
     写入 Redis/Faiss，由 NestJS RecommendationService 调用
+    其他 Python：services/media-gen（:3456）、services/vision（:8001 标签推荐）
   end note
 }
 

@@ -171,7 +171,7 @@ package "推荐技术栈" {
   component [implicit] as Implicit
   component [Annoy] as Annoy
   note right of Celery
-    批任务（apps/recommendation）
+    批任务（services/recommendation）
     - Redis broker、beat 调度
     - 推荐、探索热门列表
   end note
@@ -320,14 +320,15 @@ note bottom
   
   WhatsChat 采用现代技术栈：
   
-  1. **客户端** – Web 应用（Next.js + React）；管理端（Next.js + React + Emotion）；移动端（React Native + Expo + Emotion + i18next、主题）
-  2. **服务端** – NestJS 提供模块化、可扩展的后端服务
-  3. **数据层** – PostgreSQL 为主库；Redis；Cassandra（帖子、信息流、互动、cover_url）；MongoDB（评论、活动通知）；Elasticsearch
-  4. **推荐** – Python（Celery、LightFM、implicit、Annoy）批任务将推荐与探索列表写入 Redis；API 从 Redis 读取
-  5. **协议** – REST API 同步调用、GraphQL 信息流读取（批量 post 详情）、WebSocket 实时消息、WebRTC 音视频
-  6. **安全** – JWT 认证、bcrypt 密码哈希、Helmet 安全头、CORS 控制
-  7. **存储** – 本地文件存储、Elasticsearch 全文搜索
-  8. **部署** – 基于 Docker 的容器化，覆盖开发、测试、生产
+  1. **客户端** – Web/管理端/移动端：apps/web、apps/admin、apps/mobile
+  2. **服务端** – NestJS：services/server
+  3. **Python 服务** – services/recommendation（Celery、排序 API）、services/media-gen（图/视频/语音，:3456）、services/vision（标签推荐，:8001）
+  4. **数据层** – PostgreSQL 为主库；Redis；Cassandra（帖子、信息流、互动、cover_url）；MongoDB（评论、活动通知）；Elasticsearch
+  5. **推荐** – Python（Celery、LightFM、implicit、Annoy）批任务将推荐与探索列表写入 Redis；API 从 Redis 读取
+  6. **协议** – REST API 同步调用、GraphQL 信息流读取（批量 post 详情）、WebSocket 实时消息、WebRTC 音视频
+  7. **安全** – JWT 认证、bcrypt 密码哈希、Helmet 安全头、CORS 控制
+  8. **存储** – 本地文件存储、Elasticsearch 全文搜索
+  9. **部署** – 基于 Docker 的容器化，覆盖开发、测试、生产
   
   技术选型侧重性能、可扩展性、安全与开发效率。
 end note

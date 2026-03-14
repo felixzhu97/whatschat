@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "services/*"
   ],
   "author": "felix zhu <z1434866867@gmail.com>",
   "license": "MIT",
@@ -21,9 +22,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "setup": "./scripts/setup/dev.sh",
-    "setup:inline": "cd apps/server && pnpm db:generate && cd ../..",
+    "setup:inline": "cd services/server && pnpm db:generate && cd ../..",
     "start:server": "bash scripts/app/start.sh dev",
-    "start:recommendation": "cd apps/recommendation && (test -d .venv && . .venv/bin/activate; celery -A celery_app worker -l info -B)",
+    "start:recommendation": "cd services/recommendation && (test -d .venv && . .venv/bin/activate; celery -A celery_app worker -l info -B)",
     "start:mobile": "pnpm --filter react-native-app start",
     "start:mobile:ios": "pnpm --filter react-native-app ios",
     "start:mobile:android": "pnpm --filter react-native-app android",

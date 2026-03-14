@@ -251,6 +251,8 @@ export const zh = {
     done: "完成",
     coverPhoto: "封面",
     selectFrameHint: "拖动选择画面",
+    recommendedTags: "推荐标签",
+    addTag: "添加标签",
   },
   notifications: {
     activityTitle: "你帖子的动态",

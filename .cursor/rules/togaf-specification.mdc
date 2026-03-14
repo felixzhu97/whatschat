@@ -48,7 +48,7 @@ and their interactions.
 
 - `apps/web/` – Web application (app, domain, application, infrastructure, presentation)
 - `apps/mobile/` – mobile application (same layered structure)
-- `apps/server/` – backend services (domain, application, infrastructure, presentation)
+- `services/server/` – backend services (domain, application, infrastructure, presentation)
 
 ### Data Architecture
 
@@ -67,8 +67,8 @@ and their interactions.
 
 **Code mapping**:
 
-- `apps/server/prisma/` – schema definitions and migrations
-- `apps/server/src/` – data access and caching logic (infrastructure, application layers)
+- `services/server/prisma/` – schema definitions and migrations
+- `services/server/src/` – data access and caching logic (infrastructure, application layers)
 
 ### Technology Architecture
 
@@ -213,12 +213,12 @@ docs/en/rd/togaf/
 
 - `apps/web/` – Web app (app, domain, application, infrastructure, presentation)
 - `apps/mobile/` – mobile app (same layered structure)
-- `apps/server/` – backend services (domain, application, infrastructure, presentation)
+- `services/server/` – backend services (domain, application, infrastructure, presentation)
 
 **Data architecture** →
 
-- `apps/server/prisma/` – schema and migrations
-- `apps/server/src/` – data access and caching logic
+- `services/server/prisma/` – schema and migrations
+- `services/server/src/` – data access and caching logic
 
 **Technology architecture** →
 

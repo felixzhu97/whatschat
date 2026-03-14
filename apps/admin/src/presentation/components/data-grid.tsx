@@ -7,7 +7,7 @@ import { styled } from "@/src/shared/utils/emotion";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 
-const GridWrapper = styled.div`
+const GridWrapper = styled.div<{ $clickable?: boolean }>`
   height: 520px;
   width: 100%;
   border-radius: 16px;
@@ -21,6 +21,13 @@ const GridWrapper = styled.div`
     --ag-row-hover-color: var(--admin-surface-alt);
     --ag-selected-row-background-color: rgba(37, 211, 102, 0.08);
   }
+  ${(p) =>
+    p.$clickable &&
+    `
+    .ag-row {
+      cursor: pointer;
+    }
+  `}
 `;
 
 const modules = [AllCommunityModule];
@@ -55,7 +62,7 @@ export function DataGrid<T extends Record<string, unknown>>({
 
   return (
     <AgGridProvider modules={modules}>
-      <GridWrapper className={`ag-admin-grid ${themeClass}`}>
+      <GridWrapper className={`ag-admin-grid ${themeClass}`} $clickable={!!onRowClicked}>
         <AgGridReact
           theme="legacy"
           rowData={rowData}

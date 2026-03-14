@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Sidebar } from "../common/sidebar";
 import { InstagramMessagesSidebar } from "../instagram/instagram-messages-sidebar";
@@ -15,6 +15,7 @@ import { InstagramFeed } from "../instagram/instagram-feed";
 import { InstagramExploreGrid } from "../instagram/instagram-explore-grid";
 import { InstagramReels } from "../instagram/instagram-reels";
 import { InstagramRightSidebar } from "../instagram/instagram-right-sidebar";
+import { StoryOverlay, type StorySlide } from "../instagram/story-overlay";
 import { NotificationsSheet } from "../instagram/notifications-sheet";
 import { CallsPage } from "../pages/calls-page";
 import { StatusPage } from "../pages/status-page";
@@ -50,10 +51,9 @@ import {
   mockContacts,
   mockMessages,
   mockUser,
-  mockStories,
 } from "@/infrastructure/data/mock-data";
 import { getMessagesForContact } from "@/shared/utils/message-utils";
-import type { Contact, User, Message, FeedPost } from "@/shared/types";
+import type { Contact, User, Message, FeedPost, StoryItem } from "@/shared/types";
 import type { FollowListItem, IFollowListService } from "../dialogs/dialog-services.types";
 import { AiApiAdapter } from "@/infrastructure/adapters/api/ai-api.adapter";
 import { ImageApiAdapter } from "@/infrastructure/adapters/api/image-api.adapter";
@@ -145,6 +145,7 @@ export function InstagramMain() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
   const [followListModal, setFollowListModal] = useState<"followers" | "following" | null>(null);
+  const feedScrollRef = useRef<HTMLDivElement>(null);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
   const feed = useFeed(currentUser?.id);
@@ -368,6 +369,86 @@ export function InstagramMain() {
 
   const filteredContacts = filterContacts(contactsForList, searchQuery);
 
+  const reelStories: StoryItem[] = useMemo(() => {
+    if (feed.suggestions.length > 0) {
+      return feed.suggestions.map((s) => ({
+        id: s.id,
+        userId: s.id,
+        username: s.username,
+        avatar: s.avatar || "/placeholder.svg?height=64&width=64",
+        hasUnseen: false,
+      }));
+    }
+    const seen = new Set<string>();
+    return feed.posts
+      .filter((p) => {
+        if (seen.has(p.userId)) return false;
+        seen.add(p.userId);
+        return true;
+      })
+      .slice(0, 12)
+      .map((p) => ({
+        id: p.userId,
+        userId: p.userId,
+        username: p.username,
+        avatar: p.avatar || "/placeholder.svg?height=64&width=64",
+        hasUnseen: false,
+      }));
+  }, [feed.suggestions, feed.posts]);
+
+  const storySlidesWithPost: StorySlide[] = useMemo(() => {
+    return reelStories
+      .filter((story) => feed.posts.some((p) => p.userId === story.userId))
+      .map((story) => ({
+        story,
+        post: feed.posts.find((p) => p.userId === story.userId) ?? null,
+      }))
+      .filter((s): s is StorySlide => s.post !== null);
+  }, [reelStories, feed.posts]);
+
+  const SEEN_STORIES_KEY = "whatschat:seen_story_user_ids";
+  const getSeenStoryUserIdsFromStorage = (): Set<string> => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const raw = window.localStorage.getItem(SEEN_STORIES_KEY);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  };
+  const [seenStoryUserIds, setSeenStoryUserIds] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    setSeenStoryUserIds(getSeenStoryUserIdsFromStorage());
+  }, []);
+  const displayStorySlides = useMemo(
+    () => storySlidesWithPost.filter((s) => !seenStoryUserIds.has(s.story.userId)),
+    [storySlidesWithPost, seenStoryUserIds]
+  );
+  const displayStories: StoryItem[] = useMemo(
+    () => displayStorySlides.map((s) => s.story),
+    [displayStorySlides]
+  );
+
+  const [storyOverlayIndex, setStoryOverlayIndex] = useState<number | null>(null);
+  const handleStoryClick = useCallback((story: StoryItem) => {
+    const i = displayStorySlides.findIndex((s) => s.story.id === story.id);
+    if (i >= 0) setStoryOverlayIndex(i);
+  }, [displayStorySlides]);
+  const handleStoryOverlayClose = useCallback((viewedUserIds: string[]) => {
+    setStoryOverlayIndex(null);
+    setSeenStoryUserIds((prev) => {
+      const next = new Set([...prev, ...viewedUserIds]);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify([...next]));
+        } catch {
+          /**/
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const handleContactSelect = (contact: Contact) => {
     setSelectedContactId(contact.id);
     handleBackToChat();
@@ -463,13 +544,16 @@ export function InstagramMain() {
 
     if (currentPage === "chat" && instagramView === "feed") {
       return (
-        <CenterColumn style={{ overflow: "auto" }}>
+        <CenterColumn ref={feedScrollRef} style={{ overflow: "auto" }}>
           <InstagramFeed
-            stories={mockStories}
+            stories={displayStories}
             posts={feed.posts}
             loading={feed.loading}
+            initialLoading={feed.initialLoading}
+            loadingMore={feed.loadingMore}
             error={feed.error}
             currentUser={currentUser ?? undefined}
+            onStoryClick={handleStoryClick}
             onCommentClick={(post) => {
               setCommentPost(post);
               analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
@@ -482,6 +566,9 @@ export function InstagramMain() {
               feed.toggleSave(post.id);
               analytics.track(POST_SAVE, { postId: post.id });
             }}
+            scrollContainerRef={feedScrollRef}
+            onLoadMore={feed.loadFeed}
+            hasMore={feed.hasMore}
           />
           <FeedCommentsDialog
             post={commentPost}
@@ -648,11 +735,12 @@ export function InstagramMain() {
         return (
           <CenterColumn style={{ overflow: "auto" }}>
             <InstagramFeed
-              stories={mockStories}
+              stories={displayStories}
               posts={feed.posts}
               loading={feed.loading}
               error={feed.error}
               currentUser={currentUser ?? undefined}
+              onStoryClick={handleStoryClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
                 analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
@@ -707,11 +795,12 @@ export function InstagramMain() {
         return (
           <CenterColumn style={{ overflow: "auto" }}>
             <InstagramFeed
-              stories={mockStories}
+              stories={displayStories}
               posts={feed.posts}
               loading={feed.loading}
               error={feed.error}
               currentUser={currentUser ?? undefined}
+              onStoryClick={handleStoryClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
                 analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
@@ -817,6 +906,14 @@ export function InstagramMain() {
             onDecline={endCall}
           />
         </FullscreenOverlay>
+      )}
+
+      {storyOverlayIndex !== null && displayStorySlides.length > 0 && (
+        <StoryOverlay
+          slides={displayStorySlides}
+          initialIndex={storyOverlayIndex}
+          onClose={handleStoryOverlayClose}
+        />
       )}
 
       {callError && <ErrorToast>{callError}</ErrorToast>}

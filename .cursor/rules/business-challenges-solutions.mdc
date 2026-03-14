@@ -32,7 +32,7 @@
 **相关文件**：
 - `apps/web/app/(auth)/register/page.tsx` - 注册页面
 - `apps/web/components/onboarding/` - 引导组件
-- `apps/server/src/application/services/auth.service.ts` - 认证服务
+- `services/server/src/application/services/auth.service.ts` - 认证服务
 
 ### 1.2 消息同步与搜索优化
 
@@ -60,7 +60,7 @@
 
 **相关文件**：
 - `apps/web/hooks/use-messages.ts` - 消息管理 Hook
-- `apps/server/src/application/services/message.service.ts` - 消息服务
+- `services/server/src/application/services/message.service.ts` - 消息服务
 - `packages/sdk-storage/` - 存储 SDK（离线缓存）
 
 ### 1.3 WebRTC 通话质量优化
@@ -84,7 +84,7 @@
 **相关文件**：
 - `packages/av-sdk-core/` - 音视频核心 SDK
 - `packages/av-sdk-web/` - Web 端音视频 SDK
-- `apps/server/src/presentation/websocket/webrtc.gateway.ts` - WebRTC 网关
+- `services/server/src/presentation/websocket/webrtc.gateway.ts` - WebRTC 网关
 
 ## 2. 用户群体痛点解决方案
 
@@ -140,7 +140,7 @@
 **相关文件**：
 - `apps/web/components/message/MessageList.tsx` - 消息列表
 - `apps/web/hooks/use-search.ts` - 搜索 Hook
-- `apps/server/src/application/services/group.service.ts` - 群组服务
+- `services/server/src/application/services/group.service.ts` - 群组服务
 
 ### 2.3 群组管理员痛点
 
@@ -172,7 +172,7 @@
 
 **相关文件**：
 - `apps/web/app/(main)/groups/[id]/admin/page.tsx` - 群组管理页面
-- `apps/server/src/application/services/analytics.service.ts` - 分析服务
+- `services/server/src/application/services/analytics.service.ts` - 分析服务
 
 ### 2.4 企业用户痛点
 
@@ -206,8 +206,8 @@
 **实施优先级**：低（未来规划）
 
 **相关文件**：
-- `apps/server/src/application/services/enterprise.service.ts` - 企业服务
-- `apps/server/src/infrastructure/security/` - 安全基础设施
+- `services/server/src/application/services/enterprise.service.ts` - 企业服务
+- `services/server/src/infrastructure/security/` - 安全基础设施
 - `docs/api/` - API 文档
 
 ## 3. 技术架构挑战解决方案
@@ -236,7 +236,7 @@
 **实施优先级**：高
 
 **相关文件**：
-- `apps/server/src/presentation/websocket/chat.gateway.ts` - WebSocket 网关
+- `services/server/src/presentation/websocket/chat.gateway.ts` - WebSocket 网关
 - `packages/sdk-communication/` - 通信 SDK
 - `apps/web/hooks/use-websocket.ts` - WebSocket Hook
 
@@ -269,8 +269,8 @@
 **实施优先级**：高
 
 **相关文件**：
-- `apps/server/src/infrastructure/security/encryption.service.ts` - 加密服务
-- `apps/server/src/application/services/privacy.service.ts` - 隐私服务
+- `services/server/src/infrastructure/security/encryption.service.ts` - 加密服务
+- `services/server/src/application/services/privacy.service.ts` - 隐私服务
 
 ### 3.3 系统扩展性
 
@@ -297,8 +297,8 @@
 **实施优先级**：中
 
 **相关文件**：
-- `apps/server/src/infrastructure/database/` - 数据库基础设施
-- `apps/server/src/infrastructure/cache/` - 缓存基础设施
+- `services/server/src/infrastructure/database/` - 数据库基础设施
+- `services/server/src/infrastructure/cache/` - 缓存基础设施
 - `docs/distributed-systems/` - 分布式系统文档
 
 ## 4. 产品功能挑战解决方案
@@ -334,7 +334,7 @@
 **相关文件**：
 - `apps/web/app/(main)/settings/page.tsx` - 设置页面
 - `apps/web/components/settings/` - 设置组件
-- `apps/server/src/application/services/settings.service.ts` - 设置服务
+- `services/server/src/application/services/settings.service.ts` - 设置服务
 
 ### 4.2 文件管理优化
 
@@ -361,7 +361,7 @@
 
 **相关文件**：
 - `packages/sdk-storage/` - 存储 SDK
-- `apps/server/src/application/services/file.service.ts` - 文件服务
+- `services/server/src/application/services/file.service.ts` - 文件服务
 ## 5. 实施优先级与路线图
 
 ### 第一阶段（高优先级 - 立即实施）

@@ -114,12 +114,13 @@ package "Application Services Layer" {
 package "Recommendation Application" {
   component [Recommendation Jobs] as RecJobs #LightYellow
   note right of RecJobs
-    Python (apps/recommendation)
+    Python (services/recommendation)
     Celery worker + beat
     LightFM, implicit (ALS), Annoy, PyTorch
     Batch: suggestions, explore hot list, vector towers
     Online: FastAPI ranking service (Feed/Explore/Reels) + vector recall
     Writes to Redis / Faiss, called by NestJS RecommendationService
+    Other Python: services/media-gen (:3456), services/vision (:8001 tag suggestion)
   end note
 }
 

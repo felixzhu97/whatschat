@@ -13,17 +13,17 @@ REMOVE_VOLUMES=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SERVER_DIR="$ROOT_DIR/apps/server"
+SERVER_DIR="$ROOT_DIR/services/server"
 
 echo -e "${GREEN}Stopping WhatsChat (${ENV})${NC}\n"
 
 echo "[1/2] Stopping processes..."
 lsof -ti:3001 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:3456 2>/dev/null | xargs kill -9 2>/dev/null || true
-pkill -f "apps/media-gen/app.py" 2>/dev/null || true
-pkill -f "apps/video-gen/app.py" 2>/dev/null || true
-pkill -f "apps/image-gen/app.py" 2>/dev/null || true
-pkill -f "apps/voice-gen/app.py" 2>/dev/null || true
+pkill -f "services/media-gen/app.py" 2>/dev/null || true
+pkill -f "services/video-gen/app.py" 2>/dev/null || true
+pkill -f "services/image-gen/app.py" 2>/dev/null || true
+pkill -f "services/voice-gen/app.py" 2>/dev/null || true
 pkill -f "celery.*celery_app" 2>/dev/null || true
 SERVER_PIDS=$(ps aux | grep -E "(nest start|node.*dist/main.js|pnpm.*dev)" | grep -v grep | awk '{print $2}' || true)
 for PID in $SERVER_PIDS; do kill $PID 2>/dev/null || true; done

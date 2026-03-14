@@ -9,4 +9,5 @@ Docs are grouped by **product**, **data**, and **R&D** in both languages.
 | **zh** | [product/](zh/product/) | [data/](zh/data/) | [rd/](zh/rd/) |
 | **en** | [product/](en/product/) | [data/](en/data/) | [rd/](en/rd/) |
 
-Shared: [c4-lib](c4-lib/) (C4-PlantUML, used by `en/rd/c4`).
+Shared: [c4-lib](c4-lib/) (C4-PlantUML, used by `en/rd/c4`).  
+Code layout: clients in `apps/web`, `apps/admin`, `apps/mobile`; backend services in `services/server`, `services/recommendation`, `services/media-gen`, `services/vision`.

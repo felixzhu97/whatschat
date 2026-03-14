@@ -11,7 +11,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔍 **Message Search** – Full-text search powered by Elasticsearch
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
-- 🖼️ **Image / Video / Voice** – One self-hosted service (apps/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
+- 🖼️ **Image / Video / Voice** – One self-hosted service (services/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
 - 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; **video cover** stored in Cassandra as separate `coverUrl` (not mixed into `mediaUrls`); home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed + post details in one request (replaces N+1 REST getPost); Reels and profile grid use cover when present; **Explore** grid max-width 963px centered with side margins; multi-media carousel on feed and in comments dialog; comments in MongoDB
 - 🔎 **Global Search** – Search posts, users, and hashtags (topics) via Elasticsearch; cursor-based pagination and highlight; rate limit (60/min); users indexed on register/update, hashtags on post.created; optional sync script `pnpm run search:sync-users`; startup script runs user sync after seed
 - 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream backed by a Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data
@@ -61,7 +61,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
 - **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement, **post cover_url**) · MongoDB (comments, **activity notifications** like/comment) · Elasticsearch (search) · **GraphQL** (Apollo Server, code-first feed query + DataLoader; PostType includes `coverUrl`)
-- **Recommendations** – Python (apps/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis
+- **Recommendations** – Python (services/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
@@ -70,7 +70,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 
 - Node.js 18+
 - pnpm 8+
-- Docker & Docker Compose (PostgreSQL, Redis, Kafka, Cassandra, MongoDB, Elasticsearch via `apps/server/docker-compose.yml`)
+- Docker & Docker Compose (PostgreSQL, Redis, Kafka, Cassandra, MongoDB, Elasticsearch via `services/server/docker-compose.yml`)
 
 ### Setup
 
@@ -87,16 +87,16 @@ pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
 pnpm start:mobile:ios   # or start:mobile:android
-pnpm start:recommendation # Python recommendation worker + Celery beat (optional, runs in apps/recommendation)
+pnpm start:recommendation # Python recommendation worker + Celery beat (optional, runs in services/recommendation)
 ```
 
 From repo root, `scripts/app/start.sh [dev|prod]` runs Docker, migrate, seed, **user sync to Elasticsearch**, then server (and optional media-gen, recommendation).
 
 ### Environment
 
-- `apps/server/.env` – Copy from `apps/server/.env.example`
+- `services/server/.env` – Copy from `services/server/.env.example`
   - **AI**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`
-  - **Media** (image + video + voice): `MEDIA_GENERATION_API_URL` (e.g. `http://localhost:3456` for apps/media-gen); or `REPLICATE_API_TOKEN` for image only
+  - **Media** (image + video + voice): `MEDIA_GENERATION_API_URL` (e.g. `http://localhost:3456` for services/media-gen); or `REPLICATE_API_TOKEN` for image only
 - `apps/web/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`, `NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001` (optional, for Socket.IO)
 - `apps/admin/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `ADMIN_EMAILS=admin@whatschat.com` (comma-separated) for admin access
@@ -108,8 +108,11 @@ apps/
   web        # Next.js web app, Instagram-style UI + i18n (whatschat-web, :4000)
   admin      # Admin dashboard (whatschat-admin, :4001)
   mobile     # Expo mobile app (react-native-app)
-  server     # NestJS API (whatschat-server, :3001)
-  media-gen  # Self-hosted image + video + voice (Python/FastAPI, :3456)
+services/
+  server        # NestJS API (whatschat-server, :3001)
+  media-gen     # Self-hosted image + video + voice (Python/FastAPI, :3456)
+  recommendation # Python recommendation + Celery + FastAPI rank (:8000)
+  vision        # Image recognition for tag suggestion (Python/FastAPI, :8001)
 packages/
   domain           # Shared types and constants (@whatschat/domain)
   im               # Instant messaging + RTC (@whatschat/im)
@@ -119,6 +122,8 @@ packages/
   image-generation # Image client (HTTP job API or Replicate, used by server)
   video-generation # Video client (HTTP job API, used by server)
 ```
+
+**Code layout (C4/TOGAF):** API Server = `services/server`, Media Gen = `services/media-gen`, Recommendation = `services/recommendation`, Vision = `services/vision`; Web/Admin/Mobile = `apps/web`, `apps/admin`, `apps/mobile`.
 
 **Shared packages:**
 - `@whatschat/domain` – User, Message, Chat, Contact, Call types

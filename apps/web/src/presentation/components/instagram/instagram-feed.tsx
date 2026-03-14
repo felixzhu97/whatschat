@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/presentation/components/ui/avatar";
 import {
@@ -15,7 +15,6 @@ import { useTranslation } from "@/src/shared/i18n";
 const BORDER = "1px solid rgb(219 219 219)";
 const TEXT_PRIMARY = "rgb(38 38 38)";
 const TEXT_SECONDARY = "rgb(142 142 142)";
-const BLUE = "rgb(0 149 246)";
 const RED_LIKE = "rgb(237 73 86)";
 const BG_GRAY = "rgb(239 239 239)";
 
@@ -94,6 +93,8 @@ const PostCard = styled.article`
   border-radius: 8px;
   overflow: hidden;
   background: rgb(255 255 255);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
 `;
 
 const PostHeader = styled.header`
@@ -284,6 +285,14 @@ const FeedLoading = styled(InstagramSpinnerWrap)`
   padding: 24px 16px;
 `;
 
+const FeedLoadMoreWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  min-height: 52px;
+  align-items: center;
+`;
+
 function isVideoUrl(url: string): boolean {
   if (url.startsWith("data:")) return url.startsWith("data:video/");
   return /\.(mp4|webm|mov)(\?|$)/i.test(url) || /video\//i.test(url);
@@ -293,27 +302,66 @@ interface InstagramFeedProps {
   stories: StoryItem[];
   posts: FeedPost[];
   loading?: boolean;
+  initialLoading?: boolean;
+  loadingMore?: boolean;
   error?: string | null;
   currentUser?: { avatar?: string; username?: string } | null;
+  onStoryClick?: (story: StoryItem) => void;
   onCommentClick?: (post: FeedPost) => void;
   onLikeClick?: (post: FeedPost) => void;
   onSaveClick?: (post: FeedPost) => void;
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 }
+
+const FeedSentinel = styled.div`
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+  visibility: hidden;
+`;
 
 export function InstagramFeed({
   stories,
   posts,
   loading,
+  initialLoading = false,
+  loadingMore = false,
   error,
   currentUser,
+  onStoryClick,
   onCommentClick,
   onLikeClick,
   onSaveClick,
+  scrollContainerRef,
+  onLoadMore,
+  hasMore = false,
 }: InstagramFeedProps) {
   const { t } = useTranslation();
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const onLoadMoreRef = useRef(onLoadMore);
+  onLoadMoreRef.current = onLoadMore;
   const [pausedPostId, setPausedPostId] = useState<string | null>(null);
   const [mediaIndexByPostId, setMediaIndexByPostId] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const sentinel = sentinelRef.current;
+    const root = scrollContainerRef?.current ?? null;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        const fn = onLoadMoreRef.current;
+        if (fn) requestAnimationFrame(() => fn());
+      },
+      { root, rootMargin: "240px", threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, scrollContainerRef]);
 
   const setPostMediaIndex = useCallback((postId: string, index: number) => {
     setMediaIndexByPostId((prev) => ({ ...prev, [postId]: index }));
@@ -334,7 +382,7 @@ export function InstagramFeed({
   return (
     <FeedRoot>
       {error && <FeedError>{error}</FeedError>}
-      {loading && (
+      {initialLoading && (
         <FeedLoading>
           <InstagramSpinnerRing $size={28} />
           <InstagramSpinnerText>{t("feed.loading")}</InstagramSpinnerText>
@@ -343,7 +391,7 @@ export function InstagramFeed({
       <StoriesWrap>
         <StoriesScroll>
           {stories.map((s) => (
-            <StoryItemWrap key={s.id}>
+            <StoryItemWrap key={s.id} type="button" onClick={() => onStoryClick?.(s)}>
               <StoryRing $hasUnseen={s.hasUnseen}>
                 <StoryAvatarWrap>
                   <Avatar style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
@@ -495,6 +543,12 @@ export function InstagramFeed({
           </PostCaption>
         </PostCard>
       ))}
+      {hasMore && <FeedSentinel ref={sentinelRef} aria-hidden />}
+      {loadingMore && (
+        <FeedLoadMoreWrap>
+          <InstagramSpinnerRing $size={20} />
+        </FeedLoadMoreWrap>
+      )}
     </FeedRoot>
   );
 }

@@ -251,6 +251,8 @@ export const en = {
     done: "Done",
     coverPhoto: "Cover photo",
     selectFrameHint: "Drag to choose a frame",
+    recommendedTags: "Suggested tags",
+    addTag: "Add tag",
   },
   notifications: {
     activityTitle: "Activity on your posts",

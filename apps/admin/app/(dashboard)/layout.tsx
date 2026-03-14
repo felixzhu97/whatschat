@@ -12,6 +12,7 @@ import { setStoredLocale, type AppLocale } from "@/src/shared/i18n";
 import {
   LayoutDashboard,
   Users,
+  Image as ImageIcon,
   Shield,
   Activity,
   Briefcase,
@@ -269,6 +270,7 @@ const LangSelect = styled.select`
 function getRouteKey(pathname: string): string {
   if (pathname === "/") return "dashboard.title";
   if (pathname.startsWith("/users")) return "users.title";
+  if (pathname.startsWith("/posts")) return "posts.title";
   if (pathname.startsWith("/content-safety")) return "contentSafety.title";
   if (pathname.startsWith("/ops-monitor")) return "opsMonitor.title";
   if (pathname.startsWith("/business")) return "business.title";
@@ -281,6 +283,7 @@ function getRouteKey(pathname: string): string {
 function getSubtitleKey(pathname: string): string {
   if (pathname === "/") return "dashboard.subtitle";
   if (pathname.startsWith("/users")) return "users.subtitle";
+  if (pathname.startsWith("/posts")) return "posts.subtitle";
   if (pathname.startsWith("/content-safety")) return "contentSafety.subtitle";
   if (pathname.startsWith("/ops-monitor")) return "opsMonitor.subtitle";
   if (pathname.startsWith("/business")) return "business.subtitle";
@@ -293,6 +296,7 @@ function getSubtitleKey(pathname: string): string {
 const ROUTES = [
   { href: "/", labelKey: "dashboard.title", icon: LayoutDashboard },
   { href: "/users", labelKey: "users.title", icon: Users },
+  { href: "/posts", labelKey: "posts.title", icon: ImageIcon },
   { href: "/content-safety", labelKey: "contentSafety.title", icon: Shield },
   { href: "/ops-monitor", labelKey: "opsMonitor.title", icon: Activity },
   { href: "/business", labelKey: "business.title", icon: Briefcase },

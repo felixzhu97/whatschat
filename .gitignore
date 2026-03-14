@@ -76,8 +76,11 @@ Thumbs.db
 *.log
 **/logs
 
-# Media gen output (image + video + voice)
-apps/media-gen/output/
+# Services
+services/media-gen/output/
+celerybeat-schedule
+celerybeat.pid
+*.celery
 
 # Python
 .venv

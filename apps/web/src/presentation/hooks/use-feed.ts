@@ -26,20 +26,28 @@ function toSuggestedUser(raw: { id: string; username: string; avatar: string | n
   };
 }
 
+const INITIAL_FEED_LIMIT = 3;
+const LOAD_MORE_FEED_LIMIT = 5;
+
 export function useFeed(currentUserId: string | undefined) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageState, setPageState] = useState<string | undefined>();
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   const loadFeed = useCallback(async () => {
     if (!currentUserId) return;
+    if (pageState === undefined && !hasMore) return;
     setLoading(true);
     setError(null);
+    const isInitial = pageState === undefined;
+    const limit = isInitial ? INITIAL_FEED_LIMIT : LOAD_MORE_FEED_LIMIT;
     try {
-      const { entries, pageState: next } = await api.getFeedGraphql(20, pageState);
+      const { entries, pageState: next } = await api.getFeedGraphql(limit, pageState);
+      setHasMore(next != null && next !== "");
       setPageState(next ?? undefined);
       const details = entries
         .map((e) => e.post)
@@ -60,14 +68,15 @@ export function useFeed(currentUserId: string | undefined) {
         videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
         coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
         mediaUrls: p.mediaUrls ?? [],
+        ...(Array.isArray((p as { autoTags?: string[] }).autoTags) && { autoTags: (p as { autoTags: string[] }).autoTags }),
       }));
-      setPosts((prev) => (pageState ? [...prev, ...list] : list));
+      setPosts((prev) => (isInitial ? list : [...prev, ...list]));
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
       setLoading(false);
     }
-  }, [currentUserId, pageState]);
+  }, [currentUserId, pageState, hasMore]);
 
   const createPost = useCallback(
     async (
@@ -155,10 +164,16 @@ export function useFeed(currentUserId: string | undefined) {
     }
   }, [posts]);
 
+  const initialLoading = loading && posts.length === 0;
+  const loadingMore = loading && posts.length > 0;
+
   return {
     posts,
     loading,
+    initialLoading,
+    loadingMore,
     error,
+    hasMore,
     loadFeed,
     createPost,
     suggestions,
@@ -194,6 +209,7 @@ export function mapDetailToFeedPost(p: {
   isLiked?: boolean;
   isSaved?: boolean;
   type?: string;
+  autoTags?: string[];
 }): FeedPost {
   const urls = p.mediaUrls ?? [];
   const first = urls[0];
@@ -234,6 +250,7 @@ export function mapDetailToFeedPost(p: {
     coverImageUrl,
     ...(storedCover && { coverUrl: storedCover }),
     mediaUrls: urls,
+    ...(Array.isArray(p.autoTags) && p.autoTags.length > 0 && { autoTags: p.autoTags }),
   };
 }
 

@@ -63,6 +63,7 @@ export class FeedApiAdapter {
             caption
             type
             mediaUrls
+            coverUrl
             location
             createdAt
             username
@@ -72,6 +73,7 @@ export class FeedApiAdapter {
             saveCount
             isLiked
             isSaved
+            autoTags
           }
         }
       }

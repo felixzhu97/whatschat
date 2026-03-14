@@ -225,6 +225,7 @@ export interface FeedPost {
   coverImageUrl?: string;
   coverUrl?: string;
   mediaUrls?: string[];
+  autoTags?: string[];
 }
 
 export interface SuggestedUser {
