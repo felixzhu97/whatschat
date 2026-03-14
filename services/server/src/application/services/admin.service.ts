@@ -1,7 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@/infrastructure/database/prisma.service";
 import { ElasticsearchService } from "@/infrastructure/database/elasticsearch.service";
 import { CassandraPostRepository } from "@/infrastructure/database/cassandra-post.repository";
+import { VisionClientService } from "./vision-client.service";
+import { ConfigService } from "@/infrastructure/config/config.service";
+import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
 
 @Injectable()
 export class AdminService {
@@ -9,6 +12,7 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly elasticsearch: ElasticsearchService,
     private readonly postRepo: CassandraPostRepository,
+    private readonly visionClient: VisionClientService,
   ) {}
 
   async getStats() {
@@ -271,31 +275,66 @@ export class AdminService {
     return { success: true };
   }
 
-  async getPosts(page = 1, limit = 20, search?: string) {
+  async getModerationStats(): Promise<{ pass: number; reject: number; pending: number }> {
+    const client = this.elasticsearch.getClient();
+    if (!client) {
+      return { pass: 0, reject: 0, pending: 0 };
+    }
+    try {
+      const [passRes, rejectRes, pendingRes] = await Promise.all([
+        client.count({ index: "posts", query: { term: { moderationStatus: "pass" } } }),
+        client.count({ index: "posts", query: { term: { moderationStatus: "reject" } } }),
+        client.count({ index: "posts", query: { bool: { must_not: [{ term: { moderationStatus: "pass" } }, { term: { moderationStatus: "reject" } }] } } }),
+      ]);
+      return {
+        pass: passRes.count ?? 0,
+        reject: rejectRes.count ?? 0,
+        pending: pendingRes.count ?? 0,
+      };
+    } catch {
+      return { pass: 0, reject: 0, pending: 0 };
+    }
+  }
+
+  async getPosts(page = 1, limit = 20, search?: string, moderationStatus?: string) {
     const client = this.elasticsearch.getClient();
     if (!client) {
       return { data: [], pagination: { page, limit, total: 0, totalPages: 0 } };
     }
     const from = (page - 1) * limit;
-    const query: Record<string, unknown> = search?.trim()
-      ? {
-          bool: {
-            should: [
-              { match: { caption: search } },
-              { match: { hashtags: search } },
-              { match: { autoTags: search } },
-            ],
-            minimum_should_match: 1,
-          },
-        }
-      : { match_all: {} };
+    const must: Record<string, unknown>[] = [];
+    if (search?.trim()) {
+      must.push({
+        bool: {
+          should: [
+            { match: { caption: search } },
+            { match: { hashtags: search } },
+            { match: { autoTags: search } },
+          ],
+          minimum_should_match: 1,
+        },
+      });
+    }
+    if (moderationStatus === "pass" || moderationStatus === "reject") {
+      must.push({ term: { moderationStatus } });
+    } else if (moderationStatus === "pending") {
+      must.push({
+        bool: {
+          must_not: [
+            { term: { moderationStatus: "pass" } },
+            { term: { moderationStatus: "reject" } },
+          ],
+        },
+      });
+    }
+    const query: Record<string, unknown> = must.length > 0 ? { bool: { must } } : { match_all: {} };
     const result = await client.search({
       index: "posts",
       from,
       size: limit,
       query,
       sort: [{ createdAt: { order: "desc" } }],
-      _source: ["postId", "userId", "caption", "hashtags", "autoTags", "mediaUrls", "createdAt"],
+      _source: ["postId", "userId", "caption", "hashtags", "autoTags", "mediaUrls", "createdAt", "moderationStatus", "moderationCategories", "moderationAt", "hidden"],
     });
     const hits = (result.hits.hits || []) as Array<{ _source: Record<string, unknown> }>;
     const total = typeof result.hits.total === "object" ? (result.hits.total as { value: number }).value : (result.hits.total as number) ?? 0;
@@ -310,7 +349,14 @@ export class AdminService {
     const data = hits.map((h) => {
       const postId = h._source["postId"] as string;
       const mediaUrls = mediaByPostId.get(postId) ?? (h._source["mediaUrls"] as string[] | undefined);
-      return { ...h._source, mediaUrls: mediaUrls ?? [] };
+      return {
+        ...h._source,
+        mediaUrls: mediaUrls ?? [],
+        moderationStatus: h._source["moderationStatus"] ?? "pending",
+        moderationCategories: (h._source["moderationCategories"] as string[] | undefined) ?? [],
+        moderationAt: h._source["moderationAt"] ?? null,
+        hidden: h._source["hidden"] === true,
+      };
     });
     return {
       data,
@@ -321,5 +367,150 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async deletePostAdmin(postId: string): Promise<void> {
+    const row = await this.postRepo.getPostById(postId);
+    if (!row) throw new NotFoundException("Post not found");
+    await this.postRepo.deletePost(postId, row.user_id);
+    const client = this.elasticsearch.getClient();
+    if (client) {
+      try {
+        await client.delete({ index: "posts", id: postId });
+      } catch {
+        // ignore if doc missing
+      }
+    }
+  }
+
+  async hidePost(postId: string): Promise<void> {
+    const client = this.elasticsearch.getClient();
+    if (!client) throw new NotFoundException("Elasticsearch not available");
+    try {
+      await client.update({
+        index: "posts",
+        id: postId,
+        body: { doc: { hidden: true }, doc_as_upsert: false },
+      });
+    } catch (e: unknown) {
+      const err = e && typeof e === "object" ? (e as { meta?: { body?: { error?: { type?: string } } } }) : null;
+      const errorType = err?.meta?.body?.error?.type;
+      if (errorType !== "document_missing_exception") throw e;
+    }
+  }
+
+  async unhidePost(postId: string): Promise<void> {
+    const client = this.elasticsearch.getClient();
+    if (!client) throw new NotFoundException("Elasticsearch not available");
+    await client.update({
+      index: "posts",
+      id: postId,
+      body: { doc: { hidden: false }, doc_as_upsert: false },
+    });
+  }
+
+  async recheckModeration(postId: string): Promise<{ moderationStatus: string; moderationCategories: string[]; moderationAt: string }> {
+    const config = ConfigService.loadConfig();
+    if (!config.vision.enabled || !config.vision.moderationEnabled) {
+      return { moderationStatus: "pending", moderationCategories: [], moderationAt: new Date().toISOString() };
+    }
+    const row = await this.postRepo.getPostById(postId);
+    if (!row) throw new NotFoundException("Post not found");
+    const rawUrls = row.media_urls ?? [];
+    const urls = rawUrls.slice(0, config.vision.maxImagesPerPost).filter((u): u is string => typeof u === "string");
+    let moderationRejected = false;
+    const moderationCategorySet = new Set<string>();
+    const firstUrl = urls[0];
+    if (row.type === "VIDEO" && firstUrl && HTTP_URL_PREFIX.test(firstUrl)) {
+      const mod = await this.visionClient.moderateVideoFromUrl(firstUrl);
+      if (!mod.safe) {
+        const real = mod.categories.filter((c) => c.label !== "error");
+        if (real.length > 0) {
+          moderationRejected = true;
+          real.forEach((c) => moderationCategorySet.add(c.label));
+        }
+      }
+    } else {
+      for (const url of urls) {
+        try {
+          let mod: { safe: boolean; categories: { label: string }[] };
+          if (HTTP_URL_PREFIX.test(url)) {
+            mod = await this.visionClient.moderateFromUrl(url);
+          } else {
+            const parsed = parseDataUrl(url);
+            if (!parsed) continue;
+            mod = await this.visionClient.moderateFromBuffer(parsed.buffer, parsed.mimeType);
+          }
+          if (!mod.safe) {
+            const real = mod.categories.filter((c) => c.label !== "error");
+            if (real.length > 0) {
+              moderationRejected = true;
+              real.forEach((c) => moderationCategorySet.add(c.label));
+            }
+          }
+        } catch {
+          // skip failed media
+        }
+      }
+    }
+    const moderationAt = new Date().toISOString();
+    const moderationStatus = moderationRejected ? "reject" : "pass";
+    const moderationCategories = Array.from(moderationCategorySet);
+    const es = this.elasticsearch.getClient();
+    if (es) {
+      try {
+        await es.update({
+          index: "posts",
+          id: postId,
+          body: { doc: { moderationStatus, moderationCategories, moderationAt }, doc_as_upsert: false },
+        });
+      } catch {
+        // ignore
+      }
+    }
+    return { moderationStatus, moderationCategories, moderationAt };
+  }
+
+  async batchDeletePosts(postIds: string[]): Promise<{ deleted: number; failed: string[] }> {
+    const failed: string[] = [];
+    for (const postId of postIds) {
+      try {
+        const row = await this.postRepo.getPostById(postId);
+        if (!row) {
+          failed.push(postId);
+          continue;
+        }
+        await this.postRepo.deletePost(postId, row.user_id);
+        const client = this.elasticsearch.getClient();
+        if (client) {
+          try {
+            await client.delete({ index: "posts", id: postId });
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        failed.push(postId);
+      }
+    }
+    return { deleted: postIds.length - failed.length, failed };
+  }
+
+  async batchHidePosts(postIds: string[]): Promise<{ hidden: number; failed: string[] }> {
+    const client = this.elasticsearch.getClient();
+    if (!client) throw new NotFoundException("Elasticsearch not available");
+    const failed: string[] = [];
+    for (const postId of postIds) {
+      try {
+        await client.update({
+          index: "posts",
+          id: postId,
+          body: { doc: { hidden: true }, doc_as_upsert: false },
+        });
+      } catch {
+        failed.push(postId);
+      }
+    }
+    return { hidden: postIds.length - failed.length, failed };
   }
 }

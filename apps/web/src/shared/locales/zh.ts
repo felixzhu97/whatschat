@@ -199,6 +199,7 @@ export const zh = {
     reply: "回复",
     loading: "加载中...",
     error: "加载失败",
+    noMoreContent: "没有更多内容了",
   },
   comments: {
     title: "评论",
@@ -211,6 +212,8 @@ export const zh = {
     hoursAgo: "{{count}}小时",
     daysAgo: "{{count}}天",
     weeksAgo: "{{count}}周",
+    errorTitle: "评论发布失败",
+    errorGeneric: "请检查内容后重试。",
   },
   profile: {
     editProfile: "编辑个人资料",
@@ -253,6 +256,9 @@ export const zh = {
     selectFrameHint: "拖动选择画面",
     recommendedTags: "推荐标签",
     addTag: "添加标签",
+    errorTitle: "发布失败",
+    errorGeneric: "请检查内容后重试。",
+    violationMessage: "内容违反社区规范，请更换或删除违规内容后重试。",
   },
   notifications: {
     activityTitle: "你帖子的动态",

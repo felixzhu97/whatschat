@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { MongoCommentRepository } from "../../infrastructure/database/mongo-comment.repository";
 import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
 import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
+import { AiService } from "./ai.service";
 import { NotificationService } from "./notification.service";
 import { ChatGateway } from "../../presentation/websocket/chat.gateway";
 
@@ -15,9 +16,14 @@ export class CommentService {
     private readonly kafka: KafkaProducerService,
     private readonly notificationService: NotificationService,
     private readonly chatGateway: ChatGateway,
+    private readonly aiService: AiService,
   ) {}
 
   async create(postId: string, userId: string, content: string, parentId?: string) {
+    const textMod = await this.aiService.moderateText(content);
+    if (!textMod.safe) {
+      throw new BadRequestException("Content violates community guidelines");
+    }
     const id = await this.commentRepo.insert({
       postId,
       userId,

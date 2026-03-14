@@ -3,6 +3,7 @@ import {
   Get,
   Put,
   Delete,
+  Post,
   Param,
   Query,
   Body,
@@ -168,17 +169,70 @@ export class AdminController {
     @Query("page") page: string = "1",
     @Query("limit") limit: string = "20",
     @Query("search") search?: string,
+    @Query("moderationStatus") moderationStatus?: string,
   ) {
     const result = await this.adminService.getPosts(
       parseInt(page, 10),
       parseInt(limit, 10),
       search,
+      moderationStatus,
     );
     return {
       success: true,
       data: result.data,
       pagination: result.pagination,
     };
+  }
+
+  @Delete("posts/:postId")
+  @ApiOperation({ summary: "物理删除帖子" })
+  async deletePost(@Param("postId") postId: string) {
+    await this.adminService.deletePostAdmin(postId);
+    return { success: true, message: "Post deleted" };
+  }
+
+  @Put("posts/:postId/hide")
+  @ApiOperation({ summary: "隐藏帖子" })
+  async hidePost(@Param("postId") postId: string) {
+    await this.adminService.hidePost(postId);
+    return { success: true, message: "Post hidden" };
+  }
+
+  @Put("posts/:postId/unhide")
+  @ApiOperation({ summary: "取消隐藏帖子" })
+  async unhidePost(@Param("postId") postId: string) {
+    await this.adminService.unhidePost(postId);
+    return { success: true, message: "Post unhidden" };
+  }
+
+  @Post("posts/:postId/recheck-moderation")
+  @ApiOperation({ summary: "重新识别违规内容" })
+  async recheckModeration(@Param("postId") postId: string) {
+    const result = await this.adminService.recheckModeration(postId);
+    return { success: true, data: result };
+  }
+
+  @Post("posts/batch-delete")
+  @ApiOperation({ summary: "批量物理删除帖子" })
+  async batchDeletePosts(@Body() body: { postIds: string[] }) {
+    const postIds = Array.isArray(body?.postIds) ? body.postIds : [];
+    const result = await this.adminService.batchDeletePosts(postIds);
+    return { success: true, data: result };
+  }
+
+  @Post("posts/batch-hide")
+  @ApiOperation({ summary: "批量隐藏帖子" })
+  async batchHidePosts(@Body() body: { postIds: string[] }) {
+    const postIds = Array.isArray(body?.postIds) ? body.postIds : [];
+    const result = await this.adminService.batchHidePosts(postIds);
+    return { success: true, data: result };
+  }
+
+  @Get("content-safety/stats")
+  @ApiOperation({ summary: "内容安全审核统计" })
+  async getContentSafetyStats() {
+    const stats = await this.adminService.getModerationStats();
+    return { success: true, data: stats };
   }
 
   @Get("analytics/events")

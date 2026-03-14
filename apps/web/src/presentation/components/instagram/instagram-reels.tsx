@@ -407,7 +407,7 @@ export function InstagramReels({
         <ReelsScrollWrap>
           <ReelsScroll ref={scrollRef}>
           {reels.map((post, index) => (
-            <ReelCell key={post.id}>
+            <ReelCell key={`reel-${post.id}-${index}`}>
               <VideoWrap onClick={() => handleVideoClick(index)}>
                 <VideoEl
                   ref={(el: HTMLVideoElement | null) => {

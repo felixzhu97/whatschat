@@ -177,6 +177,20 @@ package "Recommendation Stack" {
   end note
 }
 
+package "Vision Stack" {
+  component [Vision Service] as VisionSvc #LightYellow
+  component [Python 3] as PythonVision
+  component [FastAPI] as FastAPI
+  component [NudeNet] as NudeNet
+  component [ResNet50] as ResNet50
+  component [OpenCV] as OpenCV
+  note right of VisionSvc
+    services/vision (:8001)
+    Tag suggestion, image/video NSFW moderation
+    Sync on post create; Kafka consumer updates ES
+  end note
+}
+
 package "Monitoring & Logging" {
   component [Winston] as Winston
   component [Health Check] as HealthCheck
@@ -266,6 +280,13 @@ Python --> Implicit : ALS
 Python --> Annoy : approximate NN
 Python --> PostgreSQL : ETL (read)
 Python --> Cassandra : ETL (read)
+NestJS --> VisionSvc : HTTP :8001
+VisionSvc --> FastAPI : built on
+VisionSvc --> PythonVision : runtime
+PythonVision --> FastAPI : framework
+PythonVision --> NudeNet : NSFW detection
+PythonVision --> ResNet50 : image tags
+PythonVision --> OpenCV : video frames
 
 \' Service connections
 NestJS --> FileStorage : file storage
@@ -302,6 +323,7 @@ rectangle "Tech Stack Summary" {
     - Auth: JWT + Passport
     - Realtime: Socket.IO + WebRTC
     - Recommendation: Python, Celery, LightFM, implicit, Annoy (batch jobs to Redis)
+    - Vision: Python, FastAPI, NudeNet, ResNet50, OpenCV (content moderation, tag suggestion)
   end note
   
   note as N3
@@ -322,13 +344,14 @@ note bottom
   
   1. **Clients** – Web/Admin/Mobile in apps/web, apps/admin, apps/mobile
   2. **Server** – NestJS in services/server
-  3. **Python services** – services/recommendation (Celery, ranking API), services/media-gen (image/video/voice, :3456), services/vision (tag suggestion, :8001)
+  3. **Python services** – services/recommendation (Celery, ranking API), services/media-gen (image/video/voice, :3456), services/vision (tag suggestion, content moderation, :8001)
   4. **Data layer** – PostgreSQL as primary DB; Redis for cache, Pub/Sub, suggestion/explore caches, Celery broker; Cassandra for posts, feed, engagement, post cover_url; MongoDB for comments and activity notifications; Elasticsearch for search
   5. **Recommendation** – Python (Celery, LightFM, implicit, Annoy) batch jobs write suggestions and explore list to Redis; API reads from Redis
-  6. **Protocols** – REST API for synchronous calls, GraphQL for feed read (batch post details, coverUrl), WebSocket for realtime messaging and notification:new, WebRTC for audio/video
-  7. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
-  8. **Storage** – Local file storage, Elasticsearch for full‑text search
-  9. **Deployment** – Docker‑based containerization across development, test, and production
+  6. **Vision** – Python (FastAPI, NudeNet, ResNet50) for tag suggestion and image/video moderation; sync on create + Kafka async; Admin recheck/hide/batch delete
+  7. **Protocols** – REST API for synchronous calls, GraphQL for feed read (batch post details, coverUrl), WebSocket for realtime messaging and notification:new, WebRTC for audio/video
+  8. **Security** – JWT authentication, bcrypt password hashing, Helmet security headers, CORS control
+  9. **Storage** – Local file storage, Elasticsearch for full‑text search
+  10. **Deployment** – Docker‑based containerization across development, test, and production
   
   The technology choices emphasize performance, scalability, security, and developer productivity.
 end note

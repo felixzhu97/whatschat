@@ -17,6 +17,9 @@ node_modules
 # Testing
 coverage
 *.lcov
+htmlcov
+.pytest_cache
+.mypy_cache
 
 # Turbo
 .turbo
@@ -30,6 +33,7 @@ out/
 build
 dist
 *.tsbuildinfo
+.nest
 
 # Expo / React Native
 .expo
@@ -64,6 +68,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 *.pem
+.cache
 
 # IDEs
 .vscode
@@ -79,6 +84,7 @@ Thumbs.db
 # Services
 services/media-gen/output/
 celerybeat-schedule
+celerybeat-schedule.db
 celerybeat.pid
 *.celery
 
@@ -92,5 +98,5 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
 *.whl
+.ruff_cache

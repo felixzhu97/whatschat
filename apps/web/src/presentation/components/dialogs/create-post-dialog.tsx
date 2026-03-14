@@ -72,6 +72,17 @@ const HeaderAction = styled.button`
   }
 `;
 
+const InlineError = styled.p`
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgb(237 73 86);
+  text-align: center;
+  border-bottom: ${BORDER};
+  background: rgb(255 255 255);
+`;
+
 const SelectContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -459,6 +470,8 @@ export function CreatePostDialog({
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
   const [suggestedLabels, setSuggestedLabels] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [violationError, setViolationError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -469,6 +482,10 @@ export function CreatePostDialog({
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [previewUrls]);
+
+  useEffect(() => {
+    setViolationError(null);
+  }, [files, caption]);
 
   useEffect(() => {
     if (step !== "caption" || files.length === 0) return;
@@ -612,6 +629,8 @@ export function CreatePostDialog({
 
   const handleShare = useCallback(async () => {
     const trimmed = caption.trim();
+    setViolationError(null);
+    setSharing(true);
     setStep("sharing");
     try {
       if (files.length > 0) {
@@ -626,10 +645,14 @@ export function CreatePostDialog({
         await Promise.resolve(onSubmit(trimmed || "", [], "TEXT"));
       }
       setStep("success");
-    } catch {
+    } catch (err) {
       setStep("caption");
+      const message = err instanceof Error ? err.message : "";
+      setViolationError(message || t("createPost.errorGeneric"));
+    } finally {
+      setSharing(false);
     }
-  }, [caption, files, fileToDataUrl, hasVideo, videoCoverUrls, onSubmit]);
+  }, [caption, files, fileToDataUrl, hasVideo, videoCoverUrls, onSubmit, t]);
 
   if (!open) return null;
 
@@ -831,10 +854,19 @@ export function CreatePostDialog({
                   <ArrowLeft size={24} />
                 </BackBtn>
                 <HeaderTitle>{t("createPost.title")}</HeaderTitle>
-                <HeaderAction type="button" onClick={handleShare}>
-                  {t("createPost.share")}
+                <HeaderAction
+                  type="button"
+                  onClick={handleShare}
+                  disabled={sharing || violationError !== null}
+                >
+                  {sharing ? t("createPost.sharing") : t("createPost.share")}
                 </HeaderAction>
               </HeaderBar>
+              {violationError && (
+                <InlineError role="alert">
+                  {t("createPost.violationMessage")}
+                </InlineError>
+              )}
               <CaptionLayout style={{ flex: 1, minHeight: 0 }}>
                 <CaptionLeft style={{ position: "relative" }}>
                   {files.length > 1 && (

@@ -544,7 +544,10 @@ export function InstagramMain() {
 
     if (currentPage === "chat" && instagramView === "feed") {
       return (
-        <CenterColumn ref={feedScrollRef} style={{ overflow: "auto" }}>
+        <CenterColumn
+          ref={feedScrollRef}
+          style={{ overflow: "auto", scrollBehavior: "smooth" }}
+        >
           <InstagramFeed
             stories={displayStories}
             posts={feed.posts}

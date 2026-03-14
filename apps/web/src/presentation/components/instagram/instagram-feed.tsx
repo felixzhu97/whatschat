@@ -285,12 +285,35 @@ const FeedLoading = styled(InstagramSpinnerWrap)`
   padding: 24px 16px;
 `;
 
-const FeedLoadMoreWrap = styled.div`
+const FEED_BOTTOM_HEIGHT = 72;
+
+const FeedBottomSlot = styled.div`
+  min-height: ${FEED_BOTTOM_HEIGHT}px;
   display: flex;
-  justify-content: center;
-  padding: 16px;
-  min-height: 52px;
   align-items: center;
+  justify-content: center;
+  position: relative;
+`;
+
+const FeedSentinelInner = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+`;
+
+const FeedNoMore = styled.div`
+  min-height: ${FEED_BOTTOM_HEIGHT}px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  color: var(--ig-secondary-text, rgb(142, 142, 142));
+  font-size: 14px;
+  box-sizing: border-box;
 `;
 
 function isVideoUrl(url: string): boolean {
@@ -315,13 +338,6 @@ interface InstagramFeedProps {
   hasMore?: boolean;
 }
 
-const FeedSentinel = styled.div`
-  height: 1px;
-  width: 100%;
-  pointer-events: none;
-  visibility: hidden;
-`;
-
 export function InstagramFeed({
   stories,
   posts,
@@ -342,18 +358,20 @@ export function InstagramFeed({
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const sentinelRef = useRef<HTMLDivElement>(null);
   const onLoadMoreRef = useRef(onLoadMore);
+  const loadingRef = useRef(loading);
   onLoadMoreRef.current = onLoadMore;
+  loadingRef.current = loading;
   const [pausedPostId, setPausedPostId] = useState<string | null>(null);
   const [mediaIndexByPostId, setMediaIndexByPostId] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (!hasMore || loading) return;
+    if (!hasMore) return;
     const sentinel = sentinelRef.current;
     const root = scrollContainerRef?.current ?? null;
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!entries[0]?.isIntersecting) return;
+        if (!entries[0]?.isIntersecting || loadingRef.current) return;
         const fn = onLoadMoreRef.current;
         if (fn) requestAnimationFrame(() => fn());
       },
@@ -361,7 +379,7 @@ export function InstagramFeed({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, loading, scrollContainerRef]);
+  }, [hasMore, scrollContainerRef]);
 
   const setPostMediaIndex = useCallback((postId: string, index: number) => {
     setMediaIndexByPostId((prev) => ({ ...prev, [postId]: index }));
@@ -390,8 +408,8 @@ export function InstagramFeed({
       )}
       <StoriesWrap>
         <StoriesScroll>
-          {stories.map((s) => (
-            <StoryItemWrap key={s.id} type="button" onClick={() => onStoryClick?.(s)}>
+          {stories.map((s, i) => (
+            <StoryItemWrap key={`story-${s.id}-${i}`} type="button" onClick={() => onStoryClick?.(s)}>
               <StoryRing $hasUnseen={s.hasUnseen}>
                 <StoryAvatarWrap>
                   <Avatar style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
@@ -406,8 +424,8 @@ export function InstagramFeed({
         </StoriesScroll>
       </StoriesWrap>
 
-      {posts.map((post) => (
-        <PostCard key={post.id}>
+      {posts.map((post, i) => (
+        <PostCard key={`post-${post.id}-${i}`}>
           <PostHeader>
             <PostHeaderLeft>
               <Avatar style={{ width: 32, height: 32 }}>
@@ -543,11 +561,14 @@ export function InstagramFeed({
           </PostCaption>
         </PostCard>
       ))}
-      {hasMore && <FeedSentinel ref={sentinelRef} aria-hidden />}
-      {loadingMore && (
-        <FeedLoadMoreWrap>
-          <InstagramSpinnerRing $size={20} />
-        </FeedLoadMoreWrap>
+      {hasMore && (
+        <FeedBottomSlot>
+          <FeedSentinelInner ref={sentinelRef} aria-hidden />
+          {loadingMore && <InstagramSpinnerRing $size={20} />}
+        </FeedBottomSlot>
+      )}
+      {!hasMore && posts.length > 0 && (
+        <FeedNoMore>{t("feed.noMoreContent")}</FeedNoMore>
       )}
     </FeedRoot>
   );

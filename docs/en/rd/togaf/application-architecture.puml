@@ -120,7 +120,17 @@ package "Recommendation Application" {
     Batch: suggestions, explore hot list, vector towers
     Online: FastAPI ranking service (Feed/Explore/Reels) + vector recall
     Writes to Redis / Faiss, called by NestJS RecommendationService
-    Other Python: services/media-gen (:3456), services/vision (:8001 tag suggestion)
+    Other Python: services/media-gen (:3456), services/vision (:8001 tag suggestion, moderation)
+  end note
+}
+
+package "Vision Application" {
+  component [Vision Service] as VisionSvc #LightYellow
+  note right of VisionSvc
+    Python (services/vision), FastAPI :8001
+    Tag suggestion (ResNet50), content moderation (NudeNet, OpenCV video frames)
+    Sync moderation on post create; Kafka post.created for async ES update
+    Admin recheck, hide, batch delete/hide call API → Vision
   end note
 }
 
@@ -218,6 +228,8 @@ CommentService --> CommentRepo : data access
 RecJobs --> CacheService : write suggestions, explore
 RecJobs --> PostgreSQL : ETL follow (read)
 RecJobs --> Cassandra : ETL engagement, posts (read)
+PostService --> VisionSvc : moderate on create
+RestGateway --> VisionSvc : suggest tags, admin recheck (via Admin API)
 
 MessageService --> CacheService : cache access
 ChatService --> CacheService : cache access
@@ -278,7 +290,7 @@ note bottom
   
   Applications communicate via REST, WebSocket, and WebRTC to support both synchronous and asynchronous interactions.
   
-  **Note**: Activity notifications use MongoDB + REST + WebSocket `notification:new`. Post video cover uses Cassandra `cover_url` + optional `coverUrl` on create/get/GraphQL.
+  **Note**: Activity notifications use MongoDB + WebSocket `notification:new`. Content moderation: Vision (NudeNet, ResNet50) sync on create + Kafka async; Admin recheck/hide/batch delete. Post cover uses Cassandra `cover_url`.
 end note
 
 @enduml

@@ -15,6 +15,7 @@ package "Business Capabilities" {
   component [Instant Messaging] as Messaging
   component [Feed & Posts] as FeedPosts
   component [Recommendations & Explore] as RecExplore
+  component [Content Moderation] as ContentMod
   component [Voice & Video Calls] as VoiceVideo
   component [File Sharing] as FileShare
   component [Group Management] as GroupMgmt
@@ -50,6 +51,8 @@ EndUser --> UserMgmt : uses
 EndUser --> Messaging : uses
 EndUser --> FeedPosts : uses
 EndUser --> RecExplore : uses
+EndUser --> ContentMod : (enforced)
+Admin --> ContentMod : manages
 EndUser --> VoiceVideo : uses
 EndUser --> FileShare : uses
 EndUser --> GroupMgmt : uses

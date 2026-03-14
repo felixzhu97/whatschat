@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
 import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
 import { ElasticsearchService } from "../../infrastructure/database/elasticsearch.service";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
+import { AiService } from "./ai.service";
 import { UsersService } from "./users.service";
+import { VisionClientService } from "./vision-client.service";
+import { ConfigService } from "../../infrastructure/config/config.service";
+import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
 import logger from "@/shared/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 
@@ -23,11 +27,59 @@ export class PostService {
     private readonly elasticsearch: ElasticsearchService,
     private readonly kafka: KafkaProducerService,
     private readonly usersService: UsersService,
+    private readonly aiService: AiService,
+    private readonly visionClient: VisionClientService,
   ) {}
 
   async createPost(userId: string, data: CreatePostData) {
-    const postId = uuidv4();
+    const caption = (data.caption ?? "").trim();
+    const textMod = await this.aiService.moderateText(caption);
+    if (!textMod.safe) {
+      throw new BadRequestException("Content violates community guidelines");
+    }
     const mediaUrls = data.mediaUrls ?? [];
+    const config = ConfigService.loadConfig();
+    if (config.vision.enabled && config.vision.moderationEnabled && mediaUrls.length > 0) {
+      const urls = mediaUrls
+        .slice(0, config.vision.maxImagesPerPost)
+        .filter((u): u is string => typeof u === "string");
+      if (data.type === "VIDEO") {
+        const firstUrl = urls[0];
+        if (firstUrl && HTTP_URL_PREFIX.test(firstUrl)) {
+          try {
+            const mod = await this.visionClient.moderateVideoFromUrl(firstUrl);
+            if (!mod.safe) {
+              const real = mod.categories.filter((c) => c.label !== "error");
+              if (real.length > 0) throw new BadRequestException("Content violates community guidelines");
+            }
+          } catch (err) {
+            if (err instanceof BadRequestException) throw err;
+            logger.warn(`Sync video moderation failed: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      } else {
+        for (const url of urls) {
+          try {
+            let mod: { safe: boolean; categories: { label: string }[] };
+            if (HTTP_URL_PREFIX.test(url)) {
+              mod = await this.visionClient.moderateFromUrl(url);
+            } else {
+              const parsed = parseDataUrl(url);
+              if (!parsed) continue;
+              mod = await this.visionClient.moderateFromBuffer(parsed.buffer, parsed.mimeType);
+            }
+            if (!mod.safe) {
+              const real = mod.categories.filter((c) => c.label !== "error");
+              if (real.length > 0) throw new BadRequestException("Content violates community guidelines");
+            }
+          } catch (err) {
+            if (err instanceof BadRequestException) throw err;
+            logger.warn(`Sync image moderation failed: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      }
+    }
+    const postId = uuidv4();
     await this.postRepo.insertPost({
       postId,
       userId,
@@ -55,6 +107,7 @@ export class PostService {
             autoTags: [],
             mediaUrls,
             createdAt,
+            moderationStatus: "pending",
           },
         });
       } catch (err) {
@@ -112,12 +165,15 @@ export class PostService {
     if (es) {
       try {
         const doc = await es.get({ index: "posts", id: postId });
-        const source = (doc as unknown as { _source?: { autoTags?: string[] } })._source;
+        const source = (doc as unknown as { _source?: { autoTags?: string[]; moderationStatus?: string; hidden?: boolean } })._source;
+        if (source?.hidden === true || source?.moderationStatus === "reject") {
+          throw new NotFoundException("Post not found");
+        }
         if (source?.autoTags && source.autoTags.length > 0) {
           result["autoTags"] = source.autoTags;
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        if (err instanceof NotFoundException) throw err;
       }
     }
     return result;
@@ -146,13 +202,15 @@ export class PostService {
       );
     }
     let autoTagsByPostId: Map<string, string[]> = new Map();
+    const rejectedPostIds = new Set<string>();
     const es = this.elasticsearch.getClient();
     if (es && postIds.length > 0) {
       try {
         const mget = await es.mget({ index: "posts", ids: postIds });
-        const docs = (mget as { docs?: Array<{ _source?: { autoTags?: string[] }; _id?: string }> }).docs ?? [];
+        const docs = (mget as { docs?: Array<{ _source?: { autoTags?: string[]; moderationStatus?: string; hidden?: boolean }; _id?: string }> }).docs ?? [];
         for (const d of docs) {
           const id = d._id;
+          if (id && (d._source?.hidden === true || d._source?.moderationStatus === "reject")) rejectedPostIds.add(id);
           const tags = d._source?.autoTags;
           if (id && Array.isArray(tags) && tags.length > 0) autoTagsByPostId.set(id, tags);
         }
@@ -162,7 +220,7 @@ export class PostService {
     }
     return postIds.map((postId, idx) => {
       const row = rows[idx];
-      if (!row) return null;
+      if (!row || rejectedPostIds.has(postId)) return null;
       const author = userMap.get(row.user_id);
       const counts = countsMap.get(postId) ?? { likeCount: 0, commentCount: 0, saveCount: 0 };
       const result: Record<string, unknown> = {
@@ -191,8 +249,23 @@ export class PostService {
 
   async getPostsByUser(userId: string, limit: number, pageState?: string) {
     const { rows, pageState: next } = await this.postRepo.getPostsByUserId(userId, limit, pageState);
+    const postIds = rows.map((r) => r.post_id);
+    const rejectedPostIds = new Set<string>();
+    const es = this.elasticsearch.getClient();
+    if (es && postIds.length > 0) {
+      try {
+        const mget = await es.mget({ index: "posts", ids: postIds });
+        const docs = (mget as { docs?: Array<{ _source?: { moderationStatus?: string; hidden?: boolean }; _id?: string }> }).docs ?? [];
+        for (const d of docs) {
+          if (d._id && (d._source?.hidden === true || d._source?.moderationStatus === "reject")) rejectedPostIds.add(d._id);
+        }
+      } catch {
+        /**/
+      }
+    }
+    const filtered = rows.filter((r) => !rejectedPostIds.has(r.post_id));
     return {
-      posts: rows.map((r) => ({
+      posts: filtered.map((r) => ({
         postId: r.post_id,
         userId: r.user_id,
         createdAt: r.created_at,

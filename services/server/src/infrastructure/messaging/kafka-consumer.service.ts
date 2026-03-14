@@ -9,22 +9,7 @@ import { ElasticsearchService } from "../database/elasticsearch.service";
 import { CassandraPostRepository } from "../database/cassandra-post.repository";
 import { VisionClientService } from "@/application/services/vision-client.service";
 import logger from "@/shared/utils/logger";
-
-const HTTP_URL_PREFIX = /^https?:\/\//i;
-const DATA_URL_PREFIX = /^data:([^;]+);base64,(.+)$/i;
-
-function parseDataUrl(dataUrl: string): { buffer: Buffer; mimeType: string } | null {
-  const match = String(dataUrl).match(DATA_URL_PREFIX);
-  if (!match || match[1] == null || match[2] == null) return null;
-  try {
-    const mimeType = match[1].trim() || "image/jpeg";
-    const base64 = match[2];
-    const buffer = Buffer.from(base64, "base64");
-    return buffer.length > 0 ? { buffer, mimeType } : null;
-  } catch {
-    return null;
-  }
-}
+import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
 
 const OFFLINE_KEY_PREFIX = "offline:";
 const FEED_CACHE_KEY_PREFIX = "feed:";
@@ -171,15 +156,37 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                 const toProcess = rawUrls.slice(0, maxImages).filter((u): u is string => typeof u === "string");
                 const allLabels: string[] = [];
                 const seen = new Set<string>();
+                let moderationRejected = false;
+                const moderationCategorySet = new Set<string>();
                 for (const url of toProcess) {
                   try {
                     let labels: string[];
                     if (HTTP_URL_PREFIX.test(url)) {
                       labels = await this.visionClient.predictFromUrl(url);
+                      if (this.config.vision.moderationEnabled) {
+                        const mod = await this.visionClient.moderateFromUrl(url);
+                        if (!mod.safe) {
+                          const real = mod.categories.filter((c) => c.label !== "error");
+                          if (real.length > 0) {
+                            moderationRejected = true;
+                            real.forEach((c) => moderationCategorySet.add(c.label));
+                          }
+                        }
+                      }
                     } else {
                       const parsed = parseDataUrl(url);
                       if (!parsed) continue;
                       labels = await this.visionClient.predictFromBuffer(parsed.buffer, parsed.mimeType);
+                      if (this.config.vision.moderationEnabled) {
+                        const mod = await this.visionClient.moderateFromBuffer(parsed.buffer, parsed.mimeType);
+                        if (!mod.safe) {
+                          const real = mod.categories.filter((c) => c.label !== "error");
+                          if (real.length > 0) {
+                            moderationRejected = true;
+                            real.forEach((c) => moderationCategorySet.add(c.label));
+                          }
+                        }
+                      }
                     }
                     for (const l of labels) {
                       const n = l.trim().toLowerCase();
@@ -192,14 +199,43 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                     logger.warn(`Vision predict failed: ${safeErrorMessage(err)}`);
                   }
                 }
+                if (payload.type === "VIDEO" && this.config.vision.moderationEnabled && rawUrls.length > 0) {
+                  const firstUrl = rawUrls[0];
+                  if (typeof firstUrl === "string" && HTTP_URL_PREFIX.test(firstUrl)) {
+                    try {
+                      const mod = await this.visionClient.moderateVideoFromUrl(firstUrl);
+                      if (!mod.safe) {
+                        const real = mod.categories.filter((c) => c.label !== "error");
+                        if (real.length > 0) {
+                          moderationRejected = true;
+                          real.forEach((c) => moderationCategorySet.add(c.label));
+                        }
+                      }
+                    } catch (err) {
+                      logger.warn(`Vision moderate video failed: ${safeErrorMessage(err)}`);
+                    }
+                  }
+                }
                 const autoTags = allLabels.slice(0, MAX_AUTO_TAGS);
+                const moderationAt = new Date().toISOString();
+                const moderationStatus = this.config.vision.moderationEnabled
+                  ? (moderationRejected ? "reject" : "pass")
+                  : "pending";
+                const moderationCategories = Array.from(moderationCategorySet);
                 const es = this.elasticsearch.getClient();
-                if (es && autoTags.length > 0) {
+                const hasUpdate = autoTags.length > 0 || this.config.vision.moderationEnabled;
+                if (es && hasUpdate) {
+                  const doc: Record<string, unknown> = { autoTags };
+                  if (this.config.vision.moderationEnabled) {
+                    doc["moderationStatus"] = moderationStatus;
+                    doc["moderationCategories"] = moderationCategories;
+                    doc["moderationAt"] = moderationAt;
+                  }
                   try {
                     await es.update({
                       index: "posts",
                       id: payload.postId,
-                      body: { doc: { autoTags } } as { doc: { autoTags: string[] } },
+                      body: { doc } as { doc: Record<string, unknown> },
                       doc_as_upsert: false,
                     });
                   } catch (updateErr: unknown) {
@@ -222,6 +258,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                           autoTags,
                           mediaUrls: safeMediaUrls,
                           createdAt: payload.createdAt,
+                          moderationStatus,
+                          moderationCategories,
+                          moderationAt,
                         },
                       });
                     } else {

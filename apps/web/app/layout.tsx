@@ -5,6 +5,7 @@ import { I18nProvider } from "@/presentation/providers/i18n-provider";
 import { GrowthBookProviderWrapper } from "@/presentation/providers/growthbook-provider";
 import { AnalyticsProvider } from "@/presentation/providers/analytics-provider";
 import { StoreProvider } from "@/presentation/providers/StoreProvider";
+import { Toaster } from "@/src/presentation/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "whats chat",
@@ -24,7 +25,10 @@ export default function RootLayout({
           <StoreProvider>
             <I18nProvider>
               <GrowthBookProviderWrapper>
-                <AnalyticsProvider>{children}</AnalyticsProvider>
+                <AnalyticsProvider>
+                  {children}
+                  <Toaster />
+                </AnalyticsProvider>
               </GrowthBookProviderWrapper>
             </I18nProvider>
           </StoreProvider>

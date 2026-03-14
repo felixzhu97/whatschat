@@ -70,7 +70,12 @@ export function useFeed(currentUserId: string | undefined) {
         mediaUrls: p.mediaUrls ?? [],
         ...(Array.isArray((p as { autoTags?: string[] }).autoTags) && { autoTags: (p as { autoTags: string[] }).autoTags }),
       }));
-      setPosts((prev) => (isInitial ? list : [...prev, ...list]));
+      setPosts((prev) => {
+        if (isInitial) return list;
+        const prevIds = new Set(prev.map((p) => p.id));
+        const append = list.filter((p) => !prevIds.has(p.id));
+        return [...prev, ...append];
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -109,7 +114,9 @@ export function useFeed(currentUserId: string | undefined) {
     setSuggestionsLoading(true);
     try {
       const list = await api.getSuggestions(10);
-      setSuggestions(list.map(toSuggestedUser));
+      const mapped = list.map(toSuggestedUser);
+      const seen = new Set<string>();
+      setSuggestions(mapped.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true))));
     } finally {
       setSuggestionsLoading(false);
     }

@@ -42,7 +42,7 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
           index === "users"
             ? { properties: { id: { type: "keyword" as const }, username: { type: "text" as const }, avatar: { type: "keyword" as const }, createdAt: { type: "date" as const } } }
             : index === "posts"
-              ? { properties: { postId: { type: "keyword" as const }, userId: { type: "keyword" as const }, caption: { type: "text" as const }, hashtags: { type: "keyword" as const }, autoTags: { type: "keyword" as const }, mediaUrls: { type: "keyword" as const }, createdAt: { type: "date" as const } } }
+              ? { properties: { postId: { type: "keyword" as const }, userId: { type: "keyword" as const }, caption: { type: "text" as const }, hashtags: { type: "keyword" as const }, autoTags: { type: "keyword" as const }, mediaUrls: { type: "keyword" as const }, createdAt: { type: "date" as const }, moderationStatus: { type: "keyword" as const }, moderationCategories: { type: "keyword" as const }, moderationAt: { type: "date" as const }, hidden: { type: "boolean" as const } } }
               : { properties: { tag: { type: "keyword" as const }, createdAt: { type: "date" as const } } };
         await this.client.indices.create({ index, mappings } as never);
       } else if (index === "posts") {
@@ -52,6 +52,10 @@ export class ElasticsearchService implements OnModuleInit, OnModuleDestroy {
             properties: {
               autoTags: { type: "keyword" as const },
               mediaUrls: { type: "keyword" as const },
+              moderationStatus: { type: "keyword" as const },
+              moderationCategories: { type: "keyword" as const },
+              moderationAt: { type: "date" as const },
+              hidden: { type: "boolean" as const },
             },
           } as never);
         } catch {

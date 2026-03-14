@@ -14,9 +14,9 @@ package "Business Architecture" as BA {
     **business-architecture.puml**
     User management, instant messaging,
     feed & posts, Reels, follow, recommendations & explore,
-    comments, engagement (like/save), voice & video calls,
-    file sharing, groups, contacts, notifications,
-    admin dashboard
+    content moderation, comments, engagement (like/save),
+    voice & video calls, file sharing, groups, contacts,
+    notifications, admin dashboard
   end note
 }
 
@@ -27,10 +27,10 @@ package "Application Architecture" as AA {
   component [Data Access] as DataAccess
   note right of AA
     **application-architecture.puml**
-    Web/Mobile/Admin, REST/WebSocket/WebRTC,
-    NestJS (Post, Feed, Explore, Comment, Follow, Search, engagement),
-    Python Recommendation (Celery, LightFM, implicit, Annoy),
-    Redis (suggestions, explore caches). Admin: AG Grid, Recharts, i18n.
+    Web/Mobile/Admin, REST/GraphQL/WebSocket/WebRTC,
+    NestJS (Post, Feed, Explore, Comment, Follow, Search, engagement,
+    Admin recheck/hide/batch delete), Python Recommendation (Celery, LightFM, Redis),
+    Vision (Python, NudeNet, ResNet50). Admin: AG Grid, Recharts, i18n.
   end note
 }
 
@@ -41,9 +41,9 @@ package "Data Architecture" as DA {
   note right of DA
     **data-architecture.puml**
     User/Chat/Message/Group/Call/Status,
-    Post (mediaUrls)/FeedEntry/Comment/Engagement (likes, saves, counts),
-    Contact/Notification/FileUpload, Follow (isFollowing),
-    PostgreSQL, Redis (caches + recommendation), Cassandra, MongoDB, Elasticsearch, Kafka
+    Post (mediaUrls, coverUrl)/FeedEntry/Comment/Engagement,
+    moderationStatus, hidden (ES), Contact/Notification/FileUpload, Follow,
+    PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, Kafka
   end note
 }
 
@@ -54,9 +54,9 @@ package "Technology Architecture" as TA {
   component [Deployment Infrastructure] as Deploy
   note right of TA
     **technology-architecture.puml**
-    Next.js, React Native, NestJS, Python, Celery,
-    Prisma, JWT, Cassandra, MongoDB, Elasticsearch, Redis, Docker,
-    LightFM, implicit (ALS), Annoy
+    Next.js, React Native, NestJS, Python (recommendation, Vision),
+    Prisma, JWT, Celery, Cassandra, MongoDB, Elasticsearch, Redis, Docker,
+    LightFM, implicit, Annoy, NudeNet, ResNet50, OpenCV
   end note
 }
 

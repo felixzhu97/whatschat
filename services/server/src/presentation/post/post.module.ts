@@ -10,9 +10,11 @@ import { KafkaModule } from "../../infrastructure/messaging/kafka.module";
 import { UsersModule } from "../users/users.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { WebSocketModule } from "../websocket/websocket.module";
+import { AiModule } from "../ai/ai.module";
+import { VisionModule } from "../vision/vision.module";
 
 @Module({
-  imports: [KafkaModule, UsersModule, NotificationsModule, WebSocketModule],
+  imports: [KafkaModule, UsersModule, NotificationsModule, WebSocketModule, AiModule, VisionModule],
   controllers: [PostController],
   providers: [PostService, FeedService, EngagementService, ExploreService, RecommendationService, ExperimentService],
   exports: [PostService, FeedService, EngagementService, ExploreService, RecommendationService, ExperimentService],

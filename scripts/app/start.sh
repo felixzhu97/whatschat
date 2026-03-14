@@ -68,7 +68,6 @@ export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-whatschat-dev-refresh-secret}"
 export CASSANDRA_CONTACT_POINTS="${CASSANDRA_CONTACT_POINTS:-127.0.0.1:9042}"
 export MONGODB_URI="${MONGODB_URI:-mongodb://localhost:27017/whatschat}"
 export ELASTICSEARCH_NODE="${ELASTICSEARCH_NODE:-http://localhost:9200}"
-export VISION_SERVICE_URL="${VISION_SERVICE_URL:-http://localhost:8001}"
 export NODE_ENV=$([ "$ENV" == "prod" ] && echo production || echo development)
 cd "$ROOT_DIR"
 
@@ -90,7 +89,8 @@ if [ -f "$MEDIA_GEN_DIR/app.py" ] && command -v python3 >/dev/null 2>&1; then
 fi
 if [ -d "$VISION_DIR" ] && [ -f "$VISION_DIR/requirements.txt" ] && command -v python3 >/dev/null 2>&1; then
   (cd "$VISION_DIR" && {
-    [ ! -d ".venv" ] && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -q
+    [ ! -d ".venv" ] && python3 -m venv .venv
+    .venv/bin/pip install -r requirements.txt -q 2>/dev/null || true
     exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8001
   }) &
   VISION_PID=$!

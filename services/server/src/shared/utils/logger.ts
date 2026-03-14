@@ -2,7 +2,18 @@ import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import path from "path";
 
-// 创建日志目录
+const DATA_URL_BASE64 = /(data:[^;]+;base64,)([A-Za-z0-9+/=]{50,})/g;
+const BASE64_PLACEHOLDER = "[base64,";
+const BASE64_SUFFIX = "chars]";
+
+function redactBase64ForLog(msg: string): string {
+  if (typeof msg !== "string") return msg;
+  return msg.replace(DATA_URL_BASE64, (_, prefix, b64) => {
+    const len = b64.length;
+    return prefix + BASE64_PLACEHOLDER + len + BASE64_SUFFIX;
+  });
+}
+
 const logDir = path.join(__dirname, "../../logs");
 
 // 定义日志级别
@@ -32,13 +43,18 @@ const colors = {
 
 winston.addColors(colors);
 
-// 定义日志格式
+const redactFormat = winston.format((info) => {
+  if (typeof info.message === "string") {
+    info.message = redactBase64ForLog(info.message);
+  }
+  return info;
+});
+
 const format = winston.format.combine(
+  redactFormat(),
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info["timestamp"]} ${info["level"]}: ${info["message"]}`
-  )
+  winston.format.printf((info) => `${info["timestamp"]} ${info["level"]}: ${info["message"]}`)
 );
 
 // 定义传输器
@@ -51,7 +67,6 @@ const transports = [
     ),
   }),
 
-  // 错误日志文件
   new DailyRotateFile({
     filename: path.join(logDir, "error-%DATE%.log"),
     datePattern: "YYYY-MM-DD",
@@ -59,18 +74,19 @@ const transports = [
     maxSize: "20m",
     maxFiles: "14d",
     format: winston.format.combine(
+      redactFormat(),
       winston.format.timestamp(),
       winston.format.json()
     ),
   }),
 
-  // 所有日志文件
   new DailyRotateFile({
     filename: path.join(logDir, "combined-%DATE%.log"),
     datePattern: "YYYY-MM-DD",
     maxSize: "20m",
     maxFiles: "14d",
     format: winston.format.combine(
+      redactFormat(),
       winston.format.timestamp(),
       winston.format.json()
     ),

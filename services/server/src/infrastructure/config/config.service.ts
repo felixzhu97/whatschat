@@ -135,6 +135,7 @@ export interface AppConfig {
     serviceUrl: string;
     timeoutMs: number;
     maxImagesPerPost: number;
+    moderationEnabled: boolean;
   };
 }
 
@@ -350,9 +351,10 @@ export class ConfigService {
       },
       vision: {
         enabled: process.env["VISION_ENABLED"] !== "false",
-        serviceUrl: (process.env["VISION_SERVICE_URL"] || "http://localhost:8000").replace(/\/$/, ""),
+        serviceUrl: (process.env["VISION_SERVICE_URL"] || "http://localhost:8001").replace(/\/$/, ""),
         timeoutMs: parseInt(process.env["VISION_TIMEOUT_MS"] || "15000", 10),
         maxImagesPerPost: parseInt(process.env["VISION_MAX_IMAGES_PER_POST"] || "3", 10),
+        moderationEnabled: process.env["VISION_MODERATION_ENABLED"] !== "false",
       },
     };
 

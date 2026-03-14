@@ -11,15 +11,16 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔍 **Message Search** – Full-text search powered by Elasticsearch
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
-- 🖼️ **Image / Video / Voice** – One self-hosted service (services/media-gen, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts, optional translation & markdown in dialog); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; **video cover** stored in Cassandra as separate `coverUrl` (not mixed into `mediaUrls`); home feed shows real posts from followed users (no mock; Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed + post details in one request (replaces N+1 REST getPost); Reels and profile grid use cover when present; **Explore** grid max-width 963px centered with side margins; multi-media carousel on feed and in comments dialog; comments in MongoDB
+- 🖼️ **Image / Video / Voice** – Self-hosted media-gen (Python/FastAPI, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts); or Replicate for image only
+- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; **video cover** stored in Cassandra as separate `coverUrl` (not mixed into `mediaUrls`); home feed shows real posts from followed users (Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed + post details in one request; Reels and profile grid use cover when present; **Explore** grid max-width 963px centered; multi-media carousel on feed and in comments dialog; comments in MongoDB
+- 🛡️ **Content Moderation** – Vision service (Python/FastAPI, :8001): image/video NSFW detection (NudeNet), tag suggestion (ResNet50); sync moderation on create; Kafka post.created for async; Admin: recheck, hide, batch delete
 - 🔎 **Global Search** – Search posts, users, and hashtags (topics) via Elasticsearch; cursor-based pagination and highlight; rate limit (60/min); users indexed on register/update, hashtags on post.created; optional sync script `pnpm run search:sync-users`; startup script runs user sync after seed
-- 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream backed by a Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data
+- 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream; Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data (optional)
 - 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
 - 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, global search, **notifications** left sheet + **search** drawer, explore grid, DM-style messages, right sidebar suggestions), Redux notifications slice + Socket.IO `notification:new`, i18n (en/zh, footer language switch)
 - 📱 **Mobile App** – React Native + Expo
 - 📊 **Behavior Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (including post view/like/save); API ingests; Admin shows overview
-- ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety, Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
+- ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety (moderation stats, recheck, hide, batch delete), Ops Monitor, Business, Data Analytics, System Config, Permission & Audit (port 4001)
 
 ## 📸 Screenshots
 
@@ -60,8 +61,9 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement, **post cover_url**) · MongoDB (comments, **activity notifications** like/comment) · Elasticsearch (search) · **GraphQL** (Apollo Server, code-first feed query + DataLoader; PostType includes `coverUrl`)
-- **Recommendations** – Python (services/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement, **post cover_url**) · MongoDB (comments, **activity notifications** like/comment) · Elasticsearch (search, moderation status) · **GraphQL** (Apollo Server, code-first feed query + DataLoader; PostType includes `coverUrl`)
+- **Recommendations** – Python (services/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis (optional)
+- **Vision** – Python (services/vision) · FastAPI · NudeNet (NSFW) · ResNet50 (tags) · OpenCV (video frames); sync moderation on post create; Kafka consumer updates ES
 - **AI / Media** – Ollama (text stream), self-hosted media-gen (Python/FastAPI: diffusers + CogVideoX + edge-tts for image/video/voice); optional Replicate for image
 
 ## 🚀 Quick Start
@@ -82,7 +84,7 @@ pnpm setup
 ### Run
 
 ```bash
-pnpm start           # Full: Docker (postgres, redis, kafka, cassandra, mongodb, elasticsearch) + migrate + seed + search:sync-users + media-gen (:3456) + API (:3001)
+pnpm start           # Full: Docker (postgres, redis, kafka, cassandra, mongodb, elasticsearch) + migrate + seed + search:sync-users + media-gen (:3456) + API (:3001) + Vision (:8001)
 pnpm start:server    # Docker (postgres/redis/kafka) + NestJS API (:3001) only
 pnpm start:web       # Web app on :4000
 pnpm start:admin     # Admin dashboard on :4001
@@ -90,13 +92,14 @@ pnpm start:mobile:ios   # or start:mobile:android
 pnpm start:recommendation # Python recommendation worker + Celery beat (optional, runs in services/recommendation)
 ```
 
-From repo root, `scripts/app/start.sh [dev|prod]` runs Docker, migrate, seed, **user sync to Elasticsearch**, then server (and optional media-gen, recommendation).
+From repo root, `scripts/app/start.sh [dev|prod]` runs Docker, migrate, seed, **user sync to Elasticsearch**, then server (and optional media-gen, recommendation, Vision).
 
 ### Environment
 
 - `services/server/.env` – Copy from `services/server/.env.example`
   - **AI**: `OLLAMA_BASE_URL`, `OLLAMA_DEFAULT_MODEL`
   - **Media** (image + video + voice): `MEDIA_GENERATION_API_URL` (e.g. `http://localhost:3456` for services/media-gen); or `REPLICATE_API_TOKEN` for image only
+- **Vision** (content moderation, tag suggestion): `VISION_SERVICE_URL` (default `http://localhost:8001`)
 - `apps/web/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`, `NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001` (optional, for Socket.IO)
 - `apps/admin/.env.local` – `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `ADMIN_EMAILS=admin@whatschat.com` (comma-separated) for admin access
@@ -112,7 +115,7 @@ services/
   server        # NestJS API (whatschat-server, :3001)
   media-gen     # Self-hosted image + video + voice (Python/FastAPI, :3456)
   recommendation # Python recommendation + Celery + FastAPI rank (:8000)
-  vision        # Image recognition for tag suggestion (Python/FastAPI, :8001)
+  vision        # Content moderation + tag suggestion (Python/FastAPI, :8001)
 packages/
   domain           # Shared types and constants (@whatschat/domain)
   im               # Instant messaging + RTC (@whatschat/im)
@@ -137,7 +140,7 @@ packages/
 ## 📚 Docs
 
 - [Docs index](docs/README.md)
-- [C4 Model](docs/en/rd/c4/README.md) – System context, containers, components (API incl. GraphQL feed, Web, Mobile, Admin); feed from followed users, multi-media posts
+- [C4 Model](docs/en/rd/c4/README.md) – System context, containers, components (API incl. GraphQL feed, Web, Mobile, Admin, Media Gen, Recommendation, Vision); feed from followed users, multi-media posts, content moderation
 - [TOGAF](docs/en/rd/togaf/README.md) – Business, Application, Data, Technology (four architecture domains)
 
 ## 📄 License

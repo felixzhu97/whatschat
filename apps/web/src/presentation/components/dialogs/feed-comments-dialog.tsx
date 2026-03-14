@@ -12,6 +12,7 @@ import {
 } from "@/src/presentation/components/ui/instagram-spinner";
 import { styled } from "@/src/shared/utils/emotion";
 import { useTranslation } from "@/src/shared/i18n";
+import { toast } from "@/src/presentation/components/ui/use-toast";
 import type { FeedPost } from "@/shared/types";
 
 const BORDER = "1px solid rgb(219 219 219)";
@@ -418,13 +419,21 @@ export function FeedCommentsDialog({ post, open, onClose, currentUser }: FeedCom
     }
   }, [videoPaused]);
 
-  const handleSend = () => {
+  const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (text) {
-      add(text, currentUser?.id ? { userId: currentUser.id, username: currentUser.username } : undefined);
+    if (!text) return;
+    try {
+      await add(text, currentUser?.id ? { userId: currentUser.id, username: currentUser.username } : undefined);
       setInput("");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      toast({
+        title: t("comments.errorTitle"),
+        description: message || t("comments.errorGeneric"),
+        variant: "destructive",
+      });
     }
-  };
+  }, [add, currentUser, t]);
 
   return (
     <Dialog open={open} onOpenChange={(o: boolean) => !o && onClose()}>

@@ -6,11 +6,11 @@
 
 | 域 | 文件 | 说明 |
 |----|------|------|
-| 概览 | [overview.puml](./overview.puml) | 业务 → 应用 → 数据 → 技术 关系，含推荐流 |
-| 业务 | [business-architecture.puml](./business-architecture.puml) | 参与者、能力（消息、信息流、Reels、推荐与探索、关注、通话、文件、群组）、流程 |
-| 应用 | [application-architecture.puml](./application-architecture.puml) | Web/移动端/管理端；GraphQL Post **coverUrl**；WS **notification:new**；通知服务 MongoDB；探索网格与发帖 coverUrl |
-| 数据 | [data-architecture.puml](./data-architecture.puml) | Post（**cover_url**）、评论与**活动通知**（MongoDB）、信息流、互动；PostgreSQL、Redis、Cassandra、MongoDB、Elasticsearch |
-| 技术 | [technology-architecture.puml](./technology-architecture.puml) | Next.js、React Native、NestJS、**GraphQL**（Apollo、@nestjs/graphql）、Python、Celery、Prisma、Socket.IO、WebRTC、Redis、Docker、Elasticsearch（搜索与同步脚本）、LightFM、implicit、Annoy |
+| 概览 | [overview.puml](./overview.puml) | 业务 → 应用 → 数据 → 技术；推荐流、内容审核、Vision |
+| 业务 | [business-architecture.puml](./business-architecture.puml) | 参与者、能力（消息、信息流、Reels、推荐与探索、内容审核、关注、通话、文件、群组）、流程 |
+| 应用 | [application-architecture.puml](./application-architecture.puml) | Web/移动端/管理端；GraphQL Post **coverUrl**；WS **notification:new**；通知服务 MongoDB；探索与发帖；推荐（Celery、Redis）；Vision（标签、审核）；Admin 重新识别/隐藏/批量 |
+| 数据 | [data-architecture.puml](./data-architecture.puml) | Post（**cover_url**、moderationStatus、hidden）、评论与**活动通知**（MongoDB）、信息流、互动；PostgreSQL、Redis、Cassandra、MongoDB、Elasticsearch |
+| 技术 | [technology-architecture.puml](./technology-architecture.puml) | Next.js、React Native、NestJS、**GraphQL**、Python（Celery、Vision）、Prisma、Socket.IO、WebRTC、Redis、Docker、Elasticsearch、LightFM、implicit、Annoy、NudeNet、ResNet50 |
 
 ## 代码布局
 

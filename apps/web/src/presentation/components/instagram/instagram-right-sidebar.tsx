@@ -163,8 +163,8 @@ export function InstagramRightSidebar({ user, suggestions, onFollow }: Instagram
         <SeeAllLink>{t("sidebar.seeAll")}</SeeAllLink>
       </SectionHeader>
       <SuggestionList>
-        {suggestions.map((s) => (
-          <SuggestionItem key={s.id}>
+        {suggestions.map((s, i) => (
+          <SuggestionItem key={`suggestion-${s.id}-${i}`}>
             <Avatar style={{ width: 32, height: 32 }}>
               <AvatarImage src={s.avatar || undefined} />
               <AvatarFallback>{s.username[0]}</AvatarFallback>

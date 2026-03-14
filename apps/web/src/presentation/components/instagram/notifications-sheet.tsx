@@ -282,8 +282,8 @@ export function NotificationsSheet({
               </EmptyWrap>
             ) : (
               <ActivityList>
-                {items.map((n) => (
-                  <ActivityRow key={n.id} $unread={!n.readAt}>
+                {items.map((n, i) => (
+                  <ActivityRow key={`activity-${n.id}-${i}`} $unread={!n.readAt}>
                     <Avatar style={{ width: 32, height: 32 }}>
                       <AvatarImage src={undefined} />
                       <AvatarFallback>{n.actorId.slice(0, 1)}</AvatarFallback>
@@ -305,8 +305,8 @@ export function NotificationsSheet({
             )}
             <SectionTitle>{t("notifications.suggestedTitle")}</SectionTitle>
             <SuggestionList>
-              {suggestions.map((u) => (
-                <SuggestionItem key={u.id}>
+              {suggestions.map((u, i) => (
+                <SuggestionItem key={`notif-suggestion-${u.id}-${i}`}>
                   <Avatar style={{ width: 32, height: 32 }}>
                     <AvatarImage src={u.avatar ?? undefined} />
                     <AvatarFallback>{u.username?.[0] ?? "?"}</AvatarFallback>

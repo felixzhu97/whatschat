@@ -199,6 +199,7 @@ export const en = {
     reply: "Reply",
     loading: "Loading...",
     error: "Failed to load",
+    noMoreContent: "No more content",
   },
   comments: {
     title: "Comments",
@@ -211,6 +212,8 @@ export const en = {
     hoursAgo: "{{count}}h",
     daysAgo: "{{count}}d",
     weeksAgo: "{{count}}w",
+    errorTitle: "Failed to post comment",
+    errorGeneric: "Please check your content and try again.",
   },
   profile: {
     editProfile: "Edit profile",
@@ -253,6 +256,9 @@ export const en = {
     selectFrameHint: "Drag to choose a frame",
     recommendedTags: "Suggested tags",
     addTag: "Add tag",
+    errorTitle: "Failed to share",
+    errorGeneric: "Please check your content and try again.",
+    violationMessage: "Content violates community guidelines. Please remove or replace the content.",
   },
   notifications: {
     activityTitle: "Activity on your posts",
