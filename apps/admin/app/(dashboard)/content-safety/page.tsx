@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { DataGrid } from "@/src/presentation/components/data-grid";
-import { Search, ImageIcon, ShieldCheck, ShieldAlert, Clock } from "lucide-react";
+import { PostDetailModal, type PostDetailForModal, type PostRowForModal } from "@/src/presentation/components/post-detail-modal";
+import { Search, ImageIcon, ShieldCheck, ShieldAlert, Clock, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import type { ColDef, ValueFormatterParams, ValueGetterParams } from "ag-grid-community";
@@ -199,7 +200,163 @@ const DetailValue = styled.div`
   word-break: break-word;
 `;
 
+const DetailValueFull = styled(DetailValue)`
+  white-space: pre-wrap;
+  max-height: 240px;
+  overflow-y: auto;
+`;
+
+const DetailMediaCarousel = styled.div`
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-top: 4px;
+`;
+
+const DetailCarouselNav = styled.button<{ $side: "left" | "right" }>`
+  position: absolute;
+  top: 50%;
+  ${(p) => (p.$side === "left" ? "left: 12px" : "right: 12px")};
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #262626;
+  z-index: 1;
+  &:hover {
+    background: #fff;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`;
+
+const DetailCarouselDots = styled.div`
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 1;
+`;
+
+const DetailCarouselDot = styled.span<{ $active?: boolean }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${(p) => (p.$active ? "#fff" : "rgba(255, 255, 255, 0.5)")};
+`;
+
+const DetailMediaWrap = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  & img,
+  & video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+`;
+
+const DetailMediaClickable = styled(DetailMediaWrap)`
+  cursor: pointer;
+`;
+
+const DetailPlayOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+const DetailPlayCircle = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #262626;
+`;
+
+const DetailCommentList = styled.div`
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 0;
+  margin-top: 4px;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: ${theme.border};
+    border-radius: 3px;
+  }
+`;
+
+const DetailCommentItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0;
+  font-size: 14px;
+  line-height: 1.25;
+  color: ${theme.text};
+  border-bottom: 1px solid ${theme.borderLight};
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const DetailCommentHeader = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const DetailCommentUser = styled.span`
+  font-weight: 600;
+  color: ${theme.text};
+`;
+
+const DetailCommentTime = styled.span`
+  font-size: 12px;
+  color: ${theme.textSecondary};
+`;
+
+const DetailCommentContent = styled.div`
+  font-weight: 400;
+  word-break: break-word;
+  margin-top: 2px;
+`;
+
 const TRUNCATE_LEN = 50;
+
+interface PostDetailData {
+  post: Record<string, unknown>;
+  engagement: { likeCount: number; commentCount: number; saveCount: number };
+  comments: Array<{ id: string; userId: string; content: string; parentId?: string; createdAt: string }>;
+}
 
 interface ModerationStats {
   pass: number;
@@ -210,10 +367,13 @@ interface ModerationStats {
 interface PostRow extends Record<string, unknown> {
   postId: string;
   userId: string;
+  type?: string;
   caption?: string;
   hashtags?: string[];
   autoTags?: string[];
   mediaUrls?: string[];
+  coverUrl?: string | null;
+  location?: string | null;
   createdAt: string;
   moderationStatus?: string;
   moderationCategories?: string[];
@@ -236,11 +396,47 @@ export default function ContentSafetyPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null);
+  const [postDetail, setPostDetail] = useState<PostDetailData | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailMediaIndex, setDetailMediaIndex] = useState(0);
+  const [detailVideoPaused, setDetailVideoPaused] = useState(false);
+  const [showPostDetailModal, setShowPostDetailModal] = useState(false);
+  const detailVideoRef = useRef<HTMLVideoElement | null>(null);
   const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [batchLoading, setBatchLoading] = useState(false);
   const api = getApiClient();
+
+  useEffect(() => {
+    if (!selectedPost?.postId) {
+      setPostDetail(null);
+      setDetailMediaIndex(0);
+      setDetailVideoPaused(false);
+      setShowPostDetailModal(false);
+      return;
+    }
+    setDetailMediaIndex(0);
+    setDetailVideoPaused(false);
+    setDetailLoading(true);
+    setPostDetail(null);
+    api
+      .get<{ success: boolean; data: PostDetailData }>(`admin/posts/${selectedPost.postId}/detail`)
+      .then((res) => {
+        const data = (res as { data?: PostDetailData }).data;
+        if (res.success && data) setPostDetail(data);
+      })
+      .finally(() => setDetailLoading(false));
+  }, [selectedPost?.postId, api]);
+
+  const fetchPostDetail = useCallback(
+    async (postId: string): Promise<PostDetailForModal | null> => {
+      const res = await api.get<{ success: boolean; data: PostDetailForModal }>(`admin/posts/${postId}/detail`);
+      const data = (res as { data?: PostDetailForModal }).data;
+      return res.success && data ? data : null;
+    },
+    [api]
+  );
 
   const toggleSelect = useCallback((postId: string) => {
     setSelectedPostIds((prev) => {
@@ -742,14 +938,7 @@ export default function ContentSafetyPage() {
       {selectedPost && (
         <DetailOverlay onClick={() => setSelectedPost(null)} role="presentation">
           <DetailPanel onClick={(e) => e.stopPropagation()}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: "1rem",
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
               <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>{t("posts.detail")}</h3>
               <button
                 type="button"
@@ -767,70 +956,153 @@ export default function ContentSafetyPage() {
                 ×
               </button>
             </div>
-            {Array.isArray(selectedPost.mediaUrls) &&
-              selectedPost.mediaUrls[0] &&
-              isValidImageUrl(selectedPost.mediaUrls[0]) && (
+            <button
+              type="button"
+              onClick={() => setShowPostDetailModal(true)}
+              style={{
+                width: "100%",
+                marginBottom: "1rem",
+                padding: "0.6rem 1rem",
+                fontSize: 14,
+                border: `1px solid ${theme.primary}`,
+                borderRadius: 8,
+                background: "transparent",
+                color: theme.primary,
+                cursor: "pointer",
+                fontWeight: 500,
+              }}
+            >
+              {t("posts.viewContentAndComments")}
+            </button>
+            <DetailRow>
+              <DetailLabel>{t("posts.postType")}</DetailLabel>
+              <DetailValue>{selectedPost.type ?? "—"}</DetailValue>
+            </DetailRow>
+            {Array.isArray(selectedPost.mediaUrls) && selectedPost.mediaUrls.length > 0 && (() => {
+              const urls = selectedPost.mediaUrls.filter((u) => u && isValidImageUrl(u));
+              if (urls.length === 0) return null;
+              const multi = urls.length > 1;
+              const idx = multi ? detailMediaIndex : 0;
+              const currentUrl = urls[idx];
+              const isVideo = currentUrl && (/\.(mp4|webm|mov)(\?|$)/i.test(currentUrl) || /^data:video\//i.test(currentUrl));
+              const toggleDetailVideo = () => {
+                const el = detailVideoRef.current;
+                if (!el) return;
+                if (detailVideoPaused) {
+                  el.play().catch(() => {});
+                  setDetailVideoPaused(false);
+                } else {
+                  el.pause();
+                  setDetailVideoPaused(true);
+                }
+              };
+              return (
                 <DetailRow>
-                  <DetailLabel>{t("posts.thumbnail")}</DetailLabel>
-                  <img
-                    src={selectedPost.mediaUrls[0]}
-                    alt=""
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: 200,
-                      objectFit: "contain",
-                      borderRadius: 12,
-                    }}
-                  />
+                  <DetailLabel>{t("posts.media")}</DetailLabel>
+                  <DetailMediaCarousel>
+                    {multi && (
+                      <>
+                        <DetailCarouselNav type="button" $side="left" disabled={idx <= 0} onClick={() => setDetailMediaIndex((i) => Math.max(0, i - 1))} aria-label="Previous">
+                          <ChevronLeft size={24} />
+                        </DetailCarouselNav>
+                        <DetailCarouselNav type="button" $side="right" disabled={idx >= urls.length - 1} onClick={() => setDetailMediaIndex((i) => Math.min(urls.length - 1, i + 1))} aria-label="Next">
+                          <ChevronRight size={24} />
+                        </DetailCarouselNav>
+                        <DetailCarouselDots>
+                          {urls.map((_, i) => (
+                            <DetailCarouselDot key={i} $active={i === idx} />
+                          ))}
+                        </DetailCarouselDots>
+                      </>
+                    )}
+                    {isVideo ? (
+                      <DetailMediaClickable onClick={toggleDetailVideo}>
+                        <video ref={detailVideoRef} src={currentUrl} muted loop playsInline autoPlay onPause={() => setDetailVideoPaused(true)} onPlay={() => setDetailVideoPaused(false)} />
+                        {detailVideoPaused && (
+                          <DetailPlayOverlay>
+                            <DetailPlayCircle>
+                              <Play size={32} fill="currentColor" stroke="none" />
+                            </DetailPlayCircle>
+                          </DetailPlayOverlay>
+                        )}
+                      </DetailMediaClickable>
+                    ) : (
+                      <DetailMediaWrap>
+                        <img src={currentUrl} alt="" />
+                      </DetailMediaWrap>
+                    )}
+                  </DetailMediaCarousel>
                 </DetailRow>
-              )}
+              );
+            })()}
             <DetailRow>
               <DetailLabel>{t("posts.author")}</DetailLabel>
               <DetailValue>{selectedPost.userId}</DetailValue>
             </DetailRow>
             <DetailRow>
               <DetailLabel>{t("posts.caption")}</DetailLabel>
-              <DetailValue>{selectedPost.caption || "—"}</DetailValue>
+              <DetailValueFull>{selectedPost.caption || "—"}</DetailValueFull>
             </DetailRow>
+            <DetailRow>
+              <DetailLabel>{t("posts.hashtags")}</DetailLabel>
+              <DetailValue>
+                {Array.isArray(selectedPost.hashtags) && selectedPost.hashtags.length > 0 ? selectedPost.hashtags.join(", ") : "—"}
+              </DetailValue>
+            </DetailRow>
+            {selectedPost.location && (
+              <DetailRow>
+                <DetailLabel>{t("posts.location")}</DetailLabel>
+                <DetailValue>{selectedPost.location}</DetailValue>
+              </DetailRow>
+            )}
             <DetailRow>
               <DetailLabel>{t("posts.createdAt")}</DetailLabel>
               <DetailValue>
                 {selectedPost.createdAt
-                  ? format(new Date(selectedPost.createdAt), "yyyy-MM-dd HH:mm:ss", {
-                      locale: dateLocale,
-                    })
+                  ? format(new Date(selectedPost.createdAt), "yyyy-MM-dd HH:mm:ss", { locale: dateLocale })
                   : "—"}
               </DetailValue>
             </DetailRow>
             <DetailRow>
+              <DetailLabel>{t("posts.engagement")}</DetailLabel>
+              <DetailValue>
+                {detailLoading ? "…" : postDetail?.engagement != null ? `${t("posts.likes")}: ${postDetail.engagement.likeCount} · ${t("posts.comments")}: ${postDetail.engagement.commentCount} · ${t("posts.saves")}: ${postDetail.engagement.saveCount}` : "—"}
+              </DetailValue>
+            </DetailRow>
+            {postDetail?.comments && postDetail.comments.length > 0 && (
+              <DetailRow>
+                <DetailLabel>{t("posts.commentList")}</DetailLabel>
+                <DetailCommentList>
+                  {postDetail.comments.map((c, i) => (
+                    <DetailCommentItem key={c.id || `${i}`}>
+                      <DetailCommentHeader>
+                        <DetailCommentUser>{c.userId}</DetailCommentUser>
+                        <DetailCommentTime>{format(new Date(c.createdAt), "yyyy-MM-dd HH:mm", { locale: dateLocale })}</DetailCommentTime>
+                      </DetailCommentHeader>
+                      <DetailCommentContent>{c.content}</DetailCommentContent>
+                    </DetailCommentItem>
+                  ))}
+                </DetailCommentList>
+              </DetailRow>
+            )}
+            <DetailRow>
               <DetailLabel>{t("posts.violationRecognition")}</DetailLabel>
               <DetailValue style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                 <span>
-                  {t("posts.autoTags")}:{" "}
-                  {Array.isArray(selectedPost.autoTags) && selectedPost.autoTags.length > 0
-                    ? selectedPost.autoTags.join(", ")
-                    : "—"}
+                  {t("posts.autoTags")}: {Array.isArray(selectedPost.autoTags) && selectedPost.autoTags.length > 0 ? selectedPost.autoTags.join(", ") : "—"}
                 </span>
                 <span>
                   {t("posts.moderationStatus")}:{" "}
-                  {selectedPost.moderationStatus === "reject"
-                    ? t("posts.moderationReject")
-                    : selectedPost.moderationStatus === "pass"
-                      ? t("posts.moderationPass")
-                      : t("posts.moderationPending")}
+                  {selectedPost.moderationStatus === "reject" ? t("posts.moderationReject") : selectedPost.moderationStatus === "pass" ? t("posts.moderationPass") : t("posts.moderationPending")}
                 </span>
-                {Array.isArray(selectedPost.moderationCategories) &&
-                  selectedPost.moderationCategories.length > 0 && (
-                    <span>
-                      {t("posts.moderationCategories")}: {selectedPost.moderationCategories.join(", ")}
-                    </span>
-                  )}
+                {Array.isArray(selectedPost.moderationCategories) && selectedPost.moderationCategories.length > 0 && (
+                  <span>
+                    {t("posts.moderationCategories")}: {selectedPost.moderationCategories.join(", ")}
+                  </span>
+                )}
                 {selectedPost.moderationAt && (
                   <span>
-                    {t("posts.moderationAt")}:{" "}
-                    {format(new Date(selectedPost.moderationAt), "yyyy-MM-dd HH:mm:ss", {
-                      locale: dateLocale,
-                    })}
+                    {t("posts.moderationAt")}: {format(new Date(selectedPost.moderationAt), "yyyy-MM-dd HH:mm:ss", { locale: dateLocale })}
                   </span>
                 )}
                 <button
@@ -863,71 +1135,37 @@ export default function ContentSafetyPage() {
                 <DetailValue style={{ color: "#dc2626", fontSize: 13 }}>{actionError}</DetailValue>
               </DetailRow>
             )}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "0.5rem",
-                marginTop: "1rem",
-                paddingTop: "1rem",
-                borderTop: `1px solid ${theme.border}`,
-              }}
-            >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1rem", paddingTop: "1rem", borderTop: `1px solid ${theme.border}` }}>
               {selectedPost.hidden ? (
-                <button
-                  type="button"
-                  disabled={actionLoading}
-                  onClick={() => handleUnhide(selectedPost.postId)}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    fontSize: 14,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 8,
-                    background: theme.surface,
-                    color: theme.text,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
-                  }}
-                >
+                <button type="button" disabled={actionLoading} onClick={() => handleUnhide(selectedPost.postId)} style={{ padding: "0.5rem 1rem", fontSize: 14, border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.surface, color: theme.text, cursor: actionLoading ? "not-allowed" : "pointer" }}>
                   {t("posts.unhidePost")}
                 </button>
               ) : (
-                <button
-                  type="button"
-                  disabled={actionLoading}
-                  onClick={() => handleHide(selectedPost.postId)}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    fontSize: 14,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 8,
-                    background: theme.surface,
-                    color: theme.text,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
-                  }}
-                >
+                <button type="button" disabled={actionLoading} onClick={() => handleHide(selectedPost.postId)} style={{ padding: "0.5rem 1rem", fontSize: 14, border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.surface, color: theme.text, cursor: actionLoading ? "not-allowed" : "pointer" }}>
                   {t("posts.hidePost")}
                 </button>
               )}
-              <button
-                type="button"
-                disabled={actionLoading}
-                onClick={() => handleDelete(selectedPost.postId)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: 14,
-                  border: "1px solid #dc2626",
-                  borderRadius: 8,
-                  background: "rgba(239, 68, 68, 0.1)",
-                  color: "#dc2626",
-                  cursor: actionLoading ? "not-allowed" : "pointer",
-                }}
-              >
+              <button type="button" disabled={actionLoading} onClick={() => handleDelete(selectedPost.postId)} style={{ padding: "0.5rem 1rem", fontSize: 14, border: "1px solid #dc2626", borderRadius: 8, background: "rgba(239, 68, 68, 0.1)", color: "#dc2626", cursor: actionLoading ? "not-allowed" : "pointer" }}>
                 {t("posts.deletePost")}
               </button>
             </div>
           </DetailPanel>
         </DetailOverlay>
       )}
+      <PostDetailModal
+        open={showPostDetailModal && !!selectedPost}
+        onClose={() => setShowPostDetailModal(false)}
+        postId={selectedPost?.postId ?? null}
+        initialPost={selectedPost as PostRowForModal | null}
+        fetchDetail={fetchPostDetail}
+        onHide={handleHide}
+        onUnhide={handleUnhide}
+        onDelete={handleDelete}
+        onRecheckModeration={handleRecheckModeration}
+        actionLoading={actionLoading}
+        actionError={actionError}
+        showAdminActions
+      />
       {pagination.totalPages > 1 && (
         <Pagination>
           <PageBtn disabled={pagination.page <= 1} onClick={() => load(pagination.page - 1)}>

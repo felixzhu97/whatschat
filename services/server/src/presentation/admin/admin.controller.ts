@@ -184,6 +184,13 @@ export class AdminController {
     };
   }
 
+  @Get("posts/:postId/detail")
+  @ApiOperation({ summary: "帖子详情（含互动数与评论）" })
+  async getPostDetail(@Param("postId") postId: string) {
+    const result = await this.adminService.getPostDetail(postId);
+    return { success: true, data: result };
+  }
+
   @Delete("posts/:postId")
   @ApiOperation({ summary: "物理删除帖子" })
   async deletePost(@Param("postId") postId: string) {

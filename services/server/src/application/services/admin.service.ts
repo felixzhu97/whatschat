@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "@/infrastructure/database/prisma.service";
 import { ElasticsearchService } from "@/infrastructure/database/elasticsearch.service";
 import { CassandraPostRepository } from "@/infrastructure/database/cassandra-post.repository";
+import { CassandraEngagementRepository } from "@/infrastructure/database/cassandra-engagement.repository";
+import { MongoCommentRepository } from "@/infrastructure/database/mongo-comment.repository";
 import { VisionClientService } from "./vision-client.service";
 import { ConfigService } from "@/infrastructure/config/config.service";
 import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
@@ -12,6 +14,8 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly elasticsearch: ElasticsearchService,
     private readonly postRepo: CassandraPostRepository,
+    private readonly engagementRepo: CassandraEngagementRepository,
+    private readonly commentRepo: MongoCommentRepository,
     private readonly visionClient: VisionClientService,
   ) {}
 
@@ -340,18 +344,30 @@ export class AdminService {
     const total = typeof result.hits.total === "object" ? (result.hits.total as { value: number }).value : (result.hits.total as number) ?? 0;
     const postIds = hits.map((h) => h._source["postId"] as string).filter(Boolean);
     const mediaByPostId = new Map<string, string[]>();
+    const metaByPostId = new Map<string, { type: string; location: string | null; coverUrl: string | null }>();
     await Promise.all(
       postIds.map(async (postId) => {
         const row = await this.postRepo.getPostById(postId);
-        if (row?.media_urls?.length) mediaByPostId.set(postId, row.media_urls);
+        if (row) {
+          if (row.media_urls?.length) mediaByPostId.set(postId, row.media_urls);
+          metaByPostId.set(postId, {
+            type: row.type ?? "TEXT",
+            location: row.location ?? null,
+            coverUrl: row.cover_url ?? null,
+          });
+        }
       })
     );
     const data = hits.map((h) => {
       const postId = h._source["postId"] as string;
       const mediaUrls = mediaByPostId.get(postId) ?? (h._source["mediaUrls"] as string[] | undefined);
+      const meta = metaByPostId.get(postId);
       return {
         ...h._source,
         mediaUrls: mediaUrls ?? [],
+        type: meta?.type ?? (h._source["type"] as string) ?? "TEXT",
+        location: meta?.location ?? (h._source["location"] as string | undefined) ?? null,
+        coverUrl: meta?.coverUrl ?? (h._source["coverUrl"] as string | undefined) ?? null,
         moderationStatus: h._source["moderationStatus"] ?? "pending",
         moderationCategories: (h._source["moderationCategories"] as string[] | undefined) ?? [],
         moderationAt: h._source["moderationAt"] ?? null,
@@ -367,6 +383,64 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async getPostDetail(postId: string): Promise<{
+    post: Record<string, unknown>;
+    engagement: { likeCount: number; commentCount: number; saveCount: number };
+    comments: Array<{ id: string; userId: string; content: string; parentId?: string; createdAt: string }>;
+  }> {
+    const row = await this.postRepo.getPostById(postId);
+    if (!row) throw new NotFoundException("Post not found");
+    let moderationStatus = "pending";
+    let moderationCategories: string[] = [];
+    let moderationAt: string | null = null;
+    let hidden = false;
+    let hashtags: string[] | undefined;
+    let autoTags: string[] | undefined;
+    const client = this.elasticsearch.getClient();
+    if (client) {
+      try {
+        const hit = await client.get({ index: "posts", id: postId });
+        const src = (hit as { _source?: Record<string, unknown> })._source;
+        if (src) {
+          moderationStatus = (src["moderationStatus"] as string) ?? "pending";
+          moderationCategories = (src["moderationCategories"] as string[]) ?? [];
+          moderationAt = (src["moderationAt"] as string) ?? null;
+          hidden = src["hidden"] === true;
+          if (Array.isArray(src["hashtags"])) hashtags = src["hashtags"] as string[];
+          if (Array.isArray(src["autoTags"])) autoTags = src["autoTags"] as string[];
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const engagement = await this.engagementRepo.getEngagementCounts(postId);
+    const commentDocs = await this.commentRepo.findByPostId(postId, 100, 0);
+    const comments = commentDocs.map((doc) => ({
+      id: doc._id?.toString() ?? "",
+      userId: doc.userId,
+      content: doc.content,
+      ...(doc.parentId != null && { parentId: doc.parentId }),
+      createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
+    }));
+    const post = {
+      postId: row.post_id,
+      userId: row.user_id,
+      type: row.type ?? "TEXT",
+      caption: row.caption ?? "",
+      hashtags: hashtags ?? [],
+      autoTags: autoTags ?? [],
+      mediaUrls: row.media_urls ?? [],
+      coverUrl: row.cover_url ?? null,
+      location: row.location ?? null,
+      createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
+      moderationStatus,
+      moderationCategories,
+      moderationAt,
+      hidden,
+    };
+    return { post, engagement, comments };
   }
 
   async deletePostAdmin(postId: string): Promise<void> {

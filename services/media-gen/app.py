@@ -1,6 +1,10 @@
 import os
 
 os.environ.setdefault("OMP_NUM_THREADS", "1")
+try:
+    import numpy
+except ImportError:
+    raise SystemExit("numpy is required. Install with: pip install 'numpy>=1.24.0,<3.0.0'")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 if "HF_ENDPOINT" not in os.environ:
@@ -53,6 +57,48 @@ class VoiceSynthesizeBody(BaseModel):
     voice: Optional[str] = None
 
 
+def _ensure_torch_xpu_stub():
+    import torch
+    if getattr(torch, "xpu", None) is not None:
+        return
+    from types import SimpleNamespace
+    def _noop(*args, **kwargs):
+        return None
+    def _noop_false(*args, **kwargs):
+        return False
+    def _noop_zero(*args, **kwargs):
+        return 0
+    stub = SimpleNamespace(
+        is_available=_noop_false,
+        empty_cache=_noop,
+        device_count=_noop_zero,
+        synchronize=_noop,
+        manual_seed=_noop,
+        set_device=_noop,
+        current_device=lambda: 0,
+    )
+    torch.xpu = stub
+
+
+def _ensure_torch_distributed_device_mesh():
+    import torch
+    if not hasattr(torch, "distributed") or torch.distributed is None:
+        return
+    if getattr(torch.distributed, "device_mesh", None) is not None:
+        return
+    from types import SimpleNamespace, ModuleType
+    stub_module = ModuleType("device_mesh")
+    _mesh_stub = SimpleNamespace(get_group=lambda *a, **k: None)
+    class _DeviceMeshStub:
+        def get_group(self, *args, **kwargs):
+            return None
+    stub_module.DeviceMesh = _DeviceMeshStub
+    def _init_device_mesh(*args, **kwargs):
+        return _mesh_stub
+    stub_module.init_device_mesh = _init_device_mesh
+    torch.distributed.device_mesh = stub_module
+
+
 def _device():
     import torch
     if os.environ.get("MEDIA_GEN_DEVICE") == "cpu":
@@ -83,7 +129,16 @@ def get_image_pipeline():
     global image_pipe
     with pipe_lock:
         if image_pipe is None:
+            try:
+                import numpy as np
+                _ = np.__version__
+            except ImportError as e:
+                raise RuntimeError("numpy is required for image generation. Install with: pip install numpy") from e
             import torch
+            _ensure_torch_xpu_stub()
+            _ensure_torch_distributed_device_mesh()
+            import torchvision
+            _ = getattr(torchvision, "__version__", None)
             from diffusers import StableDiffusionPipeline
             model_id = os.environ.get("SD_MODEL", "runwayml/stable-diffusion-v1-5")
             device = _device()
@@ -102,6 +157,10 @@ def get_video_pipeline():
     with pipe_lock:
         if video_pipe is None:
             import torch
+            _ensure_torch_xpu_stub()
+            _ensure_torch_distributed_device_mesh()
+            import torchvision
+            _ = getattr(torchvision, "__version__", None)
             from diffusers import CogVideoXPipeline
             model_id = os.environ.get("COGVIDEOX_MODEL", "THUDM/CogVideoX-2b")
             device = _device()
