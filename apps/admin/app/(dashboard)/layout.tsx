@@ -24,6 +24,7 @@ import {
   Bell,
   Moon,
   Sun,
+  Megaphone,
 } from "lucide-react";
 
 const LayoutRoot = styled.div`
@@ -275,6 +276,7 @@ function getRouteKey(pathname: string): string {
   if (pathname.startsWith("/ops-monitor")) return "opsMonitor.title";
   if (pathname.startsWith("/business")) return "business.title";
   if (pathname.startsWith("/analytics")) return "analytics.title";
+  if (pathname.startsWith("/ads")) return "ads.title";
   if (pathname.startsWith("/settings")) return "settings.title";
   if (pathname.startsWith("/permission")) return "permission.title";
   return "dashboard.title";
@@ -288,6 +290,7 @@ function getSubtitleKey(pathname: string): string {
   if (pathname.startsWith("/ops-monitor")) return "opsMonitor.subtitle";
   if (pathname.startsWith("/business")) return "business.subtitle";
   if (pathname.startsWith("/analytics")) return "analytics.subtitle";
+  if (pathname.startsWith("/ads")) return "ads.subtitle";
   if (pathname.startsWith("/settings")) return "settings.subtitle";
   if (pathname.startsWith("/permission")) return "permission.subtitle";
   return "dashboard.subtitle";
@@ -301,6 +304,7 @@ const ROUTES = [
   { href: "/ops-monitor", labelKey: "opsMonitor.title", icon: Activity },
   { href: "/business", labelKey: "business.title", icon: Briefcase },
   { href: "/analytics", labelKey: "analytics.title", icon: BarChart2 },
+  { href: "/ads", labelKey: "ads.title", icon: Megaphone },
   { href: "/settings", labelKey: "settings.title", icon: Settings },
   { href: "/permission", labelKey: "permission.title", icon: Key },
 ];

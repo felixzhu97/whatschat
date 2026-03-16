@@ -16,7 +16,7 @@ package "Business Architecture" as BA {
     feed & posts, Reels, follow, recommendations & explore,
     content moderation, comments, engagement (like/save),
     voice & video calls, file sharing, groups, contacts,
-    notifications, admin dashboard
+    notifications, admin dashboard, advertising & monetization
   end note
 }
 
@@ -29,8 +29,9 @@ package "Application Architecture" as AA {
     **application-architecture.puml**
     Web/Mobile/Admin, REST/GraphQL/WebSocket/WebRTC,
     NestJS (Post, Feed, Explore, Comment, Follow, Search, engagement,
-    Admin recheck/hide/batch delete), Python Recommendation (Celery, LightFM, Redis),
-    Vision (Python, NudeNet, ResNet50). Admin: AG Grid, Recharts, i18n.
+    Admin recheck/hide/batch delete, Ads serving/targeting/pacing + Ads Admin APIs),
+    Python Recommendation (Celery, LightFM, Redis, ad ETL/metrics),
+    Vision (Python, NudeNet, ResNet50). Admin: AG Grid, Recharts, i18n, Ads pages.
   end note
 }
 
@@ -43,6 +44,7 @@ package "Data Architecture" as DA {
     User/Chat/Message/Group/Call/Status,
     Post (mediaUrls, coverUrl)/FeedEntry/Comment/Engagement,
     moderationStatus, hidden (ES), Contact/Notification/FileUpload, Follow,
+    AdAccount/AdCampaign/AdGroup/AdCreative/AdSpend, AnalyticsEvent (incl. ads),
     PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, Kafka
   end note
 }

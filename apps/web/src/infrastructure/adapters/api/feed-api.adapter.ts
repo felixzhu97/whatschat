@@ -57,6 +57,11 @@ export class FeedApiAdapter {
           postId
           authorId
           createdAt
+          isSponsored
+          adAccountId
+          adCampaignId
+          adGroupId
+          adCreativeId
           post {
             postId
             userId

@@ -404,7 +404,151 @@ model FileUpload {
   @@map("file_uploads")
 }
 
-// 枚举类型
+model AdAccount {
+  id               String           @id @default(cuid())
+  ownerUserId      String?
+  name             String
+  timezone         String           @default("UTC")
+  currency         String           @default("USD")
+  status           AdAccountStatus  @default(ACTIVE)
+  dailyBudgetCents Int?
+  totalBudgetCents Int?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  campaigns AdCampaign[]
+  spends    AdSpend[]
+
+  @@map("ad_accounts")
+}
+
+model AdCampaign {
+  id               String              @id @default(cuid())
+  accountId        String
+  name             String
+  objective        AdCampaignObjective @default(IMPRESSIONS)
+  status           AdCampaignStatus    @default(ACTIVE)
+  dailyBudgetCents Int?
+  totalBudgetCents Int?
+  startAt          DateTime?
+  endAt            DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  account AdAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  groups  AdGroup[]
+  creatives AdCreative[]
+  spends   AdSpend[]
+
+  @@index([accountId])
+  @@map("ad_campaigns")
+}
+
+model AdGroup {
+  id                        String           @id @default(cuid())
+  campaignId                String
+  name                      String
+  bidCents                  Int
+  billingEvent              BillingEvent
+  targeting                 Json?
+  placement                 AdPlacementType
+  status                    AdGroupStatus    @default(ACTIVE)
+  maxImpressionsPerUser     Int?
+  maxImpressionsPerUserPerDay Int?
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+
+  campaign  AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creatives AdCreative[]
+  spends    AdSpend[]
+
+  @@index([campaignId])
+  @@map("ad_groups")
+}
+
+model AdCreative {
+  id          String    @id @default(cuid())
+  campaignId  String
+  groupId     String?
+  type        String
+  title       String?
+  body        String?
+  mediaUrl    String?
+  thumbnailUrl String?
+  landingUrl  String?
+  language    String?   @default("en")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  campaign AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  group    AdGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  spends   AdSpend[]
+
+  @@index([campaignId])
+  @@index([groupId])
+  @@map("ad_creatives")
+}
+
+model AdSpend {
+  id          String   @id @default(cuid())
+  accountId   String
+  campaignId  String
+  groupId     String?
+  creativeId  String?
+  eventType   BillingEvent
+  costCents   Int
+  analyticsEventId String?
+  createdAt   DateTime @default(now())
+
+  account  AdAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  campaign AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  group    AdGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  creative AdCreative? @relation(fields: [creativeId], references: [id], onDelete: SetNull)
+
+  @@index([accountId])
+  @@index([campaignId])
+  @@index([groupId])
+  @@index([creativeId])
+  @@index([createdAt])
+  @@map("ad_spend")
+}
+
+enum AdAccountStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum AdCampaignStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum AdCampaignObjective {
+  IMPRESSIONS
+  CLICKS
+  CONVERSIONS
+}
+
+enum AdGroupStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum BillingEvent {
+  IMPRESSION
+  CLICK
+  CONVERSION
+}
+
+enum AdPlacementType {
+  FEED
+  STORY
+  REELS
+  BANNER
+}
+
 enum ChatType {
   PRIVATE
   GROUP

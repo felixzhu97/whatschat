@@ -16,6 +16,9 @@ export {
   POST_UNLIKE,
   POST_SAVE,
   POST_UNSAVE,
+  AD_IMPRESSION,
+  AD_CLICK,
+  AD_CONVERSION,
 } from "./events";
 export type {
   KnownEventName,
@@ -33,6 +36,9 @@ export type {
   PostViewPayload,
   PostLikePayload,
   PostSavePayload,
+  AdImpressionPayload,
+  AdClickPayload,
+  AdConversionPayload,
 } from "./events";
 export type { IAnalyticsTransport } from "./transport";
 export { ConsoleTransport, HttpTransport } from "./transport";

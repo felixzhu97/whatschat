@@ -128,6 +128,11 @@ const PostTime = styled.span`
   color: ${TEXT_SECONDARY};
 `;
 
+const SponsoredBadge = styled.span`
+  font-size: 12px;
+  color: ${TEXT_SECONDARY};
+`;
+
 const PostMoreBtn = styled.button`
   background: none;
   border: none;
@@ -434,7 +439,11 @@ export function InstagramFeed({
               </Avatar>
               <PostMeta>
                 <PostUsername>{post.username}</PostUsername>
-                <PostTime>{post.timestamp}</PostTime>
+                <PostTime>
+                  {post.timestamp}
+                  {post.isSponsored && " · "}
+                  {post.isSponsored && <SponsoredBadge>赞助</SponsoredBadge>}
+                </PostTime>
               </PostMeta>
             </PostHeaderLeft>
             <PostMoreBtn>

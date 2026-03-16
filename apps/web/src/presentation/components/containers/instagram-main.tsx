@@ -34,8 +34,7 @@ import { RealIncomingCall } from "../call/real-incoming-call";
 import { RealCallInterface } from "../call/real-call-interface";
 import { useRealCall } from "../../hooks/use-real-call";
 import { useMessages } from "../../hooks/use-messages";
-import { useAnalytics } from "@whatschat/analytics";
-import { PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION, POST_VIEW, POST_LIKE, POST_SAVE } from "@whatschat/analytics";
+import { useAnalytics, PAGE_VIEW, CHAT_OPEN, SEND_MESSAGE, CALL_START, CALL_END, AI_ACTION, POST_VIEW, POST_LIKE, POST_SAVE } from "@whatschat/analytics";
 import { useSearch } from "../../hooks/use-search";
 import { useDialogs } from "../../hooks/use-dialogs";
 import { useNavigation } from "../../hooks/use-navigation";
@@ -449,6 +448,22 @@ export function InstagramMain() {
     });
   }, []);
 
+  const trackAdClick = useCallback(
+    (post: FeedPost) => {
+      if (!post.isSponsored || !post.adAccountId || !post.adCampaignId) return;
+      const positionInFeed = feed.posts.findIndex((p) => p.id === post.id);
+      (analytics as any).track("ad_click", {
+        adAccountId: post.adAccountId,
+        adCampaignId: post.adCampaignId,
+        adGroupId: post.adGroupId,
+        adCreativeId: post.adCreativeId,
+        placement: "FEED",
+        ...(positionInFeed >= 0 && { positionInFeed }),
+      });
+    },
+    [analytics, feed.posts]
+  );
+
   const handleContactSelect = (contact: Contact) => {
     setSelectedContactId(contact.id);
     handleBackToChat();
@@ -661,7 +676,11 @@ export function InstagramMain() {
               loading={feed.loading}
               onCommentClick={(post) => {
                 setCommentPost(post);
-                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                if (post.isSponsored) {
+                  trackAdClick(post);
+                } else {
+                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                }
               }}
               onFollow={feed.followUser}
               onLikeClick={(post) => {
@@ -746,7 +765,11 @@ export function InstagramMain() {
               onStoryClick={handleStoryClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
-                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                if (post.isSponsored) {
+                  trackAdClick(post);
+                } else {
+                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                }
               }}
               onLikeClick={(post) => {
                 feed.toggleLike(post.id);
@@ -783,7 +806,11 @@ export function InstagramMain() {
               error={explore.error}
               onPostClick={(post) => {
                 setCommentPost(post);
-                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                if (post.isSponsored) {
+                  trackAdClick(post);
+                } else {
+                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                }
               }}
             />
             <FeedCommentsDialog
@@ -806,7 +833,11 @@ export function InstagramMain() {
               onStoryClick={handleStoryClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
-                analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                if (post.isSponsored) {
+                  trackAdClick(post);
+                } else {
+                  analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
+                }
               }}
               onLikeClick={(post) => {
                 feed.toggleLike(post.id);

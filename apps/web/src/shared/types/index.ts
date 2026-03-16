@@ -226,6 +226,11 @@ export interface FeedPost {
   coverUrl?: string;
   mediaUrls?: string[];
   autoTags?: string[];
+  isSponsored?: boolean;
+  adAccountId?: string;
+  adCampaignId?: string;
+  adGroupId?: string;
+  adCreativeId?: string;
 }
 
 export interface SuggestedUser {

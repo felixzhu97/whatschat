@@ -84,6 +84,21 @@ export class FeedEntryType {
   @Field(() => String)
   createdAt!: string;
 
+  @Field(() => Boolean, { nullable: true })
+  isSponsored!: boolean | null;
+
+  @Field(() => String, { nullable: true })
+  adAccountId!: string | null;
+
+  @Field(() => String, { nullable: true })
+  adCampaignId!: string | null;
+
+  @Field(() => String, { nullable: true })
+  adGroupId!: string | null;
+
+  @Field(() => String, { nullable: true })
+  adCreativeId!: string | null;
+
   @Field(() => PostType, { nullable: true })
   post!: PostType | null;
 }

@@ -20,6 +20,11 @@ package "Data Entities" {
   component [Comment] as Comment
   component [Engagement] as Engagement
   component [AnalyticsEvent] as AnalyticsEvent
+  component [AdAccount] as AdAccount
+  component [AdCampaign] as AdCampaign
+  component [AdGroup] as AdGroup
+  component [AdCreative] as AdCreative
+  component [AdSpend] as AdSpend
 }
 
 package "Association Entities" {
@@ -62,6 +67,13 @@ User --> Follow : follows / followed by
 Post --> Comment : has
 Post --> FeedEntry : source for
 Post --> Engagement : like_count, comment_count, save_count
+AdAccount --> AdCampaign : owns
+AdCampaign --> AdGroup : owns
+AdGroup --> AdCreative : uses
+AdCreative --> AdSpend : has many spend records
+AdAccount --> AdSpend : aggregated spend
+AdCampaign --> AdSpend : aggregated spend
+AdGroup --> AdSpend : aggregated spend
 
 Chat --> Message : contains
 Chat --> ChatParticipant : participants
@@ -107,6 +119,11 @@ FeedEntry --> Cassandra : persisted in
 Engagement --> Cassandra : post_likes, post_saves, post_engagement_counts
 Comment --> MongoDB : persisted in
 AnalyticsEvent --> PostgreSQL : analytics_events (Reels view/complete, generic events)
+AdAccount --> PostgreSQL : persisted in (ads schema)
+AdCampaign --> PostgreSQL : persisted in (ads schema)
+AdGroup --> PostgreSQL : persisted in (ads schema)
+AdCreative --> PostgreSQL : persisted in (ads schema)
+AdSpend --> PostgreSQL : persisted in (ads schema)
 Post --> Elasticsearch : indexed for search; hashtags indexed on post.created
 User --> Elasticsearch : indexed on register/update (search); sync script for bulk
 
@@ -128,7 +145,9 @@ rectangle "Data Entity Notes" {
     - FeedEntry: feed item (own + followed)
     - Comment: post comments, replies
     - Engagement: like/save per user, like_count/comment_count/save_count per post (Cassandra)
-    - AnalyticsEvent: generic analytics events (eventName, properties, context), including Reels watch/complete used for recommendation features
+    - AnalyticsEvent: generic analytics events (eventName, properties, context), including Reels watch/complete and ad_impression/ad_click/ad_conversion used for analytics and recommendation features
+    - AdAccount/AdCampaign/AdGroup/AdCreative: advertising configuration entities stored in PostgreSQL, linked to creatives shown in feed/explore
+    - AdSpend: delivery records (impression/click/conversion spend) aggregated for pacing, reporting, and ETL
   end note
   
   note as N2

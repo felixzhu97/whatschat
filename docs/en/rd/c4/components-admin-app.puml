@@ -5,13 +5,13 @@
 title C4 Level 3 - Components: Admin Application (Next.js)
 
 Container_Boundary(admin_app, "Admin Application") {
-  Component(pages, "Pages", "Next.js App Router", "Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, System Config, Permission & Audit")
+  Component(pages, "Pages", "Next.js App Router", "Dashboard, Users, Content Safety, Ops Monitor, Business, Analytics, Ads (accounts, campaigns, groups, creatives), System Config, Permission & Audit")
   Component(data_grid, "DataGrid", "AG Grid React", "Tables for users, groups; sortable, filterable")
   Component(charts, "Charts", "Recharts", "Bar, Line, Pie; dashboard KPIs, user growth, platform distribution")
   Component(auth_provider, "Auth Provider", "React Context", "Admin login state, JWT, logout")
   Component(theme_provider, "Theme Provider", "React Context + localStorage", "Light/dark theme")
   Component(i18n, "i18n", "i18next, react-i18next", "en/zh locales")
-  Component(api_client, "API Client", "Fetch", "REST calls to Admin API")
+  Component(api_client, "API Client", "Fetch", "REST calls to Admin API (including Ads endpoints)")
 }
 
 Container_Ext(api_server, "API Server", "NestJS", "Admin REST API")

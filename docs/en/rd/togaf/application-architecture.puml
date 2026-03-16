@@ -59,6 +59,7 @@ package "Client Applications" {
     - Recharts (charts)
     - i18next (en/zh)
     - Theme (light/dark)
+    - Ads section: accounts, campaigns, groups, creatives management
   end note
   
   component [Mobile App] as MobileApp #LightGreen
@@ -109,6 +110,11 @@ package "Application Services Layer" {
   component [Status Service] as StatusService
   component [File Service] as FileService
   component [Notification Service] as NotificationService
+  component [Ad Service] as AdService
+  component [Ad Targeting Service] as AdTargetingService
+  component [Ad Pacing Service] as AdPacingService
+  component [Ad Creative Service] as AdCreativeService
+  component [Ads Admin Service] as AdsAdminService
 }
 
 package "Recommendation Application" {
@@ -120,6 +126,7 @@ package "Recommendation Application" {
     Batch: suggestions, explore hot list, vector towers
     Online: FastAPI ranking service (Feed/Explore/Reels) + vector recall
     Writes to Redis / Faiss, called by NestJS RecommendationService
+    Reads analytics_events (including ad_impression/click/conversion) via ETL for features
     Other Python: services/media-gen (:3456), services/vision (:8001 tag suggestion, moderation)
   end note
 }
@@ -142,6 +149,7 @@ package "Business Logic Layer" {
   component [Realtime Communication Logic] as RealtimeLogic
   component [Authorization Logic] as AuthzLogic
   component [Business Rules Engine] as BusinessRules
+  component [Ads Business Rules] as AdsBusinessRules
 }
 
 package "Data Access Layer" {
@@ -149,6 +157,7 @@ package "Data Access Layer" {
   component [Cache Service] as CacheService
   component [Post/Feed Repository] as PostFeedRepo
   component [Comment Repository] as CommentRepo
+  component [Ad Repository] as AdRepo
 }
 
 package "Infrastructure Services" {
@@ -205,6 +214,8 @@ ChatService --> MessageLogic : uses
 CallService --> RealtimeLogic : uses
 GroupService --> BusinessRules : uses
 StatusService --> BusinessRules : uses
+AdService --> AdsBusinessRules : uses
+AdsAdminService --> AdsBusinessRules : uses
 
 \' Services to data layer connections
 AuthService --> DataRepository : data access
@@ -228,6 +239,7 @@ CommentService --> CommentRepo : data access
 RecJobs --> CacheService : write suggestions, explore
 RecJobs --> PostgreSQL : ETL follow (read)
 RecJobs --> Cassandra : ETL engagement, posts (read)
+RecJobs --> DataRepository : read AnalyticsEvent (ads) for offline metrics
 PostService --> VisionSvc : moderate on create
 RestGateway --> VisionSvc : suggest tags, admin recheck (via Admin API)
 
@@ -245,6 +257,8 @@ FileService --> FileStorage : file storage
 MessageService --> SearchService : full‑text search (messages)
 SearchService --> Elasticsearch : post/user/hashtag search (cursor, highlight, rate limit)
 SearchService --> DataRepository : user search fallback when ES unavailable
+AdService --> AdRepo : query AdAccount/AdCampaign/AdGroup/AdCreative/AdSpend
+AdsAdminService --> AdRepo : CRUD AdAccount/AdCampaign/AdGroup/AdCreative
 
 rectangle "Application Interaction Patterns" {
   note as N1

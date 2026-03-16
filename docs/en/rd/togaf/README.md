@@ -6,11 +6,11 @@ TOGAF views for the four architecture domains (PlantUML).
 
 | Domain | File | Description |
 |--------|------|-------------|
-| Overview | [overview.puml](./overview.puml) | Business → Application → Data → Technology; recommendation flows, content moderation, Vision |
-| Business | [business-architecture.puml](./business-architecture.puml) | Actors, capabilities (messaging, feed with multi-media, Reels, follow, recommendations, explore, content moderation, calls, file, groups), processes |
-| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/**GraphQL**/WebSocket/WebRTC, NestJS (Post **cover_url**, Notifications MongoDB, Feed, Explore, Search, Suggestions, Admin recheck/hide/batch) + Python recommendation (Celery, Redis) + Vision (NudeNet, ResNet50) |
-| Data | [data-architecture.puml](./data-architecture.puml) | Post (**mediaUrls** + **coverUrl** Cassandra, moderationStatus, hidden ES), FeedEntry, Comment, **activity notifications** (MongoDB); PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, Kafka |
-| Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, **GraphQL**, Socket.IO, WebRTC, Docker, Python (Celery, LightFM, implicit, Annoy; Vision: FastAPI, NudeNet, ResNet50, OpenCV), Redis, Elasticsearch |
+| Overview | [overview.puml](./overview.puml) | Business → Application → Data → Technology; recommendation flows, content moderation, Vision, **advertising & monetization** |
+| Business | [business-architecture.puml](./business-architecture.puml) | Actors, capabilities (messaging, feed with multi-media, Reels, follow, recommendations, explore, content moderation, calls, file, groups, **ads & campaigns management**), processes |
+| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/**GraphQL**/WebSocket/WebRTC, NestJS (Post **cover_url**, Notifications MongoDB, Feed, Explore, Search, Suggestions, Admin recheck/hide/batch, **Ad serving/targeting/pacing + Admin Ads APIs**) + Python recommendation (Celery, Redis, **ad ETL/metrics** ) + Vision (NudeNet, ResNet50) |
+| Data | [data-architecture.puml](./data-architecture.puml) | Post (**mediaUrls** + **coverUrl** Cassandra, moderationStatus, hidden ES), FeedEntry, Comment, **activity notifications** (MongoDB), **AdAccount/AdCampaign/AdGroup/AdCreative/AdSpend, analytics_events (including ad_impression/click/conversion)**; PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, Kafka |
+| Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, **GraphQL**, Socket.IO, WebRTC, Docker, Python (Celery, LightFM, implicit, Annoy; Vision: FastAPI, NudeNet, ResNet50, OpenCV; **ad ETL & metrics**), Redis, Elasticsearch |
 
 ## Code layout
 

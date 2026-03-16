@@ -50,25 +50,30 @@ export function useFeed(currentUserId: string | undefined) {
       setHasMore(next != null && next !== "");
       setPageState(next ?? undefined);
       const details = entries
-        .map((e) => e.post)
-        .filter((p): p is PostDetailRes => p != null);
-      const list: FeedPost[] = details.map((p) => ({
-        id: p.postId,
-        userId: p.userId,
-        username: p.username ?? p.userId?.slice(0, 8) ?? "",
-        avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
-        timestamp: formatTime(p.createdAt),
-        imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-        likeCount: String(p.likeCount ?? 0),
-        commentCount: String(p.commentCount ?? 0),
-        caption: p.caption ?? "",
-        isLiked: Boolean(p.isLiked),
-        isSaved: Boolean(p.isSaved),
-        type: p.type,
-        videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-        coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
-        mediaUrls: p.mediaUrls ?? [],
-        ...(Array.isArray((p as { autoTags?: string[] }).autoTags) && { autoTags: (p as { autoTags: string[] }).autoTags }),
+        .map((e) => ({ entry: e, post: e.post }))
+        .filter((x): x is { entry: { isSponsored?: boolean | null; adAccountId?: string | null; adCampaignId?: string | null; adGroupId?: string | null; adCreativeId?: string | null }; post: PostDetailRes } => x.post != null);
+      const list: FeedPost[] = details.map(({ entry, post }) => ({
+        id: post.postId,
+        userId: post.userId,
+        username: post.username ?? post.userId?.slice(0, 8) ?? "",
+        avatar: post.avatar ?? "/placeholder.svg?height=32&width=32",
+        timestamp: formatTime(post.createdAt),
+        imageUrl: post.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
+        likeCount: String(post.likeCount ?? 0),
+        commentCount: String(post.commentCount ?? 0),
+        caption: post.caption ?? "",
+        isLiked: Boolean(post.isLiked),
+        isSaved: Boolean(post.isSaved),
+        type: post.type,
+        videoUrl: post.type === "VIDEO" ? post.mediaUrls?.[0] : undefined,
+        coverImageUrl: post.type === "VIDEO" ? post.mediaUrls?.[0] : undefined,
+        mediaUrls: post.mediaUrls ?? [],
+        ...(Array.isArray((post as { autoTags?: string[] }).autoTags) && { autoTags: (post as { autoTags: string[] }).autoTags }),
+        isSponsored: Boolean(entry.isSponsored),
+        adAccountId: entry.adAccountId ?? undefined,
+        adCampaignId: entry.adCampaignId ?? undefined,
+        adGroupId: entry.adGroupId ?? undefined,
+        adCreativeId: entry.adCreativeId ?? undefined,
       }));
       setPosts((prev) => {
         if (isInitial) return list;

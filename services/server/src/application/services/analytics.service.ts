@@ -94,4 +94,56 @@ export class AnalyticsService {
       total,
     };
   }
+
+  async getAdMetrics(params: {
+    start: Date;
+    end: Date;
+    accountId?: string;
+    campaignId?: string;
+  }): Promise<
+    {
+      adAccountId: string;
+      adCampaignId: string;
+      adCreativeId: string | null;
+      impressions: number;
+      clicks: number;
+      conversions: number;
+    }[]
+  > {
+    const { start, end, accountId, campaignId } = params;
+    const result = await this.prisma.$queryRaw<
+      {
+        ad_account_id: string;
+        ad_campaign_id: string;
+        ad_creative_id: string | null;
+        impressions: bigint;
+        clicks: bigint;
+        conversions: bigint;
+      }[]
+    >`
+      SELECT
+        (properties ->> 'adAccountId') AS ad_account_id,
+        (properties ->> 'adCampaignId') AS ad_campaign_id,
+        (properties ->> 'adCreativeId') AS ad_creative_id,
+        SUM(CASE WHEN event_name = 'ad_impression' THEN 1 ELSE 0 END)::bigint AS impressions,
+        SUM(CASE WHEN event_name = 'ad_click' THEN 1 ELSE 0 END)::bigint AS clicks,
+        SUM(CASE WHEN event_name = 'ad_conversion' THEN 1 ELSE 0 END)::bigint AS conversions
+      FROM analytics_events
+      WHERE
+        created_at >= ${start}
+        AND created_at <= ${end}
+        AND event_name IN ('ad_impression', 'ad_click', 'ad_conversion')
+        ${accountId ? this.prisma.$queryRaw`AND properties ->> 'adAccountId' = ${accountId}` : this.prisma.$queryRaw``}
+        ${campaignId ? this.prisma.$queryRaw`AND properties ->> 'adCampaignId' = ${campaignId}` : this.prisma.$queryRaw``}
+      GROUP BY ad_account_id, ad_campaign_id, ad_creative_id
+    `;
+    return result.map((row) => ({
+      adAccountId: row.ad_account_id,
+      adCampaignId: row.ad_campaign_id,
+      adCreativeId: row.ad_creative_id,
+      impressions: Number(row.impressions),
+      clicks: Number(row.clicks),
+      conversions: Number(row.conversions),
+    }));
+  }
 }

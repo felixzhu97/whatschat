@@ -10,6 +10,9 @@ export const POST_LIKE = "post_like";
 export const POST_UNLIKE = "post_unlike";
 export const POST_SAVE = "post_save";
 export const POST_UNSAVE = "post_unsave";
+export const AD_IMPRESSION = "ad_impression";
+export const AD_CLICK = "ad_click";
+export const AD_CONVERSION = "ad_conversion";
 
 export type KnownEventName =
   | typeof PAGE_VIEW
@@ -23,7 +26,10 @@ export type KnownEventName =
   | typeof POST_LIKE
   | typeof POST_UNLIKE
   | typeof POST_SAVE
-  | typeof POST_UNSAVE;
+  | typeof POST_UNSAVE
+  | typeof AD_IMPRESSION
+  | typeof AD_CLICK
+  | typeof AD_CONVERSION;
 
 export interface PageViewPayload {
   path?: string;
@@ -79,6 +85,28 @@ export interface PostSavePayload {
   postId: string;
 }
 
+export interface AdBasePayload {
+  adAccountId: string;
+  adCampaignId: string;
+  adGroupId?: string;
+  adCreativeId?: string;
+  placement: "FEED" | "STORY" | "REELS" | "BANNER";
+  positionInFeed?: number;
+}
+
+export interface AdImpressionPayload extends AdBasePayload {
+  viewTimeMs?: number;
+}
+
+export interface AdClickPayload extends AdBasePayload {
+  destinationUrl?: string;
+}
+
+export interface AdConversionPayload extends AdBasePayload {
+  conversionType?: string;
+  value?: number;
+}
+
 export type KnownEventPayload =
   | PageViewPayload
   | ChatOpenPayload
@@ -89,7 +117,10 @@ export type KnownEventPayload =
   | AiActionPayload
   | PostViewPayload
   | PostLikePayload
-  | PostSavePayload;
+  | PostSavePayload
+  | AdImpressionPayload
+  | AdClickPayload
+  | AdConversionPayload;
 
 export type KnownEventPayloadMap = {
   [PAGE_VIEW]: PageViewPayload;
@@ -104,4 +135,7 @@ export type KnownEventPayloadMap = {
   [POST_UNLIKE]: PostLikePayload;
   [POST_SAVE]: PostSavePayload;
   [POST_UNSAVE]: PostSavePayload;
+  [AD_IMPRESSION]: AdImpressionPayload;
+  [AD_CLICK]: AdClickPayload;
+  [AD_CONVERSION]: AdConversionPayload;
 };

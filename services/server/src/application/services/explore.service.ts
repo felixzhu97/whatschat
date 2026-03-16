@@ -4,6 +4,7 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
 import { RecommendationService } from "./recommendation.service";
 import { ExperimentService } from "./experiment.service";
+import { AdService, AdCandidate } from "./ad.service";
 
 const EXPLORE_HOT_KEY = "explore:hot";
 const FALLBACK_USERS_LIMIT = 25;
@@ -15,6 +16,14 @@ export interface ExploreEntryDto {
   createdAt: string;
 }
 
+export interface ExploreEntryWithAdDto extends ExploreEntryDto {
+  isSponsored?: boolean;
+  adCampaignId?: string;
+  adGroupId?: string;
+  adCreativeId?: string;
+  adAccountId?: string;
+}
+
 @Injectable()
 export class ExploreService {
   constructor(
@@ -23,13 +32,14 @@ export class ExploreService {
     private readonly postRepo: CassandraPostRepository,
     private readonly recommendation: RecommendationService,
     private readonly experiments: ExperimentService,
+    private readonly ads: AdService,
   ) {}
 
   async getExplore(
     userId: string,
     limit: number,
     offset: number
-  ): Promise<{ entries: ExploreEntryDto[]; total: number }> {
+  ): Promise<{ entries: ExploreEntryWithAdDto[]; total: number }> {
     let raw = await this.redis.get<ExploreEntryDto[]>(EXPLORE_HOT_KEY);
     if (!Array.isArray(raw) || raw.length === 0) {
       raw = await this.getExploreFallback();
@@ -56,7 +66,8 @@ export class ExploreService {
     const orderedOrFallback = ordered.length > 0 ? ordered : filtered;
     const total = orderedOrFallback.length;
     const page = orderedOrFallback.slice(offset, offset + limit);
-    return { entries: page, total };
+    const mixed = await this.withAds(userId, page, limit);
+    return { entries: mixed, total };
   }
 
   private async getExploreFallback(): Promise<ExploreEntryDto[]> {
@@ -77,5 +88,56 @@ export class ExploreService {
     }
     entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return entries.slice(0, 500);
+  }
+
+  private async withAds(
+    userId: string,
+    entries: ExploreEntryDto[],
+    limit: number
+  ): Promise<ExploreEntryWithAdDto[]> {
+    if (entries.length === 0) {
+      return [];
+    }
+    const adCandidates = await this.ads.getAdCandidates({
+      userId,
+      placement: "FEED",
+      limit: Math.max(1, Math.floor(limit / 5)),
+    });
+    if (adCandidates.length === 0) {
+      return entries.map((e) => ({
+        ...e,
+        isSponsored: false,
+      }));
+    }
+    const result: ExploreEntryWithAdDto[] = [];
+    const adsQueue = [...adCandidates];
+    const interval = Math.max(3, Math.floor(entries.length / adCandidates.length));
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i] as ExploreEntryDto;
+      result.push({
+        postId: entry.postId,
+        authorId: entry.authorId,
+        createdAt: entry.createdAt,
+        isSponsored: false,
+      });
+      const shouldInsertAd = (i + 1) % interval === 0 && adsQueue.length > 0 && result.length < limit + adsQueue.length;
+      if (shouldInsertAd) {
+        const ad = adsQueue.shift() as AdCandidate;
+        result.push({
+          postId: ad.creativeId,
+          authorId: ad.accountId,
+          createdAt: new Date().toISOString(),
+          isSponsored: true,
+          adCampaignId: ad.campaignId,
+          adGroupId: ad.groupId,
+          adCreativeId: ad.creativeId,
+          adAccountId: ad.accountId,
+        });
+      }
+      if (result.length >= limit) {
+        break;
+      }
+    }
+    return result.slice(0, limit);
   }
 }

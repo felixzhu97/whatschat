@@ -4,6 +4,7 @@ import { CassandraEngagementRepository } from "../../infrastructure/database/cas
 import { PostService } from "./post.service";
 import { RecommendationService } from "./recommendation.service";
 import { ExperimentService } from "./experiment.service";
+import { AdService, AdCandidate } from "./ad.service";
 
 const RECENCY_HALFLIFE_HOURS = 24;
 const ENGAGEMENT_WEIGHT = 2;
@@ -28,6 +29,7 @@ export class FeedService {
     private readonly engagementRepo: CassandraEngagementRepository,
     private readonly recommendation: RecommendationService,
     private readonly experiments: ExperimentService,
+    private readonly ads: AdService,
   ) {}
 
   async getFeed(userId: string, limit: number, pageState?: string) {
@@ -74,11 +76,87 @@ export class FeedService {
       }))
       .sort((a, b) => b.score - a.score);
     const combined = ordered.length > 0 ? ordered : fallbackSorted;
-    const entries = combined.slice(0, limit).map(({ postId, authorId, createdAt }) => ({
+    const page = combined.slice(0, limit).map(({ postId, authorId, createdAt }) => ({
       postId,
       authorId,
       createdAt,
     }));
-    return { entries, pageState: result.pageState };
+    const mixed = await this.withAds(userId, page, limit);
+    return { entries: mixed, pageState: result.pageState };
+  }
+
+  private async withAds(
+    userId: string,
+    entries: { postId: string; authorId: string; createdAt: Date }[],
+    limit: number
+  ): Promise<
+    {
+      postId: string;
+      authorId: string;
+      createdAt: Date;
+      isSponsored?: boolean;
+      adAccountId?: string;
+      adCampaignId?: string;
+      adGroupId?: string;
+      adCreativeId?: string;
+    }[]
+  > {
+    if (entries.length === 0) {
+      return [];
+    }
+    const ads = await this.ads.getAdCandidates({
+      userId,
+      placement: "FEED",
+      limit: Math.max(1, Math.floor(limit / 5)),
+    });
+    if (ads.length === 0) {
+      return entries.map((e) => ({
+        ...e,
+        isSponsored: false,
+      }));
+    }
+    const result: {
+      postId: string;
+      authorId: string;
+      createdAt: Date;
+      isSponsored?: boolean;
+      adAccountId?: string;
+      adCampaignId?: string;
+      adGroupId?: string;
+      adCreativeId?: string;
+    }[] = [];
+    const queue: AdCandidate[] = [...ads];
+    const interval = Math.max(3, Math.floor(entries.length / queue.length));
+    for (let i = 0; i < entries.length; i++) {
+      const current = entries[i] as {
+        postId: string;
+        authorId: string;
+        createdAt: Date;
+      };
+      result.push({
+        postId: current.postId,
+        authorId: current.authorId,
+        createdAt: current.createdAt,
+        isSponsored: false,
+      });
+      const shouldInsertAd = (i + 1) % interval === 0 && queue.length > 0 && result.length < limit + queue.length;
+      if (shouldInsertAd) {
+        const ad = queue.shift() as AdCandidate;
+        result.push({
+          postId: ad.creativeId,
+          authorId: ad.accountId,
+          createdAt: new Date(),
+          isSponsored: true,
+          adAccountId: ad.accountId,
+          adCampaignId: ad.campaignId,
+          adGroupId: ad.groupId,
+          adCreativeId: ad.creativeId,
+        });
+      }
+      if (result.length >= limit) {
+        break;
+      }
+    }
+    return result.slice(0, limit);
   }
 }

@@ -1,6 +1,7 @@
 import { Resolver, Query, ResolveField, Parent, Int, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
 import { FeedService } from "@/application/services/feed.service";
+import { AdCreativeService } from "@/application/services/ad-creative.service";
 import { GqlJwtAuthGuard } from "./gql-auth.guard";
 import { CurrentGqlUser } from "./current-gql-user.decorator";
 import { FeedPageType, FeedEntryType, PostType } from "./feed.types";
@@ -14,10 +15,35 @@ function entryCreatedAt(value: unknown): string {
 
 @Resolver(() => FeedEntryType)
 export class FeedEntryResolver {
-  constructor(private readonly postLoader: PostLoader) {}
+  constructor(
+    private readonly postLoader: PostLoader,
+    private readonly adCreativeService: AdCreativeService
+  ) {}
 
   @ResolveField(() => PostType, { nullable: true })
   async post(@Parent() parent: FeedEntryType): Promise<PostType | null> {
+    if (parent.isSponsored && parent.adCreativeId) {
+      const creative = await this.adCreativeService.getCreativeById(parent.adCreativeId);
+      if (!creative) return null;
+      const t = new PostType();
+      t.postId = creative.id;
+      t.userId = parent.authorId;
+      t.createdAt = parent.createdAt;
+      t.caption = creative.body ?? null;
+      t.type = "AD";
+      t.mediaUrls = creative.mediaUrl ? [creative.mediaUrl] : [];
+      t.coverUrl = creative.thumbnailUrl ?? null;
+      t.location = null;
+      t.likeCount = null;
+      t.commentCount = null;
+      t.saveCount = null;
+      t.username = "Sponsored";
+      t.avatar = null;
+      t.isLiked = null;
+      t.isSaved = null;
+      t.autoTags = null;
+      return t;
+    }
     const loaded = await this.postLoader.load(parent.postId);
     if (!loaded) return null;
     return PostType.fromGql(loaded);
@@ -47,6 +73,11 @@ export class FeedResolver {
       entry.postId = e.postId;
       entry.authorId = e.authorId;
       entry.createdAt = entryCreatedAt(e.createdAt);
+      entry.isSponsored = (e as any).isSponsored ?? null;
+      entry.adAccountId = (e as any).adAccountId ?? null;
+      entry.adCampaignId = (e as any).adCampaignId ?? null;
+      entry.adGroupId = (e as any).adGroupId ?? null;
+      entry.adCreativeId = (e as any).adCreativeId ?? null;
       entry.post = null;
       return entry;
     });

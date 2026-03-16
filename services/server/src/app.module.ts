@@ -26,6 +26,7 @@ import { SearchModule } from './presentation/search/search.module';
 import { FollowModule } from './presentation/follow/follow.module';
 import { GraphqlModule } from './presentation/graphql/graphql.module';
 import { NotificationsModule } from './presentation/notifications/notifications.module';
+import { AdsModule } from './presentation/ads/ads.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { NotificationsModule } from './presentation/notifications/notifications.
     FollowModule,
     GraphqlModule,
     NotificationsModule,
+    AdsModule,
   ],
 })
 export class AppModule {}
