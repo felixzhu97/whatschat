@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { StatusScreen } from './StatusScreen';
+import { HomeFeedScreen } from './HomeFeedScreen';
 import { CallsScreen } from './CallsScreen';
 import { CommunitiesScreen } from './CommunitiesScreen';
 import { ChatListScreen } from './ChatListScreen';
@@ -27,7 +27,7 @@ export const HomeScreen: React.FC = () => {
     >
       <Tab.Screen
         name="Status"
-        component={StatusScreen}
+        component={HomeFeedScreen}
         options={{
           title: '更新',
           tabBarIcon: ({ color, size }) => <Ionicons name="ellipse" size={size} color={color} />,

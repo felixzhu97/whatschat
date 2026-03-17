@@ -8,6 +8,9 @@ export const zh = {
     notSet: '未设置',
     none: '—',
   },
+  home: {
+    empty: '暂时还没有动态',
+  },
   tabs: {
     chats: '聊天',
     status: '更新',
@@ -69,12 +72,14 @@ export const zh = {
   },
   login: {
     title: '登录',
-    subtitle: '登录以继续',
+    subtitle: '用户名、邮箱或手机号',
     email: '邮箱',
     password: '密码',
     emailPlaceholder: 'your@email.com',
     passwordPlaceholder: '至少 6 位',
     submit: '登录',
+    forgotPassword: '忘记密码？',
+    createAccount: '创建新账号',
     noAccount: '还没有账号？',
     register: '注册',
     fail: '登录失败',

@@ -8,6 +8,9 @@ export const en = {
     notSet: 'Not set',
     none: '—',
   },
+  home: {
+    empty: 'No posts yet',
+  },
   tabs: {
     chats: 'Chats',
     status: 'Status',
@@ -68,13 +71,15 @@ export const en = {
     logoutConfirmMessage: 'Are you sure?',
   },
   login: {
-    title: 'Login',
-    subtitle: 'Sign in to continue',
+    title: 'Log in',
+    subtitle: 'Username, email or mobile number',
     email: 'Email',
     password: 'Password',
     emailPlaceholder: 'your@email.com',
     passwordPlaceholder: 'At least 6 characters',
-    submit: 'Login',
+    submit: 'Log in',
+    forgotPassword: 'Forgot password?',
+    createAccount: 'Create new account',
     noAccount: "Don't have an account?",
     register: 'Register',
     fail: 'Login failed',

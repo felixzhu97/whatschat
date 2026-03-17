@@ -31,7 +31,7 @@ export default function Index() {
   }
 
   if (token) {
-    return <Redirect href="/(tabs)/chats" />;
+    return <Redirect href="/(tabs)/status" />;
   }
   return <Redirect href="/login" />;
 }

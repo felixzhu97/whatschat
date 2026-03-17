@@ -1,8 +1,8 @@
 export const AppTheme = {
-  primaryGreen: '#25D366',
-  primaryGreenDark: '#075E54',
-  lightGreen: '#25D366',
-  accentBlue: '#007AFF',
+  primaryGreen: '#1877F2',
+  primaryGreenDark: '#0F5FCC',
+  lightGreen: '#1877F2',
+  accentBlue: '#1877F2',
 
   iosBlue: '#007AFF',
   iosGreen: '#34C759',
@@ -22,12 +22,12 @@ export const AppTheme = {
   darkTertiaryBackground: '#2C2C2E',
 
   // 聊天背景
-  chatBackground: '#F2F2F7',
+  chatBackground: '#FFFFFF',
   darkChatBackground: '#000000',
 
-  myMessageBubble: '#D9FDD3',
-  otherMessageBubble: '#E9EDEF',
-  darkMyMessageBubble: '#25D366',
+  myMessageBubble: '#EFEFEF',
+  otherMessageBubble: '#FFFFFF',
+  darkMyMessageBubble: '#1877F2',
   darkOtherMessageBubble: '#3A3A3C',
 
   // 文本颜色 - iOS 风格
@@ -48,9 +48,11 @@ export const AppTheme = {
 
   // 通知和状态颜色
   unreadRed: '#FF3B30',
-  typingGreen: '#25D366',
-  deliveredBlue: '#007AFF',
-  readBlue: '#007AFF',
+  typingGreen: '#1877F2',
+  deliveredBlue: '#1877F2',
+  readBlue: '#1877F2',
+  buttonPrimaryBlue: '#1877F2',
+  buttonOutlineBlue: '#1877F2',
 } as const;
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -95,6 +97,10 @@ export interface ThemeColors {
   typingGreen: string;
   deliveredColor: string;
   readColor: string;
+  buttonPrimary: string;
+  buttonPrimaryText: string;
+  buttonOutline: string;
+  buttonOutlineText: string;
 }
 
 export const lightThemeColors: ThemeColors = {
@@ -126,6 +132,10 @@ export const lightThemeColors: ThemeColors = {
   typingGreen: AppTheme.typingGreen,
   deliveredColor: AppTheme.deliveredBlue,
   readColor: AppTheme.readBlue,
+  buttonPrimary: AppTheme.buttonPrimaryBlue,
+  buttonPrimaryText: '#FFFFFF',
+  buttonOutline: AppTheme.buttonOutlineBlue,
+  buttonOutlineText: AppTheme.buttonOutlineBlue,
 };
 
 export const darkThemeColors: ThemeColors = {
@@ -157,6 +167,10 @@ export const darkThemeColors: ThemeColors = {
   typingGreen: AppTheme.typingGreen,
   deliveredColor: AppTheme.deliveredBlue,
   readColor: AppTheme.readBlue,
+  buttonPrimary: AppTheme.buttonPrimaryBlue,
+  buttonPrimaryText: '#FFFFFF',
+  buttonOutline: AppTheme.buttonOutlineBlue,
+  buttonOutlineText: AppTheme.buttonOutlineBlue,
 };
 
 export interface Typography {

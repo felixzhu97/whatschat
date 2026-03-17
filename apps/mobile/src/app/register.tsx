@@ -130,8 +130,10 @@ export default function RegisterScreen() {
         email: trimmedEmail,
         password,
       });
-      await dispatch(setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user })).unwrap();
-      router.replace('/(tabs)/chats');
+      await dispatch(
+        setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user }),
+      ).unwrap();
+      router.replace('/(tabs)/status');
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err

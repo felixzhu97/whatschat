@@ -1,6 +1,6 @@
-import { StatusScreen } from '@/src/presentation/screens';
+import { HomeFeedScreen } from '@/src/presentation/screens';
 
 export default function StatusTabScreen() {
-  return <StatusScreen />;
+  return <HomeFeedScreen />;
 }
 

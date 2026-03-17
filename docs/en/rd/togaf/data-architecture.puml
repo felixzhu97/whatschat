@@ -167,12 +167,13 @@ rectangle "Data Entity Notes" {
 rectangle "Data Flow Notes" {
   note as N3
     **Write data flow**
-    1. Client request -> application services
+    1. Client request (web/mobile/admin) -> application services
     2. Business logic -> data access layer
     3. Data validation & transformation
-    4. Write to PostgreSQL (source of truth)
-    5. Update Redis cache (hot data)
-    6. Return result to client
+    4. Write to PostgreSQL (source of truth) / Cassandra (posts/feed/engagement) / MongoDB (comments, activity notifications)
+    5. Update Redis cache (hot data: feed, suggestions, sessions, presence)
+    6. Append analytics_events for behavior & ads (including feed/reel view/like/save/scroll and ad_impression/click/conversion)
+    7. Return result to client
   end note
   
   note as N4

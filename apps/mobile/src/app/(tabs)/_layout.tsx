@@ -42,6 +42,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primaryText,
         tabBarInactiveTintColor: colors.secondaryText,
         tabBarLabelStyle: { fontSize: 12 },
+        tabBarShowLabel: false,
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: 'transparent',
@@ -73,7 +74,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.status'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'ellipse' : 'ellipse-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -82,7 +83,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.calls'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name="call" size={size} color={color} />
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -91,7 +92,11 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.communities'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name="people" size={size} color={color} />
+            <Ionicons
+              name={focused ? 'play-circle' : 'play-circle-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -100,7 +105,11 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.chats'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'chatbubble' : 'chatbubble-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -109,7 +118,11 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.settings'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'person-circle' : 'person-circle-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

@@ -19,7 +19,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream; Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data (optional); ETL jobs read ad analytics to build ad metrics for models
 - 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
 - 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, global search, **notifications** left sheet + **search** drawer, explore grid, DM-style messages, right sidebar suggestions), Redux notifications slice + Socket.IO `notification:new`, i18n (en/zh, footer language switch); sponsored posts rendered inline with "Sponsored" badge and ad click tracking
-- 📱 **Mobile App** – React Native + Expo
+- 📱 **Mobile App** – React Native + Expo; Instagram-style home feed (stories + vertical posts、multi-photo/video carousel with horizontal swipe), visibility-based video autoplay/pause aligned with web feed, Home tab tap-to-scroll-top, iOS-style navigation and settings, shared GraphQL feed and analytics events with web
 - 📊 **Behavior & Ads Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (including post view/like/save and ad_impression/ad_click/ad_conversion); API ingests; Admin shows overview and can run ETL for recommendation
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety (moderation stats, recheck, hide, batch delete), Ops Monitor, Business, Data Analytics, System Config, Permission & Audit, **Ads** (ad accounts, campaigns, ad sets/groups, creatives) (port 4001)
 

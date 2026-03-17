@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { styled } from '@/src/presentation/shared/emotion';
@@ -21,89 +12,133 @@ const DEFAULT_DEV_USER = { email: 'ladygaga@whatschat.com', password: '123456' }
 
 const Page = styled.View`
   flex: 1;
-  background-color: ${(p) => p.theme.colors.primaryGreenDark};
+  background-color: (p: { theme: { colors: { secondaryBackground: string } } }) =>
+    p.theme.colors.secondaryBackground;
 `;
 
 const Keyboard = styled(KeyboardAvoidingView)`
   flex: 1;
 `;
 
-const Header = styled.View`
-  padding: 48px 24px 24px;
-  background-color: ${(p) => p.theme.colors.primaryGreenDark};
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffff;
-`;
-
-const HeaderSubtitle = styled.Text`
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  margin-top: 8px;
-`;
-
-const Form = styled.View`
+const Content = styled.View`
   flex: 1;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 32px 24px 0;
-  background-color: ${(p) => p.theme.colors.secondaryBackground};
+  padding-horizontal: 24px;
+  padding-top: 56px;
+  padding-bottom: 32px;
+  justify-content: space-between;
 `;
 
-const Label = styled.Text`
-  font-size: 13px;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: ${(p) => p.theme.colors.secondaryText};
+const LogoContainer = styled.View`
+  align-items: center;
+  margin-bottom: 28px;
+`;
+
+const LogoCircle = styled.View`
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background-color: transparent;
+  justify-content: center;
+  align-items: center;
+`;
+
+const LogoInner = styled.View`
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
+  border-width: 3px;
+  border-color: #e1306c;
+  justify-content: center;
+  align-items: center;
+`;
+
+const LogoDot = styled.View`
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #e1306c;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+`;
+
+const LogoRing = styled.View`
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  border-width: 2px;
+  border-color: #e1306c;
+`;
+
+const FormCard = styled.View`
+  border-radius: 16px;
+  padding: 0;
+  background-color: transparent;
 `;
 
 const Input = styled.TextInput`
-  height: 48px;
-  border-radius: 10px;
+  height: 52px;
+  border-radius: 14px;
   border-width: 1px;
-  padding: 0 16px;
-  font-size: 17px;
-  margin-bottom: 20px;
+  padding-horizontal: 18px;
+  padding-vertical: 8px;
+  font-size: 16px;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
   color: ${(p) => p.theme.colors.primaryText};
-  border-color: ${(p) => p.theme.colors.separator};
+  border-color: #dbdbdb;
+  margin-bottom: 10px;
 `;
 
 const PrimaryButton = styled.TouchableOpacity`
-  height: 50px;
-  border-radius: 25px;
+  height: 44px;
+  border-radius: 22px;
   justify-content: center;
   align-items: center;
   margin-top: 12px;
-  background-color: ${(p) => p.theme.colors.primaryGreen};
+  background-color: ${(p) => p.theme.colors.buttonPrimary};
 `;
 
 const PrimaryButtonText = styled.Text`
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: ${(p) => p.theme.colors.buttonPrimaryText};
 `;
 
-const Footer = styled.View`
-  flex-direction: row;
+const InlineLink = styled.TouchableOpacity`
+  margin-top: 14px;
   align-items: center;
+`;
+
+const InlineLinkText = styled.Text`
+  font-size: 13px;
+  color: #262626;
+`;
+
+const BottomContainer = styled.View`
+  align-items: center;
+`;
+
+const BottomButton = styled.TouchableOpacity`
+  height: 44px;
+  border-radius: 22px;
+  border-width: 1px;
+  border-color: ${(p) => p.theme.colors.buttonOutline};
   justify-content: center;
-  gap: 8px;
-  margin-top: 24px;
+  align-items: center;
+  align-self: stretch;
+  margin-bottom: 16px;
 `;
 
-const FooterText = styled.Text`
-  font-size: 15px;
-  color: ${(p) => p.theme.colors.secondaryText};
-`;
-
-const LinkText = styled.Text`
+const BottomButtonText = styled.Text`
   font-size: 15px;
   font-weight: 600;
-  color: ${(p) => p.theme.colors.primaryGreen};
+  color: ${(p) => p.theme.colors.buttonOutlineText};
+`;
+
+const MetaText = styled.Text`
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 4px;
 `;
 
 export default function LoginScreen() {
@@ -125,7 +160,7 @@ export default function LoginScreen() {
     try {
       const data = await authService.login({ email: trimmedEmail, password });
       await dispatch(setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user })).unwrap();
-      router.replace('/(tabs)/chats');
+      router.replace('/(tabs)/status');
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
@@ -143,47 +178,54 @@ export default function LoginScreen() {
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
         <Keyboard behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <Header>
-            <HeaderTitle>WhatsChat</HeaderTitle>
-            <HeaderSubtitle>{t('login.subtitle')}</HeaderSubtitle>
-          </Header>
-          <Form>
-            <Label>{t('login.email')}</Label>
-            <Input
-              placeholder={t('login.emailPlaceholder')}
-              placeholderTextColor={colors.tertiaryText}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoCorrect={false}
-              editable={!loading}
-            />
-            <Label>{t('login.password')}</Label>
-            <Input
-              placeholder={t('login.passwordPlaceholder')}
-              placeholderTextColor={colors.tertiaryText}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-            />
-            <PrimaryButton onPress={handleLogin} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <PrimaryButtonText>{t('login.submit')}</PrimaryButtonText>
-              )}
-            </PrimaryButton>
-            <Footer>
-              <FooterText>{t('login.noAccount')}</FooterText>
-              <Link href="/register" asChild>
-                <TouchableOpacity disabled={loading}>
-                  <LinkText>{t('login.register')}</LinkText>
-                </TouchableOpacity>
-              </Link>
-            </Footer>
-          </Form>
+          <Content>
+            <View>
+              <LogoContainer>
+                <LogoCircle>
+                  <LogoInner>
+                    <LogoRing />
+                    <LogoDot />
+                  </LogoInner>
+                </LogoCircle>
+              </LogoContainer>
+              <FormCard>
+                <Input
+                  placeholder={t('login.subtitle')}
+                  placeholderTextColor={colors.tertiaryText}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                  editable={!loading}
+                />
+                <Input
+                  placeholder={t('login.passwordPlaceholder')}
+                  placeholderTextColor={colors.tertiaryText}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  editable={!loading}
+                />
+                <PrimaryButton onPress={handleLogin} disabled={loading}>
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <PrimaryButtonText>{t('login.submit')}</PrimaryButtonText>
+                  )}
+                </PrimaryButton>
+                <InlineLink disabled={loading}>
+                  <InlineLinkText>{t('login.forgotPassword')}</InlineLinkText>
+                </InlineLink>
+              </FormCard>
+            </View>
+            <BottomContainer>
+              <BottomButton disabled={loading}>
+                <BottomButtonText>{t('login.createAccount')}</BottomButtonText>
+              </BottomButton>
+              <MetaText>Meta</MetaText>
+            </BottomContainer>
+          </Content>
         </Keyboard>
       </Page>
     </SafeAreaView>

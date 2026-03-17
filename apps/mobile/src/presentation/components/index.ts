@@ -8,4 +8,5 @@ export * from './ActiveCallOverlay';
 export * from './GlassView';
 export * from './LiquidGlassBar';
 export * from './TabPageHeader';
+export * from './FeedPostCard';
 

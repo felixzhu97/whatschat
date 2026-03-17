@@ -66,13 +66,18 @@ package "Client Applications" {
   note right of MobileApp
     Tech stack:
     - React Native
-    - Expo
+    - Expo (SDK 55, expo-router)
     - TypeScript
     - Emotion (@emotion/native)
     - Redux Toolkit + React Redux
     - i18next (en/zh)
     - Theme (light/dark/system)
     - iOS-style Settings (grouped cards)
+    - Instagram-style home feed:
+      - Header + horizontal stories + vertical feed
+      - Multi-photo/video posts with horizontal swipe carousel
+      - Video auto-play/pause based on visibility (expo-video, one active player)
+      - Shared GraphQL feed query + analytics events with web; guarded pagination to avoid duplicate GraphQL calls
   end note
 }
 
