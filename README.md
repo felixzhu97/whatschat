@@ -41,15 +41,19 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ### Web
 
 <p align="center">
-  <img src="./screenshots/web-login.png" width="280" alt="Web Login">
-  <img src="./screenshots/web-chat-list.png" width="280" alt="Web Chat List">
-  <img src="./screenshots/web-chat-conversation.png" width="280" alt="Web Chat">
-  <img src="./screenshots/web-video-call.png" width="280" alt="Web Video Call">
+  <img src="./screenshots/web-screen-1.png" width="280" alt="Web Screen 1">
+  <img src="./screenshots/web-screen-2.png" width="280" alt="Web Screen 2">
+  <img src="./screenshots/web-screen-3.png" width="280" alt="Web Screen 3">
 </p>
 <p align="center">
-  <img src="./screenshots/web-ai-text-dialog.png" width="280" alt="Web AI Text Generation">
-  <img src="./screenshots/web-ai-image-dialog.png" width="280" alt="Web AI Image Generation">
-  <img src="./screenshots/web-ai-voice-dialog.png" width="280" alt="Web AI Voice Generation">
+  <img src="./screenshots/web-screen-4.png" width="280" alt="Web Screen 4">
+  <img src="./screenshots/web-screen-5.png" width="280" alt="Web Screen 5">
+  <img src="./screenshots/web-screen-6.png" width="280" alt="Web Screen 6">
+</p>
+<p align="center">
+  <img src="./screenshots/web-screen-7.png" width="280" alt="Web Screen 7">
+  <img src="./screenshots/web-screen-8.png" width="280" alt="Web Screen 8">
+  <img src="./screenshots/web-screen-9.png" width="280" alt="Web Screen 9">
 </p>
 
 ### Admin
