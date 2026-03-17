@@ -28,39 +28,45 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ### Mobile
 
 <p align="center">
-  <img src="./screenshots/mobile-login.png" width="200" alt="Mobile Login">
-  <img src="./screenshots/mobile-chats-list.png" width="200" alt="Mobile Chats">
-  <img src="./screenshots/mobile-chat-conversation.png" width="200" alt="Mobile Chat">
+  <img src="./screenshots/mobile-login.png" width="220" alt="Mobile Login">
+  <img src="./screenshots/mobile-chats-list.png" width="220" alt="Mobile Chats">
 </p>
 <p align="center">
-  <img src="./screenshots/mobile-communities.png" width="200" alt="Mobile Communities">
-  <img src="./screenshots/mobile-video-call.png" width="200" alt="Mobile Video Call">
-  <img src="./screenshots/mobile-settings.png" width="200" alt="Mobile Settings">
+  <img src="./screenshots/mobile-chat-conversation.png" width="220" alt="Mobile Chat">
+  <img src="./screenshots/mobile-communities.png" width="220" alt="Mobile Communities">
+</p>
+<p align="center">
+  <img src="./screenshots/mobile-video-call.png" width="220" alt="Mobile Video Call">
+  <img src="./screenshots/mobile-settings.png" width="220" alt="Mobile Settings">
 </p>
 
 ### Web
 
 <p align="center">
-  <img src="./screenshots/web-screen-1.png" width="280" alt="Web Screen 1">
-  <img src="./screenshots/web-screen-2.png" width="280" alt="Web Screen 2">
-  <img src="./screenshots/web-screen-3.png" width="280" alt="Web Screen 3">
+  <img src="./screenshots/web-screen-1.png" width="340" alt="Web Screen 1">
+  <img src="./screenshots/web-screen-2.png" width="340" alt="Web Screen 2">
 </p>
 <p align="center">
-  <img src="./screenshots/web-screen-4.png" width="280" alt="Web Screen 4">
-  <img src="./screenshots/web-screen-5.png" width="280" alt="Web Screen 5">
-  <img src="./screenshots/web-screen-6.png" width="280" alt="Web Screen 6">
+  <img src="./screenshots/web-screen-3.png" width="340" alt="Web Screen 3">
+  <img src="./screenshots/web-screen-4.png" width="340" alt="Web Screen 4">
 </p>
 <p align="center">
-  <img src="./screenshots/web-screen-7.png" width="280" alt="Web Screen 7">
-  <img src="./screenshots/web-screen-8.png" width="280" alt="Web Screen 8">
-  <img src="./screenshots/web-screen-9.png" width="280" alt="Web Screen 9">
+  <img src="./screenshots/web-screen-5.png" width="340" alt="Web Screen 5">
+  <img src="./screenshots/web-screen-6.png" width="340" alt="Web Screen 6">
+</p>
+<p align="center">
+  <img src="./screenshots/web-screen-7.png" width="340" alt="Web Screen 7">
+  <img src="./screenshots/web-screen-8.png" width="340" alt="Web Screen 8">
+</p>
+<p align="center">
+  <img src="./screenshots/web-screen-9.png" width="340" alt="Web Screen 9">
 </p>
 
 ### Admin
 
 <p align="center">
-  <img src="./screenshots/admin-dashboard.png" width="280" alt="Admin Dashboard">
-  <img src="./screenshots/admin-users.png" width="280" alt="Admin Users">
+  <img src="./screenshots/admin-dashboard.png" width="340" alt="Admin Dashboard">
+  <img src="./screenshots/admin-users.png" width="340" alt="Admin Users">
 </p>
 
 ## 🛠 Tech Stack
