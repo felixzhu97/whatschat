@@ -13,41 +13,63 @@ export class EngagementService {
     private readonly chatGateway: ChatGateway,
   ) {}
 
-  async like(userId: string, postId: string): Promise<{ liked: boolean }> {
+  async like(
+    userId: string,
+    postId: string,
+  ): Promise<{ postId: string; isLiked: boolean; likeCount: number; commentCount: number; saveCount: number }> {
     const post = await this.postRepo.getPostById(postId);
     if (!post) throw new NotFoundException("Post not found");
     const already = await this.engagementRepo.isLiked(userId, postId);
-    if (already) return { liked: true };
+    if (already) {
+      const counts = await this.engagementRepo.getEngagementCounts(postId);
+      return { postId, isLiked: true, ...counts };
+    }
     const ok = await this.engagementRepo.like(userId, postId);
     if (ok && post.user_id !== userId) {
       const item = await this.notificationService.upsertLike(post.user_id, userId, postId);
       if (item) this.chatGateway.emitNotification(post.user_id, item);
     }
-    return { liked: ok };
+    const counts = await this.engagementRepo.getEngagementCounts(postId);
+    return { postId, isLiked: ok, ...counts };
   }
 
-  async unlike(userId: string, postId: string): Promise<{ liked: boolean }> {
+  async unlike(
+    userId: string,
+    postId: string,
+  ): Promise<{ postId: string; isLiked: boolean; likeCount: number; commentCount: number; saveCount: number }> {
     const post = await this.postRepo.getPostById(postId);
     if (!post) throw new NotFoundException("Post not found");
     const ok = await this.engagementRepo.unlike(userId, postId);
     if (ok) await this.notificationService.deleteLike(userId, postId);
-    return { liked: !ok };
+    const counts = await this.engagementRepo.getEngagementCounts(postId);
+    return { postId, isLiked: false, ...counts };
   }
 
-  async save(userId: string, postId: string): Promise<{ saved: boolean }> {
+  async save(
+    userId: string,
+    postId: string,
+  ): Promise<{ postId: string; isSaved: boolean; likeCount: number; commentCount: number; saveCount: number }> {
     const post = await this.postRepo.getPostById(postId);
     if (!post) throw new NotFoundException("Post not found");
     const already = await this.engagementRepo.isSaved(userId, postId);
-    if (already) return { saved: true };
+    if (already) {
+      const counts = await this.engagementRepo.getEngagementCounts(postId);
+      return { postId, isSaved: true, ...counts };
+    }
     const ok = await this.engagementRepo.save(userId, postId);
-    return { saved: ok };
+    const counts = await this.engagementRepo.getEngagementCounts(postId);
+    return { postId, isSaved: ok, ...counts };
   }
 
-  async unsave(userId: string, postId: string): Promise<{ saved: boolean }> {
+  async unsave(
+    userId: string,
+    postId: string,
+  ): Promise<{ postId: string; isSaved: boolean; likeCount: number; commentCount: number; saveCount: number }> {
     const post = await this.postRepo.getPostById(postId);
     if (!post) throw new NotFoundException("Post not found");
-    const ok = await this.engagementRepo.unsave(userId, postId);
-    return { saved: !ok };
+    await this.engagementRepo.unsave(userId, postId);
+    const counts = await this.engagementRepo.getEngagementCounts(postId);
+    return { postId, isSaved: false, ...counts };
   }
 
   async getEngagementCounts(postId: string) {

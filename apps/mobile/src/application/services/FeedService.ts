@@ -23,6 +23,7 @@ export interface MobileStoryUser {
   username: string;
   avatar: string;
 }
+
 interface FeedPostRes {
   postId: string;
   userId: string;
@@ -52,6 +53,14 @@ interface FeedGraphqlBody {
       }>;
     };
   };
+}
+
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+
+function isVideoUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('data:')) return /^data:video\//i.test(url);
+  return VIDEO_EXT.test(url);
 }
 
 function mapFeedPost(raw: FeedPostRes): MobileFeedPost {
@@ -95,14 +104,6 @@ function mapFeedPost(raw: FeedPostRes): MobileFeedPost {
   };
 }
 
-const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?|$)/i;
-
-function isVideoUrl(url: string): boolean {
-  if (!url) return false;
-  if (url.startsWith('data:')) return /^data:video\//i.test(url);
-  return VIDEO_EXT.test(url);
-}
-
 export class FeedService {
   async getFeed(limit: number, pageState?: string) {
     const query = `query Feed($limit: Int, $pageState: String) {
@@ -110,13 +111,6 @@ export class FeedService {
         pageState
         entries {
           postId
-          authorId
-          createdAt
-          isSponsored
-          adAccountId
-          adCampaignId
-          adGroupId
-          adCreativeId
           post {
             postId
             userId

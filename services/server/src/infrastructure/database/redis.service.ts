@@ -175,11 +175,39 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async lpush(key: string, ...values: string[]): Promise<number> {
+    try {
+      return await this.client.lpush(key, ...values);
+    } catch (error) {
+      logger.error(`Redis LPUSH错误: ${error}`);
+      throw error;
+    }
+  }
+
   async lrange(key: string, start: number, stop: number): Promise<string[]> {
     try {
       return await this.client.lrange(key, start, stop);
     } catch (error) {
       logger.error(`Redis LRANGE错误: ${error}`);
+      throw error;
+    }
+  }
+
+  async ltrim(key: string, start: number, stop: number): Promise<void> {
+    try {
+      await this.client.ltrim(key, start, stop);
+    } catch (error) {
+      logger.error(`Redis LTRIM错误: ${error}`);
+      throw error;
+    }
+  }
+
+  async setIfNotExists(key: string, value: string, ttlSeconds: number): Promise<boolean> {
+    try {
+      const res = await this.client.set(key, value, "EX", ttlSeconds, "NX");
+      return res === "OK";
+    } catch (error) {
+      logger.error(`Redis SETNX错误: ${error}`);
       throw error;
     }
   }

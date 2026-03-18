@@ -1,4 +1,3 @@
-export * from './HomeScreen';
 export * from './ChatListScreen';
 export * from './ChatDetailScreen';
 export * from './HomeFeedScreen';

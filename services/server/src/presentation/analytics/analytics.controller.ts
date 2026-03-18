@@ -1,6 +1,6 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
-import { Public } from "../auth/public.decorator";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { AnalyticsService } from "@/application/services/analytics.service";
 import { IngestAnalyticsEventsDto } from "@/application/dto/analytics.dto";
@@ -11,14 +11,13 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Post("events")
-  @Public()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Ingest analytics events" })
   async ingestEvents(
     @Body() dto: IngestAnalyticsEventsDto,
-    @CurrentUser() user?: { id: string },
+    @CurrentUser() user: { id: string },
   ) {
-    const userId = user?.id;
-    await this.analyticsService.ingest(dto.events, userId);
+    await this.analyticsService.ingest(dto.events, user.id);
     return { success: true };
   }
 }

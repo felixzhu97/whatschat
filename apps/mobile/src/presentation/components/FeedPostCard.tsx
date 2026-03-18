@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Image,
   TouchableOpacity,
@@ -6,10 +6,13 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Dimensions,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
+import { useTranslation } from '@/src/presentation/shared/i18n';
 import type { MobileFeedPost } from '@/src/application/services';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { WebView } from 'react-native-webview';
@@ -203,6 +206,8 @@ interface FeedPostCardProps {
   onPressComment?: (id: string) => void;
   onPressShare?: (id: string) => void;
   onPressSave?: (id: string) => void;
+  onPressFollow?: (userId: string) => void;
+  onPressMedia?: (postId: string, index: number) => void;
   isActive?: boolean;
 }
 
@@ -212,11 +217,15 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   onPressComment,
   onPressShare,
   onPressSave,
+  onPressFollow,
+  onPressMedia,
   isActive = false,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const screenWidth = Dimensions.get('window').width;
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const lastTap = useRef<number>(0);
   const likeIcon = post.isLiked ? 'heart' : 'heart-outline';
   const likeColor = post.isLiked ? colors.iosRed : colors.primaryText;
   const saveIcon = post.isSaved ? 'bookmark' : 'bookmark-outline';
@@ -225,6 +234,12 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   const isDataVideo = isVideo && post.videoUrl?.startsWith('data:video/');
   const mediaUrls = Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0 ? post.mediaUrls : [];
   const hasCarousel = mediaUrls.length > 1;
+  const safeLikeCount =
+    typeof post.likeCount === 'number' && !Number.isNaN(post.likeCount) ? post.likeCount : 0;
+  const likeText = useMemo(
+    () => `${safeLikeCount} ${t('feed.likeLabel')}`,
+    [safeLikeCount, t],
+  );
 
   const isMediaVideoUrl = (url: string) => {
     if (!url) return false;
@@ -255,15 +270,39 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
           </HeaderText>
         </HeaderLeft>
         <HeaderRight>
-          <FollowButton>
-            <FollowText>Follow</FollowText>
+          <FollowButton onPress={() => onPressFollow?.(post.userId)}>
+            <FollowText>{t('feed.follow')}</FollowText>
           </FollowButton>
-          <IconButton>
+          <IconButton
+            onPress={() => {
+              if (Platform.OS !== 'ios') return;
+              ActionSheetIOS.showActionSheetWithOptions(
+                {
+                  options: [t('feed.copyLink'), t('feed.report'), t('common.cancel')],
+                  cancelButtonIndex: 2,
+                  destructiveButtonIndex: 1,
+                },
+                () => {},
+              );
+            }}
+          >
             <Ionicons name="ellipsis-horizontal" size={18} color={colors.primaryText} />
           </IconButton>
         </HeaderRight>
       </Header>
-      <Media>
+      <TouchableOpacity
+        activeOpacity={0.96}
+        onPress={() => {
+          const now = Date.now();
+          if (now - lastTap.current < 280) {
+            onPressLike?.(post.id);
+          } else {
+            onPressMedia?.(post.id, activeMediaIndex);
+          }
+          lastTap.current = now;
+        }}
+      >
+        <Media>
         {hasCarousel ? (
           <ScrollView
             horizontal
@@ -357,7 +396,8 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
         ) : (
           <MediaImage source={{ uri: post.imageUrl || undefined }} resizeMode="cover" />
         )}
-      </Media>
+        </Media>
+      </TouchableOpacity>
       <Actions>
         <ActionsLeft>
           <IconButton onPress={() => onPressLike?.(post.id)}>
@@ -375,7 +415,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
         </IconButton>
       </Actions>
       <Footer>
-        <StatText numberOfLines={1}>{`${post.likeCount} likes`}</StatText>
+        <StatText numberOfLines={1}>{likeText}</StatText>
         {post.caption ? (
           <CaptionText numberOfLines={2}>{post.caption}</CaptionText>
         ) : null}

@@ -1,14 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, ViewToken } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, TouchableOpacity, ViewToken } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useScrollToTop } from '@react-navigation/native';
+import { useScrollToTop } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { FeedPostCard } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
-import { useMobileFeed } from '@/src/presentation/hooks/useMobileFeed';
-import { useMobileStories } from '@/src/presentation/hooks/useMobileStories';
+import {
+  useGetFeedFirstQuery,
+  useLazyGetFeedMoreQuery,
+  useGetStatusesQuery,
+  useGetStoryUsersQuery,
+  useLikePostMutation,
+  useUnlikePostMutation,
+  useSavePostMutation,
+  useUnsavePostMutation,
+  useFollowUserMutation,
+  useTrackEventsMutation,
+} from '@/src/presentation/store/api/feedApi';
+import { useRouter } from 'expo-router';
 
 const Page = styled.View`
   flex: 1;
@@ -102,16 +113,44 @@ const EmptyText = styled.Text`
   margin-top: 8px;
 `;
 
+const SkeletonCard = styled.View`
+  background-color: (p: { theme: { colors: { secondaryBackground: string } } }) =>
+    p.theme.colors.secondaryBackground;
+  padding: 12px;
+  margin-bottom: 24px;
+`;
+
+const SkeletonBar = styled.View<{ w: number; h: number }>`
+  width: ${(p) => p.w}px;
+  height: ${(p) => p.h}px;
+  border-radius: 8px;
+  background-color: (p: { theme: { colors: { tertiaryBackground: string } } }) =>
+    p.theme.colors.tertiaryBackground;
+  margin-bottom: 10px;
+`;
+
 export const HomeFeedScreen: React.FC = () => {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { items, initialLoading, loadingMore, load, refresh } = useMobileFeed();
-  const { items: storyItems } = useMobileStories();
+  const router = useRouter();
+  const { data: feedFirst, isFetching: isFetchingFirst, isError: isFeedError, refetch } = useGetFeedFirstQuery({
+    limit: 8,
+  });
+  const [triggerMore, moreResult] = useLazyGetFeedMoreQuery();
+  const { data: statuses } = useGetStatusesQuery();
+  const { data: storyUsers } = useGetStoryUsersQuery({ limit: 12 });
+  const [likePost] = useLikePostMutation();
+  const [unlikePost] = useUnlikePostMutation();
+  const [savePost] = useSavePostMutation();
+  const [unsavePost] = useUnsavePostMutation();
+  const [followUser] = useFollowUserMutation();
+  const [trackEvents] = useTrackEventsMutation();
   const [refreshing, setRefreshing] = useState(false);
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const listRef = useRef<FlatList<any> | null>(null);
-  const navigation = useNavigation();
+  const [items, setItems] = useState<any[]>([]);
+  const [nextPageState, setNextPageState] = useState<string | undefined>(undefined);
 
   useScrollToTop(listRef);
 
@@ -121,6 +160,16 @@ export const HomeFeedScreen: React.FC = () => {
       const first = viewableItems.find((v) => v.isViewable && v.item?.id);
       if (first && typeof first.item.id === 'string') {
         setActivePostId(first.item.id);
+        const key = `post_impression:${first.item.id}:${Math.floor(Date.now() / 60000)}`;
+        trackEvents({
+          events: [
+            {
+              eventName: 'post_impression',
+              idempotencyKey: key,
+              properties: { postId: first.item.id, source: 'home_feed' },
+            },
+          ],
+        });
       } else {
         setActivePostId(null);
       }
@@ -128,55 +177,173 @@ export const HomeFeedScreen: React.FC = () => {
   );
 
   useEffect(() => {
-    load(true);
-  }, []);
+    if (feedFirst?.posts) {
+      setItems(feedFirst.posts);
+      setNextPageState(feedFirst.nextPageState);
+    }
+  }, [feedFirst?.posts, feedFirst?.nextPageState]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress', () => {
-      if (listRef.current) {
-        listRef.current.scrollToOffset({ offset: 0, animated: true });
+  const stories = useMemo(() => {
+    const list = Array.isArray(statuses) && statuses.length > 0 ? statuses : null;
+    if (list) {
+      const byUser = new Map<string, any>();
+      for (const s of list) {
+        const uid = s.userId ?? s.user?.id;
+        if (!uid) continue;
+        const prev = byUser.get(uid);
+        if (!prev || new Date(prev.createdAt).getTime() < new Date(s.createdAt).getTime()) {
+          byUser.set(uid, s);
+        }
       }
-    });
-    return unsubscribe;
-  }, [navigation]);
+      return Array.from(byUser.values()).map((s) => ({
+        id: s.id,
+        userId: s.userId ?? s.user?.id,
+        username: s.user?.username ?? '',
+        avatar: s.user?.avatar ?? '',
+        isViewed: Boolean(s.isViewed),
+      }));
+    }
+    const users = Array.isArray(storyUsers) ? storyUsers : [];
+    return users.map((u) => ({
+      id: u.id,
+      userId: u.id,
+      username: u.username,
+      avatar: u.avatar,
+      isViewed: false,
+    }));
+  }, [statuses, storyUsers]);
+
+  const initialLoading = isFetchingFirst && items.length === 0;
+  const loadingMore = moreResult.isFetching;
+
+  const listData = initialLoading
+    ? [{ id: '__skeleton_1' }, { id: '__skeleton_2' }, { id: '__skeleton_3' }]
+    : items;
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
         <FlatList
           ref={listRef}
-          data={items}
+          data={listData}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}
-          renderItem={({ item }) => (
-            <FeedPostCard post={item} isActive={item.id === activePostId} />
-          )}
+          renderItem={({ item }) =>
+            initialLoading ? (
+              <SkeletonCard>
+                <SkeletonBar w={160} h={14} />
+                <SkeletonBar w={240} h={12} />
+                <SkeletonBar w={360} h={420} />
+                <SkeletonBar w={200} h={12} />
+              </SkeletonCard>
+            ) : (
+              <FeedPostCard
+                post={item}
+                isActive={item.id === activePostId}
+                onPressLike={async (id) => {
+                  const current = items.find((p) => p.id === id);
+                  if (!current) return;
+                  const willLike = !current.isLiked;
+                  setItems((prev) =>
+                    prev.map((p) =>
+                      p.id === id
+                        ? {
+                            ...p,
+                            isLiked: willLike,
+                            likeCount: Math.max(0, (p.likeCount ?? 0) + (willLike ? 1 : -1)),
+                          }
+                        : p,
+                    ),
+                  );
+                  try {
+                    await (willLike ? likePost({ postId: id }) : unlikePost({ postId: id })).unwrap();
+                  } catch {
+                    setItems((prev) =>
+                      prev.map((p) =>
+                        p.id === id
+                          ? {
+                              ...p,
+                              isLiked: current.isLiked,
+                              likeCount: current.likeCount,
+                              commentCount: current.commentCount,
+                            }
+                          : p,
+                      ),
+                    );
+                  }
+                }}
+                onPressSave={async (id) => {
+                  const current = items.find((p) => p.id === id);
+                  if (!current) return;
+                  const willSave = !current.isSaved;
+                  setItems((prev) =>
+                    prev.map((p) =>
+                      p.id === id
+                        ? {
+                            ...p,
+                            isSaved: willSave,
+                          }
+                        : p,
+                    ),
+                  );
+                  try {
+                    await (willSave ? savePost({ postId: id }) : unsavePost({ postId: id })).unwrap();
+                  } catch {
+                    setItems((prev) =>
+                      prev.map((p) =>
+                        p.id === id
+                          ? {
+                              ...p,
+                              isSaved: current.isSaved,
+                              likeCount: current.likeCount,
+                              commentCount: current.commentCount,
+                            }
+                          : p,
+                      ),
+                    );
+                  }
+                }}
+                onPressComment={(id) => router.push({ pathname: '/post-comments', params: { postId: id } } as any)}
+                onPressShare={(id) => router.push({ pathname: '/share', params: { postId: id } } as any)}
+                onPressFollow={async (userId) => {
+                  await followUser({ userId });
+                }}
+                onPressMedia={(postId, index) =>
+                  router.push({ pathname: '/media-viewer', params: { postId, index: String(index) } } as any)
+                }
+              />
+            )
+          }
           ListHeaderComponent={
             <ListHeader>
               <Header>
-                <HeaderTitle>Instagram</HeaderTitle>
+                <HeaderTitle>{t('home.title')}</HeaderTitle>
                 <HeaderRight>
-                  <HeaderIconButton>
+                  <HeaderIconButton onPress={() => router.push('/create-post')}>
                     <Ionicons name="add-circle-outline" size={24} color={colors.primaryText} />
                   </HeaderIconButton>
-                  <HeaderIconButton>
+                  <HeaderIconButton onPress={() => router.push('/notifications')}>
                     <Ionicons name="heart-outline" size={24} color={colors.primaryText} />
                   </HeaderIconButton>
-                  <HeaderIconButton>
+                  <HeaderIconButton onPress={() => router.push('/inbox')}>
                     <Ionicons name="paper-plane-outline" size={24} color={colors.primaryText} />
                   </HeaderIconButton>
                 </HeaderRight>
               </Header>
               <StoriesContainer>
                 <FlatList
-                  data={storyItems}
+                  data={stories}
                   keyExtractor={(item) => item.id}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ paddingHorizontal: 8 }}
                   renderItem={({ item }) => (
-                    <StoryItem>
-                      <StoryAvatarWrap>
+                    <TouchableOpacity
+                      onPress={() => router.push({ pathname: '/story-viewer', params: { userId: item.userId } } as any)}
+                      activeOpacity={0.85}
+                    >
+                      <StoryItem>
+                        <StoryAvatarWrap style={{ borderWidth: 2, borderColor: item.isViewed ? colors.tertiaryBackground : colors.iosRed }}>
                         <StoryAvatarInner>
                           <StoryAvatarImage
                             source={{ uri: item.avatar || undefined }}
@@ -185,7 +352,8 @@ export const HomeFeedScreen: React.FC = () => {
                         </StoryAvatarInner>
                       </StoryAvatarWrap>
                       <StoryName numberOfLines={1}>{item.username}</StoryName>
-                    </StoryItem>
+                      </StoryItem>
+                    </TouchableOpacity>
                   )}
                 />
               </StoriesContainer>
@@ -202,7 +370,12 @@ export const HomeFeedScreen: React.FC = () => {
             !initialLoading ? (
               <EmptyState>
                 <Ionicons name="image-outline" size={40} color={colors.secondaryText} />
-                <EmptyText>{t('home.empty')}</EmptyText>
+                <EmptyText>{isFeedError ? t('home.loadFailed') : t('home.empty')}</EmptyText>
+                {isFeedError ? (
+                  <HeaderIconButton onPress={() => refetch()}>
+                    <Ionicons name="refresh" size={20} color={colors.primaryText} />
+                  </HeaderIconButton>
+                ) : null}
               </EmptyState>
             ) : null
           }
@@ -211,7 +384,11 @@ export const HomeFeedScreen: React.FC = () => {
               refreshing={refreshing || initialLoading}
               onRefresh={async () => {
                 setRefreshing(true);
-                await refresh();
+                const res = await refetch();
+                if ('data' in res && (res as any).data?.posts) {
+                  setItems((res as any).data.posts);
+                  setNextPageState((res as any).data.nextPageState);
+                }
                 setRefreshing(false);
               }}
               tintColor={colors.primaryGreen}
@@ -219,9 +396,19 @@ export const HomeFeedScreen: React.FC = () => {
           }
           onEndReachedThreshold={0.4}
           onEndReached={() => {
-            if (!loadingMore) {
-              load(false);
-            }
+            if (loadingMore) return;
+            if (!nextPageState) return;
+            triggerMore({ limit: 8, pageState: nextPageState })
+              .unwrap()
+              .then((page) => {
+                setNextPageState(page.nextPageState);
+                setItems((prev) => {
+                  const seen = new Set(prev.map((p) => p.id));
+                  const append = (page.posts ?? []).filter((p) => !seen.has(p.id));
+                  return [...prev, ...append];
+                });
+              })
+              .catch(() => {});
           }}
           viewabilityConfig={viewabilityConfig}
           onViewableItemsChanged={onViewableItemsChanged.current}

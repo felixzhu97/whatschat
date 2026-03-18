@@ -185,6 +185,6 @@ export class StatusService {
       },
     });
 
-    return { message: "状态已标记为已查看" };
+    return { statusId: id, isViewed: true };
   }
 }

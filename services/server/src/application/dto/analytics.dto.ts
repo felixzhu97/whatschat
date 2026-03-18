@@ -28,6 +28,10 @@ export class AnalyticsEventDto {
   eventName!: string;
 
   @IsOptional()
+  @IsString()
+  idempotencyKey?: string;
+
+  @IsOptional()
   @IsObject()
   properties?: Record<string, unknown>;
 

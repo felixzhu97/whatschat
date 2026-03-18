@@ -34,7 +34,9 @@ export class FeedService {
 
   async getFeed(userId: string, limit: number, pageState?: string) {
     const result = await this.feedCache.getFeedPage(userId, limit, pageState);
-    if (pageState) return result;
+    if (pageState) {
+      return result;
+    }
     const { posts } = await this.postService.getPostsByUser(userId, limit, undefined);
     const ownEntries = posts.map((p) => ({
       postId: p.postId,
@@ -45,26 +47,26 @@ export class FeedService {
     for (const e of [...ownEntries, ...result.entries]) {
       if (!mergedByPost.has(e.postId)) mergedByPost.set(e.postId, e);
     }
-    const merged = Array.from(mergedByPost.values());
-    const postIds = merged.map((e) => e.postId);
+    const candidates = Array.from(mergedByPost.values());
+    const postIds = candidates.map((e) => e.postId);
     const countsMap = await this.engagementRepo.getEngagementCountsBatch(postIds);
     const now = new Date();
     const assignment = this.experiments.assign(userId, "feed");
     const ranked = await this.recommendation.rankFeed({
       userId,
-      candidateIds: merged.map((e) => e.postId),
+      candidateIds: candidates.map((e) => e.postId),
       limit,
       experimentId: assignment.experimentId,
       variantId: assignment.variantId,
-    });
+    } as any);
     const rankedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
-    for (const e of merged) {
+    for (const e of candidates) {
       rankedByPost.set(e.postId, e);
     }
-    const ordered = ranked.items
+    const ordered = (ranked.items ?? [])
       .map((item) => rankedByPost.get(item.id))
       .filter((v): v is { postId: string; authorId: string; createdAt: Date } => Boolean(v));
-    const fallbackSorted = merged
+    const fallbackSorted = candidates
       .map((e) => ({
         ...e,
         score: rankScore(

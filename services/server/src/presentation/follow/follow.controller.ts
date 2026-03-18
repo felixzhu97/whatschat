@@ -21,7 +21,7 @@ export class FollowController {
   @Delete(":userId/follow")
   @ApiOperation({ summary: "取消关注" })
   async unfollow(@CurrentUser() user: { id: string }, @Param("userId") userId: string) {
-    await this.followService.unfollow(user.id, userId);
-    return { success: true, message: "已取消关注" };
+    const data = await this.followService.unfollow(user.id, userId);
+    return { success: true, data };
   }
 }

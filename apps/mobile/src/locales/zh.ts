@@ -8,8 +8,37 @@ export const zh = {
     notSet: '未设置',
     none: '—',
   },
+  feed: {
+    follow: '关注',
+    copyLink: '复制链接',
+    report: '举报',
+    likeLabel: '次赞',
+  },
   home: {
+    title: 'Instagram',
     empty: '暂时还没有动态',
+    loadFailed: '加载失败',
+    retry: '重试',
+  },
+  createPost: {
+    title: '新帖子',
+    comingSoon: '即将上线',
+  },
+  notifications: {
+    title: '通知',
+    comingSoon: '即将上线',
+  },
+  inbox: {
+    title: '收件箱',
+    comingSoon: '即将上线',
+  },
+  comments: {
+    title: '评论',
+    comingSoon: '即将上线',
+  },
+  share: {
+    title: '分享',
+    comingSoon: '即将上线',
   },
   tabs: {
     chats: '聊天',

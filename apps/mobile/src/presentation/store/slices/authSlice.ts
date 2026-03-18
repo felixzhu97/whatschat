@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthUser } from '@/src/domain/entities';
+import { setApiToken } from '@/src/infrastructure/api/client';
 
 const TOKEN_KEY = '@whatschat_token';
 const REFRESH_TOKEN_KEY = '@whatschat_refresh_token';
@@ -31,12 +32,14 @@ export const setAuth = createAsyncThunk(
       [REFRESH_TOKEN_KEY, payload.refreshToken],
       [USER_KEY, JSON.stringify(payload.user)],
     ]);
+    setApiToken(payload.token);
     return payload;
   }
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
   await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
+  setApiToken(null);
 });
 
 export const hydrateAuth = createAsyncThunk('auth/hydrate', async () => {
@@ -46,6 +49,7 @@ export const hydrateAuth = createAsyncThunk('auth/hydrate', async () => {
     USER_KEY,
   ]);
   const user = userJson ? (JSON.parse(userJson) as AuthUser) : null;
+  setApiToken(token ?? null);
   return {
     token: token ?? null,
     refreshToken: refreshToken ?? null,

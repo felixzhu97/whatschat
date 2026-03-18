@@ -1,24 +1,33 @@
 import axios from 'axios';
 import { API_V1 } from '@/src/config/api';
-import { store } from '@/src/presentation/stores';
-import { logout } from '@/src/presentation/store/slices/authSlice';
+
+let tokenCache: string | null = null;
+let unauthorizedHandler: (() => void | Promise<void>) | null = null;
+
+export function setApiToken(token: string | null) {
+  tokenCache = token;
+}
+
+export function setUnauthorizedHandler(handler: (() => void | Promise<void>) | null) {
+  unauthorizedHandler = handler;
+}
 
 export function createApiClient() {
-  const token = store.getState().auth.token;
   const client = axios.create({
     baseURL: API_V1,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: tokenCache ? { Authorization: `Bearer ${tokenCache}` } : {},
   });
-  client.interceptors.request.use((config) => {
-    const t = store.getState().auth.token;
-    if (t) config.headers.Authorization = `Bearer ${t}`;
+  client.interceptors.request.use(async (config) => {
+    if (tokenCache) {
+      config.headers.Authorization = `Bearer ${tokenCache}`;
+    }
     return config;
   });
   client.interceptors.response.use(
     (response) => response,
     async (error) => {
       if (error?.response?.status === 401) {
-        await store.dispatch(logout());
+        await unauthorizedHandler?.();
       }
       return Promise.reject(error);
     }

@@ -8,8 +8,37 @@ export const en = {
     notSet: 'Not set',
     none: '—',
   },
+  feed: {
+    follow: 'Follow',
+    copyLink: 'Copy link',
+    report: 'Report',
+    likeLabel: 'likes',
+  },
   home: {
+    title: 'Instagram',
     empty: 'No posts yet',
+    loadFailed: 'Failed to load',
+    retry: 'Retry',
+  },
+  createPost: {
+    title: 'New post',
+    comingSoon: 'Coming soon',
+  },
+  notifications: {
+    title: 'Notifications',
+    comingSoon: 'Coming soon',
+  },
+  inbox: {
+    title: 'Inbox',
+    comingSoon: 'Coming soon',
+  },
+  comments: {
+    title: 'Comments',
+    comingSoon: 'Coming soon',
+  },
+  share: {
+    title: 'Share',
+    comingSoon: 'Coming soon',
   },
   tabs: {
     chats: 'Chats',

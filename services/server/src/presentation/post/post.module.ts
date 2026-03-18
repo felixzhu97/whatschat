@@ -10,6 +10,7 @@ import { AdService } from "../../application/services/ad.service";
 import { AdTargetingService } from "../../application/services/ad-targeting.service";
 import { AdPacingService } from "../../application/services/ad-pacing.service";
 import { AdCreativeService } from "../../application/services/ad-creative.service";
+import { FeedSeenService } from "../../application/services/feed-seen.service";
 import { KafkaModule } from "../../infrastructure/messaging/kafka.module";
 import { UsersModule } from "../users/users.module";
 import { NotificationsModule } from "../notifications/notifications.module";
@@ -23,6 +24,7 @@ import { VisionModule } from "../vision/vision.module";
   providers: [
     PostService,
     FeedService,
+    FeedSeenService,
     EngagementService,
     ExploreService,
     RecommendationService,
@@ -35,6 +37,7 @@ import { VisionModule } from "../vision/vision.module";
   exports: [
     PostService,
     FeedService,
+    FeedSeenService,
     EngagementService,
     ExploreService,
     RecommendationService,

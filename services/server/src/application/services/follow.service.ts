@@ -40,14 +40,14 @@ export class FollowService {
       create: { followerId, followingId },
       update: {},
     });
-    return { followerId, followingId };
+    return { followerId, followingId, isFollowing: true };
   }
 
   async unfollow(followerId: string, followingId: string) {
     await this.prisma.userFollow.deleteMany({
       where: { followerId, followingId },
     });
-    return { unfollowed: true };
+    return { followerId, followingId, isFollowing: false };
   }
 
   async getSuggestions(currentUserId: string, limit: number = 10): Promise<SuggestedUserDto[]> {

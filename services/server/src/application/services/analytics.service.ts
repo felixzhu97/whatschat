@@ -1,14 +1,36 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@/infrastructure/database/prisma.service";
+import { RedisService } from "@/infrastructure/database/redis.service";
 import type { AnalyticsEventDto } from "../dto/analytics.dto";
+
+const IDEMPOTENCY_TTL_SECONDS = 60 * 60 * 24;
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService
+  ) {}
 
   async ingest(events: AnalyticsEventDto[], userId?: string): Promise<void> {
     if (events.length === 0) return;
-    const data = events.map((e) => ({
+    const accepted: AnalyticsEventDto[] = [];
+    for (const e of events) {
+      if (e.idempotencyKey) {
+        const ok = await this.redis.setIfNotExists(
+          `analytics:idemp:${e.idempotencyKey}`,
+          "1",
+          IDEMPOTENCY_TTL_SECONDS
+        );
+        if (!ok) continue;
+      }
+      accepted.push(e);
+    }
+    if (accepted.length === 0) return;
+
+    // 暂时不再写入 feed:seen，避免影响 Feed 结果
+
+    const data = accepted.map((e) => ({
       eventName: e.eventName,
       ...(e.properties != null && { properties: e.properties as object }),
       platform: e.context?.platform ?? null,

@@ -77,11 +77,11 @@ export class StatusController {
   @Post(':id/view')
   @ApiOperation({ summary: '标记状态为已查看' })
   async viewStatus(@CurrentUser() user: any, @Param('id') id: string) {
-    await this.statusService.viewStatus(id, user.id);
+    const data = await this.statusService.viewStatus(id, user.id);
 
     return {
       success: true,
-      message: '状态已标记为已查看',
+      data,
     };
   }
 }
