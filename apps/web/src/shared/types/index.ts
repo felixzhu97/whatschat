@@ -1,3 +1,5 @@
+import type { CallType } from "@whatschat/domain";
+
 export type {
   User,
   Contact,
@@ -220,6 +222,7 @@ export interface FeedPost {
   caption: string;
   isLiked?: boolean;
   isSaved?: boolean;
+  isFollowing?: boolean;
   type?: string;
   videoUrl?: string;
   coverImageUrl?: string;

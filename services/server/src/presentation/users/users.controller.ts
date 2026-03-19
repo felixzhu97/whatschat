@@ -142,6 +142,18 @@ export class UsersController {
     };
   }
 
+  @Post("following/check")
+  @ApiOperation({ summary: "批量检查关注状态" })
+  async checkFollowing(
+    @CurrentUser() user: { id: string },
+    @Body() body: { userIds?: string[] },
+  ) {
+    const ids = Array.isArray(body?.userIds) ? body.userIds : [];
+    const set = await this.followService.checkFollowing(user.id, ids);
+    const data = ids.map((id) => ({ userId: id, isFollowing: set.has(id) }));
+    return { success: true, data };
+  }
+
   @Post(":id/block")
   @ApiOperation({ summary: "阻止用户" })
   async blockUser(@CurrentUser() user: any, @Param("id") blockedId: string) {

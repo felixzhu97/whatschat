@@ -303,6 +303,7 @@ export interface InstagramReelsProps {
   onFollow?: (userId: string) => void;
   onLikeClick?: (post: FeedPost) => void;
   onSaveClick?: (post: FeedPost) => void;
+  currentUserId?: string;
 }
 
 export function InstagramReels({
@@ -312,6 +313,7 @@ export function InstagramReels({
   onFollow,
   onLikeClick,
   onSaveClick,
+  currentUserId,
 }: InstagramReelsProps) {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -441,13 +443,11 @@ export function InstagramReels({
                     <AvatarFallback>{(post.username || "?")[0]}</AvatarFallback>
                   </CreatorAvatar>
                   <CreatorHandle>@{post.username}</CreatorHandle>
-                  <FollowBtn
-                    type="button"
-                    size="sm"
-                    onClick={() => onFollow?.(post.userId)}
-                  >
-                    {t("reels.follow")}
-                  </FollowBtn>
+                  {currentUserId && post.userId === currentUserId ? null : (
+                    <FollowBtn type="button" size="sm" onClick={() => onFollow?.(post.userId)}>
+                      {post.isFollowing ? t("reels.unfollow") : t("reels.follow")}
+                    </FollowBtn>
+                  )}
                 </CreatorRow>
                 <AudioRow>
                   <Music size={14} strokeWidth={2} />

@@ -10,6 +10,7 @@ export const zh = {
   },
   feed: {
     follow: '关注',
+    unfollow: '取消关注',
     copyLink: '复制链接',
     report: '举报',
     likeLabel: '次赞',

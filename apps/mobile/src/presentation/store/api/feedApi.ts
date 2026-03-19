@@ -14,6 +14,7 @@ type EngagementResult = {
 };
 
 type FollowResult = { followerId: string; followingId: string; isFollowing: boolean };
+type FollowingCheckResult = { userId: string; isFollowing: boolean };
 
 type StatusViewResult = { statusId: string; isViewed: boolean };
 
@@ -268,6 +269,16 @@ export const feedApi = createApi({
         }
       },
     }),
+    checkFollowingUsers: build.mutation<FollowingCheckResult[], { userIds: string[] }>({
+      queryFn: async ({ userIds }) => {
+        try {
+          const res = await apiClient.post<{ data: FollowingCheckResult[] }>(`/users/following/check`, { userIds });
+          return { data: res.data.data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '操作失败' } as any };
+        }
+      },
+    }),
     viewStatus: build.mutation<StatusViewResult, { statusId: string }>({
       queryFn: async ({ statusId }) => {
         try {
@@ -333,6 +344,7 @@ export const {
   useUnsavePostMutation,
   useFollowUserMutation,
   useUnfollowUserMutation,
+  useCheckFollowingUsersMutation,
   useViewStatusMutation,
   useTrackEventsMutation,
   useUploadMediaMutation,

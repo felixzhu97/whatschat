@@ -181,6 +181,13 @@ export class FeedApiAdapter {
     await this.api.delete(`/users/${userId}/follow`);
   }
 
+  async checkFollowingUsers(userIds: string[]) {
+    const res = await this.api.post<{ data: Array<{ userId: string; isFollowing: boolean }> }>(`/users/following/check`, {
+      userIds,
+    });
+    return res.data?.data ?? [];
+  }
+
   async search(
     q: string,
     type: "users" | "posts" | "hashtags",

@@ -17,9 +17,12 @@ import {
   useSavePostMutation,
   useUnsavePostMutation,
   useFollowUserMutation,
+  useUnfollowUserMutation,
+  useCheckFollowingUsersMutation,
   useTrackEventsMutation,
 } from '@/src/presentation/store/api/feedApi';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/src/presentation/stores';
 
 const Page = styled.View`
   flex: 1;
@@ -134,6 +137,7 @@ export const HomeFeedScreen: React.FC = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const currentUserId = useAuthStore((s) => s.user?.id);
   const { data: feedFirst, isFetching: isFetchingFirst, isError: isFeedError, refetch } = useGetFeedFirstQuery({
     limit: 8,
   });
@@ -145,12 +149,15 @@ export const HomeFeedScreen: React.FC = () => {
   const [savePost] = useSavePostMutation();
   const [unsavePost] = useUnsavePostMutation();
   const [followUser] = useFollowUserMutation();
+  const [unfollowUser] = useUnfollowUserMutation();
+  const [checkFollowingUsers] = useCheckFollowingUsersMutation();
   const [trackEvents] = useTrackEventsMutation();
   const [refreshing, setRefreshing] = useState(false);
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const listRef = useRef<FlatList<any> | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [nextPageState, setNextPageState] = useState<string | undefined>(undefined);
+  const [followingByUserId, setFollowingByUserId] = useState<Record<string, boolean>>({});
 
   useScrollToTop(listRef);
 
@@ -182,6 +189,32 @@ export const HomeFeedScreen: React.FC = () => {
       setNextPageState(feedFirst.nextPageState);
     }
   }, [feedFirst?.posts, feedFirst?.nextPageState]);
+
+  const authorIds = useMemo(() => {
+    const ids = items.map((p) => p.userId).filter((id) => typeof id === 'string' && id.length > 0);
+    const unique = Array.from(new Set(ids));
+    return currentUserId ? unique.filter((id) => id !== currentUserId) : unique;
+  }, [items, currentUserId]);
+
+  const authorIdsKey = useMemo(() => authorIds.slice().sort().join('|'), [authorIds]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    if (authorIds.length === 0) {
+      setFollowingByUserId({});
+      return;
+    }
+    checkFollowingUsers({ userIds: authorIds })
+      .unwrap()
+      .then((list) => {
+        const map: Record<string, boolean> = {};
+        for (const x of list) map[x.userId] = x.isFollowing;
+        setFollowingByUserId(map);
+      })
+      .catch(() => {
+        setFollowingByUserId({});
+      });
+  }, [authorIdsKey, currentUserId, checkFollowingUsers]);
 
   const stories = useMemo(() => {
     const list = Array.isArray(statuses) && statuses.length > 0 ? statuses : null;
@@ -240,6 +273,8 @@ export const HomeFeedScreen: React.FC = () => {
               <FeedPostCard
                 post={item}
                 isActive={item.id === activePostId}
+                currentUserId={currentUserId}
+                isFollowing={Boolean(followingByUserId[item.userId])}
                 onPressLike={async (id) => {
                   const current = items.find((p) => p.id === id);
                   if (!current) return;
@@ -306,7 +341,15 @@ export const HomeFeedScreen: React.FC = () => {
                 onPressComment={(id) => router.push({ pathname: '/post-comments', params: { postId: id } } as any)}
                 onPressShare={(id) => router.push({ pathname: '/share', params: { postId: id } } as any)}
                 onPressFollow={async (userId) => {
-                  await followUser({ userId });
+                  if (!currentUserId || userId === currentUserId) return;
+                  const isFollowing = Boolean(followingByUserId[userId]);
+                  const action = isFollowing ? unfollowUser : followUser;
+                  try {
+                    const res = await action({ userId }).unwrap();
+                    setFollowingByUserId((prev) => ({ ...prev, [userId]: res.isFollowing }));
+                  } catch {
+                    return;
+                  }
                 }}
                 onPressMedia={(postId, index) =>
                   router.push({ pathname: '/media-viewer', params: { postId, index: String(index) } } as any)

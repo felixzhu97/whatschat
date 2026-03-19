@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 import { FeedApiAdapter, type PostDetailRes } from "@/infrastructure/adapters/api/feed-api.adapter";
 import type { FeedPost, SuggestedUser } from "@/shared/types";
@@ -34,6 +34,7 @@ export function useFeed(currentUserId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [pageState, setPageState] = useState<string | undefined>();
   const [hasMore, setHasMore] = useState(true);
+  const [followingByUserId, setFollowingByUserId] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
@@ -51,30 +52,36 @@ export function useFeed(currentUserId: string | undefined) {
       setPageState(next ?? undefined);
       const details = entries
         .map((e) => ({ entry: e, post: e.post }))
-        .filter((x): x is { entry: { isSponsored?: boolean | null; adAccountId?: string | null; adCampaignId?: string | null; adGroupId?: string | null; adCreativeId?: string | null }; post: PostDetailRes } => x.post != null);
-      const list: FeedPost[] = details.map(({ entry, post }) => ({
-        id: post.postId,
-        userId: post.userId,
-        username: post.username ?? post.userId?.slice(0, 8) ?? "",
-        avatar: post.avatar ?? "/placeholder.svg?height=32&width=32",
-        timestamp: formatTime(post.createdAt),
-        imageUrl: post.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
-        likeCount: String(post.likeCount ?? 0),
-        commentCount: String(post.commentCount ?? 0),
-        caption: post.caption ?? "",
-        isLiked: Boolean(post.isLiked),
-        isSaved: Boolean(post.isSaved),
-        type: post.type,
-        videoUrl: post.type === "VIDEO" ? post.mediaUrls?.[0] : undefined,
-        coverImageUrl: post.type === "VIDEO" ? post.mediaUrls?.[0] : undefined,
-        mediaUrls: post.mediaUrls ?? [],
-        ...(Array.isArray((post as { autoTags?: string[] }).autoTags) && { autoTags: (post as { autoTags: string[] }).autoTags }),
-        isSponsored: Boolean(entry.isSponsored),
-        adAccountId: entry.adAccountId ?? undefined,
-        adCampaignId: entry.adCampaignId ?? undefined,
-        adGroupId: entry.adGroupId ?? undefined,
-        adCreativeId: entry.adCreativeId ?? undefined,
-      }));
+        .filter((x) => x.post != null);
+      const list: FeedPost[] = details.map(({ entry, post }) => {
+        const p = post as PostDetailRes;
+        const entryAny = entry as any;
+        const autoTags = Array.isArray((p as any).autoTags) ? (p as any).autoTags : undefined;
+        return {
+          id: p.postId,
+          userId: p.userId,
+          username: p.username ?? p.userId?.slice(0, 8) ?? "",
+          avatar: p.avatar ?? "/placeholder.svg?height=32&width=32",
+          timestamp: formatTime(p.createdAt),
+          imageUrl: p.mediaUrls?.[0] ?? "/placeholder.svg?height=600&width=600",
+          likeCount: String(p.likeCount ?? 0),
+          commentCount: String(p.commentCount ?? 0),
+          caption: p.caption ?? "",
+          isLiked: Boolean(p.isLiked),
+          isSaved: Boolean(p.isSaved),
+          isFollowing: false,
+          type: p.type,
+          videoUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+          coverImageUrl: p.type === "VIDEO" ? p.mediaUrls?.[0] : undefined,
+          mediaUrls: p.mediaUrls ?? [],
+          ...(autoTags ? { autoTags } : {}),
+          isSponsored: Boolean(entryAny.isSponsored),
+          adAccountId: entryAny.adAccountId ?? undefined,
+          adCampaignId: entryAny.adCampaignId ?? undefined,
+          adGroupId: entryAny.adGroupId ?? undefined,
+          adCreativeId: entryAny.adCreativeId ?? undefined,
+        };
+      });
       setPosts((prev) => {
         if (isInitial) return list;
         const prevIds = new Set(prev.map((p) => p.id));
@@ -87,6 +94,34 @@ export function useFeed(currentUserId: string | undefined) {
       setLoading(false);
     }
   }, [currentUserId, pageState, hasMore]);
+
+  const authorIds = useMemo(() => {
+    const ids = posts.map((p) => p.userId).filter((id) => typeof id === "string" && id.length > 0);
+    const unique = Array.from(new Set(ids));
+    return currentUserId ? unique.filter((id) => id !== currentUserId) : unique;
+  }, [posts, currentUserId]);
+
+  const authorIdsKey = useMemo(() => authorIds.slice().sort().join("|"), [authorIds]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    if (authorIds.length === 0) {
+      setFollowingByUserId({});
+      setPosts((prev) => prev.map((p) => ({ ...p, isFollowing: false })));
+      return;
+    }
+    api
+      .checkFollowingUsers(authorIds)
+      .then((list) => {
+        const map: Record<string, boolean> = {};
+        for (const x of list) map[x.userId] = x.isFollowing;
+        setFollowingByUserId(map);
+        setPosts((prev) => prev.map((p) => ({ ...p, isFollowing: map[p.userId] ?? false })));
+      })
+      .catch(() => {
+        setFollowingByUserId({});
+      });
+  }, [authorIdsKey, currentUserId]);
 
   const createPost = useCallback(
     async (
@@ -138,7 +173,7 @@ export function useFeed(currentUserId: string | undefined) {
     setSuggestionsLoading(true);
     try {
       const list = await api.getSuggestions(10);
-      const mapped = list.map(toSuggestedUser);
+      const mapped = (list as Array<{ id: string; username: string; avatar: string | null; description: string }>).map(toSuggestedUser);
       const seen = new Set<string>();
       setSuggestions(mapped.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true))));
     } finally {
@@ -146,13 +181,51 @@ export function useFeed(currentUserId: string | undefined) {
     }
   }, [currentUserId]);
 
-  const followUser = useCallback((userId: string) => api.followUser(userId), []);
-  const unfollowUser = useCallback((userId: string) => api.unfollowUser(userId), []);
+  const followUser = useCallback(
+    async (userId: string) => {
+      if (!currentUserId || userId === currentUserId) return;
+      const currentlyFollowing = followingByUserId[userId] === true;
+      try {
+        if (currentlyFollowing) {
+          await api.unfollowUser(userId);
+          setFollowingByUserId((prev) => ({ ...prev, [userId]: false }));
+          setPosts((prev) => prev.map((p) => (p.userId === userId ? { ...p, isFollowing: false } : p)));
+        } else {
+          await api.followUser(userId);
+          setFollowingByUserId((prev) => ({ ...prev, [userId]: true }));
+          setPosts((prev) => prev.map((p) => (p.userId === userId ? { ...p, isFollowing: true } : p)));
+        }
+      } catch {
+        return;
+      }
+    },
+    [currentUserId, followingByUserId]
+  );
 
-  const followSuggestion = useCallback(async (userId: string) => {
-    await api.followUser(userId);
-    setSuggestions((prev) => prev.filter((s) => s.id !== userId));
-  }, []);
+  const unfollowUser = useCallback(
+    async (userId: string) => {
+      if (!currentUserId || userId === currentUserId) return;
+      try {
+        await api.unfollowUser(userId);
+        setFollowingByUserId((prev) => ({ ...prev, [userId]: false }));
+        setPosts((prev) => prev.map((p) => (p.userId === userId ? { ...p, isFollowing: false } : p)));
+      } catch {
+        return;
+      }
+    },
+    [currentUserId]
+  );
+
+  const followSuggestion = useCallback(
+    async (userId: string) => {
+      if (!currentUserId || userId === currentUserId) return;
+      await api.followUser(userId);
+      setFollowingByUserId((prev) => ({ ...prev, [userId]: true }));
+      setPosts((prev) => prev.map((p) => (p.userId === userId ? { ...p, isFollowing: true } : p)));
+      setSuggestions((prev) => prev.filter((s) => s.id !== userId));
+    },
+    [currentUserId]
+  );
 
   const toggleLike = useCallback(async (postId: string) => {
     const post = posts.find((p) => p.id === postId);

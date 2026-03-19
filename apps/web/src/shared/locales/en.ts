@@ -178,6 +178,7 @@ export const en = {
   },
   reels: {
     follow: "Follow",
+    unfollow: "Cancel follow",
     noReels: "No reels yet. Post a video to see it here.",
     loading: "Loading...",
     muted: "Muted",

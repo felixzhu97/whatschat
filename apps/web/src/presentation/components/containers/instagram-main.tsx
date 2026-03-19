@@ -173,10 +173,8 @@ export function InstagramMain() {
     currentUser?.id
   );
 
-  const contactsForList =
-    chatsWithLive.apiChats.length > 0
-      ? chatsWithLive.apiChats
-      : (mockContacts as Contact[]);
+  const contactsForList: Contact[] =
+    chatsWithLive.apiChats.length > 0 ? (chatsWithLive.apiChats as Contact[]) : (mockContacts as Contact[]);
   const selectedContact =
     selectedContactId != null
       ? contactsForList.find((c) => c.id === selectedContactId) ?? null
@@ -683,6 +681,7 @@ export function InstagramMain() {
                 }
               }}
               onFollow={feed.followUser}
+              currentUserId={currentUser?.id}
               onLikeClick={(post) => {
                 feed.toggleLike(post.id);
                 analytics.track(POST_LIKE, { postId: post.id });

@@ -178,6 +178,7 @@ export const zh = {
   },
   reels: {
     follow: "关注",
+    unfollow: "取消关注",
     noReels: "暂无 Reels。发布视频后即可在此看到。",
     loading: "加载中...",
     muted: "已静音",

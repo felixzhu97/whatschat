@@ -10,6 +10,7 @@ export const en = {
   },
   feed: {
     follow: 'Follow',
+    unfollow: 'Cancel follow',
     copyLink: 'Copy link',
     report: 'Report',
     likeLabel: 'likes',

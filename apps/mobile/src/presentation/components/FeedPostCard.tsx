@@ -207,6 +207,8 @@ interface FeedPostCardProps {
   onPressShare?: (id: string) => void;
   onPressSave?: (id: string) => void;
   onPressFollow?: (userId: string) => void;
+  currentUserId?: string;
+  isFollowing?: boolean;
   onPressMedia?: (postId: string, index: number) => void;
   isActive?: boolean;
 }
@@ -218,11 +220,15 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   onPressShare,
   onPressSave,
   onPressFollow,
+  currentUserId,
+  isFollowing,
   onPressMedia,
   isActive = false,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const isSelf = currentUserId != null && post.userId === currentUserId;
+  const following = Boolean(isFollowing);
   const screenWidth = Dimensions.get('window').width;
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const lastTap = useRef<number>(0);
@@ -270,9 +276,11 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
           </HeaderText>
         </HeaderLeft>
         <HeaderRight>
-          <FollowButton onPress={() => onPressFollow?.(post.userId)}>
-            <FollowText>{t('feed.follow')}</FollowText>
-          </FollowButton>
+          {isSelf ? null : (
+            <FollowButton onPress={() => onPressFollow?.(post.userId)}>
+              <FollowText>{following ? t('feed.unfollow') : t('feed.follow')}</FollowText>
+            </FollowButton>
+          )}
           <IconButton
             onPress={() => {
               if (Platform.OS !== 'ios') return;

@@ -50,6 +50,26 @@ export class FollowService {
     return { followerId, followingId, isFollowing: false };
   }
 
+  async checkFollowing(followerId: string, followingIds: string[]): Promise<Set<string>> {
+    if (!Array.isArray(followingIds) || followingIds.length === 0) return new Set();
+    const unique = Array.from(
+      new Set(
+        followingIds
+          .map((id) => id?.toString())
+          .filter((id): id is string => typeof id === 'string' && id.length > 0 && id !== followerId),
+      ),
+    );
+    if (unique.length === 0) return new Set();
+    const rels = await this.prisma.userFollow.findMany({
+      where: {
+        followerId,
+        followingId: { in: unique },
+      },
+      select: { followingId: true },
+    });
+    return new Set(rels.map((r) => r.followingId));
+  }
+
   async getSuggestions(currentUserId: string, limit: number = 10): Promise<SuggestedUserDto[]> {
     const cached = await this.redis.get<string[]>(`${RECOMMENDATION_KEY_PREFIX}${currentUserId}`);
     if (Array.isArray(cached) && cached.length > 0) {
