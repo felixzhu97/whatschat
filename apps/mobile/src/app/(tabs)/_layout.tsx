@@ -79,15 +79,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="calls"
-        options={{
-          title: t('tabs.calls'),
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="communities"
         options={{
           title: t('tabs.communities'),
@@ -110,6 +101,15 @@ export default function TabsLayout() {
               size={size}
               color={color}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calls"
+        options={{
+          title: t('tabs.calls'),
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
         }}
       />
