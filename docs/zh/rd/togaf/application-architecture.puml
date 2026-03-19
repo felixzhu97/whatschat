@@ -107,6 +107,7 @@ package "应用服务层" {
   component [群组服务] as GroupService
   component [状态服务] as StatusService
   component [文件服务] as FileService
+  component [媒体服务] as MediaService
   component [通知服务] as NotificationService
 }
 
@@ -170,6 +171,7 @@ RestGateway --> CallService : 路由到
 RestGateway --> GroupService : 路由到
 RestGateway --> StatusService : 路由到
 RestGateway --> FileService : 路由到
+RestGateway --> MediaService : 路由到（/media/upload）
 RestGateway --> PostService : 路由到
 RestGateway --> FeedService : 路由到
 GraphQLGateway --> FeedService : feed 查询
@@ -204,6 +206,7 @@ CallService --> DataRepository : 数据访问
 GroupService --> DataRepository : 数据访问
 StatusService --> DataRepository : 数据访问
 FileService --> DataRepository : 数据访问
+MediaService --> FileStorage : 保存发帖媒体文件
 NotificationService --> CommentRepo : 活动通知（MongoDB）
 PostService --> PostFeedRepo : 数据访问
 PostService --> DataRepository : 作者/关注
@@ -242,6 +245,7 @@ rectangle "应用交互模式" {
     - 帖子、信息流（分页）、评论
     - 群组管理
     - 文件上传与下载
+    - 发帖媒体先上传（multipart）再发帖
     - 状态管理
   end note
   

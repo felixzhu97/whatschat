@@ -444,9 +444,9 @@ interface CreatePostDialogProps {
   onClose: () => void;
   onSubmit: (
     caption: string,
-    mediaUrls?: string[],
+    mediaFiles?: File[],
     type?: string,
-    coverUrl?: string
+    coverFile?: File
   ) => void | Promise<void>;
   currentUser?: { avatar?: string; username?: string } | null;
 }
@@ -550,13 +550,10 @@ export function CreatePostDialog({
 
   const handleSelectClick = () => fileInputRef.current?.click();
 
-  const fileToDataUrl = useCallback((file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  const dataUrlToFile = useCallback(async (dataUrl: string, fileName: string) => {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return new File([blob], fileName, { type: blob.type || "image/jpeg" });
   }, []);
 
   const captureVideoFrame = useCallback(
@@ -634,13 +631,16 @@ export function CreatePostDialog({
     setStep("sharing");
     try {
       if (files.length > 0) {
-        const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
         const postType = hasVideo ? "VIDEO" : "IMAGE";
-        const coverUrl =
+        const coverDataUrl =
           hasVideo && videoCoverUrls.length > 0
             ? videoCoverUrls.find((u) => u && u.length > 0)
             : undefined;
-        await Promise.resolve(onSubmit(trimmed || "", dataUrls, postType, coverUrl));
+        const coverFile =
+          coverDataUrl != null
+            ? await dataUrlToFile(coverDataUrl, `cover-${Date.now()}.jpg`)
+            : undefined;
+        await Promise.resolve(onSubmit(trimmed || "", files, postType, coverFile));
       } else {
         await Promise.resolve(onSubmit(trimmed || "", [], "TEXT"));
       }
@@ -652,7 +652,7 @@ export function CreatePostDialog({
     } finally {
       setSharing(false);
     }
-  }, [caption, files, fileToDataUrl, hasVideo, videoCoverUrls, onSubmit, t]);
+  }, [caption, files, hasVideo, videoCoverUrls, onSubmit, t, dataUrlToFile]);
 
   if (!open) return null;
 

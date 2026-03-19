@@ -37,6 +37,16 @@ export interface AppConfig {
       maxFileSize: number;
       allowedMimeTypes: string[];
     };
+    minio: {
+      endpoint: string;
+      port: number;
+      useSsl: boolean;
+      accessKey: string;
+      secretKey: string;
+      bucket: string;
+      region: string;
+      publicBaseUrl: string;
+    };
   };
   email: {
     host: string;
@@ -201,14 +211,29 @@ export class ConfigService {
             "image/png",
             "image/gif",
             "image/webp",
+            "image/heic",
+            "image/heif",
             "video/mp4",
             "video/webm",
+            "video/quicktime",
             "audio/mpeg",
             "audio/wav",
             "audio/ogg",
             "application/pdf",
             "text/plain",
           ],
+        },
+        minio: {
+          endpoint: process.env["MINIO_ENDPOINT"] || "localhost",
+          port: parseInt(process.env["MINIO_PORT"] || "9000", 10),
+          useSsl: process.env["MINIO_USE_SSL"] === "true",
+          accessKey: process.env["MINIO_ACCESS_KEY"] || "minioadmin",
+          secretKey: process.env["MINIO_SECRET_KEY"] || "minioadmin",
+          bucket: process.env["MINIO_BUCKET"] || "whatschat-media",
+          region: process.env["MINIO_REGION"] || "us-east-1",
+          publicBaseUrl:
+            process.env["MINIO_PUBLIC_BASE_URL"] ||
+            "http://localhost:3001/uploads/media",
         },
       },
       email: {

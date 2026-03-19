@@ -114,6 +114,7 @@ package "Application Services Layer" {
   component [Group Service] as GroupService
   component [Status Service] as StatusService
   component [File Service] as FileService
+  component [Media Service] as MediaService
   component [Notification Service] as NotificationService
   component [Ad Service] as AdService
   component [Ad Targeting Service] as AdTargetingService
@@ -195,6 +196,7 @@ RestGateway --> CallService : routes to
 RestGateway --> GroupService : routes to
 RestGateway --> StatusService : routes to
 RestGateway --> FileService : routes to
+RestGateway --> MediaService : routes to (/media/upload)
 RestGateway --> PostService : routes to
 RestGateway --> FeedService : routes to
 GraphQLGateway --> FeedService : feed query
@@ -231,6 +233,7 @@ CallService --> DataRepository : data access
 GroupService --> DataRepository : data access
 StatusService --> DataRepository : data access
 FileService --> DataRepository : data access
+MediaService --> FileStorage : store uploaded post media
 NotificationService --> CommentRepo : activity notifications\n(MongoDB)
 PostService --> PostFeedRepo : data access
 PostService --> DataRepository : author/follow
@@ -274,6 +277,7 @@ rectangle "Application Interaction Patterns" {
     - Posts, feed (paginated), comments
     - Group management
     - File upload & download
+    - Post media upload (multipart) before create post
     - Status management
     - GraphQL feed query (single request for feed entries + post details; REST remains for mutations)
   end note

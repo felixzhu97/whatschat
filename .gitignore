@@ -83,6 +83,7 @@ Thumbs.db
 
 # Services
 services/media-gen/output/
+services/server/uploads/
 celerybeat-schedule
 celerybeat-schedule.db
 celerybeat.pid

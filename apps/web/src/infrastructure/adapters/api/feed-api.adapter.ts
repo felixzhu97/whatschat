@@ -49,6 +49,17 @@ export interface NotificationItemRes {
 export class FeedApiAdapter {
   constructor(private api: IApiClient) {}
 
+  async uploadMedia(file: File, folder: "posts" | "covers" = "posts") {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+    const res = await this.api.upload<{ url: string; mimeType: string; size: number }>(
+      "/media/upload",
+      formData
+    );
+    return (res as { data?: { url?: string } }).data;
+  }
+
   async getFeedGraphql(limit: number, pageState?: string) {
     const query = `query Feed($limit: Int, $pageState: String) {
       feed(limit: $limit, pageState: $pageState) {

@@ -129,6 +129,9 @@ importers:
       expo-haptics:
         specifier: ~55.0.0
         version: 55.0.7(expo@55.0.0)
+      expo-image-picker:
+        specifier: ~55.0.13
+        version: 55.0.13(expo@55.0.0)
       expo-linear-gradient:
         specifier: ~55.0.0
         version: 55.0.7(expo@55.0.0)(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -6541,6 +6544,16 @@ packages:
 
   expo-haptics@55.0.7:
     resolution: {integrity: sha512-X2Y1fc/iLsIQLP71krf8qbKH2TNFxFcNUYvhMFynuU5ZpJGTdsmpnyUGduqTvg3PZ1GZMABuQHP1IdG7YSRR3A==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-loader@55.0.0:
+    resolution: {integrity: sha512-NOjp56wDrfuA5aiNAybBIjqIn1IxKeGJ8CECWZncQ/GzjZfyTYAHTCyeApYkdKkMBLHINzI4BbTGSlbCa0fXXQ==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-picker@55.0.13:
+    resolution: {integrity: sha512-G+W11rcoUi3rK+6cnKWkTfZilMkGVZnYe90TiM3R98nPSlzGBoto3a/TkGGTJXedz/dmMzr49L+STlWhuKKIFw==}
     peerDependencies:
       expo: '*'
 
@@ -17820,6 +17833,15 @@ snapshots:
   expo-haptics@55.0.7(expo@55.0.0):
     dependencies:
       expo: 55.0.0(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.0-preview.9)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.15.0(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
+
+  expo-image-loader@55.0.0(expo@55.0.0):
+    dependencies:
+      expo: 55.0.0(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.0-preview.9)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.15.0(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
+
+  expo-image-picker@55.0.13(expo@55.0.0):
+    dependencies:
+      expo: 55.0.0(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.0-preview.9)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.15.0(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.2)
+      expo-image-loader: 55.0.0(expo@55.0.0)
 
   expo-image@55.0.4(expo@55.0.0)(react-native-web@0.21.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-native@0.83.0(@babel/core@7.29.0)(@react-native-community/cli@19.1.2(typescript@5.8.2))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:

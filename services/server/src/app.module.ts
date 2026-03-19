@@ -21,6 +21,7 @@ import { ImageModule } from './presentation/image/image.module';
 import { VisionModule } from './presentation/vision/vision.module';
 import { VoiceModule } from './presentation/voice/voice.module';
 import { PostModule } from './presentation/post/post.module';
+import { MediaModule } from './presentation/media/media.module';
 import { CommentsModule } from './presentation/comments/comments.module';
 import { SearchModule } from './presentation/search/search.module';
 import { FollowModule } from './presentation/follow/follow.module';
@@ -63,6 +64,7 @@ import { AdsModule } from './presentation/ads/ads.module';
     VisionModule,
     VoiceModule,
     PostModule,
+    MediaModule,
     CommentsModule,
     SearchModule,
     FollowModule,

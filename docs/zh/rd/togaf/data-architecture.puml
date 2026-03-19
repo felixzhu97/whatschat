@@ -15,6 +15,7 @@ package "数据实体" {
   component [Contact] as Contact
   component [Notification] as Notification
   component [FileUpload] as FileUpload
+  component [MediaObject] as MediaObject
   component [Post] as Post
   component [FeedEntry] as FeedEntry
   component [Comment] as Comment
@@ -54,6 +55,7 @@ User --> StatusView : 查看
 User --> Contact : 拥有
 User --> Notification : 接收
 User --> FileUpload : 上传
+Post --> MediaObject : 引用
 User --> UserSettings : 拥有
 User --> BlockedUser : 拉黑/被拉黑
 User --> Post : 创建
@@ -86,6 +88,7 @@ Status --> PostgreSQL : 持久化于
 Contact --> PostgreSQL : 持久化于
 Notification --> MongoDB : 活动通知\n持久化于
 FileUpload --> PostgreSQL : 元数据于
+MediaObject --> FileStorage : 对象存储于
 ChatParticipant --> PostgreSQL : 持久化于
 GroupParticipant --> PostgreSQL : 持久化于
 CallParticipant --> PostgreSQL : 持久化于
@@ -123,6 +126,7 @@ rectangle "数据实体说明" {
     - Notification：系统/用户通知
     - FileUpload：文件上传记录
     - Post：作者、mediaUrls、可选 coverUrl（Cassandra cover_url）、标题、类型、时间戳
+    - MediaObject：上传媒体元数据（url、key、mimeType、size），供帖子引用
     - FeedEntry：信息流项（本人+关注）
     - Comment：帖子评论、回复
     - Engagement：每用户点赞/收藏、每帖子 like_count/comment_count/save_count（Cassandra）
@@ -148,9 +152,10 @@ rectangle "数据流说明" {
     1. 客户端请求 -> 应用服务
     2. 业务逻辑 -> 数据访问层
     3. 数据校验与转换
-    4. 写入 PostgreSQL（单一事实源）
-    5. 更新 Redis 缓存（热数据）
-    6. 返回结果给客户端
+    4. 通过 /media/upload 上传媒体到对象存储并记录元数据
+    5. 写入 Cassandra 的帖子/信息流数据与 PostgreSQL/MongoDB 业务数据
+    6. 更新 Redis 缓存（热数据）
+    7. 返回结果给客户端
   end note
   
   note as N4

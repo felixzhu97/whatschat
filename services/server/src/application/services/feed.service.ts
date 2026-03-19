@@ -34,8 +34,12 @@ export class FeedService {
 
   async getFeed(userId: string, limit: number, pageState?: string) {
     const result = await this.feedCache.getFeedPage(userId, limit, pageState);
+    const visibleEntries = await this.filterVisibleEntries(result.entries, userId);
     if (pageState) {
-      return result;
+      return {
+        entries: visibleEntries,
+        pageState: result.pageState,
+      };
     }
     const { posts } = await this.postService.getPostsByUser(userId, limit, undefined);
     const ownEntries = posts.map((p) => ({
@@ -44,7 +48,7 @@ export class FeedService {
       createdAt: typeof p.createdAt === "string" ? new Date(p.createdAt) : (p.createdAt as Date),
     }));
     const mergedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
-    for (const e of [...ownEntries, ...result.entries]) {
+    for (const e of [...ownEntries, ...visibleEntries]) {
       if (!mergedByPost.has(e.postId)) mergedByPost.set(e.postId, e);
     }
     const candidates = Array.from(mergedByPost.values());
@@ -85,6 +89,22 @@ export class FeedService {
     }));
     const mixed = await this.withAds(userId, page, limit);
     return { entries: mixed, pageState: result.pageState };
+  }
+
+  private async filterVisibleEntries(
+    entries: { postId: string; authorId: string; createdAt: Date }[],
+    currentUserId: string
+  ): Promise<{ postId: string; authorId: string; createdAt: Date }[]> {
+    if (entries.length === 0) return entries;
+    const postIds = entries.map((entry) => entry.postId);
+    const rows = await this.postService.getPostsBatch(postIds, currentUserId);
+    const visibleIds = new Set(
+      rows
+        .filter((row): row is Record<string, unknown> => row != null)
+        .map((row) => row["postId"])
+        .filter((postId): postId is string => typeof postId === "string")
+    );
+    return entries.filter((entry) => visibleIds.has(entry.postId));
   }
 
   private async withAds(

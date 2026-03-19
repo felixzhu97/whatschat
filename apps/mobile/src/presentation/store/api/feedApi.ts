@@ -25,6 +25,42 @@ type AnalyticsEventInput = {
   context?: { userId?: string; sessionId?: string; platform?: string };
 };
 
+type UploadMediaInput = {
+  uri: string;
+  mimeType: string;
+  fileName?: string;
+  folder?: string;
+};
+
+type UploadMediaResult = {
+  key: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+};
+
+type CreatePostInput = {
+  caption: string;
+  type: 'TEXT' | 'IMAGE' | 'VIDEO';
+  mediaUrls?: string[];
+  location?: string;
+  coverUrl?: string;
+};
+
+type CreatePostResult = {
+  postId: string;
+  userId: string;
+  createdAt: string;
+  caption: string;
+  type: string;
+  mediaUrls?: string[];
+  location?: string;
+  coverUrl?: string;
+};
+
 export const feedApi = createApi({
   reducerPath: 'feedApi',
   baseQuery: fakeBaseQuery(),
@@ -253,6 +289,36 @@ export const feedApi = createApi({
         }
       },
     }),
+    uploadMedia: build.mutation<UploadMediaResult, UploadMediaInput>({
+      queryFn: async ({ uri, mimeType, fileName, folder }) => {
+        try {
+          const formData = new FormData();
+          formData.append('file', {
+            uri,
+            type: mimeType,
+            name: fileName ?? `upload-${Date.now()}`,
+          } as any);
+          if (folder) formData.append('folder', folder);
+          const res = await apiClient.post<{ data: UploadMediaResult }>(`/media/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          return { data: res.data.data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '上传失败' } as any };
+        }
+      },
+    }),
+    createPost: build.mutation<CreatePostResult, CreatePostInput>({
+      queryFn: async (body) => {
+        try {
+          const res = await apiClient.post<{ data: CreatePostResult }>(`/posts`, body);
+          return { data: res.data.data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '发布失败' } as any };
+        }
+      },
+      invalidatesTags: ['Feed'],
+    }),
   }),
 });
 
@@ -269,5 +335,7 @@ export const {
   useUnfollowUserMutation,
   useViewStatusMutation,
   useTrackEventsMutation,
+  useUploadMediaMutation,
+  useCreatePostMutation,
 } = feedApi;
 

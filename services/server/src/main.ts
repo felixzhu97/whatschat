@@ -10,13 +10,20 @@ import { ValidationExceptionFilter } from "./presentation/filters/validation-exc
 import { LoggingInterceptor } from "./presentation/interceptors/logging.interceptor";
 import { TransformInterceptor } from "./presentation/interceptors/transform.interceptor";
 import logger from "@/shared/utils/logger";
+import path from "path";
+import { ConfigService } from "@/infrastructure/config/config.service";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   const express = await import("express");
   const bodyLimit = "10mb";
+  const config = ConfigService.loadConfig();
   app.use(express.json({ limit: bodyLimit }));
   app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
+  app.use(
+    "/uploads/media",
+    express.static(path.resolve(process.cwd(), config.storage.local.uploadDir))
+  );
 
   // 全局前缀
   app.setGlobalPrefix("api/v1");

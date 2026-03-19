@@ -15,6 +15,7 @@ package "Data Entities" {
   component [Contact] as Contact
   component [Notification] as Notification
   component [FileUpload] as FileUpload
+  component [MediaObject] as MediaObject
   component [Post] as Post
   component [FeedEntry] as FeedEntry
   component [Comment] as Comment
@@ -60,6 +61,7 @@ User --> StatusView : views
 User --> Contact : owns
 User --> Notification : receives
 User --> FileUpload : uploads
+Post --> MediaObject : references
 User --> UserSettings : owns
 User --> BlockedUser : blocks/blocked by
 User --> Post : creates
@@ -99,6 +101,7 @@ Status --> PostgreSQL : persisted in
 Contact --> PostgreSQL : persisted in
 Notification --> MongoDB : activity notifications\n(like/comment)\npersisted in
 FileUpload --> PostgreSQL : metadata in
+MediaObject --> FileStorage : object stored in
 ChatParticipant --> PostgreSQL : persisted in
 GroupParticipant --> PostgreSQL : persisted in
 CallParticipant --> PostgreSQL : persisted in
@@ -142,6 +145,7 @@ rectangle "Data Entity Notes" {
     - Notification: system/user notifications
     - FileUpload: file upload records
     - Post: author, mediaUrls (multiple image/video), optional coverUrl (Cassandra cover_url), caption, type, timestamps
+    - MediaObject: uploaded media metadata (url, key, mimeType, size), referenced by posts
     - FeedEntry: feed item (own + followed)
     - Comment: post comments, replies
     - Engagement: like/save per user, like_count/comment_count/save_count per post (Cassandra)
@@ -170,10 +174,11 @@ rectangle "Data Flow Notes" {
     1. Client request (web/mobile/admin) -> application services
     2. Business logic -> data access layer
     3. Data validation & transformation
-    4. Write to PostgreSQL (source of truth) / Cassandra (posts/feed/engagement) / MongoDB (comments, activity notifications)
-    5. Update Redis cache (hot data: feed, suggestions, sessions, presence)
-    6. Append analytics_events for behavior & ads (including feed/reel view/like/save/scroll and ad_impression/click/conversion)
-    7. Return result to client
+    4. Upload media object to file storage via /media/upload and persist metadata
+    5. Write post/feed data to Cassandra and relational data to PostgreSQL / MongoDB
+    6. Update Redis cache (hot data: feed, suggestions, sessions, presence)
+    7. Append analytics_events for behavior & ads (including feed/reel view/like/save/scroll and ad_impression/click/conversion)
+    8. Return result to client
   end note
   
   note as N4

@@ -473,7 +473,13 @@ export function InstagramFeed({
                     <ChevronLeft size={20} />
                   </PostMediaCarouselNav>
                   {isVideo ? (
-                    <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+                    <PostImageWrapClickable
+                      onClick={() => onCommentClick?.(post)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        toggleFeedVideo(post.id);
+                      }}
+                    >
                       <PostVideo
                         ref={(el: HTMLVideoElement | null) => {
                           videoRefs.current[post.id] = el;
@@ -520,7 +526,13 @@ export function InstagramFeed({
 
             if (post.type === "VIDEO" || post.videoUrl) {
               return (
-                <PostImageWrapClickable onClick={() => toggleFeedVideo(post.id)}>
+                <PostImageWrapClickable
+                  onClick={() => onCommentClick?.(post)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    toggleFeedVideo(post.id);
+                  }}
+                >
                   <PostVideo
                     ref={(el: HTMLVideoElement | null) => {
                       videoRefs.current[post.id] = el;

@@ -93,11 +93,30 @@ export function useFeed(currentUserId: string | undefined) {
       caption: string,
       type: string = "TEXT",
       author?: { username?: string; avatar?: string },
-      mediaUrls?: string[],
-      coverUrl?: string
+      mediaFiles?: File[],
+      coverFile?: File
     ) => {
       if (!currentUserId) return;
-      const data = await api.createPost(caption, type, mediaUrls, coverUrl);
+      let uploadedMediaUrls: string[] = [];
+      if (Array.isArray(mediaFiles) && mediaFiles.length > 0) {
+        const uploaded = await Promise.all(
+          mediaFiles.map((file) => api.uploadMedia(file, "posts"))
+        );
+        uploadedMediaUrls = uploaded
+          .map((item) => item?.url)
+          .filter((url): url is string => typeof url === "string" && url.length > 0);
+      }
+      let uploadedCoverUrl: string | undefined;
+      if (coverFile != null) {
+        const uploadedCover = await api.uploadMedia(coverFile, "covers");
+        if (uploadedCover?.url) uploadedCoverUrl = uploadedCover.url;
+      }
+      const data = await api.createPost(
+        caption,
+        type,
+        uploadedMediaUrls,
+        uploadedCoverUrl
+      );
       if (data?.postId) {
         const p = await api.getPost(data.postId);
         if (p) {

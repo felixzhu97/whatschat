@@ -47,6 +47,8 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
+  - ExpoImagePicker (55.0.13):
+    - ExpoModulesCore
   - ExpoKeepAwake (55.0.4):
     - ExpoModulesCore
   - ExpoLinearGradient (55.0.7):
@@ -2275,6 +2277,7 @@ DEPENDENCIES:
   - "ExpoGlassEffect (from `../../../node_modules/.pnpm/expo-glass-effect@55.0.6_expo@55.0.0_react-native@0.83.0_@babel+core@7.29.0_@react-nati_f6ee0df8e72a4f077c2f068bb8097565/node_modules/expo-glass-effect/ios`)"
   - "ExpoHaptics (from `../../../node_modules/.pnpm/expo-haptics@55.0.7_expo@55.0.0/node_modules/expo-haptics/ios`)"
   - "ExpoImage (from `../../../node_modules/.pnpm/expo-image@55.0.4_expo@55.0.0_react-native-web@0.21.2_react-dom@19.2.0_react@19.2.0__re_3965f9b4184e39e14de9820c3a617111/node_modules/expo-image/ios`)"
+  - "ExpoImagePicker (from `../../../node_modules/.pnpm/expo-image-picker@55.0.13_expo@55.0.0/node_modules/expo-image-picker/ios`)"
   - "ExpoKeepAwake (from `../../../node_modules/.pnpm/expo-keep-awake@55.0.4_expo@55.0.0_react@19.2.0/node_modules/expo-keep-awake/ios`)"
   - "ExpoLinearGradient (from `../../../node_modules/.pnpm/expo-linear-gradient@55.0.7_expo@55.0.0_react-native@0.83.0_@babel+core@7.29.0_@react-n_1f2687a54ffb46ae93c8d4d6064b6c76/node_modules/expo-linear-gradient/ios`)"
   - "ExpoLinking (from `../../../node_modules/.pnpm/expo-linking@55.0.6_expo@55.0.0_react-native@0.83.0_@babel+core@7.29.0_@react-native-co_484582151c2a1dfb2e0c163640f5939c/node_modules/expo-linking/ios`)"
@@ -2404,6 +2407,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-haptics@55.0.7_expo@55.0.0/node_modules/expo-haptics/ios"
   ExpoImage:
     :path: "../../../node_modules/.pnpm/expo-image@55.0.4_expo@55.0.0_react-native-web@0.21.2_react-dom@19.2.0_react@19.2.0__re_3965f9b4184e39e14de9820c3a617111/node_modules/expo-image/ios"
+  ExpoImagePicker:
+    :path: "../../../node_modules/.pnpm/expo-image-picker@55.0.13_expo@55.0.0/node_modules/expo-image-picker/ios"
   ExpoKeepAwake:
     :path: "../../../node_modules/.pnpm/expo-keep-awake@55.0.4_expo@55.0.0_react@19.2.0/node_modules/expo-keep-awake/ios"
   ExpoLinearGradient:
@@ -2607,6 +2612,7 @@ SPEC CHECKSUMS:
   ExpoGlassEffect: 90d88314e283c2c9a4814fb773ef9aae56ca9a62
   ExpoHaptics: 7743716fffe05d391bfa9e43a2338a3774b23958
   ExpoImage: 08e29ac0f5aa8fa0f1dfa2aec7b0c22b823e32c8
+  ExpoImagePicker: 4463c7e793d904553fb832f7568e306fd7544bc9
   ExpoKeepAwake: 7f3b28c361c37389b18841bb52a58003b39fcb33
   ExpoLinearGradient: 558c53c9b06205672ea32b685a43a0c4c3b6e1c8
   ExpoLinking: 25aeba912c45d260d1bd0f2d3cfff71e94197ff6

@@ -962,16 +962,16 @@ export function InstagramMain() {
       <CreatePostDialog
         open={showCreatePostDialog}
         onClose={() => setShowCreatePostDialog(false)}
-        onSubmit={async (caption, mediaUrls, type, coverUrl) => {
+        onSubmit={async (caption, mediaFiles, type, coverFile) => {
           await feed.createPost(
             caption,
-            type ?? (mediaUrls?.length ? "IMAGE" : "TEXT"),
+            type ?? (mediaFiles?.length ? "IMAGE" : "TEXT"),
             {
               username: currentUser?.username,
               avatar: currentUser?.avatar,
             },
-            mediaUrls,
-            coverUrl
+            mediaFiles,
+            coverFile
           );
         }}
         currentUser={currentUser ?? undefined}
