@@ -71,6 +71,10 @@ package "客户端应用" {
     - i18next（中英）
     - 主题（浅色/深色/系统）
     - iOS 风格设置（分组卡片）
+    功能：
+    - Tab：状态（信息流 + Stories）与 Reels（竖屏视频流）
+    - 状态：顶部栏 + 横向 Stories + 竖向帖子信息流
+    - Reels：吸附分页的竖屏视频流，like/save、暂停/播放、静音开关
   end note
 }
 

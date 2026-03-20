@@ -73,9 +73,10 @@ package "Client Applications" {
     - i18next (en/zh)
     - Theme (light/dark/system)
     - iOS-style Settings (grouped cards)
-    - Instagram-style home feed:
-      - Header + horizontal stories + vertical feed
-      - Multi-photo/video posts with horizontal swipe carousel
+    - Tabs: Status (home feed + stories) and Reels (vertical video feed)
+      - Status: Header + horizontal stories + vertical feed
+      - Status: Multi-photo/video posts with horizontal swipe carousel
+      - Reels: Vertical video feed with snap paging, like/save actions, pause/play and mute toggle
       - Video auto-play/pause based on visibility (expo-video, one active player)
       - Shared GraphQL feed/reels query + analytics events with web; guarded pagination to avoid duplicate GraphQL calls
   end note
