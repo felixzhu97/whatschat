@@ -88,6 +88,27 @@ export const feedApi = createApi({
         }
       },
     }),
+    getReelsFirst: build.query<FeedPage, { limit: number }>({
+      queryFn: async ({ limit }) => {
+        try {
+          const data = await feedService.getReels(limit);
+          return { data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
+        }
+      },
+      providesTags: ['Feed'],
+    }),
+    getReelsMore: build.query<FeedPage, { limit: number; pageState: string }>({
+      queryFn: async ({ limit, pageState }) => {
+        try {
+          const data = await feedService.getReels(limit, pageState);
+          return { data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
+        }
+      },
+    }),
     getStoryUsers: build.query<MobileStoryUser[], { limit: number }>({
       queryFn: async ({ limit }) => {
         try {
@@ -336,6 +357,8 @@ export const feedApi = createApi({
 export const {
   useGetFeedFirstQuery,
   useLazyGetFeedMoreQuery,
+  useGetReelsFirstQuery,
+  useLazyGetReelsMoreQuery,
   useGetStoryUsersQuery,
   useGetStatusesQuery,
   useLikePostMutation,

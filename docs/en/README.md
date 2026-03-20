@@ -48,7 +48,7 @@ docs/
 
 ### R&D
 
-- [C4 Model](rd/c4/README.md) — system context, containers, components (API: GraphQL feed, **notifications** MongoDB + WS **notification:new**, **coverUrl**; web: explore 963px, notifications/search sheets, create post coverUrl)
+- [C4 Model](rd/c4/README.md) — system context, containers, components (API: GraphQL feed/reels, **notifications** MongoDB + WS **notification:new**, **coverUrl**; web: explore 963px, notifications/search sheets, create post coverUrl)
   - [Level 1 – System Context](rd/c4/system-context.puml)
   - [Level 2 – Containers](rd/c4/containers.puml)
   - [Level 3 – API Server Components](rd/c4/components-api-server.puml)

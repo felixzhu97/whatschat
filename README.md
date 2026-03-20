@@ -12,14 +12,14 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 - 🔐 **Authentication** – JWT-based auth with bcrypt
 - 🤖 **AI Text** – Streaming chat via Ollama (configurable base URL/model)
 - 🖼️ **Image / Video / Voice** – Self-hosted media-gen (Python/FastAPI, :3456): image (Stable Diffusion), video (CogVideoX), voice (edge-tts); or Replicate for image only
-- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; media is uploaded first via `POST /api/v1/media/upload` then submitted to `POST /api/v1/posts`; **video cover** stored in Cassandra as separate `coverUrl` (not mixed into `mediaUrls`); home feed shows real posts from followed users (Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed + post details in one request; Reels and profile grid use cover when present; **Explore** grid max-width 963px centered; multi-media carousel on feed and in comments dialog; comments in MongoDB
+- 📷 **Feed & Posts** – Create posts with multiple photos/videos + caption; media is uploaded first via `POST /api/v1/media/upload` then submitted to `POST /api/v1/posts`; **video cover** stored in Cassandra as separate `coverUrl` (not mixed into `mediaUrls`); home feed shows real posts from followed users (Cassandra + Kafka post.created); **GraphQL** `POST /api/v1/graphql` for feed/reels + post details in one request; Reels and profile grid use cover when present; **Explore** grid max-width 963px centered; multi-media carousel on feed and in comments dialog; comments in MongoDB
 - 🧲 **Advertising System** – Ad accounts/campaigns/groups/creatives stored in PostgreSQL; ad serving service mixes sponsored posts into feed/explore based on targeting and pacing; impressions/clicks/conversions tracked via `@whatschat/analytics` and aggregated for reporting and recommendation features
 - 🛡️ **Content Moderation** – Vision service (Python/FastAPI, :8001): image/video NSFW detection (NudeNet), tag suggestion (ResNet50); sync moderation on create; Kafka post.created for async; Admin: recheck, hide, batch delete
 - 🔎 **Global Search** – Search posts, users, and hashtags (topics) via Elasticsearch; cursor-based pagination and highlight; rate limit (60/min); users indexed on register/update, hashtags on post.created; optional sync script `pnpm run search:sync-users`; startup script runs user sync after seed
 - 🎯 **Recommendations** – Follow suggestions, engagement-based feed ranking, and explore stream; Python recommendation service (LightFM, implicit ALS + Annoy) with Celery workers, Redis caches, Kafka/PostgreSQL/Cassandra data (optional); ETL jobs read ad analytics to build ad metrics for models
 - 👤 **Social** – Follow/unfollow, profile followers/following counts and list modals with infinite scroll and inline follow/unfollow
 - 🌐 **Web App** – Next.js SPA (:4000); Instagram-style UI (nav, feed, Reels, profile, global search, **notifications** left sheet + **search** drawer, explore grid, DM-style messages, right sidebar suggestions), Redux notifications slice + Socket.IO `notification:new`, i18n (en/zh, footer language switch); sponsored posts rendered inline with "Sponsored" badge and ad click tracking
-- 📱 **Mobile App** – React Native + Expo; Instagram-style home feed (stories + vertical posts、multi-photo/video carousel with horizontal swipe), RTK Query data layer with optimistic like/save/follow and cached feed/stories, visibility-based video autoplay/pause aligned with web feed, Home tab tap-to-scroll-top, iOS-style navigation and settings, shared GraphQL feed and analytics events with web
+- 📱 **Mobile App** – React Native + Expo; Instagram-style status/home feed (stories + vertical posts、multi-photo/video carousel with horizontal swipe) + Reels tab (vertical video feed), RTK Query data layer with optimistic like/save/follow and cached status/stories/reels, visibility-based video autoplay/pause aligned with web, Status tab tap-to-scroll-top, iOS-style navigation and settings, shared GraphQL feed/reels and analytics events with web
 - 📊 **Behavior & Ads Analytics** – SDK in `@whatschat/analytics`; Web/Mobile track events (including post view/like/save and ad_impression/ad_click/ad_conversion); API ingests; Admin shows overview and can run ETL for recommendation
 - ⚙️ **Admin Dashboard** – Dashboard, Users, Content Safety (moderation stats, recheck, hide, batch delete), Ops Monitor, Business, Data Analytics, System Config, Permission & Audit, **Ads** (ad accounts, campaigns, ad sets/groups, creatives) (port 4001)
 
@@ -33,7 +33,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 </p>
 <p align="center">
   <img src="./screenshots/mobile-chat-conversation.png" width="220" alt="Mobile Chat">
-  <img src="./screenshots/mobile-communities.png" width="220" alt="Mobile Communities">
+  <img src="./screenshots/mobile-reels.png" width="220" alt="Mobile Reels">
 </p>
 <p align="center">
   <img src="./screenshots/mobile-video-call.png" width="220" alt="Mobile Video Call">
@@ -72,7 +72,7 @@ A modern instant messaging application with real-time chat, voice/video calls, a
 ## 🛠 Tech Stack
 
 - **Frontend** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
-- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement, **post cover_url**) · MongoDB (comments, **activity notifications** like/comment) · Elasticsearch (search, moderation status) · **GraphQL** (Apollo Server, code-first feed query + DataLoader; PostType includes `coverUrl`; feed/explore entries can be organic or sponsored ads)
+- **Backend** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra (posts, feed, engagement, **post cover_url**) · MongoDB (comments, **activity notifications** like/comment) · Elasticsearch (search, moderation status) · **GraphQL** (Apollo Server, code-first feed + reels queries + DataLoader; PostType includes `coverUrl`; feed/explore entries can be organic or sponsored ads)
 - **Ads & Analytics** – `@whatschat/analytics` SDK (web/mobile) · NestJS analytics service (ingest + ad metrics aggregation) · Prisma models for `AdAccount`/`AdCampaign`/`AdGroup`/`AdCreative`/`AdSpend` · ad serving/targeting/pacing services mixed into feed/explore · Admin Ads REST APIs and dashboard
 - **Recommendations** – Python (services/recommendation) · Celery (Redis broker) · LightFM · implicit (ALS) · Annoy · pandas · NumPy/SciPy; scheduled jobs generate follow suggestions and explore lists into Redis (optional); ETL scripts consume analytics_events (including ads) for model features
 - **Vision** – Python (services/vision) · FastAPI · NudeNet (NSFW) · ResNet50 (tags) · OpenCV (video frames); sync moderation on post create; Kafka consumer updates ES

@@ -16,7 +16,7 @@ Naming: `{platform}-{feature}.png`
 | mobile-login.png | Mobile | Login |
 | mobile-chats-list.png | Mobile | Chats list |
 | mobile-chat-conversation.png | Mobile | Chat conversation |
-| mobile-communities.png | Mobile | Communities |
+| mobile-reels.png | Mobile | Reels |
 | mobile-video-call.png | Mobile | Video call |
 | mobile-settings.png | Mobile | Settings |
 | admin-dashboard.png | Admin | Dashboard |

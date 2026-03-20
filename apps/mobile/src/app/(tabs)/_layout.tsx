@@ -79,15 +79,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="communities"
+        name="reels"
         options={{
-          title: t('tabs.communities'),
+          title: t('tabs.reels'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'play-circle' : 'play-circle-outline'}
-              size={size}
-              color={color}
-            />
+            <Ionicons name={focused ? 'videocam' : 'videocam-outline'} size={size} color={color} />
           ),
         }}
       />

@@ -77,7 +77,7 @@ package "Client Applications" {
       - Header + horizontal stories + vertical feed
       - Multi-photo/video posts with horizontal swipe carousel
       - Video auto-play/pause based on visibility (expo-video, one active player)
-      - Shared GraphQL feed query + analytics events with web; guarded pagination to avoid duplicate GraphQL calls
+      - Shared GraphQL feed/reels query + analytics events with web; guarded pagination to avoid duplicate GraphQL calls
   end note
 }
 
@@ -93,7 +93,7 @@ package "API Gateway Layer" {
   note right of GraphQLGateway
     Apollo Server
     POST /api/v1/graphql
-    Query feed + FeedEntry.post
+    Query feed + Query reels + FeedEntry.post
     JWT; DataLoader batches PostService
   end note
   component [WebSocket Gateway] as WsGateway
@@ -199,7 +199,7 @@ RestGateway --> FileService : routes to
 RestGateway --> MediaService : routes to (/media/upload)
 RestGateway --> PostService : routes to
 RestGateway --> FeedService : routes to
-GraphQLGateway --> FeedService : feed query
+GraphQLGateway --> FeedService : feed/reels query
 GraphQLGateway --> PostService : post field / DataLoader
 RestGateway --> ExploreService : routes to
 RestGateway --> FollowService : routes to
@@ -279,7 +279,7 @@ rectangle "Application Interaction Patterns" {
     - File upload & download
     - Post media upload (multipart) before create post
     - Status management
-    - GraphQL feed query (single request for feed entries + post details; REST remains for mutations)
+    - GraphQL feed/reels query (single request for feed/reels entries + post details; REST remains for mutations)
   end note
   
   note as N2

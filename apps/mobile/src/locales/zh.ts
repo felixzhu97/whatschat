@@ -67,9 +67,14 @@ export const zh = {
   tabs: {
     chats: '聊天',
     status: '更新',
+    reels: '短视频',
     calls: '通话',
-    communities: '社区',
     settings: '设置',
+  },
+  reels: {
+    title: '短视频',
+    empty: '暂无短视频',
+    loadFailed: '加载失败',
   },
   chats: {
     title: 'WhatsChat',

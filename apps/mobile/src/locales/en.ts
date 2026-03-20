@@ -67,9 +67,14 @@ export const en = {
   tabs: {
     chats: 'Chats',
     status: 'Status',
+    reels: 'Reels',
     calls: 'Calls',
-    communities: 'Communities',
     settings: 'Settings',
+  },
+  reels: {
+    title: 'Reels',
+    empty: 'No reels yet',
+    loadFailed: 'Failed to load',
   },
   chats: {
     title: 'WhatsChat',

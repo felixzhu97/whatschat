@@ -6,7 +6,7 @@ title C4 Level 3 - Components: API Server (NestJS)
 
 Container_Boundary(api_server, "API Server") {
   Component(controllers, "REST Controllers", "NestJS", "Auth, Users, Messages, Chats, Groups, Calls, Files, Media Upload, Posts, Comments, Follow, Search, Explore, Notifications, Admin, Analytics, Ads Admin, AI, Image, Video, Voice")
-  Component(graphql_api, "GraphQL API", "Apollo Server", "POST /api/v1/graphql; Query feed(limit, pageState) with organic + sponsored entries; FeedEntry.post via DataLoader + PostService/AdCreativeService; JWT guard; REST unchanged")
+  Component(graphql_api, "GraphQL API", "Apollo Server", "POST /api/v1/graphql; Query feed(limit, pageState) with organic + sponsored entries; Query reels(limit, pageState); FeedEntry.post via DataLoader + PostService/AdCreativeService; JWT guard; REST unchanged")
   Component(websocket, "WebSocket Gateway", "Socket.IO", "Realtime messages, presence, typing, call signaling, notification:new to recipient")
   Component(auth_svc, "Auth Service", "NestJS", "Login, JWT, refresh, password")
   Component(user_svc, "User Service", "NestJS", "Profile, search, followers/following (isFollowing)")

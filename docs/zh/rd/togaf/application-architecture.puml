@@ -86,7 +86,7 @@ package "API 网关层" {
   note right of GraphQLGateway
     Apollo Server
     POST /api/v1/graphql
-    Query feed + FeedEntry.post
+    Query feed + Query reels + FeedEntry.post
     JWT；DataLoader 批量 PostService
   end note
   component [WebSocket 网关] as WsGateway
@@ -174,7 +174,7 @@ RestGateway --> FileService : 路由到
 RestGateway --> MediaService : 路由到（/media/upload）
 RestGateway --> PostService : 路由到
 RestGateway --> FeedService : 路由到
-GraphQLGateway --> FeedService : feed 查询
+GraphQLGateway --> FeedService : feed/reels 查询
 GraphQLGateway --> PostService : post 字段 / DataLoader
 RestGateway --> ExploreService : 路由到
 RestGateway --> FollowService : 路由到

@@ -52,6 +52,13 @@ interface FeedGraphqlBody {
         post?: FeedPostRes | null;
       }>;
     };
+    reels?: {
+      pageState?: string | null;
+      entries?: Array<{
+        postId: string;
+        post?: FeedPostRes | null;
+      }>;
+    };
   };
 }
 
@@ -146,6 +153,53 @@ export class FeedService {
       .filter((p): p is FeedPostRes => Boolean(p))
       .map(mapFeedPost);
     const next = feed?.pageState ?? undefined;
+    return {
+      posts,
+      nextPageState: next && next !== '' ? next : undefined,
+    };
+  }
+
+  async getReels(limit: number, pageState?: string) {
+    const query = `query Reels($limit: Int, $pageState: String) {
+      reels(limit: $limit, pageState: $pageState) {
+        pageState
+        entries {
+          postId
+          post {
+            postId
+            userId
+            caption
+            type
+            mediaUrls
+            coverUrl
+            location
+            createdAt
+            username
+            avatar
+            likeCount
+            commentCount
+            saveCount
+            isLiked
+            isSaved
+            autoTags
+          }
+        }
+      }
+    }`;
+    const variables: { limit: number; pageState?: string } = { limit };
+    if (pageState) variables.pageState = pageState;
+    const res = await apiClient.post<FeedGraphqlBody>('/graphql', { query, variables });
+    const body = res.data;
+    if (body.errors?.length) {
+      throw new Error(body.errors[0]?.message ?? 'GraphQL error');
+    }
+    const reels = body.data?.reels;
+    const entries = Array.isArray(reels?.entries) ? reels?.entries : [];
+    const posts = entries
+      .map((e) => e.post)
+      .filter((p): p is FeedPostRes => Boolean(p))
+      .map(mapFeedPost);
+    const next = reels?.pageState ?? undefined;
     return {
       posts,
       nextPageState: next && next !== '' ? next : undefined,

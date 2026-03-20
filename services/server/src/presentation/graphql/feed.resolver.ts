@@ -83,4 +83,31 @@ export class FeedResolver {
     });
     return page;
   }
+
+  @Query(() => FeedPageType)
+  @UseGuards(GqlJwtAuthGuard)
+  async reels(
+    @CurrentGqlUser() user: { id: string },
+    @Args("limit", { type: () => Int, nullable: true, defaultValue: 3 }) limit: number,
+    @Args("pageState", { nullable: true }) pageState?: string
+  ): Promise<FeedPageType> {
+    this.postLoader.setCurrentUserId(user.id);
+    const data = await this.feedService.getReels(user.id, limit, pageState);
+    const page = new FeedPageType();
+    page.pageState = data.pageState ?? null;
+    page.entries = (data.entries ?? []).map((e) => {
+      const entry = new FeedEntryType();
+      entry.postId = e.postId;
+      entry.authorId = e.authorId;
+      entry.createdAt = entryCreatedAt(e.createdAt);
+      entry.isSponsored = null;
+      entry.adAccountId = null;
+      entry.adCampaignId = null;
+      entry.adGroupId = null;
+      entry.adCreativeId = null;
+      entry.post = null;
+      return entry;
+    });
+    return page;
+  }
 }

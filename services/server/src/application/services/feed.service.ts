@@ -91,6 +91,34 @@ export class FeedService {
     return { entries: mixed, pageState: result.pageState };
   }
 
+  async getReels(userId: string, limit: number, pageState?: string) {
+    const candidateLimit = Math.max(1, limit);
+    const collected: { postId: string; authorId: string; createdAt: Date }[] = [];
+
+    let currentPageState: string | undefined = pageState;
+    let finalPageState: string | undefined = undefined;
+
+    while (collected.length < limit) {
+      const result = await this.feedCache.getFeedPage(userId, candidateLimit, currentPageState);
+      finalPageState = result.pageState;
+
+      const visibleVideoEntries = await this.filterVideoVisibleEntries(result.entries, userId);
+      for (const e of visibleVideoEntries) {
+        collected.push(e);
+        if (collected.length >= limit) break;
+      }
+
+      if (!result.pageState) break;
+      if (result.pageState === currentPageState) break;
+      currentPageState = result.pageState;
+    }
+
+    return {
+      entries: this.toReelsPage(collected.slice(0, limit)),
+      pageState: finalPageState,
+    };
+  }
+
   private async filterVisibleEntries(
     entries: { postId: string; authorId: string; createdAt: Date }[],
     currentUserId: string
@@ -105,6 +133,35 @@ export class FeedService {
         .filter((postId): postId is string => typeof postId === "string")
     );
     return entries.filter((entry) => visibleIds.has(entry.postId));
+  }
+
+  private async filterVideoVisibleEntries(
+    entries: { postId: string; authorId: string; createdAt: Date }[],
+    currentUserId: string
+  ): Promise<{ postId: string; authorId: string; createdAt: Date }[]> {
+    if (entries.length === 0) return entries;
+    const postIds = entries.map((entry) => entry.postId);
+    const rows = await this.postService.getPostsBatch(postIds, currentUserId);
+
+    const videoIds = new Set(
+      rows
+        .filter((row): row is Record<string, unknown> => row != null)
+        .filter((row) => row["type"] === "VIDEO")
+        .map((row) => row["postId"])
+        .filter((postId): postId is string => typeof postId === "string")
+    );
+
+    return entries.filter((entry) => videoIds.has(entry.postId));
+  }
+
+  private toReelsPage(
+    entries: { postId: string; authorId: string; createdAt: Date }[]
+  ): { postId: string; authorId: string; createdAt: Date }[] {
+    return entries.map((e) => ({
+      postId: e.postId,
+      authorId: e.authorId,
+      createdAt: e.createdAt,
+    }));
   }
 
   private async withAds(
