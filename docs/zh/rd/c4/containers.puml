@@ -5,7 +5,7 @@
 title C4 Level 2 - 容器：WhatsChat
 
 Person(user_web, "Web 用户", "通过浏览器使用聊天")
-Person(user_mobile, "移动端用户", "通过应用使用聊天")
+Person(user_mobile, "移动端用户", "通过应用使用状态/信息流、Reels、聊天与通话")
 
 System_Boundary(whatschat, "WhatsChat") {
   Container(web_app, "Web 应用", "Next.js、React、TypeScript、Emotion、i18next", "导航、信息流、Reels、探索网格 963px、通知/搜索左侧抽屉、全局搜索、个人网格 coverUrl、侧栏；Redux 通知 + WS；发帖 coverUrl")

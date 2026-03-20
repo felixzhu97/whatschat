@@ -14,6 +14,7 @@ package "业务能力" {
   component [用户管理] as UserMgmt
   component [即时通讯] as Messaging
   component [信息流与帖子] as FeedPosts
+  component [Reels] as ReelsCap
   component [推荐与探索] as RecExplore
   component [音视频通话] as VoiceVideo
   component [文件分享] as FileShare
@@ -34,6 +35,7 @@ package "业务流程" {
   component [添加联系人] as ContactProcess
   component [发帖] as CreatePostProcess
   component [查看信息流与评论] as FeedCommentProcess
+  component [查看 Reels] as ViewReelsProcess
   component [查看探索] as ViewExploreProcess
   component [关注推荐] as FollowSuggestProcess
 }
@@ -49,6 +51,7 @@ package "业务价值" {
 EndUser --> UserMgmt : 使用
 EndUser --> Messaging : 使用
 EndUser --> FeedPosts : 使用
+EndUser --> ReelsCap : 使用
 EndUser --> RecExplore : 使用
 EndUser --> VoiceVideo : 使用
 EndUser --> FileShare : 使用
@@ -69,6 +72,7 @@ UploadProcess --> FileShare : 支撑
 ContactProcess --> ContactMgmt : 支撑
 CreatePostProcess --> FeedPosts : 支撑
 FeedCommentProcess --> FeedPosts : 支撑
+ViewReelsProcess --> ReelsCap : 支撑
 ViewExploreProcess --> RecExplore : 支撑
 FollowSuggestProcess --> RecExplore : 支撑
 
@@ -123,15 +127,16 @@ note bottom
   
   1. **用户管理** – 注册、登录、资料管理、访问控制
   2. **即时通讯** – 多类型消息：文本、图片、视频、语音、文件
-  3. **信息流与帖子** – 发帖（多图/视频+标题）；首页信息流展示关注用户真实帖子，按互动排序（点赞/收藏计数）；多图轮播；评论存 MongoDB；搜索用 Elasticsearch
-  4. **推荐与探索** – 关注推荐（来自批处理推荐服务）、探索流（热门帖子）、基于互动的排序
-  5. **音视频通话** – 基于 WebRTC 的高质量实时通话
-  6. **文件分享** – 各类文件的上传、下载与预览
-  7. **群组管理** – 创建群组、管理成员、配置群组设置
-  8. **状态分享** – 在线/离线状态与 ephemeral 状态更新
-  9. **联系人管理** – 添加、删除、搜索、组织联系人
-  10. **通知管理** – 消息通知、系统通知、推送通知
-  11. **平台管理** – 仪表盘、用户管理、内容安全、运营监控、分析、系统配置、权限与审计
+  3. **信息流与帖子**（状态/主页信息流）– 发帖（多图/视频+标题）；状态/主页信息流展示关注用户真实帖子，按互动排序（点赞/收藏计数）；多图轮播；评论存 MongoDB；搜索用 Elasticsearch
+  4. **Reels** – 竖屏短视频流，用于观看/完播参与度；支持 like/save 与关注/标题叠加，用于排序与埋点统计
+  5. **推荐与探索** – 关注推荐（来自批处理推荐服务）、探索流（热门帖子）、基于互动的排序
+  6. **音视频通话** – 基于 WebRTC 的高质量实时通话
+  7. **文件分享** – 各类文件的上传、下载与预览
+  8. **群组管理** – 创建群组、管理成员、配置群组设置
+  9. **状态分享** – 在线/离线状态与 ephemeral 状态更新
+  10. **联系人管理** – 添加、删除、搜索、组织联系人
+  11. **通知管理** – 消息通知、系统通知、推送通知
+  12. **平台管理** – 仪表盘、用户管理、内容安全、运营监控、分析、系统配置、权限与审计
   
   业务价值通过实时沟通、高效协作、良好体验与数据安全交付。
 end note

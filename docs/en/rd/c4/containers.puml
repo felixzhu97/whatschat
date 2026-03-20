@@ -5,7 +5,7 @@
 title C4 Level 2 - Containers: WhatsChat
 
 Person(user_web, "Web User", "Uses chat via browser")
-Person(user_mobile, "Mobile User", "Uses chat via app")
+Person(user_mobile, "Mobile User", "Uses Status/Home feed + Reels, chats, calls")
 
 System_Boundary(whatschat, "WhatsChat") {
   Container(web_app, "Web Application", "Next.js, React, TypeScript, Emotion, i18next", "Instagram-style UI (nav, feed, Reels, explore grid 963px, notifications/search left sheets, global search, profile grid coverUrl, sidebar), chat, calls, Redux notifications + WS, create post coverUrl, **sponsored posts rendering + ad click tracking**")
