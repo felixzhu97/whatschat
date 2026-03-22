@@ -298,30 +298,30 @@ export class FeedService {
       limit: String(limit),
     });
     if (cursor) params.set('cursor', cursor);
-    const res = await apiClient.get<{
+    const searchRes = await apiClient.get<{
       data?: { hits: unknown[]; nextCursor?: string; total?: number };
     }>(`/search?${params.toString()}`);
-    const payload = res.data?.data;
-    const entries = rawEntries.filter((e) => !e.isSponsored);
-    const total =
-      typeof top.total === 'number'
-        ? top.total
-        : typeof top.data?.total === 'number'
-          ? top.data.total
-          : 0;
-    const postIds = entries.map((e) => e.postId).filter(Boolean);
-    const details = await Promise.all(postIds.map((id) => this.getPostById(id)));
-    const posts = details.filter((p): p is MobileFeedPost => p != null);
-    return { posts, total, fetchedEntryCount: entries.length };
+    const payload = searchRes.data?.data;
+    const hits = Array.isArray(payload?.hits) ? payload.hits : [];
+    const nextCursor = payload?.nextCursor;
+    const total = payload?.total;
+    const orderedIds = hits
+      .map((h) => {
+        const o = h as Record<string, unknown>;
+        return String(o.postId ?? o.id ?? '');
+      })
+      .filter(Boolean);
+    const unique = [...new Set(orderedIds)];
+    const loaded = await Promise.all(unique.map((id) => this.getPostById(id)));
+    const byId = new Map(loaded.filter((p): p is MobileFeedPost => p != null).map((p) => [p.id, p]));
+    const posts = orderedIds.map((id) => byId.get(id)).filter((p): p is MobileFeedPost => p != null);
+    return { posts, nextCursor, total };
   }
-
-  async searchPosts(
-    q: string,
 
   async getUserProfile(userId: string): Promise<MobileUserProfile | null> {
     try {
-      const res = await apiClient.get<{ data?: MobileUserProfile }>(`/users/${userId}`);
-      const u = res.data?.data;
+      const profileRes = await apiClient.get<{ data?: MobileUserProfile }>(`/users/${userId}`);
+      const u = profileRes.data?.data;
       if (!u || typeof u !== 'object') return null;
       return u as MobileUserProfile;
     } catch {
@@ -336,12 +336,12 @@ export class FeedService {
   ): Promise<{ posts: MobileFeedPost[]; nextPageState?: string }> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (pageState) params.set('pageState', pageState);
-    const res = await apiClient.get<{
+    const userPostsRes = await apiClient.get<{
       posts?: FeedPostRes[];
       pageState?: string | null;
       data?: { posts?: FeedPostRes[]; pageState?: string | null };
     }>(`/posts/user/${userId}?${params.toString()}`);
-    const body = res.data as {
+    const body = userPostsRes.data as {
       posts?: FeedPostRes[];
       pageState?: string | null;
       data?: { posts?: FeedPostRes[]; pageState?: string | null };
@@ -362,66 +362,6 @@ export class FeedService {
       return mapFeedPost({ ...(r as FeedPostRes), createdAt });
     });
     return { posts, nextPageState: next && next !== '' ? String(next) : undefined };
-  }
-    limit: number,
-    cursor?: string
-  ): Promise<{ posts: MobileFeedPost[]; nextCursor?: string; total?: number }> {
-    const trimmed = q.trim();
-    if (!trimmed) return { posts: [] };
-    const params = new URLSearchParams({
-      q: trimmed,
-      type: 'posts',
-      limit: String(limit),
-    });
-    if (cursor) params.set('cursor', cursor);
-    const res = await apiClient.get<{
-      data?: { hits: unknown[]; nextCursor?: string; total?: number };
-    }>(`/search?${params.toString()}`);
-    const payload = res.data?.data;
-    const hits = Array.isArray(payload?.hits) ? payload.hits : [];
-    const nextCursor = payload?.nextCursor;
-    const total = payload?.total;
-    const orderedIds = hits
-      .map((h) => {
-        const o = h as Record<string, unknown>;
-        return String(o.postId ?? o.id ?? '');
-      })
-      .filter(Boolean);
-    const unique = [...new Set(orderedIds)];
-    const loaded = await Promise.all(unique.map((id) => this.getPostById(id)));
-    const byId = new Map(loaded.filter((p): p is MobileFeedPost => p != null).map((p) => [p.id, p]));
-    const posts = orderedIds.map((id) => byId.get(id)).filter((p): p is MobileFeedPost => p != null);
-    return { posts, nextCursor, total };
-  }
-    limit: number,
-    cursor?: string
-  ): Promise<{ posts: MobileFeedPost[]; nextCursor?: string; total?: number }> {
-    const trimmed = q.trim();
-    if (!trimmed) return { posts: [] };
-    const params = new URLSearchParams({
-      q: trimmed,
-      type: 'posts',
-      limit: String(limit),
-    });
-    if (cursor) params.set('cursor', cursor);
-    const res = await apiClient.get<{
-      data?: { hits: unknown[]; nextCursor?: string; total?: number };
-    }>(`/search?${params.toString()}`);
-    const payload = res.data?.data;
-    const hits = Array.isArray(payload?.hits) ? payload.hits : [];
-    const nextCursor = payload?.nextCursor;
-    const total = payload?.total;
-    const orderedIds = hits
-      .map((h) => {
-        const o = h as Record<string, unknown>;
-        return String(o.postId ?? o.id ?? '');
-      })
-      .filter(Boolean);
-    const unique = [...new Set(orderedIds)];
-    const loaded = await Promise.all(unique.map((id) => this.getPostById(id)));
-    const byId = new Map(loaded.filter((p): p is MobileFeedPost => p != null).map((p) => [p.id, p]));
-    const posts = orderedIds.map((id) => byId.get(id)).filter((p): p is MobileFeedPost => p != null);
-    return { posts, nextCursor, total };
   }
 }
 
