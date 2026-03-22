@@ -65,20 +65,20 @@ const CategoryContainer = styled.View`
   margin-top: 8px;
 `;
 
-const CategoryButton = styled.TouchableOpacity`
+const CategoryButton = styled.TouchableOpacity<{ selected: boolean }>`
   padding: 8px 16px;
   border-radius: 20px;
   margin-right: 8px;
   border-width: 1px;
   border-color: rgba(0, 0, 0, 0.1);
-  background-color: ${(p: { selected: boolean }) =>
+  background-color: ${(p) =>
     p.selected ? p.theme.colors.primaryGreen : 'transparent'};
 `;
 
-const CategoryText = styled.Text`
+const CategoryText = styled.Text<{ selected: boolean }>`
   font-size: 14px;
   font-weight: 500;
-  color: ${(p: { selected: boolean }) =>
+  color: ${(p) =>
     p.selected ? '#ffffff' : p.theme.colors.secondaryText};
 `;
 

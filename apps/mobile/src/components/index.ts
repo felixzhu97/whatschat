@@ -1,0 +1,1 @@
+export { ThemedText } from "./ThemedText";

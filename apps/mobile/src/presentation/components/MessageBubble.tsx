@@ -14,12 +14,12 @@ interface MessageBubbleProps {
   onLongPress?: () => void;
 }
 
-const Row = styled.View`
+const Row = styled.View<{ isMe: boolean }>`
   flex-direction: row;
   margin-vertical: 2px;
   margin-horizontal: 4px;
   align-items: flex-end;
-  justify-content: ${(p: { isMe: boolean }) => (p.isMe ? 'flex-end' : 'flex-start')};
+  justify-content: ${(p) => (p.isMe ? 'flex-end' : 'flex-start')};
 `;
 
 const Avatar = styled.View`
@@ -74,9 +74,9 @@ const ReplyText = styled.Text`
   color: #808080;
 `;
 
-const Bubble = styled.View`
+const Bubble = styled.View<{ isMe: boolean }>`
   padding: 10px 14px 8px 14px;
-  background-color: ${(p: { isMe: boolean }) =>
+  background-color: ${(p) =>
     p.isMe ? p.theme.colors.myMessageBubble : p.theme.colors.otherMessageBubble};
   border-radius: 18px;
 `;
@@ -329,7 +329,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <MediaInfo>
               <MediaLabel numberOfLines={1}>{message.fileName || '文件'}</MediaLabel>
               <MediaMeta>
-                {message.fileSize ? formatFileSize(message.fileSize) : '未知大小'}
+                {message.fileSize != null
+                  ? formatFileSize(Number(message.fileSize))
+                  : '未知大小'}
               </MediaMeta>
             </MediaInfo>
           </MediaRow>

@@ -1,4 +1,5 @@
 import type { Chat as DomainChat } from "@whatschat/domain";
+import { toOptionalDate } from "./valueCoercion";
 
 export enum ChatType {
   Individual = "individual",
@@ -50,11 +51,11 @@ export class ChatEntity implements Chat {
     this.groupImage = data.groupImage;
     this.lastMessageId = data.lastMessageId;
     this.lastMessageContent = data.lastMessageContent;
-    this.lastMessageTime = data.lastMessageTime;
+    this.lastMessageTime = toOptionalDate(data.lastMessageTime);
     this.lastMessageSender = data.lastMessageSender;
     this.unreadCount = data.unreadCount ?? 0;
     this.isMuted = data.isMuted ?? false;
-    this.mutedUntil = data.mutedUntil;
+    this.mutedUntil = toOptionalDate(data.mutedUntil);
     this.isPinned = data.isPinned ?? false;
     this.isArchived = data.isArchived ?? false;
     this.adminId = data.adminId;

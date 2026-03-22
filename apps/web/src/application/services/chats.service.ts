@@ -39,7 +39,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.getChatById(chatId);
       if (response.success && response.data) {
-        return Contact.create(response.data);
+        return Contact.create(response.data as Parameters<typeof Contact.create>[0]);
       }
       return null;
     } catch (error) {
@@ -56,7 +56,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.createChat(data);
       if (response.success && response.data) {
-        return Contact.create(response.data);
+        return Contact.create(response.data as Parameters<typeof Contact.create>[0]);
       }
       throw new Error("创建聊天失败");
     } catch (error) {
@@ -107,7 +107,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.sendMessage(chatId, messageData);
       if (response.success && response.data) {
-        return Message.create(response.data);
+        return Message.create(response.data as Parameters<typeof Message.create>[0]);
       }
       throw new Error("发送消息失败");
     } catch (error) {

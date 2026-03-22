@@ -5,6 +5,7 @@ import {
   Platform,
   Text,
   ActivityIndicator,
+  type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -317,7 +318,7 @@ export default function ChatDetailScreen() {
             borderBottomColor: colors.separator,
             shadowOpacity: 0,
             elevation: 0,
-          },
+          } as ViewStyle as never,
           headerTintColor: colors.primaryText,
         }}
       />

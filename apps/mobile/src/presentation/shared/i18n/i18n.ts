@@ -37,3 +37,5 @@ export async function applyStoredLanguage(): Promise<void> {
   const stored = await getStoredLanguage();
   if (stored) await i18n.changeLanguage(stored);
 }
+
+export default i18n;

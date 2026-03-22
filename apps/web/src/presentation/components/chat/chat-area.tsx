@@ -103,7 +103,7 @@ export function ChatArea({
       <ChatHeader
         contact={selectedContact}
         isTyping={isTyping}
-        isGroup={selectedContact.isGroup}
+        isGroup={selectedContact.isGroup ?? false}
         onVoiceCall={onVoiceCall}
         onVideoCall={onVideoCall}
         onShowInfo={onShowInfo}
@@ -113,7 +113,7 @@ export function ChatArea({
         messages={messages}
         selectedContact={selectedContact}
         currentUserId={currentUserId}
-        isGroup={selectedContact.isGroup}
+        isGroup={selectedContact.isGroup ?? false}
         onReply={onReply}
         onEdit={(messageId: string, text: string) => {
           const message = messages.find((m) => m.id === messageId);

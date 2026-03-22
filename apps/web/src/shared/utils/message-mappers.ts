@@ -54,8 +54,9 @@ export function mergeAndSortMessages(
   for (const m of live) {
     if (!byId.has(m.id)) byId.set(m.id, m);
   }
+  const timeMs = (t: string | Date | undefined) =>
+    t == null ? 0 : new Date(t).getTime();
   return Array.from(byId.values()).sort(
-    (a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => timeMs(a.timestamp) - timeMs(b.timestamp)
   );
 }

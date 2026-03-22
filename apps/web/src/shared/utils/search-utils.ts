@@ -170,6 +170,9 @@ export class MessageSearchEngine {
 
     // 日期范围过滤
     if (dateRange) {
+      if (message.timestamp == null) {
+        return false;
+      }
       const messageDate = new Date(message.timestamp);
       if (messageDate < dateRange.from || messageDate > dateRange.to) {
         return false;

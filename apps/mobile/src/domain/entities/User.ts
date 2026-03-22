@@ -1,4 +1,5 @@
 import type { User as DomainUser } from "@whatschat/domain";
+import { toOptionalDate, toRequiredDate } from "./valueCoercion";
 
 export interface User extends DomainUser {
   name: string;
@@ -24,11 +25,11 @@ export class UserEntity implements User {
     this.phoneNumber = data.phoneNumber;
     this.profilePicture = data.profilePicture;
     this.about = data.about ?? "嗨，我正在使用 WhatsChat！";
-    this.lastSeen = data.lastSeen;
+    this.lastSeen = toOptionalDate(data.lastSeen);
     this.isOnline = data.isOnline ?? false;
     this.isTyping = data.isTyping ?? false;
-    this.createdAt = data.createdAt;
-    this.updatedAt = data.updatedAt;
+    this.createdAt = toRequiredDate(data.createdAt);
+    this.updatedAt = toRequiredDate(data.updatedAt);
   }
 
   copyWith(updates: Partial<User>): UserEntity {

@@ -213,9 +213,11 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
       message.chatName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (timestamp: string) => {
+  const formatDate = (timestamp: string | Date | undefined) => {
+    if (timestamp == null) return "";
     const now = new Date();
     const ts = new Date(timestamp);
+    if (Number.isNaN(ts.getTime())) return "";
     const diffInDays = Math.floor(
       (now.getTime() - ts.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -227,7 +229,7 @@ export function StarredMessagesPage({ onBack }: StarredMessagesPageProps) {
     } else if (diffInDays < 7) {
       return `${diffInDays}天前`;
     } else {
-      return new Date(timestamp).toLocaleDateString();
+      return ts.toLocaleDateString();
     }
   };
 

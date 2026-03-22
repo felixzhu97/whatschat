@@ -18,7 +18,10 @@ export class UsersService implements IUsersService {
     try {
       const response = await this.userApi.getUsers(params);
       if (response.success && response.data) {
-        return response.data.map((user: any) => User.create(user));
+        const rows = response.data as unknown[];
+        return rows.map((user: unknown) =>
+          User.create(user as Parameters<typeof User.create>[0])
+        );
       }
       return [];
     } catch (error) {
@@ -31,7 +34,7 @@ export class UsersService implements IUsersService {
     try {
       const response = await this.userApi.getUserById(userId);
       if (response.success && response.data) {
-        return User.create(response.data);
+        return User.create(response.data as Parameters<typeof User.create>[0]);
       }
       return null;
     } catch (error) {
@@ -44,7 +47,10 @@ export class UsersService implements IUsersService {
     try {
       const response = await this.userApi.searchUsers(query);
       if (response.success && response.data) {
-        return response.data.map((user: any) => User.create(user));
+        const rows = response.data as unknown[];
+        return rows.map((user: unknown) =>
+          User.create(user as Parameters<typeof User.create>[0])
+        );
       }
       return [];
     } catch (error) {
@@ -54,8 +60,6 @@ export class UsersService implements IUsersService {
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {
-    // 这里应该调用API更新用户信息
-    // 暂时返回更新后的用户
     const user = await this.getUserById(userId);
     if (!user) {
       throw new Error("用户不存在");

@@ -1,4 +1,6 @@
-export type { RTCCallState } from "@whatschat/im";
+import type { RTCCallState } from "@whatschat/im";
+
+export type { RTCCallState };
 
 export interface IWebRTCAdapter {
   startCall(

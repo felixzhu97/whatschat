@@ -1,4 +1,5 @@
 import type { Message as DomainMessage } from "@whatschat/domain";
+import { toOptionalDate, toOptionalNumber } from "./valueCoercion";
 
 export enum MessageType {
   Text = "text",
@@ -68,11 +69,11 @@ export class MessageEntity implements Message {
     this.type = data.type;
     this.status = data.status ?? MessageStatus.Sent;
     this.timestamp = data.timestamp;
-    this.updatedAt = data.updatedAt;
+    this.updatedAt = toOptionalDate(data.updatedAt);
     this.fileName = data.fileName;
     this.fileUrl = data.fileUrl;
     this.thumbnailUrl = data.thumbnailUrl;
-    this.fileSize = data.fileSize;
+    this.fileSize = toOptionalNumber(data.fileSize);
     this.mimeType = data.mimeType;
     this.latitude = data.latitude;
     this.longitude = data.longitude;

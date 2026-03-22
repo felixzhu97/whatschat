@@ -7,6 +7,7 @@ import {
   type RTCMediaAdapter,
   type RTCPeerHandle,
   type RTCApiAdapter,
+  type WebSocketMessage,
 } from "@whatschat/im";
 import { getWebSocketManager } from "../adapters/websocket";
 import { API_CONFIG } from "../config/api.config";
@@ -52,11 +53,21 @@ function createSignalingAdapter(): RTCSignalingAdapter {
   const ws = getWebSocketManager();
   return {
     on(event, handler) {
-      ws.on(event, (msg: { data?: unknown }) => handler(msg?.data ?? msg));
+      ws.on(event, (...args: unknown[]) => {
+        const raw = args[0];
+        const payload =
+          raw != null && typeof raw === "object" && "data" in raw
+            ? (raw as { data?: unknown }).data ?? raw
+            : raw;
+        handler(payload);
+      });
     },
     off() {},
     send(event, payload) {
-      ws.send({ type: event, data: payload });
+      ws.send({
+        type: event as WebSocketMessage["type"],
+        data: payload as Record<string, unknown>,
+      });
     },
   };
 }

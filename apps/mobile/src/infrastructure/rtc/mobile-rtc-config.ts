@@ -175,8 +175,8 @@ function createApiAdapter(): RTCApiAdapter {
     answerCall(callId) {
       return apiClient.put(`/calls/${callId}/answer`);
     },
-    endCall(callId) {
-      return apiClient.put(`/calls/${callId}/end`).catch(() => {});
+    async endCall(callId) {
+      await apiClient.put(`/calls/${callId}/end`).catch(() => {});
     },
   };
 }

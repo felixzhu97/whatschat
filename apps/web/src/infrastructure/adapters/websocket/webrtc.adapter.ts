@@ -43,7 +43,7 @@ export class WebRTCAdapter implements IWebRTCAdapter {
           this.wsManager.send({
             type: "call_ice_candidate",
             to: this.callState.contactId,
-            data: event.candidate,
+            data: event.candidate as unknown as Record<string, unknown>,
           });
         }
       };
@@ -187,7 +187,7 @@ export class WebRTCAdapter implements IWebRTCAdapter {
       this.wsManager.send({
         type: "call_answer",
         to: this.callState.contactId,
-        data: answer,
+        data: answer as unknown as Record<string, unknown>,
       });
 
       this.updateCallState({ status: "connected", isIncoming: false });

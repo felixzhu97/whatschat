@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/src/presentation/components/ui/dropdown-menu";
-import { ContactListItem } from "./contact-list-item";
+import { ContactListItem } from "../chat/contact-list-item";
 import { SearchSuggestions } from "./search-suggestions";
 import type { Contact, User } from "@/shared/types";
 import { styled } from "@/src/shared/utils/emotion";

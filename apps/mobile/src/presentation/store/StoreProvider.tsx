@@ -6,7 +6,9 @@ import { setUnauthorizedHandler } from '@/src/infrastructure/api/client';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   React.useEffect(() => {
-    setUnauthorizedHandler(() => store.dispatch(logout()));
+    setUnauthorizedHandler(() => {
+      void store.dispatch(logout());
+    });
     return () => setUnauthorizedHandler(null);
   }, []);
   return <Provider store={store}>{children}</Provider>;

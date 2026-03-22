@@ -46,7 +46,7 @@ function Calendar({
         dropdown_root: defaultClassNames.dropdown_root,
         dropdown: defaultClassNames.dropdown,
         caption_label: defaultClassNames.caption_label,
-        table: defaultClassNames.table,
+        month_grid: defaultClassNames.month_grid,
         weekdays: defaultClassNames.weekdays,
         weekday: defaultClassNames.weekday,
         week: defaultClassNames.week,

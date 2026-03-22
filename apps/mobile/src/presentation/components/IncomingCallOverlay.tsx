@@ -54,13 +54,13 @@ const Buttons = styled.View`
   gap: 48px;
 `;
 
-const Btn = styled.TouchableOpacity`
+const Btn = styled.TouchableOpacity<{ isDecline?: boolean }>`
   width: 64px;
   height: 64px;
   border-radius: 32px;
   justify-content: center;
   align-items: center;
-  background-color: ${(p: { isDecline?: boolean }) =>
+  background-color: ${(p) =>
     p.isDecline ? p.theme.colors.iosRed : p.theme.colors.primaryGreen};
 `;
 

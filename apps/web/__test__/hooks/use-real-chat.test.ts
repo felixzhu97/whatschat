@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { useRealChat } from "@/hooks/use-real-chat";
+import type { Message } from "@whatschat/domain";
+import { useRealChat } from "@/src/presentation/hooks/use-real-chat";
 
 // Mock WebSocket manager
 const mockWebSocketManager = {
@@ -288,7 +289,7 @@ describe("useRealChat Hook", () => {
       });
 
       const updatedMessage = result.current.messages.find(
-        (msg) => msg.id === "msg-1"
+        (msg: Message) => msg.id === "msg-1"
       );
       expect(updatedMessage?.status).toBe("read");
     });
@@ -419,7 +420,7 @@ describe("useRealChat Hook", () => {
       });
 
       const updatedMessage = result.current.messages.find(
-        (msg) => msg.id === "msg-1"
+        (msg: Message) => msg.id === "msg-1"
       );
       expect(updatedMessage?.content).toBe("Updated message");
       expect(updatedMessage?.isEdited).toBe(true);
@@ -433,7 +434,7 @@ describe("useRealChat Hook", () => {
       });
 
       const deletedMessage = result.current.messages.find(
-        (msg) => msg.id === "msg-1"
+        (msg: Message) => msg.id === "msg-1"
       );
       expect(deletedMessage).toBeUndefined();
     });

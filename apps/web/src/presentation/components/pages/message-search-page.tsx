@@ -284,10 +284,9 @@ export function MessageSearchPage({
       });
     });
 
-    results.sort(
-      (a, b) =>
-        new Date(b.message.timestamp).getTime() - new Date(a.message.timestamp).getTime()
-    );
+    const timeMs = (t: string | Date | undefined) =>
+      t == null ? 0 : new Date(t).getTime();
+    results.sort((a, b) => timeMs(b.message.timestamp) - timeMs(a.message.timestamp));
 
     setSearchResults(results);
     setIsSearching(false);
@@ -298,7 +297,8 @@ export function MessageSearchPage({
     return text.replace(regex, "<mark>$1</mark>");
   };
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date | undefined) => {
+    if (date == null) return "";
     const now = new Date();
     const messageDate = new Date(date);
     const diffTime = now.getTime() - messageDate.getTime();

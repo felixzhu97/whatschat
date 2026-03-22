@@ -165,7 +165,7 @@ describe("ChatArea", () => {
     isTyping: false,
     isConnected: true,
     onMessageChange: vi.fn(),
-    onKeyPress: vi.fn(),
+    onKeyDown: vi.fn(),
     onSendMessage: vi.fn(),
     onEmojiSelect: vi.fn(),
     onToggleEmojiPicker: vi.fn(),

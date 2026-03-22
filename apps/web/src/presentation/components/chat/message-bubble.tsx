@@ -267,8 +267,11 @@ export function MessageBubble({
       ? isOwn
       : message.senderId === "current-user" || message.senderId === "me";
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString("zh-CN", {
+  const formatTime = (timestamp: string | Date | undefined) => {
+    if (timestamp == null) return "";
+    const d = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("zh-CN", {
       hour: "2-digit",
       minute: "2-digit",
     });

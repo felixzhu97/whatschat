@@ -27,9 +27,9 @@ export class AuthService implements IAuthService {
 
   async initializeAuth(): Promise<void> {
     try {
-      const savedUser = this.storage.load<string>(STORAGE_KEYS.USER, null);
-      const accessToken = this.storage.load<string>(STORAGE_KEYS.ACCESS_TOKEN, null);
-      const refreshToken = this.storage.load<string>(STORAGE_KEYS.REFRESH_TOKEN, null);
+      const savedUser = this.storage.load<string | null>(STORAGE_KEYS.USER, null);
+      const accessToken = this.storage.load<string | null>(STORAGE_KEYS.ACCESS_TOKEN, null);
+      const refreshToken = this.storage.load<string | null>(STORAGE_KEYS.REFRESH_TOKEN, null);
 
       if (savedUser && accessToken) {
         this.apiClient.setToken(accessToken);

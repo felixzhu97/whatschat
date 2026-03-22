@@ -381,9 +381,9 @@ export function ContactListItem({
             {localContact.isGroup && localContact.memberCount && (
               <MutedMeta>{localContact.memberCount}人</MutedMeta>
             )}
-            {localContact.unreadCount > 0 && localContact.muted ? (
+            {(localContact.unreadCount ?? 0) > 0 && localContact.muted ? (
               <MutedDot />
-            ) : localContact.unreadCount > 0 && !localContact.muted ? (
+            ) : (localContact.unreadCount ?? 0) > 0 && !localContact.muted ? (
               <UnreadBadge>{localContact.unreadCount}</UnreadBadge>
             ) : null}
           </BadgeRow>
