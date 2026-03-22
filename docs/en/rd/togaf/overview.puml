@@ -32,6 +32,8 @@ package "Application Architecture" as AA {
     Admin recheck/hide/batch delete, Ads serving/targeting/pacing + Ads Admin APIs),
     Python Recommendation (Celery, LightFM, Redis, ad ETL/metrics),
     Vision (Python, NudeNet, ResNet50). Admin: AG Grid, Recharts, i18n, Ads pages.
+    Mobile: Profile (user posts, discover), Search/Explore (ES + explore API),
+    Settings-and-activity stack, FeedService REST + GraphQL.
   end note
 }
 

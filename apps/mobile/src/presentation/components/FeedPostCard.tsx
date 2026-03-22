@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
@@ -412,7 +413,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
             <Ionicons name={likeIcon} size={22} color={likeColor} />
           </IconButton>
           <IconButton onPress={() => onPressComment?.(post.id)}>
-            <Ionicons name="chatbubble-outline" size={22} color={colors.primaryText} />
+            <Feather name="message-circle" size={22} color={colors.primaryText} />
           </IconButton>
           <IconButton onPress={() => onPressShare?.(post.id)}>
             <Ionicons name="paper-plane-outline" size={22} color={colors.primaryText} />

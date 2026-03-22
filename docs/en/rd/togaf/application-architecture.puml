@@ -65,20 +65,12 @@ package "Client Applications" {
   component [Mobile App] as MobileApp #LightGreen
   note right of MobileApp
     Tech stack:
-    - React Native
-    - Expo (SDK 55, expo-router)
-    - TypeScript
-    - Emotion (@emotion/native)
-    - Redux Toolkit + React Redux
-    - i18next (en/zh)
-    - Theme (light/dark/system)
-    - iOS-style Settings (grouped cards)
-    - Tabs: Status (home feed + stories) and Reels (vertical video feed)
-      - Status: Header + horizontal stories + vertical feed
-      - Status: Multi-photo/video posts with horizontal swipe carousel
-      - Reels: Vertical video feed with snap paging, like/save actions, pause/play and mute toggle
-      - Video auto-play/pause based on visibility (expo-video, one active player)
-      - Shared GraphQL feed/reels query + analytics events with web; guarded pagination to avoid duplicate GraphQL calls
+    - React Native, Expo (expo-router), TypeScript, Emotion (@emotion/native)
+    - Redux Toolkit + RTK Query (feedApi), @whatschat/im, i18next, theme light/dark/system
+    Tabs: Status (feed + Stories), Reels, Chats (DM list), Explore (search + explore grid + ES search), Profile (Instagram-style: stats, discover, grid/Reels/tagged)
+    Stack: settings-menu (Settings and activity: sectioned list, search bar, theme/language/logout), create-post, media-viewer (getPostById when not cached)
+    FeedService: GraphQL feed/reels; REST /posts/explore, /search, /users/:id, /posts/user/:id, /posts/:id, suggestions
+    Shared GraphQL feed/reels + @whatschat/analytics with web; expo-video visibility-based autoplay
   end note
 }
 

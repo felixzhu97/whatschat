@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, RefreshControl, TouchableOpacity, ViewToke
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useScrollToTop } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { styled } from '@/src/presentation/shared/emotion';
 import { FeedPostCard } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
@@ -363,7 +364,7 @@ export const HomeFeedScreen: React.FC = () => {
                 <HeaderTitle>{t('home.title')}</HeaderTitle>
                 <HeaderRight>
                   <HeaderIconButton onPress={() => router.push('/create-post')}>
-                    <Ionicons name="add-circle-outline" size={24} color={colors.primaryText} />
+                    <Feather name="plus-square" size={24} color={colors.primaryText} />
                   </HeaderIconButton>
                   <HeaderIconButton onPress={() => router.push('/notifications')}>
                     <Ionicons name="heart-outline" size={24} color={colors.primaryText} />
@@ -416,7 +417,7 @@ export const HomeFeedScreen: React.FC = () => {
                 <EmptyText>{isFeedError ? t('home.loadFailed') : t('home.empty')}</EmptyText>
                 {isFeedError ? (
                   <HeaderIconButton onPress={() => refetch()}>
-                    <Ionicons name="refresh" size={20} color={colors.primaryText} />
+                    <Ionicons name="refresh-outline" size={20} color={colors.primaryText} />
                   </HeaderIconButton>
                 ) : null}
               </EmptyState>

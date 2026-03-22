@@ -58,7 +58,7 @@ export function TabPageHeader({ title }: TabPageHeaderProps) {
               <Ionicons name="search-outline" size={24} color={colors.primaryText} />
             </HeaderButton>
             <HeaderButton onPress={() => {}}>
-              <Ionicons name="ellipsis-vertical" size={24} color={colors.primaryText} />
+              <Ionicons name="menu-outline" size={24} color={colors.primaryText} />
             </HeaderButton>
           </HeaderIcons>
         </HeaderBar>

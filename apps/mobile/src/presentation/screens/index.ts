@@ -1,7 +1,8 @@
 export * from './ChatListScreen';
 export * from './ChatDetailScreen';
 export * from './HomeFeedScreen';
-export * from './CallsScreen';
+export * from './ExploreScreen';
 export * from './ReelsScreen';
-export * from './SettingsScreen';
+export * from './ProfileScreen';
+export * from './SettingsMenuScreen';
 

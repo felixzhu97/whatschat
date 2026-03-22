@@ -1,50 +1,52 @@
-# Welcome to your Expo app 👋
+# WhatsFeed Mobile (`apps/mobile`)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native + Expo（SDK 55+）客户端，与 `services/server` API 对接；UI 对齐 Instagram（信息流、Reels、私信、探索/搜索、个人主页与「Settings and activity」设置栈）。
 
-## Get started
+## 技术栈
 
-1. Install dependencies
+- **路由**：expo-router（`(tabs)` + 独立 Stack 屏）
+- **状态**：Redux Toolkit、`feedApi`（RTK Query）、`@whatschat/im` 聊天与 RTC
+- **样式**：Emotion（`@emotion/native`）、主题（浅/深/系统，AsyncStorage）
+- **国际化**：i18next（`src/locales/en.ts`、`zh.ts`）
+- **数据访问**：`src/application/services/FeedService.ts`（GraphQL feed/reels；REST explore、search、`/users/:id`、`/posts/user/:id`、`/posts/:id`、用户推荐等）；与 RTK Query 并存
 
-   ```bash
-   npm install
-   ```
+## Tab 与主要路由
 
-2. Start the app
+| Tab / 路由 | 说明 |
+|------------|------|
+| `(tabs)/status` | 首页：Stories + 纵向 Feed（多媒体轮播） |
+| `(tabs)/reels` | Reels 竖屏流 |
+| `(tabs)/chats` | 私信列表（Ins 风格行） |
+| `(tabs)/explore` | 搜索 / Explore：探索网格 + Elasticsearch 搜索 |
+| `(tabs)/profile` | **Profile**：个人主页网格与 Discover |
+| `settings-menu` | **Settings and activity**：分组设置、主题、语言、登出 |
+| `create-post` | 发帖（先上传媒体再提交） |
+| `media-viewer` | 全屏媒体；可按 `postId` 单独拉帖 |
+| `notifications`、`inbox`、`chat-detail` 等 | 通知、收件箱、会话详情 |
 
-   ```bash
-    npx expo start
-   ```
+## 运行
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+在仓库根目录（推荐）：
 
 ```bash
-npm run reset-project
+pnpm install
+pnpm start:mobile:ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+或在本目录：
 
-## Learn more
+```bash
+pnpm exec expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+环境：与 Web 相同 API 基址（见根目录 `README.md` 与 `services/server/.env`）。
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 文档
 
-## Join the community
+- 仓库根 [README.md](../../README.md)
+- C4 移动端组件图：[docs/en/rd/c4/components-mobile-app.puml](../../docs/en/rd/c4/components-mobile-app.puml)
+- TOGAF 应用架构：[docs/en/rd/togaf/application-architecture.puml](../../docs/en/rd/togaf/application-architecture.puml)
 
-Join our community of developers creating universal apps.
+## 许可证
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+与主仓库一致（MIT）。

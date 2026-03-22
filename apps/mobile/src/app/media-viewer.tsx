@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { feedService, type MobileFeedPost } from '@/src/application/services';
 import { useGetFeedFirstQuery } from '@/src/presentation/store/api/feedApi';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { WebView } from 'react-native-webview';
@@ -185,7 +186,28 @@ export default function MediaViewerScreen() {
   const { postId } = useLocalSearchParams<{ postId?: string; index?: string }>();
   const startIndex = 0;
   const { data } = useGetFeedFirstQuery({ limit: 8 });
-  const post = useMemo(() => data?.posts?.find((p) => p.id === postId), [data?.posts, postId]);
+  const postFromFeed = useMemo(
+    () => data?.posts?.find((p) => p.id === postId),
+    [data?.posts, postId],
+  );
+  const [fetchedPost, setFetchedPost] = useState<MobileFeedPost | null>(null);
+
+  useEffect(() => {
+    if (postFromFeed) {
+      setFetchedPost(null);
+      return;
+    }
+    if (!postId) return;
+    let cancelled = false;
+    void feedService.getPostById(postId).then((p) => {
+      if (!cancelled && p) setFetchedPost(p);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [postId, postFromFeed]);
+
+  const post = postFromFeed ?? fetchedPost;
   const mediaUrls = Array.isArray(post?.mediaUrls) && post?.mediaUrls?.length ? post?.mediaUrls : post?.imageUrl ? [post.imageUrl] : [];
   const screen = Dimensions.get('window');
   const [active, setActive] = useState(Math.min(startIndex, Math.max(0, mediaUrls.length - 1)));

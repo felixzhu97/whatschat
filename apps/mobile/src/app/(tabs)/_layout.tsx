@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { LiquidGlassBar } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
@@ -83,7 +84,11 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.reels'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'videocam' : 'videocam-outline'} size={size} color={color} />
+            <MaterialCommunityIcons
+              name={focused ? 'movie-open' : 'movie-open-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -93,7 +98,7 @@ export default function TabsLayout() {
           title: t('tabs.chats'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? 'chatbubble' : 'chatbubble-outline'}
+              name={focused ? 'paper-plane' : 'paper-plane-outline'}
               size={size}
               color={color}
             />
@@ -101,18 +106,18 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="calls"
+        name="explore"
         options={{
-          title: t('tabs.calls'),
+          title: t('tabs.explore'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="profile"
         options={{
-          title: t('tabs.settings'),
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'person-circle' : 'person-circle-outline'}

@@ -51,19 +51,20 @@ export class ExploreService {
       })
       .then((rows) => new Set(rows.map((r) => r.followingId)));
     const filtered = raw.filter((e) => !following.has(e.authorId));
+    const pool = filtered.length > 0 ? filtered : raw;
     const assignment = this.experiments.assign(userId, "explore");
     const ranked = await this.recommendation.rankExplore({
       userId,
-      candidateIds: filtered.map((e) => e.postId),
-      limit: filtered.length,
+      candidateIds: pool.map((e) => e.postId),
+      limit: pool.length,
       experimentId: assignment.experimentId,
       variantId: assignment.variantId,
     });
-    const byPost = new Map(filtered.map((e) => [e.postId, e]));
+    const byPost = new Map(pool.map((e) => [e.postId, e]));
     const ordered = ranked.items
       .map((item) => byPost.get(item.id))
       .filter((v): v is ExploreEntryDto => Boolean(v));
-    const orderedOrFallback = ordered.length > 0 ? ordered : filtered;
+    const orderedOrFallback = ordered.length > 0 ? ordered : pool;
     const total = orderedOrFallback.length;
     const page = orderedOrFallback.slice(offset, offset + limit);
     const mixed = await this.withAds(userId, page, limit);

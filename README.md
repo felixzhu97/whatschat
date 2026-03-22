@@ -19,7 +19,7 @@
 - 🎯 **推荐系统** – 关注推荐、互动排序 feed、探索流推荐；Python 推荐服务（LightFM、implicit ALS、Annoy）+ Celery worker；可选使用 Redis/Kafka/PostgreSQL/Cassandra 数据；ETL 会读取广告分析数据构建特征
 - 👤 **社交能力** – 关注/取关、个人主页粉丝/关注数、列表弹窗无限滚动与行内关注操作
 - 🌐 **Web 应用** – Next.js SPA（:4000）；Instagram 风格 UI（导航、feed、Reels、个人主页、全局搜索、通知抽屉、搜索抽屉、探索网格、私信、右侧推荐）；Redux 通知切片 + Socket.IO `notification:new`；i18n（中英切换）；信息流内联广告与点击追踪
-- 📱 **移动端应用** – React Native + Expo；Instagram 风格动态页（stories + 纵向帖子 + 横滑多媒体）+ Reels Tab（纵向视频流）；RTK Query 数据层（like/save/follow 乐观更新 + status/stories/reels 缓存）；基于可见性的自动播停；Status Tab 再次点击回顶；iOS 风格导航与设置；与 Web 共享 GraphQL feed/reels 和分析事件
+- 📱 **移动端应用** – React Native + Expo（expo-router）；Instagram 风格 **Status**（Stories + 纵向 Feed + 横滑多媒体）、**Reels**、**Messages**（DM 列表与行样式）、**Search**（Explore 三列宫格 + Elasticsearch 帖子搜索，对接 `/posts/explore` 与 `/search`）、**Profile**（个人主页：顶栏、粉丝/关注/帖子、Discover、网格/Reels/标记 Tab、用户帖子 `/posts/user/:id`）；独立栈 **Settings and activity**（分组列表、搜索条、主题/语言/通知/登出，与 Ins 设置页一致）；**create-post**、**media-viewer**（Feed 缓存未命中时 `GET /posts/:id` 补拉）；`application/services/FeedService`（GraphQL feed/reels、REST explore/search/user posts/profile）；RTK Query 乐观更新与缓存；与 Web 共享 GraphQL feed/reels 与 `@whatschat/analytics` 埋点
 - 📊 **行为与广告分析** – `@whatschat/analytics` SDK；Web/Mobile 上报行为事件（含 post view/like/save 与 ad_impression/ad_click/ad_conversion）；API 接入；管理端可看总览并触发推荐 ETL
 - ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Business、Data Analytics、System Config、Permission & Audit、Ads（广告账户/活动/广告组/创意）（:4001）
 

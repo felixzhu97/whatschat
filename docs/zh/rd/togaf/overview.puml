@@ -27,10 +27,11 @@ package "应用架构" as AA {
   component [数据访问] as DataAccess
   note right of AA
     **application-architecture.puml**
-    Web/移动端/管理端，REST/WebSocket/WebRTC，
-    NestJS（帖子、信息流、探索、评论、关注、搜索、互动），
-    Python 推荐（Celery、LightFM、implicit、Annoy），
-    Redis（推荐、探索缓存）。管理端：AG Grid、Recharts、i18n。
+    Web/移动端/管理端，REST/GraphQL/WebSocket/WebRTC，
+    NestJS（帖子、信息流、探索、评论、关注、搜索、互动、广告与投放），
+    Python 推荐（Celery、Redis、广告 ETL），Vision（标签、审核）。
+    移动端：个人主页（用户帖子、推荐）、搜索/探索（ES + explore API）、
+    「设置与动态」栈、FeedService REST 与 GraphQL。
   end note
 }
 

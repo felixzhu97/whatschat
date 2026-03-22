@@ -10,7 +10,7 @@ Person(user_mobile, "移动端用户", "通过应用使用状态/信息流、Ree
 System_Boundary(whatschat, "WhatsChat") {
   Container(web_app, "Web 应用", "Next.js、React、TypeScript、Emotion、i18next", "导航、信息流、Reels、探索网格 963px、通知/搜索左侧抽屉、全局搜索、个人网格 coverUrl、侧栏；Redux 通知 + WS；发帖 coverUrl")
   Container(admin_app, "管理端应用", "Next.js、React、TypeScript、Emotion、AG Grid、Recharts、i18next", "仪表盘、用户、内容安全、运营监控、业务、分析、系统配置、权限与审计")
-  Container(mobile_app, "移动端应用", "React Native、Expo、TypeScript、Emotion", "Tab：状态/主页信息流（Stories + 帖子）、Reels、聊天、通话、设置")
+  Container(mobile_app, "移动端应用", "React Native、Expo、TypeScript、Emotion", "Tab：状态/主页（Stories + 信息流）、Reels、聊天（私信）、探索（搜索 + 探索网格）、个人主页；栈：设置与动态、发帖、媒体查看器；FeedService REST 探索/搜索/用户帖子 + GraphQL feed/reels")
   Container(api_server, "API 服务", "NestJS、TypeScript", "REST、GraphQL（feed/reels + Post coverUrl）、WebSocket（notification:new）、通知 MongoDB、信息流、探索、搜索、互动、Cassandra cover_url；内容审核通过 Vision")
   Container(media_gen, "媒体生成服务", "Python、FastAPI、diffusers、CogVideoX、edge-tts", "图片、视频、语音（TTS），:3456")
   Container(recommendation_svc, "推荐服务", "Python、Celery、PyTorch、LightFM、implicit、Annoy、FastAPI", "批任务：关注推荐、探索热门、向量塔；在线：Feed/Explore/Reels 排序 API + 向量召回；写入 Redis/Faiss")

@@ -181,7 +181,7 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
             onSubmitEditing={handleSend}
           />
           <InPillIcon onPress={() => setShowAttachmentMenu(!showAttachmentMenu)}>
-            <Ionicons name="attach-outline" size={22} color={colors.secondaryText} />
+            <Ionicons name="images-outline" size={22} color={colors.secondaryText} />
           </InPillIcon>
           <InPillIcon onPress={onCameraPress ?? (() => {})}>
             <Ionicons name="camera-outline" size={22} color={colors.secondaryText} />
@@ -192,7 +192,7 @@ export const ChatInputField: React.FC<ChatInputFieldProps> = ({
           disabled={!value.trim()}
         >
           <Ionicons
-            name={value.trim() ? 'send' : 'mic'}
+            name={value.trim() ? 'paper-plane' : 'mic'}
             size={22}
             color="#FFFFFF"
           />

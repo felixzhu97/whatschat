@@ -10,4 +10,4 @@ Docs are grouped by **product**, **data**, and **R&D** in both languages.
 | **en** | [product/](en/product/) | [data/](en/data/) | [rd/](en/rd/) |
 
 Shared: [c4-lib](c4-lib/) (C4-PlantUML, used by `en/rd/c4`).  
-Code layout: clients in `apps/web`, `apps/admin`, `apps/mobile`; backend services in `services/server`, `services/recommendation`, `services/media-gen`, `services/vision`.
+Code layout: clients in `apps/web`, `apps/admin`, `apps/mobile` (Expo: Profile + Settings-and-activity stack + Explore/Search; see [apps/mobile/README.md](../apps/mobile/README.md)); backend services in `services/server`, `services/recommendation`, `services/media-gen`, `services/vision`.

@@ -62,19 +62,12 @@ package "客户端应用" {
   
   component [移动端应用] as MobileApp #LightGreen
   note right of MobileApp
-    技术栈：
-    - React Native
-    - Expo
-    - TypeScript
-    - Emotion（@emotion/native）
-    - Redux Toolkit + React Redux
-    - i18next（中英）
-    - 主题（浅色/深色/系统）
-    - iOS 风格设置（分组卡片）
-    功能：
-    - Tab：状态（信息流 + Stories）与 Reels（竖屏视频流）
-    - 状态：顶部栏 + 横向 Stories + 竖向帖子信息流
-    - Reels：吸附分页的竖屏视频流，like/save、暂停/播放、静音开关
+    技术栈：React Native、Expo（expo-router）、TypeScript、Emotion（@emotion/native）
+    Redux Toolkit + RTK Query（feedApi）、@whatschat/im、i18next、主题浅/深/系统
+    Tab：状态（信息流 + Stories）、Reels、聊天（私信列表）、探索（搜索 + 探索网格 + ES）、个人主页（Ins 风格：数据、推荐、网格/Reels/标记）
+    栈屏：settings-menu（设置与动态：分组列表、搜索条、主题/语言/登出）、发帖、媒体查看器（缓存未命中时按帖 REST 拉取）
+    FeedService：GraphQL feed/reels；REST 探索、搜索、用户资料、用户帖子、单帖、推荐用户
+    与 Web 共享 GraphQL feed/reels 与 @whatschat/analytics；expo-video 按可见性自动播停
   end note
 }
 

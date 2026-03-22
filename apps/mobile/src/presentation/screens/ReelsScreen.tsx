@@ -12,6 +12,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useScrollToTop } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { uniqBy } from 'lodash';
 import { VideoView, useVideoPlayer } from 'expo-video';
@@ -508,7 +510,7 @@ export const ReelsScreen: React.FC = () => {
                     <ActionCount>{item.likeCount ?? 0}</ActionCount>
                   </ActionButton>
                   <ActionButton onPress={() => router.push({ pathname: '/post-comments', params: { postId: item.id } } as any)}>
-                    <Ionicons name="chatbubble-outline" size={24} color="#fff" />
+                    <Feather name="message-circle" size={24} color="#fff" />
                   </ActionButton>
                   <ActionButton onPress={() => router.push({ pathname: '/share', params: { postId: item.id } } as any)}>
                     <Ionicons name="paper-plane-outline" size={24} color="#fff" />
@@ -535,7 +537,7 @@ export const ReelsScreen: React.FC = () => {
           onMomentumScrollEnd={onMomentumScrollEnd}
           ListEmptyComponent={
             <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: TAB_PAGE_HEADER_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
-              <Ionicons name="videocam-outline" size={64} color={colors.secondaryText} />
+              <MaterialCommunityIcons name="movie-open-outline" size={64} color={colors.secondaryText} />
               <EmptyText>{isFeedError ? t('reels.loadFailed') : t('reels.empty')}</EmptyText>
               {isFeedError ? (
                 <Pressable
@@ -548,7 +550,7 @@ export const ReelsScreen: React.FC = () => {
                     backgroundColor: 'rgba(255,255,255,0.08)',
                   }}
                 >
-                  <Ionicons name="refresh" size={22} color={colors.primaryGreen} />
+                  <Ionicons name="refresh-outline" size={22} color={colors.primaryGreen} />
                 </Pressable>
               ) : null}
             </View>

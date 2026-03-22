@@ -47,6 +47,7 @@ function ThemeAwareLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" />
           <Stack.Screen name="register" />
+          <Stack.Screen name="settings-menu" />
           <Stack.Screen
             name="chat-detail"
             options={{
