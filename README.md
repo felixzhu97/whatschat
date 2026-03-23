@@ -28,16 +28,15 @@
 ### 移动端
 
 <p align="center">
-  <img src="./screenshots/mobile-login.png" width="220" alt="移动端登录">
-  <img src="./screenshots/mobile-chats-list.png" width="220" alt="移动端会话列表">
+  <img src="./screenshots/mobile-feed-new-01.png" width="220" alt="移动端新截图 1">
+  <img src="./screenshots/mobile-feed-new-02.png" width="220" alt="移动端新截图 2">
 </p>
 <p align="center">
-  <img src="./screenshots/mobile-chat-conversation.png" width="220" alt="移动端聊天页">
-  <img src="./screenshots/mobile-reels.png" width="220" alt="移动端 Reels">
+  <img src="./screenshots/mobile-feed-new-03.png" width="220" alt="移动端新截图 3">
+  <img src="./screenshots/mobile-feed-new-04.png" width="220" alt="移动端新截图 4">
 </p>
 <p align="center">
-  <img src="./screenshots/mobile-video-call.png" width="220" alt="移动端视频通话">
-  <img src="./screenshots/mobile-settings.png" width="220" alt="移动端设置">
+  <img src="./screenshots/mobile-feed-new-05.png" width="220" alt="移动端新截图 5">
 </p>
 
 ### Web 端

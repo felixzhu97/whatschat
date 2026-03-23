@@ -465,18 +465,25 @@ export function usePostComments(postId: string | null) {
   const add = useCallback(
     async (content: string, author?: { userId: string; username?: string }) => {
       if (!postId) return;
-      const data = await api.addComment(postId, content);
-      if (data?.id) {
-        setComments((prev) => [
-          ...prev,
-          {
-            id: data.id,
-            userId: author?.userId ?? "",
-            username: author?.username,
-            content,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+      const optimisticId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const optimisticComment: PostComment = {
+        id: optimisticId,
+        userId: author?.userId ?? "",
+        username: author?.username,
+        content,
+        createdAt: new Date().toISOString(),
+      };
+      setComments((prev) => [...prev, optimisticComment]);
+      try {
+        const data = await api.addComment(postId, content);
+        if (data?.id) {
+          setComments((prev) =>
+            prev.map((c) => (c.id === optimisticId ? { ...c, id: data.id } : c))
+          );
+        }
+      } catch (e) {
+        setComments((prev) => prev.filter((c) => c.id !== optimisticId));
+        throw e;
       }
     },
     [postId]

@@ -13,11 +13,10 @@ Naming: `{platform}-{feature}.png`
 | web-screen-7.png | Web | Screen 7 |
 | web-screen-8.png | Web | Screen 8 |
 | web-screen-9.png | Web | Screen 9 |
-| mobile-login.png | Mobile | Login |
-| mobile-chats-list.png | Mobile | Chats list |
-| mobile-chat-conversation.png | Mobile | Chat conversation |
-| mobile-reels.png | Mobile | Reels |
-| mobile-video-call.png | Mobile | Video call |
-| mobile-settings.png | Mobile | Settings |
+| mobile-feed-new-01.png | Mobile | Home feed new 01 |
+| mobile-feed-new-02.png | Mobile | Home feed new 02 |
+| mobile-feed-new-03.png | Mobile | Home feed new 03 |
+| mobile-feed-new-04.png | Mobile | Home feed new 04 |
+| mobile-feed-new-05.png | Mobile | Home feed new 05 |
 | admin-dashboard.png | Admin | Dashboard |
 | admin-users.png | Admin | Users |

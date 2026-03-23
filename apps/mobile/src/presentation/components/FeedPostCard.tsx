@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   Image,
   TouchableOpacity,
   ScrollView,
@@ -19,15 +20,20 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import { WebView } from 'react-native-webview';
 
 const Card = styled.View`
-  background-color: ${(p) => (p as { theme: { colors: { secondaryBackground: string } } }).theme.colors.secondaryBackground};
-  margin-bottom: 24px;
+  background-color: #fff;
+  margin-bottom: 18px;
 `;
 
 const Header = styled.View`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px 8px 12px;
+  padding: 10px 12px 8px 12px;
 `;
 
 const HeaderLeft = styled.View`
@@ -36,9 +42,9 @@ const HeaderLeft = styled.View`
 `;
 
 const AvatarWrap = styled.View`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
   overflow: hidden;
   margin-right: 8px;
   background-color: ${(p) => (p as { theme: { colors: { tertiaryBackground: string } } }).theme.colors.tertiaryBackground};
@@ -54,14 +60,14 @@ const HeaderText = styled.View`
 `;
 
 const Username = styled.Text`
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: ${(p) => (p as { theme: { colors: { primaryText: string } } }).theme.colors.primaryText};
+  color: #fff;
 `;
 
 const MetaText = styled.Text`
-  font-size: 12px;
-  color: ${(p) => (p as { theme: { colors: { secondaryText: string } } }).theme.colors.secondaryText};
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.92);
 `;
 
 const HeaderRight = styled.View`
@@ -70,25 +76,24 @@ const HeaderRight = styled.View`
 `;
 
 const FollowButton = styled.TouchableOpacity`
-  padding-vertical: 6px;
+  padding-vertical: 5px;
   padding-horizontal: 12px;
-  border-radius: 16px;
+  border-radius: 14px;
   border-width: 1px;
-  border-color: ${(p) => (p as { theme: { colors: { iosBlue: string } } }).theme.colors.iosBlue};
+  border-color: rgba(255, 255, 255, 0.85);
   margin-right: 8px;
 `;
 
 const FollowText = styled.Text`
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: ${(p) => (p as { theme: { colors: { iosBlue: string } } }).theme.colors.iosBlue};
+  color: #fff;
 `;
 
 const Media = styled.View`
   width: 100%;
   aspect-ratio: 4 / 5;
-  background-color: (p) =>
-    (p as { theme: { colors: { tertiaryBackground: string } } }).theme.colors.tertiaryBackground;
+  background-color: #000;
 `;
 
 const MediaPage = styled.View`
@@ -103,7 +108,7 @@ const MediaImage = styled(Image)`
 
 const PlayIconWrap = styled.View`
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
 `;
 
@@ -165,7 +170,7 @@ const Actions = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px 4px 12px;
+  padding: 10px 10px 4px 10px;
 `;
 
 const ActionsLeft = styled.View`
@@ -174,13 +179,22 @@ const ActionsLeft = styled.View`
 `;
 
 const IconButton = styled(TouchableOpacity)`
-  padding-vertical: 4px;
-  padding-horizontal: 4px;
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 3px;
+  padding-horizontal: 3px;
   margin-right: 8px;
 `;
 
+const ActionValue = styled.Text`
+  margin-left: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  color: ${(p) => (p as { theme: { colors: { primaryText: string } } }).theme.colors.primaryText};
+`;
+
 const Footer = styled.View`
-  padding: 0 12px 10px 12px;
+  padding: 0 12px 12px 12px;
 `;
 
 const StatText = styled.Text`
@@ -255,6 +269,31 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
     return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
   };
 
+  const formatCount = (value?: number) => {
+    const n = typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return `${n}`;
+  };
+
+  const getRelativeTime = (value: string) => {
+    const ts = new Date(value).getTime();
+    if (!Number.isFinite(ts)) return value;
+    const diff = Math.max(0, Date.now() - ts);
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'now';
+    if (min < 60) return `${min}m`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `${h}h`;
+    const d = Math.floor(h / 24);
+    if (d < 7) return `${d}d`;
+    const w = Math.floor(d / 7);
+    return `${w}w`;
+  };
+
+  const shareCount = (post as MobileFeedPost & { shareCount?: number }).shareCount ?? 0;
+  const repostCount = (post as MobileFeedPost & { repostCount?: number }).repostCount ?? 0;
+
   const handleHorizontalMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement } = e.nativeEvent;
     if (!layoutMeasurement?.width) return;
@@ -264,41 +303,49 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
     }
   };
 
+  const onPressMore = () => {
+    const canUnfollow = !isSelf && following;
+    const unfollowLabel = t('feed.unfollow');
+    const options = canUnfollow
+      ? [unfollowLabel, t('feed.copyLink'), t('feed.report'), t('common.cancel')]
+      : [t('feed.copyLink'), t('feed.report'), t('common.cancel')];
+    const cancelButtonIndex = options.length - 1;
+    const destructiveButtonIndex = canUnfollow ? 0 : 1;
+    const handleIndex = (buttonIndex: number) => {
+      if (buttonIndex < 0 || buttonIndex === cancelButtonIndex) return;
+      if (canUnfollow && buttonIndex === 0) {
+        onPressFollow?.(post.userId);
+      }
+    };
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex,
+          destructiveButtonIndex,
+        },
+        handleIndex,
+      );
+      return;
+    }
+    Alert.alert(post.username, undefined, [
+      ...(canUnfollow
+        ? [
+            {
+              text: unfollowLabel,
+              style: 'destructive' as const,
+              onPress: () => onPressFollow?.(post.userId),
+            },
+          ]
+        : []),
+      { text: t('feed.copyLink') },
+      { text: t('feed.report') },
+      { text: t('common.cancel'), style: 'cancel' as const },
+    ]);
+  };
+
   return (
     <Card>
-      <Header>
-        <HeaderLeft>
-          <AvatarWrap>
-            <AvatarImage source={{ uri: post.avatar || undefined }} resizeMode="cover" />
-          </AvatarWrap>
-          <HeaderText>
-            <Username numberOfLines={1}>{post.username}</Username>
-            <MetaText numberOfLines={1}>{post.caption}</MetaText>
-          </HeaderText>
-        </HeaderLeft>
-        <HeaderRight>
-          {isSelf ? null : (
-            <FollowButton onPress={() => onPressFollow?.(post.userId)}>
-              <FollowText>{following ? t('feed.unfollow') : t('feed.follow')}</FollowText>
-            </FollowButton>
-          )}
-          <IconButton
-            onPress={() => {
-              if (Platform.OS !== 'ios') return;
-              ActionSheetIOS.showActionSheetWithOptions(
-                {
-                  options: [t('feed.copyLink'), t('feed.report'), t('common.cancel')],
-                  cancelButtonIndex: 2,
-                  destructiveButtonIndex: 1,
-                },
-                () => {},
-              );
-            }}
-          >
-            <Ionicons name="ellipsis-horizontal" size={18} color={colors.primaryText} />
-          </IconButton>
-        </HeaderRight>
-      </Header>
       <TouchableOpacity
         activeOpacity={0.96}
         onPress={() => {
@@ -312,6 +359,26 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
         }}
       >
         <Media>
+        <Header>
+          <HeaderLeft>
+            <AvatarWrap>
+              <AvatarImage source={{ uri: post.avatar || undefined }} resizeMode="cover" />
+            </AvatarWrap>
+            <HeaderText>
+              <Username numberOfLines={1}>{post.username}</Username>
+            </HeaderText>
+          </HeaderLeft>
+          <HeaderRight>
+            {isSelf || following ? null : (
+              <FollowButton onPress={() => onPressFollow?.(post.userId)}>
+                <FollowText>{t('feed.follow')}</FollowText>
+              </FollowButton>
+            )}
+            <IconButton onPress={onPressMore}>
+              <Ionicons name="ellipsis-horizontal" size={18} color="#fff" />
+            </IconButton>
+          </HeaderRight>
+        </Header>
         {hasCarousel ? (
           <ScrollView
             horizontal
@@ -410,17 +477,24 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
       <Actions>
         <ActionsLeft>
           <IconButton onPress={() => onPressLike?.(post.id)}>
-            <Ionicons name={likeIcon} size={22} color={likeColor} />
+            <Ionicons name={likeIcon} size={27} color={likeColor} />
+            <ActionValue>{formatCount(post.likeCount)}</ActionValue>
           </IconButton>
           <IconButton onPress={() => onPressComment?.(post.id)}>
-            <Feather name="message-circle" size={22} color={colors.primaryText} />
+            <Feather name="message-circle" size={25} color={colors.primaryText} />
+            <ActionValue>{formatCount(post.commentCount)}</ActionValue>
+          </IconButton>
+          <IconButton>
+            <Ionicons name="repeat-outline" size={24} color={colors.primaryText} />
+            <ActionValue>{formatCount(repostCount)}</ActionValue>
           </IconButton>
           <IconButton onPress={() => onPressShare?.(post.id)}>
-            <Ionicons name="paper-plane-outline" size={22} color={colors.primaryText} />
+            <Ionicons name="paper-plane-outline" size={24} color={colors.primaryText} />
+            <ActionValue>{formatCount(shareCount)}</ActionValue>
           </IconButton>
         </ActionsLeft>
         <IconButton onPress={() => onPressSave?.(post.id)}>
-          <Ionicons name={saveIcon} size={22} color={colors.primaryText} />
+          <Ionicons name={saveIcon} size={26} color={colors.primaryText} />
         </IconButton>
       </Actions>
       <Footer>
@@ -428,7 +502,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
         {post.caption ? (
           <CaptionText numberOfLines={2}>{post.caption}</CaptionText>
         ) : null}
-        <TimeText numberOfLines={1}>{post.timestamp}</TimeText>
+        <TimeText numberOfLines={1}>{getRelativeTime(post.timestamp)}</TimeText>
       </Footer>
     </Card>
   );
