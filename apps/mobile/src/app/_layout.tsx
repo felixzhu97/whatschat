@@ -49,6 +49,14 @@ function ThemeAwareLayout() {
           <Stack.Screen name="register" />
           <Stack.Screen name="settings-menu" />
           <Stack.Screen
+            name="post-comments"
+            options={{
+              presentation: 'transparentModal',
+              animation: 'slide_from_bottom',
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          />
+          <Stack.Screen
             name="chat-detail"
             options={{
               headerShown: true,

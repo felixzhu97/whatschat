@@ -3,7 +3,9 @@ export const zh = {
     cancel: '取消',
     ok: '确定',
     save: '保存',
+    send: '发送',
     delete: '删除',
+    retry: '重试',
     loading: '加载中...',
     notSet: '未设置',
     none: '—',
@@ -58,7 +60,10 @@ export const zh = {
   },
   comments: {
     title: '评论',
-    comingSoon: '即将上线',
+    empty: '暂无评论',
+    emptyHint: '来发表第一条评论吧',
+    placeholder: '添加评论...',
+    sendFailed: '评论发送失败',
   },
   share: {
     title: '分享',

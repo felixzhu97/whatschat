@@ -3,7 +3,9 @@ export const en = {
     cancel: 'Cancel',
     ok: 'OK',
     save: 'Save',
+    send: 'Send',
     delete: 'Delete',
+    retry: 'Retry',
     loading: 'Loading...',
     notSet: 'Not set',
     none: '—',
@@ -58,7 +60,10 @@ export const en = {
   },
   comments: {
     title: 'Comments',
-    comingSoon: 'Coming soon',
+    empty: 'No comments yet',
+    emptyHint: 'Be the first one to say something.',
+    placeholder: 'Add a comment...',
+    sendFailed: 'Failed to send comment',
   },
   share: {
     title: 'Share',

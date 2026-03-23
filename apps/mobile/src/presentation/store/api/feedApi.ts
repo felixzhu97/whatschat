@@ -62,10 +62,32 @@ type CreatePostResult = {
   coverUrl?: string;
 };
 
+type PostComment = {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  parentId?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+type PostCommentListQuery = {
+  postId: string;
+  page?: number;
+  limit?: number;
+};
+
+type PostCommentCreateInput = {
+  postId: string;
+  content: string;
+  parentId?: string;
+};
+
 export const feedApi = createApi({
   reducerPath: 'feedApi',
   baseQuery: fakeBaseQuery(),
-  tagTypes: ['Feed', 'Stories', 'Status'],
+  tagTypes: ['Feed', 'Stories', 'Status', 'Comments'],
   endpoints: (build) => ({
     getFeedFirst: build.query<FeedPage, { limit: number }>({
       queryFn: async ({ limit }) => {
@@ -351,6 +373,44 @@ export const feedApi = createApi({
       },
       invalidatesTags: ['Feed'],
     }),
+    getPostComments: build.query<PostComment[], PostCommentListQuery>({
+      queryFn: async ({ postId, page = 1, limit = 20 }) => {
+        try {
+          const res = await apiClient.get<{ data: PostComment[] }>(`/posts/${postId}/comments`, {
+            params: { page, limit },
+          });
+          return { data: Array.isArray(res.data?.data) ? res.data.data : [] };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
+        }
+      },
+      providesTags: (_result, _error, arg) => [{ type: 'Comments', id: arg.postId }],
+    }),
+    createPostComment: build.mutation<PostComment, PostCommentCreateInput>({
+      queryFn: async ({ postId, content, parentId }) => {
+        try {
+          const res = await apiClient.post<{ data: PostComment }>(`/posts/${postId}/comments`, {
+            content,
+            parentId,
+          });
+          return { data: res.data.data };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '发送失败' } as any };
+        }
+      },
+      invalidatesTags: (_result, _error, arg) => [{ type: 'Comments', id: arg.postId }, 'Feed'],
+    }),
+    deletePostComment: build.mutation<{ deleted: boolean }, { postId: string; commentId: string }>({
+      queryFn: async ({ commentId }) => {
+        try {
+          const res = await apiClient.delete<{ data?: { deleted: boolean } }>(`/comments/${commentId}`);
+          return { data: res.data?.data ?? { deleted: true } };
+        } catch (e) {
+          return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '删除失败' } as any };
+        }
+      },
+      invalidatesTags: (_result, _error, arg) => [{ type: 'Comments', id: arg.postId }, 'Feed'],
+    }),
   }),
 });
 
@@ -372,5 +432,8 @@ export const {
   useTrackEventsMutation,
   useUploadMediaMutation,
   useCreatePostMutation,
+  useGetPostCommentsQuery,
+  useCreatePostCommentMutation,
+  useDeletePostCommentMutation,
 } = feedApi;
 

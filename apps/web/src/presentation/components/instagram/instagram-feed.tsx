@@ -88,10 +88,11 @@ const StoryUsername = styled.span`
 `;
 
 const PostCard = styled.article`
-  margin-bottom: 12px;
-  border: ${BORDER};
-  border-radius: 8px;
-  overflow: hidden;
+  margin-bottom: 18px;
+  border: none;
+  border-bottom: ${BORDER};
+  border-radius: 0;
+  overflow: visible;
   background: rgb(255 255 255);
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
@@ -101,7 +102,7 @@ const PostHeader = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 10px 12px;
 `;
 
 const PostHeaderLeft = styled.div`
@@ -144,8 +145,8 @@ const PostMoreBtn = styled.button`
 
 const PostImageWrap = styled.div`
   width: 100%;
-  aspect-ratio: 1;
-  background: rgb(0 0 0);
+  aspect-ratio: 4 / 5;
+  background: rgb(0 9 20);
   overflow: hidden;
   line-height: 0;
   position: relative;
@@ -158,21 +159,21 @@ const PostImageWrapClickable = styled(PostImageWrap)`
 const PostImg = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 `;
 
 const PostVideo = styled.video`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 `;
 
 const PostMediaCarousel = styled.div`
   width: 100%;
-  aspect-ratio: 1;
-  background: rgb(0 0 0);
+  aspect-ratio: 4 / 5;
+  background: rgb(0 9 20);
   position: relative;
   overflow: hidden;
 `;
@@ -244,32 +245,31 @@ const FeedPlayButtonCircle = styled.div`
 const PostActions = styled.div`
   display: flex;
   align-items: center;
-  padding: 6px 16px 8px;
-  gap: 12px;
+  padding: 8px 10px 6px;
+  gap: 6px;
 `;
 
 const PostActionBtn = styled.button<{ $active?: boolean }>`
   background: none;
   border: none;
-  padding: 8px;
+  padding: 6px;
   cursor: pointer;
-  margin: -8px 0;
+  margin: 0;
   color: ${(p: { $active?: boolean }) => (p.$active ? RED_LIKE : TEXT_PRIMARY)};
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
 `;
 
 const PostActionRight = styled.div`
   margin-left: auto;
 `;
 
-const PostLikes = styled.div`
-  padding: 0 16px 4px 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: ${TEXT_PRIMARY};
-`;
-
 const PostCaption = styled.div`
-  padding: 0 16px 12px 16px;
+  padding: 0 16px 16px 16px;
   font-size: 14px;
   color: ${TEXT_PRIMARY};
   line-height: 1.25;
@@ -278,6 +278,16 @@ const PostCaption = styled.div`
 const CaptionUsername = styled.span`
   font-weight: 600;
   margin-right: 4px;
+`;
+
+const CaptionMore = styled.button`
+  margin-left: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: ${TEXT_SECONDARY};
+  font-size: inherit;
+  cursor: pointer;
 `;
 
 const FeedError = styled.div`
@@ -326,6 +336,12 @@ function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|mov)(\?|$)/i.test(url) || /video\//i.test(url);
 }
 
+function toCountText(value: string): string {
+  const s = String(value ?? "").trim();
+  if (!s) return "0";
+  return s.replace(/\s*(likes?|comments?)$/i, "");
+}
+
 interface InstagramFeedProps {
   stories: StoryItem[];
   posts: FeedPost[];
@@ -368,6 +384,7 @@ export function InstagramFeed({
   loadingRef.current = loading;
   const [pausedPostId, setPausedPostId] = useState<string | null>(null);
   const [mediaIndexByPostId, setMediaIndexByPostId] = useState<Record<string, number>>({});
+  const [expandedCaptionByPostId, setExpandedCaptionByPostId] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!hasMore) return;
@@ -562,9 +579,11 @@ export function InstagramFeed({
           <PostActions>
             <PostActionBtn $active={post.isLiked} onClick={() => onLikeClick?.(post)}>
               <Heart size={24} fill={post.isLiked ? "currentColor" : "none"} strokeWidth={1.5} />
+              <span>{toCountText(post.likeCount)}</span>
             </PostActionBtn>
             <PostActionBtn onClick={() => onCommentClick?.(post)}>
               <MessageCircle size={24} strokeWidth={1.5} />
+              <span>{toCountText(post.commentCount)}</span>
             </PostActionBtn>
             <PostActionBtn>
               <Send size={24} strokeWidth={1.5} />
@@ -575,10 +594,29 @@ export function InstagramFeed({
               </PostActionBtn>
             </PostActionRight>
           </PostActions>
-          <PostLikes>{t("feed.likesCount", { count: post.likeCount } as Record<string, string>)}</PostLikes>
           <PostCaption>
             <CaptionUsername>{post.username}</CaptionUsername>
-            {post.caption}
+            {(() => {
+              const full = post.caption ?? "";
+              const expanded = Boolean(expandedCaptionByPostId[post.id]);
+              const shouldTrim = full.length > 120;
+              const shown = expanded || !shouldTrim ? full : `${full.slice(0, 120)}...`;
+              return (
+                <>
+                  {shown}
+                  {shouldTrim && !expanded && (
+                    <CaptionMore
+                      type="button"
+                      onClick={() =>
+                        setExpandedCaptionByPostId((prev) => ({ ...prev, [post.id]: true }))
+                      }
+                    >
+                      more
+                    </CaptionMore>
+                  )}
+                </>
+              );
+            })()}
           </PostCaption>
         </PostCard>
       ))}

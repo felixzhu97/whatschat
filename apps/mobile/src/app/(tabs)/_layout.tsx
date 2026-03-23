@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LiquidGlassBar } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
@@ -26,11 +27,16 @@ const Pill = styled.View`
     (p.theme as { isDark?: boolean })?.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'};
 `;
 
+const TAB_BAR_HEIGHT = 64;
+
 export default function TabsLayout() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const token = useAuthStore((s) => s.token);
   const isReady = useAuthStore((s) => s.isReady);
+  const bottomInset = insets.bottom;
+  const tabBarTotalHeight = TAB_BAR_HEIGHT + bottomInset;
 
   if (isReady && !token) {
     return <Redirect href="/login" />;
@@ -40,12 +46,17 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        sceneStyle: {
+          paddingBottom: tabBarTotalHeight,
+        },
         tabBarActiveTintColor: colors.primaryText,
         tabBarInactiveTintColor: colors.secondaryText,
         tabBarLabelStyle: { fontSize: 12 },
         tabBarShowLabel: false,
         tabBarStyle: {
           position: 'absolute',
+          height: tabBarTotalHeight,
+          paddingBottom: bottomInset,
           backgroundColor: 'transparent',
           borderTopWidth: 0.5,
           borderTopColor: colors.separator,

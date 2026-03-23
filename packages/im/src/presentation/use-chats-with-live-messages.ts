@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import type { Message } from "@whatschat/domain";
 import type { IWebSocketAdapter, IChatsService, ChatListItem } from "../domain";
 import type { ApiMessageLike, SocketMessagePayload } from "../domain";
@@ -22,6 +22,8 @@ export function useChatsWithLiveMessages(
   options: UseChatsWithLiveMessagesOptions
 ) {
   const { getChatsService, getWebSocketAdapter } = options;
+  const chatsService = useMemo(() => getChatsService(), [getChatsService]);
+  const ws = useMemo(() => getWebSocketAdapter(), [getWebSocketAdapter]);
   const [apiChats, setApiChats] = useState<ChatListItem[]>([]);
   const [apiMessagesByChatId, setApiMessagesByChatId] = useState<
     Record<string, Message[]>
@@ -32,11 +34,11 @@ export function useChatsWithLiveMessages(
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    getChatsService()
+    chatsService
       .getChats()
       .then((chats) => setApiChats(chats))
       .catch(() => setApiChats([]));
-  }, [getChatsService]);
+  }, [chatsService]);
 
   useEffect(() => {
     if (
@@ -45,7 +47,7 @@ export function useChatsWithLiveMessages(
     ) {
       return;
     }
-    getChatsService()
+    chatsService
       .getChatMessages(selectedContactId, { limit: MESSAGE_LIMIT })
       .then((list) => {
         const msgs = list.map((m) =>
@@ -57,10 +59,9 @@ export function useChatsWithLiveMessages(
         }));
       })
       .catch(() => {});
-  }, [selectedContactId, apiChats, getChatsService]);
+  }, [selectedContactId, apiChats, chatsService]);
 
   useEffect(() => {
-    const ws = getWebSocketAdapter();
     const onConnected = () => setIsConnected(true);
     const onDisconnected = () => setIsConnected(false);
     const onIncoming = (payload: unknown) => {
@@ -82,7 +83,7 @@ export function useChatsWithLiveMessages(
       ws.off("disconnected", onDisconnected);
       ws.off("message", onIncoming);
     };
-  }, [getWebSocketAdapter]);
+  }, [ws]);
 
   const isApiChat =
     selectedContactId != null &&
@@ -116,7 +117,7 @@ export function useChatsWithLiveMessages(
         ...prev,
         [selectedContactId]: [...(prev[selectedContactId] ?? []), optimistic],
       }));
-      getChatsService()
+      chatsService
         .sendMessage(selectedContactId, {
           content,
           type,
@@ -152,7 +153,7 @@ export function useChatsWithLiveMessages(
           }));
         });
     },
-    [isApiChat, selectedContactId, currentUserId, getChatsService]
+    [isApiChat, selectedContactId, currentUserId, chatsService]
   );
 
   return {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import {
   useChatsWithLiveMessages as useChatsWithLiveMessagesBase,
   type IChatsService as ImChatsService,
@@ -11,8 +12,14 @@ export function useChatsWithLiveMessages(
   selectedContactId: string | null,
   currentUserId: string | undefined
 ) {
+  const getChatsServiceStable = useCallback(
+    () => getChatsService() as unknown as ImChatsService,
+    []
+  );
+  const getWebSocketAdapterStable = useCallback(() => getWebSocketAdapter(), []);
+
   return useChatsWithLiveMessagesBase(selectedContactId, currentUserId, {
-    getChatsService: () => getChatsService() as unknown as ImChatsService,
-    getWebSocketAdapter,
+    getChatsService: getChatsServiceStable,
+    getWebSocketAdapter: getWebSocketAdapterStable,
   });
 }

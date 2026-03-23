@@ -4,6 +4,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -27,7 +28,6 @@ import {
   useLikePostMutation,
   useUnlikePostMutation,
 } from '@/src/presentation/store/api/feedApi';
-import { TabPageHeader, TAB_PAGE_HEADER_HEIGHT } from '@/src/presentation/components';
 
 const DEBUG_REELS = true;
 
@@ -40,7 +40,6 @@ const LoadingWrap = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding-top: ${TAB_PAGE_HEADER_HEIGHT}px;
 `;
 
 const ReelCard = styled.View<{ $h: number }>`
@@ -71,58 +70,104 @@ const MuteButton = styled.View`
 const BottomOverlay = styled.View<{ $bottomPadding: number }>`
   position: absolute;
   left: 0;
-  right: 0;
+  right: 72px;
   bottom: 0;
-  padding-horizontal: 16px;
-  padding-vertical: 14px;
+  padding-horizontal: 14px;
+  padding-top: 10px;
   padding-bottom: ${(p) => p.$bottomPadding}px;
-  background-color: rgba(0, 0, 0, 0.35);
 `;
 
 const BottomRow = styled.View`
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 `;
 
 const Avatar = styled.Image`
-  width: 38px;
-  height: 38px;
-  border-radius: 19px;
-  background-color: rgba(255, 255, 255, 0.08);
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.16);
 `;
 
 const UserName = styled.Text`
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  text-shadow-color: rgba(0, 0, 0, 0.55);
+  text-shadow-offset: 0px 1px;
+  text-shadow-radius: 3px;
+`;
+
+const UserMetaRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const FollowButton = styled.Pressable`
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding-vertical: 4px;
+  padding-horizontal: 12px;
+`;
+
+const FollowButtonText = styled.Text`
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
 `;
 
 const Caption = styled.Text`
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
   margin-top: 6px;
+  text-shadow-color: rgba(0, 0, 0, 0.45);
+  text-shadow-offset: 0px 1px;
+  text-shadow-radius: 3px;
 `;
 
 const ActionsColumn = styled.View`
   position: absolute;
-  right: 12px;
-  bottom: 156px;
+  right: 8px;
+  bottom: 96px;
   z-index: 5;
   align-items: center;
+  gap: 10px;
 `;
 
 const ActionButton = styled.Pressable`
-  padding-vertical: 6px;
+  min-width: 52px;
+  padding-vertical: 4px;
   padding-horizontal: 6px;
   align-items: center;
 `;
 
 const ActionCount = styled.Text`
-  margin-top: 2px;
+  margin-top: 4px;
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  text-shadow-color: rgba(0, 0, 0, 0.55);
+  text-shadow-offset: 0px 1px;
+  text-shadow-radius: 3px;
+`;
+
+const MoreButton = styled.Pressable`
+  min-width: 52px;
+  padding-vertical: 4px;
+  align-items: center;
+`;
+
+const ReelThumb = styled.Image`
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.9);
 `;
 
 const EmptyText = styled.Text`
@@ -149,6 +194,29 @@ function isHttpVideoUrl(url: string) {
 function getVideoKind(uri: string) {
   if (isHttpVideoUrl(uri)) return 'http';
   return 'other';
+}
+
+function formatCount(value: number) {
+  if (!Number.isFinite(value)) return '0';
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+  return `${Math.max(0, Math.trunc(value))}`;
+}
+
+function getShareCount(item: MobileFeedPost) {
+  const candidate = (item as MobileFeedPost & { shareCount?: number }).shareCount;
+  return typeof candidate === 'number' && Number.isFinite(candidate) ? Math.max(0, candidate) : null;
+}
+
+function getFollowMeta(item: MobileFeedPost) {
+  const ext = item as MobileFeedPost & { isFollowing?: boolean; followLabel?: string };
+  const hasFollowing = typeof ext.isFollowing === 'boolean';
+  const hasLabel = typeof ext.followLabel === 'string' && ext.followLabel.trim().length > 0;
+  return {
+    showFollow: hasFollowing || hasLabel,
+    isFollowing: hasFollowing ? ext.isFollowing : false,
+    followLabel: hasLabel ? ext.followLabel!.trim() : '',
+  };
 }
 
 const ReelVideo: React.FC<{
@@ -272,11 +340,20 @@ export const ReelsScreen: React.FC = () => {
   const [reelsRevision, setReelsRevision] = useState(0);
   const scrollYRef = useRef(0);
   const pendingScrollRestoreRef = useRef(false);
+  const [reelsViewportHeight, setReelsViewportHeight] = useState(0);
 
   const listRef = useRef<FlatList<MobileFeedPost> | null>(null);
   useScrollToTop(listRef);
 
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const pageHeight = useMemo(
+    () => Math.max(1, reelsViewportHeight || screenHeight),
+    [reelsViewportHeight, screenHeight],
+  );
+  const onReelsViewportLayout = useCallback((e: LayoutChangeEvent) => {
+    const nextHeight = Math.round(e.nativeEvent.layout.height);
+    setReelsViewportHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+  }, []);
 
   useEffect(() => {
     if (!feedFirst?.posts) return;
@@ -374,7 +451,7 @@ export const ReelsScreen: React.FC = () => {
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y ?? 0;
       scrollYRef.current = y;
-      const pageIndex = Math.round(y / screenHeight);
+      const pageIndex = Math.round(y / pageHeight);
       if (Number.isNaN(pageIndex)) return;
       const bounded = Math.max(0, Math.min(pageIndex, Math.max(0, items.length - 1)));
       if (DEBUG_REELS) {
@@ -382,7 +459,7 @@ export const ReelsScreen: React.FC = () => {
       }
       setActiveIndex(bounded);
     },
-    [items.length, screenHeight],
+    [items.length, pageHeight],
   );
 
   useEffect(() => {
@@ -393,13 +470,13 @@ export const ReelsScreen: React.FC = () => {
     pendingScrollRestoreRef.current = false;
     requestAnimationFrame(() => {
       listRef.current?.scrollToOffset({ offset, animated: false });
-      const bounded = Math.max(0, Math.min(Math.round(offset / screenHeight), Math.max(0, nextItemsLength - 1)));
+      const bounded = Math.max(0, Math.min(Math.round(offset / pageHeight), Math.max(0, nextItemsLength - 1)));
       setActiveIndex(bounded);
       if (DEBUG_REELS) {
         console.log('[ReelsScreen][scrollRestore]', { offset, bounded, itemsLength: nextItemsLength });
       }
     });
-  }, [items.length, loadingMore, screenHeight]);
+  }, [items.length, loadingMore, pageHeight]);
 
   useEffect(() => {
     if (loadingMore) return;
@@ -455,7 +532,6 @@ export const ReelsScreen: React.FC = () => {
     return (
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <Page>
-          <TabPageHeader title={t('reels.title')} />
           <LoadingWrap>
             <ActivityIndicator size="large" color={colors.primaryGreen} />
           </LoadingWrap>
@@ -467,106 +543,124 @@ export const ReelsScreen: React.FC = () => {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Page>
-        <TabPageHeader title={t('reels.title')} />
-        <FlatList
-          ref={(r) => {
-            listRef.current = r;
-          }}
-          data={items}
-          keyExtractor={(item) => item.id}
-          extraData={{ activeIndex, muted }}
-          onScroll={(e) => {
-            scrollYRef.current = e.nativeEvent.contentOffset.y ?? 0;
-          }}
-          scrollEventThrottle={16}
-          renderItem={({ item, index }) => {
-            const isActive = index === activeIndex;
-            return (
-              <ReelCard $h={screenHeight}>
-                <MediaFill>
-                  {item.videoUrl ? (
-                    <ReelVideo
-                      postId={item.id}
-                      uri={item.videoUrl}
-                      isActive={isActive}
-                      muted={muted}
-                      onToggleMute={() => setMuted((v) => !v)}
-                      width={screenWidth}
-                      height={screenHeight}
-                      reelsRevision={reelsRevision}
-                    />
-                  ) : (
-                    <Image source={{ uri: item.imageUrl || undefined }} resizeMode="cover" style={{ width: screenWidth, height: screenHeight }} />
-                  )}
-                </MediaFill>
+        <View style={{ flex: 1 }} onLayout={onReelsViewportLayout}>
+          <FlatList
+            ref={(r) => {
+              listRef.current = r;
+            }}
+            data={items}
+            keyExtractor={(item) => item.id}
+            extraData={{ activeIndex, muted }}
+            onScroll={(e) => {
+              scrollYRef.current = e.nativeEvent.contentOffset.y ?? 0;
+            }}
+            scrollEventThrottle={16}
+            renderItem={({ item, index }) => {
+              const isActive = index === activeIndex;
+              const shareCount = getShareCount(item);
+              const followMeta = getFollowMeta(item);
+              return (
+                <ReelCard $h={pageHeight}>
+                  <MediaFill>
+                    {item.videoUrl ? (
+                      <ReelVideo
+                        postId={item.id}
+                        uri={item.videoUrl}
+                        isActive={isActive}
+                        muted={muted}
+                        onToggleMute={() => setMuted((v) => !v)}
+                        width={screenWidth}
+                        height={pageHeight}
+                        reelsRevision={reelsRevision}
+                      />
+                    ) : (
+                      <Image source={{ uri: item.imageUrl || undefined }} resizeMode="cover" style={{ width: screenWidth, height: pageHeight }} />
+                    )}
+                  </MediaFill>
 
-                <ActionsColumn>
-                  <ActionButton onPress={() => toggleLike(item.id)}>
-                    <Ionicons
-                      name={item.isLiked ? 'heart' : 'heart-outline'}
-                      size={26}
-                      color={item.isLiked ? colors.iosRed : '#fff'}
-                    />
-                    <ActionCount>{item.likeCount ?? 0}</ActionCount>
-                  </ActionButton>
-                  <ActionButton onPress={() => router.push({ pathname: '/post-comments', params: { postId: item.id } } as any)}>
-                    <Feather name="message-circle" size={24} color="#fff" />
-                  </ActionButton>
-                  <ActionButton onPress={() => router.push({ pathname: '/share', params: { postId: item.id } } as any)}>
-                    <Ionicons name="paper-plane-outline" size={24} color="#fff" />
-                  </ActionButton>
-                </ActionsColumn>
+                  <ActionsColumn>
+                    <ActionButton onPress={() => toggleLike(item.id)}>
+                      <Ionicons
+                        name={item.isLiked ? 'heart' : 'heart-outline'}
+                        size={32}
+                        color={item.isLiked ? colors.iosRed : '#fff'}
+                      />
+                      <ActionCount>{formatCount(item.likeCount ?? 0)}</ActionCount>
+                    </ActionButton>
+                    <ActionButton onPress={() => router.push({ pathname: '/post-comments', params: { postId: item.id } } as any)}>
+                      <Feather name="message-circle" size={30} color="#fff" />
+                      <ActionCount>{formatCount(item.commentCount ?? 0)}</ActionCount>
+                    </ActionButton>
+                    <ActionButton onPress={() => router.push({ pathname: '/share', params: { postId: item.id } } as any)}>
+                      <Ionicons name="paper-plane-outline" size={30} color="#fff" />
+                      {shareCount !== null ? <ActionCount>{formatCount(shareCount)}</ActionCount> : null}
+                    </ActionButton>
+                    <MoreButton onPress={() => {}}>
+                      <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
+                    </MoreButton>
+                    <ReelThumb source={{ uri: item.coverImageUrl || item.imageUrl || undefined }} />
+                  </ActionsColumn>
 
-                <BottomOverlay $bottomPadding={insets.bottom + 4}>
-                  <BottomRow>
-                    <Avatar source={{ uri: item.avatar || undefined }} />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <UserName numberOfLines={1}>{item.username}</UserName>
-                      {item.caption ? <Caption numberOfLines={2}>{item.caption}</Caption> : null}
-                    </View>
-                  </BottomRow>
-                </BottomOverlay>
-              </ReelCard>
-            );
-          }}
-          pagingEnabled
-          snapToInterval={screenHeight}
-          decelerationRate="fast"
-          snapToAlignment="start"
-          showsVerticalScrollIndicator={false}
-          onMomentumScrollEnd={onMomentumScrollEnd}
-          ListEmptyComponent={
-            <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: TAB_PAGE_HEADER_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
-              <MaterialCommunityIcons name="movie-open-outline" size={64} color={colors.secondaryText} />
-              <EmptyText>{isFeedError ? t('reels.loadFailed') : t('reels.empty')}</EmptyText>
-              {isFeedError ? (
-                <Pressable
-                  onPress={() => refetch()}
-                  style={{
-                    marginTop: 14,
-                    paddingVertical: 10,
-                    paddingHorizontal: 14,
-                    borderRadius: 14,
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                  }}
-                >
-                  <Ionicons name="refresh-outline" size={22} color={colors.primaryGreen} />
-                </Pressable>
-              ) : null}
-            </View>
-          }
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={colors.primaryGreen} />
+                  <BottomOverlay $bottomPadding={insets.bottom + 4}>
+                    <BottomRow>
+                      <Avatar source={{ uri: item.avatar || undefined }} />
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <UserMetaRow>
+                          <UserName numberOfLines={1}>{item.username}</UserName>
+                          {followMeta.showFollow ? (
+                            <FollowButton onPress={() => {}}>
+                              <FollowButtonText>
+                                {followMeta.followLabel || (followMeta.isFollowing ? t('profile.following') : t('common.follow'))}
+                              </FollowButtonText>
+                            </FollowButton>
+                          ) : null}
+                        </UserMetaRow>
+                        {item.caption ? <Caption numberOfLines={2}>{item.caption}</Caption> : null}
+                      </View>
+                    </BottomRow>
+                  </BottomOverlay>
+                </ReelCard>
+              );
+            }}
+            pagingEnabled
+            snapToInterval={pageHeight}
+            decelerationRate="fast"
+            snapToAlignment="start"
+            showsVerticalScrollIndicator={false}
+            onMomentumScrollEnd={onMomentumScrollEnd}
+            ListEmptyComponent={
+              <View style={{ flex: 1, paddingHorizontal: 24, justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="movie-open-outline" size={64} color={colors.secondaryText} />
+                <EmptyText>{isFeedError ? t('reels.loadFailed') : t('reels.empty')}</EmptyText>
+                {isFeedError ? (
+                  <Pressable
+                    onPress={() => refetch()}
+                    style={{
+                      marginTop: 14,
+                      paddingVertical: 10,
+                      paddingHorizontal: 14,
+                      borderRadius: 14,
+                      backgroundColor: 'rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <Ionicons name="refresh-outline" size={22} color={colors.primaryGreen} />
+                  </Pressable>
+                ) : null}
               </View>
-            ) : null
-          }
-          removeClippedSubviews
-          initialNumToRender={2}
-          windowSize={5}
-          getItemLayout={(_, index) => ({ length: screenHeight, offset: screenHeight * index, index })}
-        />
+            }
+            ListFooterComponent={
+              loadingMore ? (
+                <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={colors.primaryGreen} />
+                </View>
+              ) : null
+            }
+            removeClippedSubviews
+            initialNumToRender={2}
+            windowSize={5}
+            getItemLayout={(_, index) => ({ length: pageHeight, offset: pageHeight * index, index })}
+          />
+        </View>
       </Page>
     </SafeAreaView>
   );
