@@ -226,10 +226,15 @@ export class AuthService implements IAuthService {
     }
 
     try {
-      const response: any = await this.authApi.updateProfile(updates);
+      const response: any = await this.apiClient.put(`/users/${this.authState.user.id}`, updates);
 
       if (response.success && response.data) {
-        const updatedUser = User.create(response.data.user);
+        const mergedUserData = {
+          ...this.authState.user,
+          ...(response.data.user ?? {}),
+          ...updates,
+        };
+        const updatedUser = User.create(mergedUserData);
         this.storage.save(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
         this.authState = { ...this.authState, user: updatedUser };
         return { success: true };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -43,6 +43,9 @@ import {
 import { styled } from "@/src/shared/utils/emotion";
 import { useAuth } from "../../hooks/use-auth";
 import { useTranslation, setStoredLocale, type AppLocale } from "@/src/shared/i18n";
+import { getApiClient } from "@/src/infrastructure/adapters/api/api-client.adapter";
+import { FileApiAdapter } from "@/src/infrastructure/adapters/api/file-api.adapter";
+import { useToast } from "@/src/presentation/components/ui/use-toast";
 
 const BORDER = "1px solid rgb(219 219 219)";
 const TEXT = "rgb(38 38 38)";
@@ -453,6 +456,7 @@ interface SettingsPageProps {
 
 export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
   const { t, i18n } = useTranslation();
+  const { toast } = useToast();
   const { user, updateUser, logout } = useAuth();
   const router = useRouter();
   const [section, setSection] = useState<SettingsSection>("editProfile");
@@ -461,7 +465,22 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
   const [showAccountSuggestions, setShowAccountSuggestions] = useState(false);
   const [gender, setGender] = useState<string>("male");
   const [languageSearch, setLanguageSearch] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const lastObjectUrlRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileApi = useRef(new FileApiAdapter(getApiClient()));
   const currentLocale: AppLocale = i18n.language.startsWith("zh") ? "zh" : "en";
+  const currentAvatar = avatarPreview || user?.avatar || "/placeholder.svg";
+
+  useEffect(() => {
+    return () => {
+      if (lastObjectUrlRef.current && lastObjectUrlRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(lastObjectUrlRef.current);
+      }
+    };
+  }, []);
 
   const bioLength = bio.length;
 
@@ -471,7 +490,80 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
   };
 
   const handleSubmit = async () => {
-    await updateUser({ about: bio });
+    if (savingProfile) {
+      return;
+    }
+    try {
+      setSavingProfile(true);
+      const result = await updateUser({ about: bio });
+      if (!result.success) {
+        throw new Error(result.error || "Update profile failed");
+      }
+      toast({
+        title: "Saved",
+        description: "Your profile changes have been saved.",
+      });
+    } catch {
+      toast({
+        title: "Update failed",
+        description: "Failed to save profile changes. Please try again.",
+      });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handlePickAvatar = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+      return;
+    }
+    onProfileClick();
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || uploadingAvatar) {
+      return;
+    }
+    const previousAvatar = currentAvatar;
+    if (lastObjectUrlRef.current && lastObjectUrlRef.current.startsWith("blob:")) {
+      URL.revokeObjectURL(lastObjectUrlRef.current);
+      lastObjectUrlRef.current = null;
+    }
+    const localPreviewUrl = URL.createObjectURL(file);
+    lastObjectUrlRef.current = localPreviewUrl;
+    setAvatarPreview(localPreviewUrl);
+    try {
+      setUploadingAvatar(true);
+      const uploadResponse = await fileApi.current.uploadFile(file, "avatar");
+      const avatarUrl = (uploadResponse.data as { url?: string } | undefined)?.url;
+      if (!avatarUrl) {
+        throw new Error("Avatar upload failed");
+      }
+      const updateResult = await updateUser({ avatar: avatarUrl });
+      if (!updateResult.success) {
+        throw new Error(updateResult.error || "Update avatar failed");
+      }
+      setAvatarPreview(avatarUrl);
+      toast({
+        title: "Avatar updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+      if (lastObjectUrlRef.current && lastObjectUrlRef.current.startsWith("blob:")) {
+        URL.revokeObjectURL(lastObjectUrlRef.current);
+      }
+      lastObjectUrlRef.current = null;
+    } catch {
+      toast({
+        title: "Update failed",
+        description: "Failed to update avatar. Please try again.",
+      });
+      setAvatarPreview(previousAvatar);
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -757,14 +849,21 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
             <PanelTitle>{t("settings.editProfile")}</PanelTitle>
             <EditProfilePhotoRow>
               <AvatarLarge>
-                <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+                <AvatarImage src={currentAvatar} />
                 <AvatarFallbackText>{(user?.name || user?.username || "?")[0]}</AvatarFallbackText>
               </AvatarLarge>
               <PhotoInfo>
                 <UsernameLine>{user?.username ?? ""}</UsernameLine>
                 <FullNameLine>{user?.name || t("settings.profileDefaultName")}</FullNameLine>
-                <ChangePhotoBtn variant="ghost" onClick={onProfileClick}>
-                  {t("settings.changePhoto")}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleAvatarChange}
+                />
+                <ChangePhotoBtn variant="ghost" onClick={handlePickAvatar} disabled={uploadingAvatar}>
+                  {uploadingAvatar ? `${t("common.loading")}...` : t("settings.changePhoto")}
                 </ChangePhotoBtn>
               </PhotoInfo>
             </EditProfilePhotoRow>
@@ -824,7 +923,9 @@ export function SettingsPage({ onBack, onProfileClick }: SettingsPageProps) {
             </ProfileInfoNote>
 
             <ActionRow>
-              <SubmitBtn onClick={handleSubmit}>{t("settings.submit")}</SubmitBtn>
+              <SubmitBtn onClick={handleSubmit} disabled={savingProfile}>
+                {savingProfile ? `${t("common.loading")}...` : t("settings.submit")}
+              </SubmitBtn>
               <MessagesBtn variant="outline" onClick={onBack}>
                 <SendIcon />
                 Messages

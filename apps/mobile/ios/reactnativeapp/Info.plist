@@ -42,6 +42,10 @@
 	<string>WhatsChat needs camera access for video calls.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>WhatsChat needs microphone access for voice and video calls.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow WhatsChat to access your photos to update profile avatar and post media.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Allow WhatsChat to save generated media to your photo library when needed.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

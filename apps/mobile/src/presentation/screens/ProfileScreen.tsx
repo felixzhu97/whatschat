@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   Pressable,
@@ -19,8 +20,11 @@ import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTranslation } from '@/src/presentation/shared/i18n';
-import { useFollowUserMutation, useGetStoryUsersQuery } from '@/src/presentation/store/api/feedApi';
+import * as ImagePicker from 'expo-image-picker';
+import { useFollowUserMutation, useGetStoryUsersQuery, useUploadMediaMutation } from '@/src/presentation/store/api/feedApi';
 import uniqBy from 'lodash/uniqBy';
+import { apiClient } from '@/src/infrastructure/api/client';
+import { useAppDispatch, setAuth } from '@/src/presentation/stores';
 
 const IG_FOLLOW = '#0095F6';
 
@@ -301,7 +305,10 @@ export const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
   const [profile, setProfile] = useState<MobileUserProfile | null>(null);
   const [posts, setPosts] = useState<MobileFeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -310,6 +317,8 @@ export const ProfileScreen: React.FC = () => {
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
   const { data: storyUsers } = useGetStoryUsersQuery({ limit: 16 });
   const [followUser] = useFollowUserMutation();
+  const [uploadMedia] = useUploadMediaMutation();
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
 
   const load = useCallback(async () => {
     if (!user?.id) {
@@ -388,6 +397,54 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
+  const onPickAvatar = async () => {
+    if (!user?.id || !token || !refreshToken || updatingAvatar) {
+      return;
+    }
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Please allow photo library access.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.85,
+      aspect: [1, 1],
+    });
+    if (result.canceled || !result.assets?.length) {
+      return;
+    }
+    const asset = result.assets[0];
+    const mimeType = asset.mimeType ?? 'image/jpeg';
+    const fileName = asset.fileName ?? `avatar-${Date.now()}.jpg`;
+    try {
+      setUpdatingAvatar(true);
+      const uploaded = await uploadMedia({
+        uri: asset.uri,
+        mimeType,
+        fileName,
+        folder: 'avatars',
+      }).unwrap();
+      const updateRes = await apiClient.put<{ data?: { avatar?: string } }>(`/users/${user.id}`, {
+        avatar: uploaded.url,
+      });
+      const nextAvatar = updateRes.data?.data?.avatar ?? uploaded.url;
+      dispatch(
+        setAuth({
+          token,
+          refreshToken,
+          user: { ...user, avatar: nextAvatar },
+        })
+      );
+      setProfile((prev) => (prev ? { ...prev, avatar: nextAvatar } : prev));
+    } catch {
+      Alert.alert('Upload failed', 'Please try again later.');
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  };
+
   if (!user) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.secondaryBackground }} edges={['top']}>
@@ -458,7 +515,7 @@ export const ProfileScreen: React.FC = () => {
                   </StoryBubbleWrap>
                   <AvatarWrap>
                     <ChatAvatar name={username} imageUrl={avatarUrl ?? undefined} size={86} />
-                    <AddBadge onPress={() => router.push('/create-post')}>
+                    <AddBadge onPress={onPickAvatar} disabled={updatingAvatar}>
                       <Ionicons name="add" size={16} color={colors.primaryText} />
                     </AddBadge>
                   </AvatarWrap>

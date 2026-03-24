@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '@/application/services/auth.service';
+import { UsersService } from '@/application/services/users.service';
 import {
   RegisterDto,
   LoginDto,
@@ -26,7 +27,10 @@ import { Public } from './public.decorator';
 @ApiTags('认证')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -125,14 +129,21 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新用户资料' })
   async updateProfile(
-    @CurrentUser() _user: any,
-    @Body() _updateProfileDto: UpdateProfileDto,
+    @CurrentUser() user: { id: string },
+    @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    // TODO: 实现更新用户资料逻辑
+    const updatedUser = await this.usersService.updateUser(user.id, {
+      username: updateProfileDto.username,
+      phone: updateProfileDto.phone,
+      status: updateProfileDto.status,
+      avatar: updateProfileDto.avatar,
+    });
     return {
-      success: false,
-      message: '未实现',
-      code: 'NOT_IMPLEMENTED',
+      success: true,
+      message: '更新用户资料成功',
+      data: {
+        user: updatedUser,
+      },
     };
   }
 

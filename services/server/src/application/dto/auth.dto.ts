@@ -45,6 +45,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString({ message: "状态必须是字符串" })
   status?: string;
+
+  @IsOptional()
+  @IsString({ message: "头像URL必须是字符串" })
+  avatar?: string;
 }
 
 export class ChangePasswordDto {

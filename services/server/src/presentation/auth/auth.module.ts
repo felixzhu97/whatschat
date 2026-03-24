@@ -7,6 +7,7 @@ import { AuthService } from '@/application/services/auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { UserRepositoryAdapter } from '../../infrastructure/adapters/repositories/user.repository.adapter';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
       },
     }),
     DatabaseModule,
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [
