@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { Sidebar } from "../common/sidebar";
 import { InstagramMessagesSidebar } from "../instagram/instagram-messages-sidebar";
@@ -131,8 +132,20 @@ const ErrorToast = styled.div`
 `;
 
 type InstagramView = "feed" | "messages";
+type InstagramRoutePage =
+  | "home"
+  | "messages"
+  | "reels"
+  | "explore"
+  | "profile"
+  | "settings"
+  | "status"
+  | "calls"
+  | "starred"
+  | "search";
 
-export function InstagramMain() {
+export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRoutePage }) {
+  const router = useRouter();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [instagramView, setInstagramView] = useState<InstagramView>("feed");
   const [showVideoDialog, setShowVideoDialog] = useState(false);
@@ -168,6 +181,14 @@ export function InstagramMain() {
     }
   }, [currentUser?.id, instagramView]);
 
+  useEffect(() => {
+    if (routePage === "messages") {
+      setInstagramView("messages");
+      return;
+    }
+    setInstagramView("feed");
+  }, [routePage]);
+
   const chatsWithLive = useChatsWithLiveMessages(
     selectedContactId,
     currentUser?.id
@@ -181,7 +202,6 @@ export function InstagramMain() {
       : null;
 
   const {
-    currentPage,
     handleProfileClick,
     handleReelsClick,
     handleExploreClick,
@@ -191,6 +211,7 @@ export function InstagramMain() {
     handleSettingsClick,
     handleBackToChat,
   } = useNavigation();
+  const currentPage = routePage === "home" || routePage === "messages" ? "chat" : routePage;
 
   useEffect(() => {
     if (currentUser?.id && currentPage === "profile") profileStats.load();
@@ -524,8 +545,6 @@ export function InstagramMain() {
 
   const openSearchDrawer = () => {
     setSearchDrawerOpen(true);
-    handleBackToChat();
-    setInstagramView("feed");
   };
 
   const handleSelectMessage = (contactId: string, messageId: string) => {
@@ -883,7 +902,7 @@ export function InstagramMain() {
           setInstagramView("feed");
         }}
         onMessagesClick={() => {
-          handleBackToChat();
+          router.push("/messages");
           setInstagramView("messages");
         }}
         onProfileClick={handleProfileClick}
@@ -922,7 +941,7 @@ export function InstagramMain() {
         <FloatingMessagesBtn
           type="button"
           onClick={() => {
-            handleBackToChat();
+            router.push("/messages");
             setInstagramView("messages");
           }}
         >

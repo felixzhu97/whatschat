@@ -1,47 +1,70 @@
-import { useState, useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+function mapPathToPage(pathname: string): string {
+  if (pathname === "/profile") return "profile";
+  if (pathname === "/status") return "status";
+  if (pathname === "/calls") return "calls";
+  if (pathname === "/starred") return "starred";
+  if (pathname === "/settings") return "settings";
+  if (pathname === "/search") return "search";
+  if (pathname === "/reels") return "reels";
+  if (pathname === "/explore") return "explore";
+  return "chat";
+}
 
 export function useNavigation() {
-  const [currentPage, setCurrentPage] = useState<string>("chat");
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentPage = useMemo(() => mapPathToPage(pathname), [pathname]);
 
   const navigateToPage = useCallback((page: string) => {
-    setCurrentPage(page);
-  }, []);
+    if (page === "profile") router.push("/profile");
+    else if (page === "status") router.push("/status");
+    else if (page === "calls") router.push("/calls");
+    else if (page === "starred") router.push("/starred");
+    else if (page === "settings") router.push("/settings");
+    else if (page === "search") router.push("/search");
+    else if (page === "reels") router.push("/reels");
+    else if (page === "explore") router.push("/explore");
+    else router.push("/");
+  }, [router]);
 
   const handleProfileClick = useCallback(() => {
-    setCurrentPage("profile");
-  }, []);
+    router.push("/profile");
+  }, [router]);
 
   const handleStatusClick = useCallback(() => {
-    setCurrentPage("status");
-  }, []);
+    router.push("/status");
+  }, [router]);
 
   const handleCallsClick = useCallback(() => {
-    setCurrentPage("calls");
-  }, []);
+    router.push("/calls");
+  }, [router]);
 
   const handleStarredClick = useCallback(() => {
-    setCurrentPage("starred");
-  }, []);
+    router.push("/starred");
+  }, [router]);
 
   const handleSettingsClick = useCallback(() => {
-    setCurrentPage("settings");
-  }, []);
+    router.push("/settings");
+  }, [router]);
 
   const handleSearchPageClick = useCallback(() => {
-    setCurrentPage("search");
-  }, []);
+    router.push("/search");
+  }, [router]);
 
   const handleReelsClick = useCallback(() => {
-    setCurrentPage("reels");
-  }, []);
+    router.push("/reels");
+  }, [router]);
 
   const handleExploreClick = useCallback(() => {
-    setCurrentPage("explore");
-  }, []);
+    router.push("/explore");
+  }, [router]);
 
   const handleBackToChat = useCallback(() => {
-    setCurrentPage("chat");
-  }, []);
+    router.push("/");
+  }, [router]);
 
   return {
     currentPage,
