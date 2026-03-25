@@ -42,6 +42,7 @@ import { useNavigation } from "../../hooks/use-navigation";
 import { useChatsWithLiveMessages } from "../../hooks/use-chats-with-live-messages";
 import { useAuth } from "../../hooks/use-auth";
 import { useFeed, useExplore, useProfileStats } from "../../hooks/use-feed";
+import { useUserProfileView } from "../../hooks/use-user-profile-view";
 import { useTranslation } from "@/src/shared/i18n";
 import { FeedCommentsDialog } from "../dialogs/feed-comments-dialog";
 import { CreatePostDialog } from "../dialogs/create-post-dialog";
@@ -144,7 +145,13 @@ type InstagramRoutePage =
   | "starred"
   | "search";
 
-export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRoutePage }) {
+export function InstagramMain({
+  routePage = "home",
+  profileUserId,
+}: {
+  routePage?: InstagramRoutePage;
+  profileUserId?: string;
+}) {
   const router = useRouter();
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [instagramView, setInstagramView] = useState<InstagramView>("feed");
@@ -160,9 +167,12 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
   const feedScrollRef = useRef<HTMLDivElement>(null);
   const analytics = useAnalytics();
   const { user: currentUser } = useAuth();
+  const viewedUserId = profileUserId ?? currentUser?.id;
+  const isSelfProfile = viewedUserId != null && currentUser?.id === viewedUserId;
   const feed = useFeed(currentUser?.id);
   const explore = useExplore(currentUser?.id);
-  const profileStats = useProfileStats(currentUser?.id);
+  const profileStats = useProfileStats(viewedUserId);
+  const otherUserProfile = useUserProfileView(viewedUserId, routePage === "profile" && !isSelfProfile);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -212,10 +222,17 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
     handleBackToChat,
   } = useNavigation();
   const currentPage = routePage === "home" || routePage === "messages" ? "chat" : routePage;
+  const handleUserClick = useCallback(
+    (userId: string) => {
+      if (!userId) return;
+      router.push(`/profile/${userId}`);
+    },
+    [router]
+  );
 
   useEffect(() => {
-    if (currentUser?.id && currentPage === "profile") profileStats.load();
-  }, [currentUser?.id, currentPage]);
+    if (viewedUserId && currentPage === "profile") profileStats.load();
+  }, [viewedUserId, currentPage, profileStats.load]);
 
   useEffect(() => {
     if (currentUser?.id && currentPage === "reels") feed.loadFeed();
@@ -589,6 +606,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
             error={feed.error}
             currentUser={currentUser ?? undefined}
             onStoryClick={handleStoryClick}
+            onUserClick={handleUserClick}
             onCommentClick={(post) => {
               setCommentPost(post);
               analytics.track(POST_VIEW, { postId: post.id, authorId: post.userId });
@@ -722,12 +740,12 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
         return (
           <CenterColumn style={{ overflow: "auto" }}>
             <ProfilePage
-              user={currentUser ?? null}
-              posts={feed.posts}
+              user={isSelfProfile ? currentUser ?? null : otherUserProfile.user}
+              posts={isSelfProfile ? feed.posts : otherUserProfile.posts}
               followersCount={profileStats.followersCount}
               followingCount={profileStats.followingCount}
-              onEditProfile={handleSettingsClick}
-              onNewPost={() => setShowCreatePostDialog(true)}
+              onEditProfile={isSelfProfile ? handleSettingsClick : undefined}
+              onNewPost={isSelfProfile ? () => setShowCreatePostDialog(true) : undefined}
               onPostClick={setCommentPost}
               onFollowersClick={() => setFollowListModal("followers")}
               onFollowingClick={() => setFollowListModal("following")}
@@ -745,11 +763,12 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
                 profileStats.load();
               }}
               title={followListModal ?? "followers"}
-              userId={currentUser?.id ?? ""}
+              userId={viewedUserId ?? ""}
               currentUserId={currentUser?.id}
               onFollow={feed.followUser}
               onUnfollow={feed.unfollowUser}
               followListService={followListService}
+              onUserClick={handleUserClick}
             />
           </CenterColumn>
         );
@@ -781,6 +800,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
               error={feed.error}
               currentUser={currentUser ?? undefined}
               onStoryClick={handleStoryClick}
+              onUserClick={handleUserClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
                 if (post.isSponsored) {
@@ -849,6 +869,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
               error={feed.error}
               currentUser={currentUser ?? undefined}
               onStoryClick={handleStoryClick}
+              onUserClick={handleUserClick}
               onCommentClick={(post) => {
                 setCommentPost(post);
                 if (post.isSponsored) {
@@ -917,7 +938,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
         open={searchDrawerOpen}
         onOpenChange={setSearchDrawerOpen}
         onPostClick={() => {}}
-        onUserClick={() => {}}
+        onUserClick={handleUserClick}
       />
 
       <NotificationsSheet
@@ -925,6 +946,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
         onOpenChange={setNotificationsOpen}
         suggestions={feed.suggestions}
         onFollow={currentUser?.id ? feed.followSuggestion : undefined}
+        onUserClick={handleUserClick}
       />
 
       {renderCenterContent()}
@@ -934,6 +956,7 @@ export function InstagramMain({ routePage = "home" }: { routePage?: InstagramRou
           user={currentUser ?? mockUser}
           suggestions={feed.suggestions}
           onFollow={currentUser?.id ? feed.followSuggestion : undefined}
+          onUserClick={handleUserClick}
         />
       )}
 

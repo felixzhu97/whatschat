@@ -41,7 +41,7 @@ const HeaderLeft = styled.View`
   align-items: center;
 `;
 
-const AvatarWrap = styled.View`
+const AvatarWrap = styled.TouchableOpacity`
   width: 32px;
   height: 32px;
   border-radius: 16px;
@@ -222,6 +222,7 @@ interface FeedPostCardProps {
   onPressShare?: (id: string) => void;
   onPressSave?: (id: string) => void;
   onPressFollow?: (userId: string) => void;
+  onPressUser?: (userId: string) => void;
   currentUserId?: string;
   isFollowing?: boolean;
   onPressMedia?: (postId: string, index: number) => void;
@@ -235,6 +236,7 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   onPressShare,
   onPressSave,
   onPressFollow,
+  onPressUser,
   currentUserId,
   isFollowing,
   onPressMedia,
@@ -247,6 +249,15 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
   const screenWidth = Dimensions.get('window').width;
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const lastTap = useRef<number>(0);
+  const handleMediaTap = (mediaIndex: number) => {
+    const now = Date.now();
+    if (now - lastTap.current < 280) {
+      onPressLike?.(post.id);
+    } else {
+      onPressMedia?.(post.id, mediaIndex);
+    }
+    lastTap.current = now;
+  };
   const likeIcon = post.isLiked ? 'heart' : 'heart-outline';
   const likeColor = post.isLiked ? colors.iosRed : colors.primaryText;
   const saveIcon = post.isSaved ? 'bookmark' : 'bookmark-outline';
@@ -346,22 +357,10 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
 
   return (
     <Card>
-      <TouchableOpacity
-        activeOpacity={0.96}
-        onPress={() => {
-          const now = Date.now();
-          if (now - lastTap.current < 280) {
-            onPressLike?.(post.id);
-          } else {
-            onPressMedia?.(post.id, activeMediaIndex);
-          }
-          lastTap.current = now;
-        }}
-      >
-        <Media>
+      <Media>
         <Header>
           <HeaderLeft>
-            <AvatarWrap>
+            <AvatarWrap activeOpacity={0.85} onPress={() => onPressUser?.(post.userId)}>
               <AvatarImage source={{ uri: post.avatar || undefined }} resizeMode="cover" />
             </AvatarWrap>
             <HeaderText>
@@ -392,88 +391,103 @@ export const FeedPostCard: React.FC<FeedPostCardProps> = ({
               const isDataMediaVideo = url?.startsWith('data:video/');
               return (
                 <MediaPage key={`${url}-${index}`} style={{ width: screenWidth }}>
-                  {isMediaVideo ? (
-                    isDataMediaVideo ? (
-                      <WebView
-                        source={{
-                          html: `
-                            <html>
-                              <head>
-                                <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
-                                <style>
-                                  body,html{margin:0;padding:0;background:black;}
-                                  video{width:100%;height:100%;object-fit:cover;}
-                                </style>
-                              </head>
-                              <body>
-                                <video src="${url}" autoplay muted playsinline loop></video>
-                              </body>
-                            </html>
-                          `,
-                        }}
-                        style={{ width: '100%', height: '100%' }}
-                        javaScriptEnabled
-                        scrollEnabled={false}
-                        allowsInlineMediaPlayback
-                        mediaPlaybackRequiresUserAction={false}
-                      />
+                  <TouchableOpacity
+                    activeOpacity={0.96}
+                    onPress={() => handleMediaTap(index)}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    {isMediaVideo ? (
+                      isDataMediaVideo ? (
+                        <WebView
+                          source={{
+                            html: `
+                              <html>
+                                <head>
+                                  <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+                                  <style>
+                                    body,html{margin:0;padding:0;background:black;}
+                                    video{width:100%;height:100%;object-fit:cover;}
+                                  </style>
+                                </head>
+                                <body>
+                                  <video src="${url}" autoplay muted playsinline loop></video>
+                                </body>
+                              </html>
+                            `,
+                          }}
+                          style={{ width: '100%', height: '100%' }}
+                          javaScriptEnabled
+                          scrollEnabled={false}
+                          allowsInlineMediaPlayback
+                          mediaPlaybackRequiresUserAction={false}
+                        />
+                      ) : (
+                        <PostVideo uri={url} isActive={isActive && index === activeMediaIndex} />
+                      )
                     ) : (
-                      <PostVideo uri={url} isActive={isActive && index === activeMediaIndex} />
-                    )
-                  ) : (
-                    <MediaImage source={{ uri: url }} resizeMode="cover" />
-                  )}
+                      <MediaImage source={{ uri: url }} resizeMode="cover" />
+                    )}
+                  </TouchableOpacity>
                 </MediaPage>
               );
             })}
           </ScrollView>
         ) : isVideo && isHttpVideo && post.videoUrl ? (
-          <PostVideo uri={post.videoUrl} isActive={isActive} />
+          <TouchableOpacity activeOpacity={0.96} onPress={() => handleMediaTap(0)} style={{ width: '100%', height: '100%' }}>
+            <PostVideo uri={post.videoUrl} isActive={isActive} />
+          </TouchableOpacity>
         ) : isVideo && isDataVideo && post.videoUrl ? (
-          <WebView
-            source={{
-              html: `
-                <html>
-                  <head>
-                    <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
-                    <style>
-                      body,html{margin:0;padding:0;background:black;}
-                      video{width:100%;height:100%;object-fit:cover;}
-                    </style>
-                  </head>
-                  <body>
-                    <video id="v" src="${post.videoUrl}" autoplay muted playsinline loop></video>
-                    <script>
-                      (function() {
-                        var currentActive = false;
-                        function setActive(active) {
-                          currentActive = !!active;
-                          var v = document.getElementById('v');
-                          if (!v) return;
-                          if (currentActive) {
-                            v.play();
-                          } else {
-                            v.pause();
+          <TouchableOpacity activeOpacity={0.96} onPress={() => handleMediaTap(0)} style={{ width: '100%', height: '100%' }}>
+            <WebView
+              source={{
+                html: `
+                  <html>
+                    <head>
+                      <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+                      <style>
+                        body,html{margin:0;padding:0;background:black;}
+                        video{width:100%;height:100%;object-fit:cover;}
+                      </style>
+                    </head>
+                    <body>
+                      <video id="v" src="${post.videoUrl}" autoplay muted playsinline loop></video>
+                      <script>
+                        (function() {
+                          var currentActive = false;
+                          function setActive(active) {
+                            currentActive = !!active;
+                            var v = document.getElementById('v');
+                            if (!v) return;
+                            if (currentActive) {
+                              v.play();
+                            } else {
+                              v.pause();
+                            }
                           }
-                        }
-                        window.setActive = setActive;
-                      })();
-                    </script>
-                  </body>
-                </html>
-              `,
-            }}
-            style={{ width: '100%', height: '100%' }}
-            javaScriptEnabled
-            scrollEnabled={false}
-            allowsInlineMediaPlayback
-            mediaPlaybackRequiresUserAction={false}
-          />
+                          window.setActive = setActive;
+                        })();
+                      </script>
+                    </body>
+                  </html>
+                `,
+              }}
+              style={{ width: '100%', height: '100%' }}
+              javaScriptEnabled
+              scrollEnabled={false}
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+            />
+          </TouchableOpacity>
         ) : (
-          <MediaImage source={{ uri: post.imageUrl || undefined }} resizeMode="cover" />
+          <TouchableOpacity
+            activeOpacity={0.96}
+            onPress={() => handleMediaTap(0)}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <MediaImage source={{ uri: post.imageUrl || undefined }} resizeMode="cover" />
+          </TouchableOpacity>
         )}
-        </Media>
-      </TouchableOpacity>
+      </Media>
       <Actions>
         <ActionsLeft>
           <IconButton onPress={() => onPressLike?.(post.id)}>

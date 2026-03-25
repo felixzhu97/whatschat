@@ -194,11 +194,22 @@ const SuggestionMeta = styled.div`
   color: rgb(142 142 142);
 `;
 
+const UserAvatarButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  border-radius: 9999px;
+`;
+
 interface NotificationsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   suggestions: SuggestedUser[];
   onFollow?: (userId: string) => void;
+  onUserClick?: (userId: string) => void;
 }
 
 function isNotificationItem(payload: unknown): payload is NotificationItemRes {
@@ -217,6 +228,7 @@ export function NotificationsSheet({
   onOpenChange,
   suggestions,
   onFollow,
+  onUserClick,
 }: NotificationsSheetProps) {
   const { t } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
@@ -284,10 +296,16 @@ export function NotificationsSheet({
               <ActivityList>
                 {items.map((n, i) => (
                   <ActivityRow key={`activity-${n.id}-${i}`} $unread={!n.readAt}>
-                    <Avatar style={{ width: 32, height: 32 }}>
-                      <AvatarImage src={undefined} />
-                      <AvatarFallback>{n.actorId.slice(0, 1)}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatarButton
+                      type="button"
+                      aria-label={`Open profile ${n.actorId}`}
+                      onClick={() => onUserClick?.(n.actorId)}
+                    >
+                      <Avatar style={{ width: 32, height: 32 }}>
+                        <AvatarImage src={undefined} />
+                        <AvatarFallback>{n.actorId.slice(0, 1)}</AvatarFallback>
+                      </Avatar>
+                    </UserAvatarButton>
                     <ActivityText>
                       {n.type === "like"
                         ? t("notifications.likedYourPost")
@@ -307,10 +325,16 @@ export function NotificationsSheet({
             <SuggestionList>
               {suggestions.map((u, i) => (
                 <SuggestionItem key={`notif-suggestion-${u.id}-${i}`}>
-                  <Avatar style={{ width: 32, height: 32 }}>
-                    <AvatarImage src={u.avatar ?? undefined} />
-                    <AvatarFallback>{u.username?.[0] ?? "?"}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatarButton
+                    type="button"
+                    aria-label={`Open profile ${u.username ?? u.id}`}
+                    onClick={() => onUserClick?.(u.id)}
+                  >
+                    <Avatar style={{ width: 32, height: 32 }}>
+                      <AvatarImage src={u.avatar ?? undefined} />
+                      <AvatarFallback>{u.username?.[0] ?? "?"}</AvatarFallback>
+                    </Avatar>
+                  </UserAvatarButton>
                   <SuggestionInfo>
                     <SuggestionUsername>{u.username}</SuggestionUsername>
                     <SuggestionMeta>{u.description ?? t("notifications.suggestedForYou")}</SuggestionMeta>

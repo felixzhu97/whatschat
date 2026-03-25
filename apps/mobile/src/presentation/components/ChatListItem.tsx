@@ -10,16 +10,21 @@ interface ChatListItemProps {
   chat: Chat;
   onPress: () => void;
   onCameraPress?: () => void;
+  onAvatarPress?: () => void;
 }
 
-const Container = styled.TouchableOpacity`
+const Container = styled.View`
   flex-direction: row;
   align-items: center;
   padding: 12px 16px;
   background-color: ${(p) => p.theme.colors.secondaryBackground};
 `;
 
-const Content = styled.View`
+const AvatarButton = styled.TouchableOpacity`
+  padding: 0;
+`;
+
+const ContentButton = styled.Pressable`
   flex: 1;
   margin-left: 12px;
   justify-content: center;
@@ -104,6 +109,7 @@ export const ChatListItem: React.FC<ChatListItemProps> = ({
   chat,
   onPress,
   onCameraPress,
+  onAvatarPress,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -111,9 +117,15 @@ export const ChatListItem: React.FC<ChatListItemProps> = ({
   const subtitle = useMemo(() => buildSubtitle(chat, t), [chat, t]);
 
   return (
-    <Container onPress={onPress} activeOpacity={0.7}>
-      <ChatAvatar name={chat.name} size={56} showBorder={false} />
-      <Content>
+    <Container>
+      {onAvatarPress ? (
+        <AvatarButton onPress={onAvatarPress} activeOpacity={0.7}>
+          <ChatAvatar name={chat.name} size={56} showBorder={false} />
+        </AvatarButton>
+      ) : (
+        <ChatAvatar name={chat.name} size={56} showBorder={false} />
+      )}
+      <ContentButton onPress={onPress}>
         <Name numberOfLines={1}>{chat.name}</Name>
         <SubtitleRow>
           <Subtitle numberOfLines={1}>{subtitle || ' '}</Subtitle>
@@ -123,7 +135,7 @@ export const ChatListItem: React.FC<ChatListItemProps> = ({
             </Badge>
           )}
         </SubtitleRow>
-      </Content>
+      </ContentButton>
       <CameraButton
         onPress={onCameraPress ?? (() => {})}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

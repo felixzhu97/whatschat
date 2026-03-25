@@ -111,6 +111,16 @@ const PostHeaderLeft = styled.div`
   gap: 12px;
 `;
 
+const UserAvatarButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  border-radius: 9999px;
+`;
+
 const PostMeta = styled.div`
   display: flex;
   flex-direction: column;
@@ -351,6 +361,7 @@ interface InstagramFeedProps {
   error?: string | null;
   currentUser?: { avatar?: string; username?: string } | null;
   onStoryClick?: (story: StoryItem) => void;
+  onUserClick?: (userId: string) => void;
   onCommentClick?: (post: FeedPost) => void;
   onLikeClick?: (post: FeedPost) => void;
   onSaveClick?: (post: FeedPost) => void;
@@ -368,6 +379,7 @@ export function InstagramFeed({
   error,
   currentUser,
   onStoryClick,
+  onUserClick,
   onCommentClick,
   onLikeClick,
   onSaveClick,
@@ -450,10 +462,18 @@ export function InstagramFeed({
         <PostCard key={`post-${post.id}-${i}`}>
           <PostHeader>
             <PostHeaderLeft>
-              <Avatar style={{ width: 32, height: 32 }}>
-                <AvatarImage src={post.avatar} />
-                <AvatarFallback>{post.username[0]}</AvatarFallback>
-              </Avatar>
+              <UserAvatarButton
+                type="button"
+                aria-label={`Open profile ${post.username}`}
+                onClick={() => onUserClick?.(post.userId)}
+              >
+                <Avatar style={{ width: 32, height: 32 }}>
+                  <AvatarImage src={post.avatar} />
+                  <AvatarFallback>
+                    {(post.username || post.userId).slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </UserAvatarButton>
               <PostMeta>
                 <PostUsername>{post.username}</PostUsername>
                 <PostTime>

@@ -339,6 +339,7 @@ export const HomeFeedScreen: React.FC = () => {
                     );
                   }
                 }}
+                onPressUser={(userId) => router.push(`/user-profile/${userId}`)}
                 onPressComment={(id) => router.push({ pathname: '/post-comments', params: { postId: id } } as any)}
                 onPressShare={(id) => router.push({ pathname: '/share', params: { postId: id } } as any)}
                 onPressFollow={async (userId) => {

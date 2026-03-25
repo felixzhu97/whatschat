@@ -136,13 +136,24 @@ const FooterCopyright = styled.div`
   color: rgb(199 199 199);
 `;
 
+const AvatarButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  border-radius: 9999px;
+`;
+
 interface InstagramRightSidebarProps {
   user: User | null;
   suggestions: SuggestedUser[];
   onFollow?: (userId: string) => void;
+  onUserClick?: (userId: string) => void;
 }
 
-export function InstagramRightSidebar({ user, suggestions, onFollow }: InstagramRightSidebarProps) {
+export function InstagramRightSidebar({ user, suggestions, onFollow, onUserClick }: InstagramRightSidebarProps) {
   const { t } = useTranslation();
   return (
     <SidebarRoot>
@@ -165,10 +176,16 @@ export function InstagramRightSidebar({ user, suggestions, onFollow }: Instagram
       <SuggestionList>
         {suggestions.map((s, i) => (
           <SuggestionItem key={`suggestion-${s.id}-${i}`}>
-            <Avatar style={{ width: 32, height: 32 }}>
-              <AvatarImage src={s.avatar || undefined} />
-              <AvatarFallback>{s.username[0]}</AvatarFallback>
-            </Avatar>
+            <AvatarButton
+              type="button"
+              aria-label={`Open profile ${s.username}`}
+              onClick={() => onUserClick?.(s.id)}
+            >
+              <Avatar style={{ width: 32, height: 32 }}>
+                <AvatarImage src={s.avatar || undefined} />
+                <AvatarFallback>{s.username[0]}</AvatarFallback>
+              </Avatar>
+            </AvatarButton>
             <SuggestionInfo>
               <SuggestionUsername>{s.username}</SuggestionUsername>
               <SuggestionDesc>{s.description}</SuggestionDesc>

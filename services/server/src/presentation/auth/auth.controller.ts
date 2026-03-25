@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '@/application/services/auth.service';
-import { UsersService } from '@/application/services/users.service';
+import { UpdateUserData, UsersService } from '@/application/services/users.service';
 import {
   RegisterDto,
   LoginDto,
@@ -132,12 +132,13 @@ export class AuthController {
     @CurrentUser() user: { id: string },
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    const updatedUser = await this.usersService.updateUser(user.id, {
-      username: updateProfileDto.username,
-      phone: updateProfileDto.phone,
-      status: updateProfileDto.status,
-      avatar: updateProfileDto.avatar,
-    });
+    const data: UpdateUserData = {};
+    if (updateProfileDto.username !== undefined) data.username = updateProfileDto.username;
+    if (updateProfileDto.phone !== undefined) data.phone = updateProfileDto.phone;
+    if (updateProfileDto.status !== undefined) data.status = updateProfileDto.status;
+    if (updateProfileDto.avatar !== undefined) data.avatar = updateProfileDto.avatar;
+
+    const updatedUser = await this.usersService.updateUser(user.id, data);
     return {
       success: true,
       message: '更新用户资料成功',

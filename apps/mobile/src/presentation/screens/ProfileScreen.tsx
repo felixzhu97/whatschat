@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { feedService, type MobileFeedPost, type MobileUserProfile } from '@/src/application/services';
 import { ChatAvatar, ExploreGridTile } from '@/src/presentation/components';
@@ -307,8 +307,11 @@ export const ProfileScreen: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const user = useAuthStore((s) => s.user);
+  const { userId: profileUserId } = useLocalSearchParams<{ userId?: string }>();
   const token = useAuthStore((s) => s.token);
   const refreshToken = useAuthStore((s) => s.refreshToken);
+  const targetUserId = profileUserId ?? user?.id;
+  const isSelfProfile = Boolean(user?.id && targetUserId && user.id === targetUserId);
   const [profile, setProfile] = useState<MobileUserProfile | null>(null);
   const [posts, setPosts] = useState<MobileFeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -321,38 +324,39 @@ export const ProfileScreen: React.FC = () => {
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
 
   const load = useCallback(async () => {
-    if (!user?.id) {
+    if (!targetUserId) {
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
       const [p, feed] = await Promise.all([
-        feedService.getUserProfile(user.id),
-        feedService.getUserPosts(user.id, 48),
+        feedService.getUserProfile(targetUserId),
+        feedService.getUserPosts(targetUserId, 48),
       ]);
       setProfile(
         p ?? {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar ?? null,
-          status: user.status ?? null,
+          id: targetUserId,
+          username: isSelfProfile ? user?.username : '',
+          email: isSelfProfile ? user?.email : undefined,
+          avatar: isSelfProfile ? user?.avatar ?? null : null,
+          status: isSelfProfile ? user?.status ?? null : null,
         }
       );
       setPosts(feed.posts);
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.username, user?.email, user?.avatar, user?.status]);
+  }, [targetUserId, isSelfProfile, user?.username, user?.email, user?.avatar, user?.status]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const username = profile?.username ?? user?.username ?? '';
+  const username =
+    profile?.username ?? (isSelfProfile ? user?.username ?? '' : '');
   const displayName = username;
-  const avatarUrl = profile?.avatar ?? user?.avatar;
+  const avatarUrl = profile?.avatar ?? (isSelfProfile ? user?.avatar : undefined);
   const followersCount = profile?.followersCount ?? 0;
   const followingCount = profile?.followingCount ?? 0;
   const postCount = posts.length;
@@ -360,10 +364,10 @@ export const ProfileScreen: React.FC = () => {
   const discoverList = useMemo(() => {
     const list = Array.isArray(storyUsers) ? storyUsers : [];
     return uniqBy(
-      list.filter((s) => s.id && s.id !== user?.id && !dismissed[s.id]),
+      list.filter((s) => s.id && s.id !== targetUserId && !dismissed[s.id]),
       'id'
     );
-  }, [storyUsers, user?.id, dismissed]);
+  }, [storyUsers, targetUserId, dismissed]);
 
   const visiblePosts = useMemo(() => {
     if (tab === 'reels') {
@@ -398,7 +402,7 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const onPickAvatar = async () => {
-    if (!user?.id || !token || !refreshToken || updatingAvatar) {
+    if (!isSelfProfile || !user?.id || !token || !refreshToken || updatingAvatar) {
       return;
     }
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -515,9 +519,11 @@ export const ProfileScreen: React.FC = () => {
                   </StoryBubbleWrap>
                   <AvatarWrap>
                     <ChatAvatar name={username} imageUrl={avatarUrl ?? undefined} size={86} />
-                    <AddBadge onPress={onPickAvatar} disabled={updatingAvatar}>
-                      <Ionicons name="add" size={16} color={colors.primaryText} />
-                    </AddBadge>
+                    {isSelfProfile && (
+                      <AddBadge onPress={onPickAvatar} disabled={updatingAvatar}>
+                        <Ionicons name="add" size={16} color={colors.primaryText} />
+                      </AddBadge>
+                    )}
                   </AvatarWrap>
                 </View>
                 <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -540,9 +546,11 @@ export const ProfileScreen: React.FC = () => {
                 <HandleText numberOfLines={1}>@ {username}</HandleText>
               </BioBlock>
               <ActionRow>
-                <PillBtn onPress={() => {}}>
-                  <PillBtnText>{t('profile.editProfile')}</PillBtnText>
-                </PillBtn>
+                {isSelfProfile && (
+                  <PillBtn onPress={() => {}}>
+                    <PillBtnText>{t('profile.editProfile')}</PillBtnText>
+                  </PillBtn>
+                )}
                 <PillBtn onPress={onShareProfile}>
                   <PillBtnText>{t('profile.shareProfile')}</PillBtnText>
                 </PillBtn>
@@ -573,7 +581,10 @@ export const ProfileScreen: React.FC = () => {
                       >
                         <Ionicons name="close" size={16} color={colors.secondaryText} />
                       </DiscoverClose>
-                      <View style={{ alignItems: 'center' }}>
+                      <Pressable
+                        onPress={() => router.push(`/user-profile/${s.id}`)}
+                        style={{ alignItems: 'center' }}
+                      >
                         {s.avatar ? (
                           <Image
                             source={{ uri: s.avatar }}
@@ -583,6 +594,7 @@ export const ProfileScreen: React.FC = () => {
                           <ChatAvatar name={s.username} size={72} />
                         )}
                         <DiscoverName numberOfLines={1}>{s.username}</DiscoverName>
+                      </Pressable>
                         <DiscoverSub numberOfLines={2}>{t('profile.suggestedForYou')}</DiscoverSub>
                         <FollowBtn
                           onPress={() => onFollowDiscover(s.id)}
@@ -593,7 +605,6 @@ export const ProfileScreen: React.FC = () => {
                             {followed[s.id] ? t('profile.following') : t('feed.follow')}
                           </FollowBtnText>
                         </FollowBtn>
-                      </View>
                     </DiscoverCard>
                   ))}
                 </ScrollView>

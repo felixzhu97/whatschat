@@ -603,7 +603,12 @@ export const ReelsScreen: React.FC = () => {
 
                   <BottomOverlay $bottomPadding={insets.bottom + 4}>
                     <BottomRow>
-                      <Avatar source={{ uri: item.avatar || undefined }} />
+                      <Pressable
+                        onPress={() => router.push(`/user-profile/${item.userId}`)}
+                        hitSlop={8}
+                      >
+                        <Avatar source={{ uri: item.avatar || undefined }} />
+                      </Pressable>
                       <View style={{ flex: 1, minWidth: 0 }}>
                         <UserMetaRow>
                           <UserName numberOfLines={1}>{item.username}</UserName>

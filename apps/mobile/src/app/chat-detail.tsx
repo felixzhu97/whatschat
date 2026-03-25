@@ -3,6 +3,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   Text,
   ActivityIndicator,
   type ViewStyle,
@@ -275,6 +276,10 @@ export default function ChatDetailScreen() {
       startCall(otherUserId, contactName, '', 'video');
     }
   };
+  const handleProfilePress = () => {
+    if (!otherUserId) return;
+    router.push(`/user-profile/${otherUserId}`);
+  };
 
   const HeaderContent = () => (
     <HeaderRow>
@@ -282,7 +287,9 @@ export default function ChatDetailScreen() {
         <Ionicons name="chevron-back" size={24} color={colors.primaryText} />
       </BackButton>
       <HeaderCenter>
-        <ChatAvatar name={contactName} size={40} />
+        <Pressable onPress={handleProfilePress} hitSlop={8} disabled={!otherUserId}>
+          <ChatAvatar name={contactName} size={40} />
+        </Pressable>
         <HeaderAvatarBlock>
           <HeaderName numberOfLines={1}>{contactName}</HeaderName>
           <HeaderSubtitle>{t('chatDetail.online')}</HeaderSubtitle>

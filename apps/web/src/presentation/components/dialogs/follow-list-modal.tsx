@@ -119,6 +119,15 @@ const BtnRemove = styled.button`
   }
 `;
 
+const UserAvatarButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+`;
+
 export interface FollowListModalProps {
   open: boolean;
   onClose: () => void;
@@ -128,6 +137,7 @@ export interface FollowListModalProps {
   onFollow?: (userId: string) => void;
   onUnfollow?: (userId: string) => void;
   followListService: IFollowListService;
+  onUserClick?: (userId: string) => void;
 }
 
 export function FollowListModal({
@@ -139,6 +149,7 @@ export function FollowListModal({
   onFollow,
   onUnfollow,
   followListService,
+  onUserClick,
 }: FollowListModalProps) {
   const { t } = useTranslation();
   const [list, setList] = useState<FollowListItem[]>([]);
@@ -256,10 +267,18 @@ export function FollowListModal({
             <>
               {filtered.map((u) => (
                 <Row key={u.id}>
-                  <Avatar style={{ width: 44, height: 44 }}>
-                    <AvatarImage src={u.avatar || undefined} />
-                    <AvatarFallback>{u.username[0]}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatarButton
+                    type="button"
+                    aria-label={`Open profile ${u.username}`}
+                    onClick={() => onUserClick?.(u.id)}
+                  >
+                    <Avatar style={{ width: 44, height: 44 }}>
+                      <AvatarImage src={u.avatar || undefined} />
+                      <AvatarFallback>
+                        {(u.username || u.id).slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </UserAvatarButton>
                   <UserInfo>
                     <Username>{u.username}</Username>
                   </UserInfo>

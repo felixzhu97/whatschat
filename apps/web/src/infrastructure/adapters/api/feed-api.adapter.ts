@@ -132,6 +132,18 @@ export class FeedApiAdapter {
     return (res as { data?: PostDetailRes }).data;
   }
 
+  async getPostsByUser(userId: string, limit: number = 24, pageState?: string) {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (pageState) q.set("pageState", pageState);
+    const res = await this.api.get<unknown>(`/posts/user/${userId}?${q.toString()}`);
+    const r = res as unknown as { posts?: unknown[]; pageState?: string };
+    const posts = Array.isArray(r.posts) ? r.posts : [];
+    return {
+      posts,
+      pageState: r.pageState,
+    };
+  }
+
   async likePost(postId: string) {
     await this.api.post(`/posts/${postId}/like`);
   }

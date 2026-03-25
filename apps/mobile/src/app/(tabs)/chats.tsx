@@ -442,12 +442,22 @@ export default function ChatsScreen() {
             ListHeaderComponent={listHeader}
             ListFooterComponent={listFooter}
             contentContainerStyle={{ paddingBottom: 120 }}
-            renderItem={({ item }) => (
-              <ChatListItem
-                chat={item}
-                onPress={() => router.push(`/chat-detail?chatId=${item.id}`)}
-              />
-            )}
+            renderItem={({ item }) => {
+              const otherUserId =
+                item.type === 'individual'
+                  ? item.participantIds?.find((id) => id !== user?.id)
+                  : undefined;
+
+              return (
+                <ChatListItem
+                  chat={item}
+                  onPress={() => router.push(`/chat-detail?chatId=${item.id}`)}
+                  onAvatarPress={
+                    otherUserId ? () => router.push(`/user-profile/${otherUserId}`) : undefined
+                  }
+                />
+              );
+            }}
             keyExtractor={(item) => item.id}
             refreshControl={
               <RefreshControl

@@ -41,8 +41,10 @@ export type InstagramRoutePage =
 
 export function AuthenticatedInstagramApp({
   routePage = "home",
+  profileUserId,
 }: {
   routePage?: InstagramRoutePage;
+  profileUserId?: string;
 }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -73,5 +75,5 @@ export function AuthenticatedInstagramApp({
     return null;
   }
 
-  return <InstagramMain routePage={routePage} />;
+  return <InstagramMain routePage={routePage} profileUserId={profileUserId} />;
 }

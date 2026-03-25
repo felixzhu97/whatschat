@@ -527,19 +527,27 @@ export function ProfilePage({
               )}
             </StatsRow>
             {handleStr && <Handle>{handleStr}</Handle>}
-            <ActionsRow>
-              <ActionBtn onClick={onEditProfile}>{t("profile.editProfile")}</ActionBtn>
-              <ActionBtn onClick={onViewArchive}>{t("profile.viewArchive")}</ActionBtn>
-            </ActionsRow>
+            {(onEditProfile || onViewArchive) && (
+              <ActionsRow>
+                {onEditProfile && (
+                  <ActionBtn onClick={onEditProfile}>{t("profile.editProfile")}</ActionBtn>
+                )}
+                {onViewArchive && (
+                  <ActionBtn onClick={onViewArchive}>{t("profile.viewArchive")}</ActionBtn>
+                )}
+              </ActionsRow>
+            )}
           </InfoBlock>
         </ProfileHeader>
 
-        <NewSection>
-          <NewBtn type="button" onClick={onNewPost} aria-label={t("profile.new")}>
-            <Plus size={24} strokeWidth={2} />
-          </NewBtn>
-          <NewLabel>{t("profile.new")}</NewLabel>
-        </NewSection>
+        {onNewPost && (
+          <NewSection>
+            <NewBtn type="button" onClick={onNewPost} aria-label={t("profile.new")}>
+              <Plus size={24} strokeWidth={2} />
+            </NewBtn>
+            <NewLabel>{t("profile.new")}</NewLabel>
+          </NewSection>
+        )}
 
         <TabsRow>
           <Tab $active={activeTab === "grid"} onClick={() => setActiveTab("grid")}>
