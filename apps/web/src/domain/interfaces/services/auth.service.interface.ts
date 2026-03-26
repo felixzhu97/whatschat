@@ -1,10 +1,10 @@
 import { User } from "../../entities/user.entity";
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken?: string;
-  expiresIn: number;
-}
+import type {
+  AuthState as SharedAuthState,
+  AuthTokens,
+} from "@whatschat/shared-types";
+export type { AuthTokens } from "@whatschat/shared-types";
+export type AuthState = SharedAuthState<User>;
 
 export interface RegisterData {
   username: string;
@@ -18,12 +18,6 @@ export interface LoginData {
   password: string;
 }
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
 
 export interface IAuthService {
   login(data: LoginData): Promise<{ success: boolean; error?: string }>;

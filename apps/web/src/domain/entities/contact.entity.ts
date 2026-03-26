@@ -1,4 +1,4 @@
-import type { ContactGroupMember } from "@whatschat/domain";
+import type { ContactGroupMember } from "@whatschat/shared-types";
 
 export type { ContactGroupMember };
 

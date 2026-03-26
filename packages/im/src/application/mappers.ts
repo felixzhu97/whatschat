@@ -1,4 +1,4 @@
-import type { Message } from "@whatschat/domain";
+import type { Message } from "@whatschat/shared-types";
 import type { ApiMessageLike, SocketMessagePayload } from "../domain";
 
 export function mapApiMessageToMessage(m: ApiMessageLike): Message {

@@ -128,7 +128,7 @@ services/
   recommendation # 推荐服务 + Celery + FastAPI rank(:8000)，通过 ETL 读取 analytics_events（含广告）
   vision         # 内容审核与标签推荐（Python/FastAPI, :8001）
 packages/
-  domain            # 共享类型与常量（@whatschat/domain）
+  shared-types      # 共享类型与常量（@whatschat/shared-types）
   im                # IM 与 RTC（@whatschat/im）
   rtc               # 音视频通话逻辑（@whatschat/rtc，被 im 使用）
   analytics         # 行为与广告分析 SDK（@whatschat/analytics）
@@ -145,7 +145,7 @@ packages/
 - Web/Admin/Mobile：`apps/web`、`apps/admin`、`apps/mobile`
 
 **共享包**
-- `@whatschat/domain`：User/Message/Chat/Contact/Call 类型
+- `@whatschat/shared-types`：User/Message/Chat/Contact/Call 类型
 - `@whatschat/im`：聊天 slices、hooks（`useRealChat`、`useChatsWithLiveMessages`）、RTC（`useCall`、`createCallManager`）
 - `@whatschat/rtc`：RTC 领域模型（`RTCCallState`、`ICallManager`）、可配置 `createCallManager`、`formatDuration`、`CallManagerStub`
 - `@whatschat/analytics`：事件类型与上报 API；Web/Mobile 上报，Admin 通过 REST 读取（含 ad_impression/ad_click/ad_conversion）

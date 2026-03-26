@@ -17,7 +17,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@whatschat/analytics": "workspace:*",
-    "@whatschat/domain": "workspace:*",
+    "@whatschat/shared-types": "workspace:*",
     "@whatschat/im": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.2",

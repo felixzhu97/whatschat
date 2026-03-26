@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { Message } from "@whatschat/domain";
+import type { Message } from "@whatschat/shared-types";
 import type { IWebSocketAdapter, ChatState } from "../domain";
 
 export interface StorageAdapter {

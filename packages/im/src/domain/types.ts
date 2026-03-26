@@ -1,4 +1,4 @@
-import type { Message } from "@whatschat/domain";
+import type { Message } from "@whatschat/shared-types";
 
 export interface WebSocketMessage {
   type:

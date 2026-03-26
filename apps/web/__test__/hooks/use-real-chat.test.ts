@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import type { Message } from "@whatschat/domain";
+import type { Message } from "@whatschat/shared-types";
 import { useRealChat } from "@/src/presentation/hooks/use-real-chat";
 
 // Mock WebSocket manager

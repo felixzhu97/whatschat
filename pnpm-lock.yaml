@@ -105,12 +105,12 @@ importers:
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
-      '@whatschat/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
       '@whatschat/im':
         specifier: workspace:*
         version: link:../../packages/im
+      '@whatschat/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       axios:
         specifier: ^1.8.4
         version: 1.13.5
@@ -379,12 +379,12 @@ importers:
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
-      '@whatschat/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
       '@whatschat/im':
         specifier: workspace:*
         version: link:../../packages/im
+      '@whatschat/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       amazon-chime-sdk-js:
         specifier: ^3.0.0
         version: 3.30.0
@@ -525,23 +525,14 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
-  packages/domain:
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
-
   packages/im:
     dependencies:
-      '@whatschat/domain':
-        specifier: workspace:*
-        version: link:../domain
       '@whatschat/rtc':
         specifier: workspace:*
         version: link:../rtc
+      '@whatschat/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
     devDependencies:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
@@ -593,6 +584,15 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  packages/shared-types:
+    devDependencies:
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
@@ -666,15 +666,15 @@ importers:
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
-      '@whatschat/domain':
-        specifier: workspace:*
-        version: link:../../packages/domain
       '@whatschat/image-generation':
         specifier: workspace:*
         version: link:../../packages/image-generation
       '@whatschat/llm':
         specifier: workspace:*
         version: link:../../packages/llm
+      '@whatschat/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       '@whatschat/video-generation':
         specifier: workspace:*
         version: link:../../packages/video-generation

@@ -319,9 +319,9 @@ apps/web/
 
 ### v4.3 - 领域抽象与共享包 (当前)
 
-- **共享领域包**：新增 `packages/domain`（@whatschat/domain），统一 User、Message、Chat、Contact、Group、Call 等类型定义
-- **三端统一**：Server、Web、Mobile 均使用 @whatschat/domain 的类型；各应用可扩展或实现接口
-- **共享包结构**：`packages/domain`（领域类型）
+- **共享领域包**：新增 `packages/shared-types`（@whatschat/shared-types），统一 User、Message、Chat、Contact、Group、Call 等类型定义
+- **三端统一**：Server、Web、Mobile 均使用 @whatschat/shared-types 的类型；各应用可扩展或实现接口
+- **共享包结构**：`packages/shared-types`（领域类型）
 - **类型检查**：根目录 `pnpm tsc` / `pnpm check-types` 对所有 workspace 执行 TypeScript 检查
 
 ### v5.0 - 未来规划
@@ -481,13 +481,13 @@ plantuml -tsvg docs/zh/product/**/*.puml docs/zh/data/*.puml docs/zh/rd/distribu
 
 ## 文档更新记录
 
-本文档随项目架构演进持续更新，最后更新时间：2026年2月（共享领域包 @whatschat/domain 版本）
+本文档随项目架构演进持续更新，最后更新时间：2026年2月（共享领域包 @whatschat/shared-types 版本）
 
 ### 主要更新内容
 
 - ✅ 更新技术栈信息（NestJS 10）
 - ✅ 添加整洁架构说明
-- ✅ 添加共享领域包与 monorepo 包结构（@whatschat/domain）
+- ✅ 添加共享领域包与 monorepo 包结构（@whatschat/shared-types）
 - ✅ 更新项目结构描述
 - ✅ 更新环境变量配置说明
 - ✅ 更新 API 文档链接（Swagger）

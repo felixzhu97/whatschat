@@ -1,10 +1,6 @@
 import { User } from "../../entities/user.entity";
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
+import type { AuthTokens } from "@whatschat/shared-types";
+export type { AuthTokens } from "@whatschat/shared-types";
 
 export interface RegisterData {
   email: string;

@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsOptional, IsNumber, IsObject, Min, Max } from "class-validator";
-import type { MessageType } from "@whatschat/domain";
+import type { MessageType } from "@whatschat/shared-types";
 
 export class CreateMessageDto {
   @IsString({ message: "内容必须是字符串" })

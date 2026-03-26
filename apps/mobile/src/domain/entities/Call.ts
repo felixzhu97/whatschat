@@ -1,4 +1,4 @@
-import type { Call as DomainCall } from "@whatschat/domain";
+import type { Call as DomainCall } from "@whatschat/shared-types";
 
 export enum CallType {
   Voice = "voice",

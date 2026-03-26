@@ -1,4 +1,22 @@
 export type { User } from "./user";
+export type { ApiResponse, Pagination } from "./transport";
+export type { StoryItem, FeedPost, SuggestedUser } from "./feed";
+export type { AuthTokens, AuthState } from "./auth";
+export type {
+  Reaction,
+  Status,
+  SearchResult,
+  Notification,
+  Theme,
+  VoiceRecording,
+  DeviceInfo,
+  Backup,
+  Statistics,
+  AppError,
+  Settings,
+  VideoLayout,
+  CameraPosition,
+} from "./ui";
 export type {
   Message,
   MessageType,

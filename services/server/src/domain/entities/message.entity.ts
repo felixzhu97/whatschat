@@ -1,5 +1,5 @@
-import type { MessageReaction, ContactInfo } from "@whatschat/domain";
-import { MessageTypeValues } from "@whatschat/domain";
+import type { MessageReaction, ContactInfo } from "@whatschat/shared-types";
+import { MessageTypeValues } from "@whatschat/shared-types";
 
 export type MessageType = (typeof MessageTypeValues)[number];
 

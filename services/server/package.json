@@ -41,7 +41,7 @@
     "@nestjs/websockets": "^10.3.0",
     "@prisma/client": "^5.7.1",
     "@whatschat/analytics": "workspace:*",
-    "@whatschat/domain": "workspace:*",
+    "@whatschat/shared-types": "workspace:*",
     "@whatschat/image-generation": "workspace:*",
     "@whatschat/llm": "workspace:*",
     "@whatschat/video-generation": "workspace:*",

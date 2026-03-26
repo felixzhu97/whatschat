@@ -26,7 +26,7 @@
     "@reduxjs/toolkit": "^2.5.0",
     "@types/lodash": "^4.17.16",
     "@whatschat/analytics": "workspace:*",
-    "@whatschat/domain": "workspace:*",
+    "@whatschat/shared-types": "workspace:*",
     "@whatschat/im": "workspace:*",
     "axios": "^1.8.4",
     "expo": "55.0.0",

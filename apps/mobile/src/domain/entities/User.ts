@@ -1,4 +1,4 @@
-import type { User as DomainUser } from "@whatschat/domain";
+import type { User as DomainUser } from "@whatschat/shared-types";
 import { toOptionalDate, toRequiredDate } from "./valueCoercion";
 
 export interface User extends DomainUser {

@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { Message } from "@whatschat/domain";
+import type { Message } from "@whatschat/shared-types";
 
 interface State {
   messages: Record<string, Message[]>;

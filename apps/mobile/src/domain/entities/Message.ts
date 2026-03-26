@@ -1,4 +1,4 @@
-import type { Message as DomainMessage } from "@whatschat/domain";
+import type { Message as DomainMessage } from "@whatschat/shared-types";
 import { toOptionalDate, toOptionalNumber } from "./valueCoercion";
 
 export enum MessageType {
