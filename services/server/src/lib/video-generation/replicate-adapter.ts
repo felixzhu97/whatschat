@@ -11,7 +11,7 @@ export function createReplicateAdapter(token: string) {
     const input: Record<string, string> = {
       input_image: payload.imageUrl ?? '',
     };
-    if (payload.prompt) input.prompt = payload.prompt;
+    if (payload.prompt) input['prompt'] = payload.prompt;
     const prediction = await replicate.predictions.create({
       model: SVD_MODEL,
       version: SVD_VERSION,
@@ -26,7 +26,10 @@ export function createReplicateAdapter(token: string) {
     if (status === 'succeeded' && prediction.output != null) {
       const output = prediction.output as string | string[];
       const videoUrl = typeof output === 'string' ? output : output[0];
-      return { status: 'succeeded', videoUrl };
+      const base = { status: 'succeeded' as const };
+      return typeof videoUrl === 'string'
+        ? { ...base, videoUrl }
+        : base;
     }
     if (status === 'failed') {
       const err = (prediction as { error?: string }).error;

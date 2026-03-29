@@ -129,12 +129,12 @@ services/
   vision         # 内容审核与标签推荐（Python/FastAPI, :8001）
 packages/
   shared-types      # 共享类型与常量（@whatschat/shared-types）
-  im                # IM 与 RTC（@whatschat/im）
-  rtc               # 音视频通话逻辑（@whatschat/rtc，被 im 使用）
+  im                # IM 与内嵌 RTC 模块（@whatschat/im，RTC 源码在 packages/im/src/rtc）
   analytics         # 行为与广告分析 SDK（@whatschat/analytics）
-  llm               # LLM 客户端（Ollama stream，供 server 使用）
-  image-generation  # 图片生成客户端（HTTP 任务 API 或 Replicate）
-  video-generation  # 视频生成客户端（HTTP 任务 API）
+services/server/src/lib/
+  llm               # Ollama 聊天客户端（仅 API 服务使用）
+  image-generation  # 图片生成（HTTP 任务 API 或 Replicate）
+  video-generation  # 视频生成（HTTP 任务 API 或 Replicate）
 ```
 
 **代码映射（C4/TOGAF）**
@@ -146,12 +146,13 @@ packages/
 
 **共享包**
 - `@whatschat/shared-types`：User/Message/Chat/Contact/Call 类型
-- `@whatschat/im`：聊天 slices、hooks（`useRealChat`、`useChatsWithLiveMessages`）、RTC（`useCall`、`createCallManager`）
-- `@whatschat/rtc`：RTC 领域模型（`RTCCallState`、`ICallManager`）、可配置 `createCallManager`、`formatDuration`、`CallManagerStub`
+- `@whatschat/im`：聊天 slices、hooks（`useRealChat`、`useChatsWithLiveMessages`）；RTC 与领域模型（`RTCCallState`、`ICallManager`、`useCall`、`createCallManager`、`formatDuration`、`CallManagerStub`）位于 `packages/im/src/rtc` 并由包入口重导出
 - `@whatschat/analytics`：事件类型与上报 API；Web/Mobile 上报，Admin 通过 REST 读取（含 ad_impression/ad_click/ad_conversion）
-- `@whatschat/llm`：Ollama 流式聊天客户端
-- `@whatschat/image-generation`：图片生成客户端（HTTP 轮询或 Replicate 适配）
-- `@whatschat/video-generation`：视频生成客户端（HTTP 轮询）
+
+**API 服务内建库**（`services/server/src/lib`，不发布为 workspace 包）
+- `llm`：Ollama 聊天与流式接口
+- `image-generation`：图片生成（HTTP 轮询或 Replicate）
+- `video-generation`：视频生成（HTTP 轮询或 Replicate）
 
 ## 📚 文档
 

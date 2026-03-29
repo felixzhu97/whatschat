@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { createClient } from '@whatschat/llm';
+import { createClient } from '@/lib/llm';
 import { ConfigService } from '@/infrastructure/config/config.service';
 import logger from '@/shared/utils/logger';
 

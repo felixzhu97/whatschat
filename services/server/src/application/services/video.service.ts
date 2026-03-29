@@ -4,7 +4,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { createClient } from '@whatschat/video-generation';
+import { createClient } from '@/lib/video-generation';
 import { ConfigService } from '@/infrastructure/config/config.service';
 
 export interface VideoGenerateInput {

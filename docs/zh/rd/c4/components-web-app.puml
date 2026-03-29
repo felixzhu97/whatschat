@@ -29,7 +29,7 @@ Container_Boundary(web_app, "Web 应用") {
   Component(api_client, "API 客户端", "Fetch/axios", "REST：信息流、帖子、评论、认证、聊天、搜索（游标）")
   Component(ws_client, "WebSocket 客户端", "Socket.IO", "实时连接")
   Component(rtc_config, "RTC 配置", "web-rtc-config.ts", "createCallManager(createWebRTCConfig())")
-  Component(im_pkg, "IM 包", "@whatschat/im", "聊天 + RTC 逻辑，重导出 @whatschat/rtc")
+  Component(im_pkg, "IM 包", "@whatschat/im", "聊天 + RTC（packages/im/src/rtc，包入口重导出）")
   Component(domain_types, "领域类型", "@whatschat/domain", "User、Message、Chat、Contact、Call")
 }
 

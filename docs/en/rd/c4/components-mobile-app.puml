@@ -26,7 +26,7 @@ Container_Boundary(mobile_app, "Mobile Application") {
   Component(video_player, "Video Player", "expo-video", "Auto-play/pause videos in feed when visible, mute toggle; one active player per screen")
   Component(analytics_client, "Analytics Client", "@whatschat/analytics", "Tracks feed view/like/save, video play/complete, ad_impression/ad_click for web/mobile parity")
   Component(rtc_config, "RTC Config", "callManagerLoader + mobile-rtc-config", "createCallManager(createMobileRTCConfig()), setSocket")
-  Component(im_pkg, "IM Package", "@whatschat/im", "Chat + RTC logic, re-exports @whatschat/rtc")
+  Component(im_pkg, "IM Package", "@whatschat/im", "Chat + RTC (packages/im/src/rtc, re-exported at package entry)")
   Component(domain_types, "Domain Types", "@whatschat/domain", "User, Message, Chat, Contact, Call")
 }
 

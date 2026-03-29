@@ -4,7 +4,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { createClient } from '@whatschat/image-generation';
+import { createClient } from '@/lib/image-generation';
 import { ConfigService } from '@/infrastructure/config/config.service';
 import { AiService } from './ai.service';
 

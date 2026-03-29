@@ -26,7 +26,7 @@ Container_Boundary(mobile_app, "移动端应用") {
   Component(video_player, "视频播放器", "expo-video", "信息流与 Reels 中视频按可见性自动播放/暂停，静音切换；同屏仅一个活跃播放器")
   Component(analytics_client, "分析埋点客户端", "@whatschat/analytics", "上报信息流浏览/点赞/收藏、视频播放/完成、广告曝光/点击，保证与 Web 一致")
   Component(rtc_config, "RTC 配置", "callManagerLoader + mobile-rtc-config", "createCallManager(createMobileRTCConfig())、setSocket")
-  Component(im_pkg, "IM 包", "@whatschat/im", "聊天 + RTC 逻辑，重导出 @whatschat/rtc")
+  Component(im_pkg, "IM 包", "@whatschat/im", "聊天 + RTC（packages/im/src/rtc，包入口重导出）")
   Component(domain_types, "领域类型", "@whatschat/domain", "User、Message、Chat、Contact、Call")
 }
 

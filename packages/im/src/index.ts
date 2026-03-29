@@ -1,4 +1,4 @@
 export * from "./domain";
 export * from "./application";
 export * from "./presentation";
-export * from "@whatschat/rtc";
+export * from "./rtc";

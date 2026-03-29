@@ -17,21 +17,14 @@ package "共享包" {
   note right of ImPkg
     聊天：slices、useRealChat、
     useChatsWithLiveMessages。
-    RTC：useCall、createCallManager。
-    重导出 @whatschat/rtc。
-  end note
-  
-  component [@whatschat/rtc] as RtcPkg #LightGreen
-  note right of RtcPkg
-    配置驱动 RTC：
-    RTCCallState、ICallManager、
-    createCallManager(config)。
-    应用注入信令、媒体、API 适配器。
+    RTC（src/rtc）：useCall、
+    createCallManager、RTCCallState、
+    ICallManager；应用注入信令、
+    媒体、API 适配器。
   end note
 }
 
 ImPkg --> DomainPkg : 使用类型
-ImPkg --> RtcPkg : 依赖
 
 package "客户端应用" {
   component [Web 应用] as WebApp #LightBlue

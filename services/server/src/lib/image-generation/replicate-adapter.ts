@@ -11,7 +11,7 @@ export function createReplicateAdapter(token: string) {
     const input: Record<string, string> = {
       prompt: payload.prompt,
     };
-    if (payload.negativePrompt) input.negative_prompt = payload.negativePrompt;
+    if (payload.negativePrompt) input['negative_prompt'] = payload.negativePrompt;
     const prediction = await replicate.predictions.create({
       model: SDXL_MODEL,
       version: SDXL_VERSION,
@@ -26,7 +26,10 @@ export function createReplicateAdapter(token: string) {
     if (status === 'succeeded' && prediction.output != null) {
       const output = prediction.output as string | string[];
       const imageUrl = Array.isArray(output) ? output[0] : output;
-      return { status: 'succeeded', imageUrl };
+      const base = { status: 'succeeded' as const };
+      return typeof imageUrl === 'string'
+        ? { ...base, imageUrl }
+        : base;
     }
     if (status === 'failed') {
       const err = (prediction as { error?: string }).error;

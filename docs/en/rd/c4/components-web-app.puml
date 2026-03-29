@@ -29,7 +29,7 @@ Container_Boundary(web_app, "Web Application") {
   Component(api_client, "API Client", "Fetch/axios", "REST: feed, posts, comments, auth, chat, search (cursor)")
   Component(ws_client, "WebSocket Client", "Socket.IO", "Realtime connection")
   Component(rtc_config, "RTC Config", "web-rtc-config.ts", "createCallManager(createWebRTCConfig())")
-  Component(im_pkg, "IM Package", "@whatschat/im", "Chat + RTC logic, re-exports @whatschat/rtc")
+  Component(im_pkg, "IM Package", "@whatschat/im", "Chat + RTC (packages/im/src/rtc, re-exported at package entry)")
   Component(domain_types, "Domain Types", "@whatschat/domain", "User, Message, Chat, Contact, Call")
 }
 

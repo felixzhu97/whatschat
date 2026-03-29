@@ -527,9 +527,6 @@ importers:
 
   packages/im:
     dependencies:
-      '@whatschat/rtc':
-        specifier: workspace:*
-        version: link:../rtc
       '@whatschat/shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -550,61 +547,7 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
-  packages/image-generation:
-    dependencies:
-      replicate:
-        specifier: ^0.34.0
-        version: 0.34.1
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
-
-  packages/llm:
-    dependencies:
-      ollama:
-        specifier: ^0.6.0
-        version: 0.6.3
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
-
-  packages/rtc:
-    devDependencies:
-      '@types/react':
-        specifier: ^18.3.0
-        version: 18.3.28
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
-
   packages/shared-types:
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)
-      typescript:
-        specifier: 5.8.2
-        version: 5.8.2
-
-  packages/video-generation:
-    dependencies:
-      replicate:
-        specifier: ^0.34.0
-        version: 0.34.1
     devDependencies:
       tsup:
         specifier: ^8.0.0
@@ -666,18 +609,9 @@ importers:
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
-      '@whatschat/image-generation':
-        specifier: workspace:*
-        version: link:../../packages/image-generation
-      '@whatschat/llm':
-        specifier: workspace:*
-        version: link:../../packages/llm
       '@whatschat/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
-      '@whatschat/video-generation':
-        specifier: workspace:*
-        version: link:../../packages/video-generation
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -735,6 +669,9 @@ importers:
       nodemailer:
         specifier: ^6.9.7
         version: 6.10.1
+      ollama:
+        specifier: ^0.6.0
+        version: 0.6.3
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -750,6 +687,9 @@ importers:
       reflect-metadata:
         specifier: ^0.1.14
         version: 0.1.14
+      replicate:
+        specifier: ^0.34.0
+        version: 0.34.1
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2

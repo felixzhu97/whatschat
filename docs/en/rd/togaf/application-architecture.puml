@@ -17,22 +17,14 @@ package "Shared Packages" {
   note right of ImPkg
     Chat: slices, useRealChat,
     useChatsWithLiveMessages.
-    RTC: useCall, createCallManager.
-    Re-exports @whatschat/rtc.
-  end note
-  
-  component [@whatschat/rtc] as RtcPkg #LightGreen
-  note right of RtcPkg
-    Config-driven RTC:
-    RTCCallState, ICallManager,
-    createCallManager(config).
-    Apps inject signaling,
+    RTC (src/rtc): useCall,
+    createCallManager, RTCCallState,
+    ICallManager; apps inject signaling,
     media, API adapters.
   end note
 }
 
 ImPkg --> DomainPkg : uses types
-ImPkg --> RtcPkg : depends on
 
 package "Client Applications" {
   component [Web App] as WebApp #LightBlue
