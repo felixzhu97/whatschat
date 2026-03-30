@@ -47,7 +47,7 @@ const Avatar = styled.div`
   margin-bottom: 1rem;
 `;
 
-const UserName = styled.h1`
+const UserName = styled.h2`
   font-size: 1.25rem;
   font-weight: 600;
   color: ${theme.text};
@@ -109,6 +109,7 @@ export default function UserDetailPage() {
   const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const api = getApiClient();
 
@@ -117,7 +118,17 @@ export default function UserDetailPage() {
     api
       .get<User>(`admin/users/${params.id}`)
       .then((res) => {
-        if (res.success && res.data) setUser(res.data);
+        if (res.success && res.data) {
+          setUser(res.data);
+          setNotFound(false);
+          return;
+        }
+        setUser(null);
+        setNotFound(true);
+      })
+      .catch(() => {
+        setUser(null);
+        setNotFound(true);
       })
       .finally(() => setLoading(false));
   }, [params.id]);
@@ -133,13 +144,24 @@ export default function UserDetailPage() {
       .finally(() => setDeleting(false));
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div>
         <BackLink href="/users">
           <ArrowLeft size={18} /> {t("users.backToUserList")}
         </BackLink>
         <div style={{ color: theme.textSecondary }}>{t("common.loading")}</div>
+      </div>
+    );
+  }
+
+  if (notFound || !user) {
+    return (
+      <div>
+        <BackLink href="/users">
+          <ArrowLeft size={18} /> {t("users.backToUserList")}
+        </BackLink>
+        <div style={{ color: theme.textSecondary }}>{t("users.notFound")}</div>
       </div>
     );
   }

@@ -58,6 +58,59 @@ export interface AdCreative {
   updatedAt: string;
 }
 
+export interface FacebookAdManagerLink {
+  businessId: string;
+  adAccountId: string;
+  accessToken: string;
+}
+
+export interface PromotablePost {
+  postId: string;
+  userId: string;
+  caption: string;
+  mediaUrl: string | null;
+  createdAt: string;
+}
+
+export interface PromotedPost {
+  id: string;
+  postId: string;
+  campaignId: string;
+  accountId: string;
+  audience: string;
+  objective: "IMPRESSIONS" | "CLICKS" | "CONVERSIONS";
+  dailyBudgetCents: number;
+  totalBudgetCents: number | null;
+  status: "ACTIVE" | "PAUSED" | "COMPLETED";
+  ctr: number;
+  cvr: number;
+  spendCents: number;
+  clicks: number;
+  conversions: number;
+  impressions: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdPerformanceSummary {
+  spendCents: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  ctr: number;
+  cvr: number;
+  campaigns: Array<{
+    campaignId: string;
+    campaignName: string;
+    spendCents: number;
+    impressions: number;
+    clicks: number;
+    conversions: number;
+    ctr: number;
+    cvr: number;
+  }>;
+}
+
 export interface Paginated<T> {
   data: T[];
   pagination: {
@@ -97,7 +150,7 @@ export async function updateAdAccount(id: string, body: Partial<{
   dailyBudgetCents: number | null;
   totalBudgetCents: number | null;
 }>) {
-  return api.patch<AdAccount>(`ads/accounts/${id}`, body);
+  return api.put<AdAccount>(`ads/accounts/${id}`, body);
 }
 
 export async function getAdCampaigns(params?: { accountId?: string; status?: string; page?: number; limit?: number }) {
@@ -133,7 +186,7 @@ export async function updateAdCampaign(id: string, body: Partial<{
   startAt: string | null;
   endAt: string | null;
 }>) {
-  return api.patch<AdCampaign>(`ads/campaigns/${id}`, body);
+  return api.put<AdCampaign>(`ads/campaigns/${id}`, body);
 }
 
 export async function getAdGroups(params?: { campaignId?: string; placement?: string; page?: number; limit?: number }) {
@@ -171,7 +224,7 @@ export async function updateAdGroup(id: string, body: Partial<{
   maxImpressionsPerUser: number | null;
   maxImpressionsPerUserPerDay: number | null;
 }>) {
-  return api.patch<AdGroup>(`ads/groups/${id}`, body);
+  return api.put<AdGroup>(`ads/groups/${id}`, body);
 }
 
 export async function getAdCreatives(params?: { campaignId?: string; groupId?: string; page?: number; limit?: number }) {
@@ -209,6 +262,49 @@ export async function updateAdCreative(id: string, body: Partial<{
   landingUrl: string | null;
   language: string | null;
 }>) {
-  return api.patch<AdCreative>(`ads/creatives/${id}`, body);
+  return api.put<AdCreative>(`ads/creatives/${id}`, body);
+}
+
+export async function linkFacebookAdManager(body: FacebookAdManagerLink) {
+  return api.post<{ linked: boolean; linkedAt: string }>("ads/integrations/facebook/link", body);
+}
+
+export async function getPromotablePosts(params?: { page?: number; limit?: number; search?: string }) {
+  const search = new URLSearchParams();
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.search) search.set("search", params.search);
+  const qs = search.toString();
+  return api.get<Paginated<PromotablePost>>(`ads/promotions/posts${qs ? `?${qs}` : ""}`);
+}
+
+export async function getPromotedPosts(params?: { accountId?: string; status?: string; page?: number; limit?: number }) {
+  const search = new URLSearchParams();
+  if (params?.accountId) search.set("accountId", params.accountId);
+  if (params?.status) search.set("status", params.status);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  return api.get<Paginated<PromotedPost>>(`ads/promotions${qs ? `?${qs}` : ""}`);
+}
+
+export async function createPromotedPost(body: {
+  postId: string;
+  accountId: string;
+  objective: "IMPRESSIONS" | "CLICKS" | "CONVERSIONS";
+  audience: string;
+  dailyBudgetCents: number;
+  totalBudgetCents?: number | null;
+}) {
+  return api.post<PromotedPost>("ads/promotions", body);
+}
+
+export async function getAdPerformanceSummary(params?: { accountId?: string; from?: string; to?: string }) {
+  const search = new URLSearchParams();
+  if (params?.accountId) search.set("accountId", params.accountId);
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  const qs = search.toString();
+  return api.get<AdPerformanceSummary>(`ads/analytics/overview${qs ? `?${qs}` : ""}`);
 }
 

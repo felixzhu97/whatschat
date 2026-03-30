@@ -17,6 +17,7 @@ interface User {
   phone?: string;
   avatar?: string;
   status?: string;
+  roles?: string[];
 }
 
 interface AuthContextValue {

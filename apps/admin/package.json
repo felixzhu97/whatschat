@@ -16,6 +16,7 @@
     "ag-grid-react": "^35.1.0",
     "date-fns": "^4.1.0",
     "i18next": "^24.2.0",
+    "lodash": "^4.17.23",
     "lucide-react": "^0.454.0",
     "next": "15.2.8",
     "react": "^19",
@@ -24,6 +25,7 @@
     "recharts": "^2.15.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.23",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

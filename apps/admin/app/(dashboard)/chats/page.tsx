@@ -10,13 +10,6 @@ import { Search, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 
-const PageTitle = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${theme.text};
-  margin-bottom: 1.5rem;
-`;
-
 const Toolbar = styled.div`
   display: flex;
   gap: 1rem;
@@ -116,6 +109,12 @@ const ChatTime = styled.div`
   flex-shrink: 0;
 `;
 
+const EmptyState = styled.div`
+  padding: 2rem;
+  text-align: center;
+  color: ${theme.textSecondary};
+`;
+
 interface Chat {
   id: string;
   type: string;
@@ -173,7 +172,6 @@ export default function ChatsPage() {
 
   return (
     <div>
-      <PageTitle>{t("chats.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
           <SearchWrapper>
@@ -205,25 +203,29 @@ export default function ChatsPage() {
             {t("common.loading")}
           </div>
         ) : (
-          chats.map((c) => (
-            <ChatItem key={c.id} href={`/chats/${c.id}`}>
-              <Avatar>
-                {displayName(c).charAt(0)?.toUpperCase() || "?"}
-              </Avatar>
-              <ChatInfo>
-                <ChatName>{displayName(c)}</ChatName>
-                <ChatMeta>
-                  {c.lastMessage
-                    ? `${c.lastMessage.sender?.username || ""}: ${c.lastMessage.content?.slice(0, 50) || ""}`
-                    : t("chats.noMessages")}
-                </ChatMeta>
-              </ChatInfo>
-              <ChatTime>
-                {format(new Date(c.updatedAt), "MM-dd HH:mm", { locale: dateLocale })}
-              </ChatTime>
-              <ChevronRight size={20} color={theme.iconMuted} />
-            </ChatItem>
-          ))
+          chats.length === 0 ? (
+            <EmptyState>{t("chats.empty")}</EmptyState>
+          ) : (
+            chats.map((c) => (
+              <ChatItem key={c.id} href={`/chats/${c.id}`}>
+                <Avatar>
+                  {displayName(c).charAt(0)?.toUpperCase() || "?"}
+                </Avatar>
+                <ChatInfo>
+                  <ChatName>{displayName(c)}</ChatName>
+                  <ChatMeta>
+                    {c.lastMessage
+                      ? `${c.lastMessage.sender?.username || ""}: ${c.lastMessage.content?.slice(0, 50) || ""}`
+                      : t("chats.noMessages")}
+                  </ChatMeta>
+                </ChatInfo>
+                <ChatTime>
+                  {format(new Date(c.updatedAt), "MM-dd HH:mm", { locale: dateLocale })}
+                </ChatTime>
+                <ChevronRight size={20} color={theme.iconMuted} />
+              </ChatItem>
+            ))
+          )
         )}
       </ChatList>
       {totalPages > 1 && (

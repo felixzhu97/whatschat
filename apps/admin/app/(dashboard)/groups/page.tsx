@@ -9,13 +9,6 @@ import { Search } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 
-const PageTitle = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${theme.text};
-  margin-bottom: 1.5rem;
-`;
-
 const Toolbar = styled.div`
   display: flex;
   gap: 1rem;
@@ -105,6 +98,16 @@ const Members = styled.div`
   margin-top: 0.5rem;
 `;
 
+const EmptyState = styled.div`
+  background: ${theme.surface};
+  border: 1px solid ${theme.border};
+  border-radius: 12px;
+  box-shadow: ${theme.shadow};
+  padding: 2rem;
+  text-align: center;
+  color: ${theme.textSecondary};
+`;
+
 interface Group {
   id: string;
   name: string;
@@ -158,7 +161,6 @@ export default function GroupsPage() {
 
   return (
     <div>
-      <PageTitle>{t("groups.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
           <SearchWrapper>
@@ -185,63 +187,67 @@ export default function GroupsPage() {
         </Toolbar>
       </form>
       {loading ? (
-<div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-        {t("common.loading")}
-      </div>
+        <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
+          {t("common.loading")}
+        </div>
       ) : (
         <>
-          <GroupGrid>
-            {groups.map((g) => (
-              <GroupCard key={g.id}>
-                <GroupHeader>
-                  <Avatar>{g.name?.charAt(0)?.toUpperCase() || "?"}</Avatar>
-                  <div>
-                    <GroupName>{g.name}</GroupName>
-                    <GroupMeta>
-                      {t("groups.creator")}: {g.creator?.username} ·{" "}
-                      {format(new Date(g.createdAt), "yyyy-MM-dd", {
-                        locale: dateLocale,
-                      })}
-                    </GroupMeta>
-                  </div>
-                </GroupHeader>
-                {g.description && (
-                  <div
-                    style={{
-                      fontSize: "0.875rem",
-                      color: theme.textSecondary,
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    {g.description}
-                  </div>
-                )}
-                <Members>
-                  {t("groups.membersCount", { count: g.participants?.length || 0 })}
-                  {g.participants?.slice(0, 5).map((p) => (
-                    <span
-                      key={p.username}
+          {groups.length === 0 ? (
+            <EmptyState>{t("groups.empty")}</EmptyState>
+          ) : (
+            <GroupGrid>
+              {groups.map((g) => (
+                <GroupCard key={g.id}>
+                  <GroupHeader>
+                    <Avatar>{g.name?.charAt(0)?.toUpperCase() || "?"}</Avatar>
+                    <div>
+                      <GroupName>{g.name}</GroupName>
+                      <GroupMeta>
+                        {t("groups.creator")}: {g.creator?.username} ·{" "}
+                        {format(new Date(g.createdAt), "yyyy-MM-dd", {
+                          locale: dateLocale,
+                        })}
+                      </GroupMeta>
+                    </div>
+                  </GroupHeader>
+                  {g.description && (
+                    <div
                       style={{
-                        display: "inline-block",
-                        marginLeft: "0.25rem",
-                        padding: "0.125rem 0.375rem",
-                        background: theme.surfaceAlt,
-                        borderRadius: "4px",
-                        fontSize: "0.75rem",
+                        fontSize: "0.875rem",
+                        color: theme.textSecondary,
+                        marginBottom: "0.5rem",
                       }}
                     >
-                      {p.username}
-                    </span>
-                  ))}
-                  {(g.participants?.length || 0) > 5 && (
-                    <span style={{ marginLeft: "0.25rem", color: theme.textSecondary }}>
-                      +{g.participants!.length - 5}
-                    </span>
+                      {g.description}
+                    </div>
                   )}
-                </Members>
-              </GroupCard>
-            ))}
-          </GroupGrid>
+                  <Members>
+                    {t("groups.membersCount", { count: g.participants?.length || 0 })}
+                    {g.participants?.slice(0, 5).map((p) => (
+                      <span
+                        key={p.username}
+                        style={{
+                          display: "inline-block",
+                          marginLeft: "0.25rem",
+                          padding: "0.125rem 0.375rem",
+                          background: theme.surfaceAlt,
+                          borderRadius: "4px",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        {p.username}
+                      </span>
+                    ))}
+                    {(g.participants?.length || 0) > 5 && (
+                      <span style={{ marginLeft: "0.25rem", color: theme.textSecondary }}>
+                        +{g.participants!.length - 5}
+                      </span>
+                    )}
+                  </Members>
+                </GroupCard>
+              ))}
+            </GroupGrid>
+          )}
           {totalPages > 1 && (
             <div
               style={{

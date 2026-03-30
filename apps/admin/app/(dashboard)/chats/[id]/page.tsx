@@ -79,6 +79,12 @@ const DeleteBtn = styled.button`
   }
 `;
 
+const EmptyState = styled.div`
+  padding: 2rem;
+  text-align: center;
+  color: ${theme.textSecondary};
+`;
+
 interface Message {
   id: string;
   content: string;
@@ -134,32 +140,36 @@ export default function ChatMessagesPage() {
             {t("common.loading")}
           </div>
         ) : (
-          messages.map((m) => (
-            <MessageItem key={m.id}>
-              <MessageContent>
-                <MessageSender>
-                  {m.sender?.username} ({m.sender?.email})
-                </MessageSender>
-                <MessageText>
-                  {m.isDeleted ? (
-                    <span style={{ color: theme.textSecondary, fontStyle: "italic" }}>
-                      [{t("chats.deleted")}]
-                    </span>
-                  ) : (
-                    m.content
-                  )}
-                </MessageText>
-                <MessageTime>
-                  {format(new Date(m.createdAt), "PPpp", { locale: dateLocale })}
-                </MessageTime>
-              </MessageContent>
-              {!m.isDeleted && (
-                <DeleteBtn onClick={() => handleDelete(m.id)} title={t("chats.deleteMessage")}>
-                  <Trash2 size={16} />
-                </DeleteBtn>
-              )}
-            </MessageItem>
-          ))
+          messages.length === 0 ? (
+            <EmptyState>{t("chats.emptyMessages")}</EmptyState>
+          ) : (
+            messages.map((m) => (
+              <MessageItem key={m.id}>
+                <MessageContent>
+                  <MessageSender>
+                    {m.sender?.username} ({m.sender?.email})
+                  </MessageSender>
+                  <MessageText>
+                    {m.isDeleted ? (
+                      <span style={{ color: theme.textSecondary, fontStyle: "italic" }}>
+                        [{t("chats.deleted")}]
+                      </span>
+                    ) : (
+                      m.content
+                    )}
+                  </MessageText>
+                  <MessageTime>
+                    {format(new Date(m.createdAt), "PPpp", { locale: dateLocale })}
+                  </MessageTime>
+                </MessageContent>
+                {!m.isDeleted && (
+                  <DeleteBtn onClick={() => handleDelete(m.id)} title={t("chats.deleteMessage")}>
+                    <Trash2 size={16} />
+                  </DeleteBtn>
+                )}
+              </MessageItem>
+            ))
+          )
         )}
       </MessageList>
       {totalPages > 1 && (
