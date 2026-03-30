@@ -51,7 +51,8 @@ package "Client Applications" {
     - Recharts (charts)
     - i18next (en/zh)
     - Theme (light/dark)
-    - Ads section: accounts, campaigns, groups, creatives management
+    - Ads & promotions: ad manager, promoted posts, performance
+    - Shopping & commerce: store setup, product tags, order tracking
   end note
   
   component [Mobile App] as MobileApp #LightGreen
@@ -106,6 +107,9 @@ package "Application Services Layer" {
   component [Ad Pacing Service] as AdPacingService
   component [Ad Creative Service] as AdCreativeService
   component [Ads Admin Service] as AdsAdminService
+  component [Commerce Store Service] as CommerceStoreService
+  component [Commerce Tag Service] as CommerceTagService
+  component [Commerce Order Service] as CommerceOrderService
 }
 
 package "Recommendation Application" {
@@ -149,6 +153,7 @@ package "Data Access Layer" {
   component [Post/Feed Repository] as PostFeedRepo
   component [Comment Repository] as CommentRepo
   component [Ad Repository] as AdRepo
+  component [Commerce Repository] as CommerceRepo
 }
 
 package "Infrastructure Services" {
@@ -191,6 +196,9 @@ RestGateway --> FollowService : routes to
 RestGateway --> CommentService : routes to
 RestGateway --> NotificationService : routes to
 RestGateway --> SearchService : routes to
+RestGateway --> CommerceStoreService : routes to
+RestGateway --> CommerceTagService : routes to
+RestGateway --> CommerceOrderService : routes to
 
 WsGateway --> MessageService : realtime messages
 WsGateway --> ChatService : chat events
@@ -208,6 +216,9 @@ GroupService --> BusinessRules : uses
 StatusService --> BusinessRules : uses
 AdService --> AdsBusinessRules : uses
 AdsAdminService --> AdsBusinessRules : uses
+CommerceStoreService --> BusinessRules : uses
+CommerceTagService --> BusinessRules : uses
+CommerceOrderService --> BusinessRules : uses
 
 \' Services to data layer connections
 AuthService --> DataRepository : data access
@@ -252,6 +263,10 @@ SearchService --> Elasticsearch : post/user/hashtag search (cursor, highlight, r
 SearchService --> DataRepository : user search fallback when ES unavailable
 AdService --> AdRepo : query AdAccount/AdCampaign/AdGroup/AdCreative/AdSpend
 AdsAdminService --> AdRepo : CRUD AdAccount/AdCampaign/AdGroup/AdCreative
+CommerceStoreService --> CommerceRepo : CRUD shop/product
+CommerceTagService --> CommerceRepo : CRUD product tags
+CommerceOrderService --> CommerceRepo : read order status from ecommerce integrations
+CommerceRepo --> PostgreSQL : shop/product/tag/order storage
 
 rectangle "Application Interaction Patterns" {
   note as N1

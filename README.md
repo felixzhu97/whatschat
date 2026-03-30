@@ -21,7 +21,7 @@
 - 🌐 **Web 应用** – Next.js SPA（:4000）；Instagram 风格 UI（导航、feed、Reels、个人主页、全局搜索、通知抽屉、搜索抽屉、探索网格、私信、右侧推荐）；Redux 通知切片 + Socket.IO `notification:new`；i18n（中英切换）；信息流内联广告与点击追踪
 - 📱 **移动端应用** – React Native + Expo（expo-router）；Instagram 风格 **Status**（Stories + 纵向 Feed + 横滑多媒体）、**Reels**、**Messages**（DM 列表与行样式）、**Search**（Explore 三列宫格 + Elasticsearch 帖子搜索，对接 `/posts/explore` 与 `/search`）、**Profile**（个人主页：顶栏、粉丝/关注/帖子、Discover、网格/Reels/标记 Tab、用户帖子 `/posts/user/:id`）；独立栈 **Settings and activity**（分组列表、搜索条、主题/语言/通知/登出，与 Ins 设置页一致）；**create-post**、**media-viewer**（Feed 缓存未命中时 `GET /posts/:id` 补拉）；`application/services/FeedService`（GraphQL feed/reels、REST explore/search/user posts/profile）；RTK Query 乐观更新与缓存；与 Web 共享 GraphQL feed/reels 与 `@whatschat/analytics` 埋点
 - 📊 **行为与广告分析** – `@whatschat/analytics` SDK；Web/Mobile 上报行为事件（含 post view/like/save 与 ad_impression/ad_click/ad_conversion）；API 接入；管理端可看总览并触发推荐 ETL
-- ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Business、Data Analytics、System Config、Permission & Audit、Ads（广告账户/活动/广告组/创意）（:4001）
+- ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Data Analytics、System Config、Permission & Audit、Ads & Promotions（广告管理/推广帖子/效果分析）、Shopping & Commerce（商店管理/商品标签管理/订单追踪）（:4001）
 
 ## 📸 截图
 
@@ -120,7 +120,7 @@ pnpm start:recommendation # 推荐服务 worker + Celery beat（可选，位于 
 ```bash
 apps/
   web            # Next.js Web 应用（whatschat-web, :4000），含 feed/explore 广告渲染
-  admin          # 管理后台（whatschat-admin, :4001），含 Ads 管理
+  admin          # 管理后台（whatschat-admin, :4001），含 Ads & Promotions 与 Shopping & Commerce
   mobile         # Expo 移动端（react-native-app）
 services/
   server         # NestJS API（whatschat-server, :3001）：REST/GraphQL + 广告投放 + 分析接入 + Ads 管理 API

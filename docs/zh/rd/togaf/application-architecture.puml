@@ -51,6 +51,8 @@ package "客户端应用" {
     - Recharts（图表）
     - i18next（中英）
     - 主题（浅色/深色）
+    - 广告与推广模块：广告管理、推广帖子、效果分析
+    - 购物与电商模块：商店管理、商品标签管理、订单追踪
   end note
   
   component [移动端应用] as MobileApp #LightGreen
@@ -99,6 +101,9 @@ package "应用服务层" {
   component [文件服务] as FileService
   component [媒体服务] as MediaService
   component [通知服务] as NotificationService
+  component [电商商店服务] as CommerceStoreService
+  component [电商标签服务] as CommerceTagService
+  component [电商订单服务] as CommerceOrderService
 }
 
 package "推荐应用" {
@@ -129,6 +134,7 @@ package "数据访问层" {
   component [缓存服务] as CacheService
   component [帖子/信息流仓储] as PostFeedRepo
   component [评论仓储] as CommentRepo
+  component [电商仓储] as CommerceRepo
 }
 
 package "基础设施服务" {
@@ -171,6 +177,9 @@ RestGateway --> FollowService : 路由到
 RestGateway --> CommentService : 路由到
 RestGateway --> NotificationService : 路由到
 RestGateway --> SearchService : 路由到
+RestGateway --> CommerceStoreService : 路由到
+RestGateway --> CommerceTagService : 路由到
+RestGateway --> CommerceOrderService : 路由到
 
 WsGateway --> MessageService : 实时消息
 WsGateway --> ChatService : 聊天事件
@@ -186,6 +195,9 @@ ChatService --> MessageLogic : 使用
 CallService --> RealtimeLogic : 使用
 GroupService --> BusinessRules : 使用
 StatusService --> BusinessRules : 使用
+CommerceStoreService --> BusinessRules : 使用
+CommerceTagService --> BusinessRules : 使用
+CommerceOrderService --> BusinessRules : 使用
 
 \' 服务与数据层
 AuthService --> DataRepository : 数据访问
@@ -225,6 +237,10 @@ FileService --> FileStorage : 文件存储
 MessageService --> SearchService : 全文搜索（消息）
 SearchService --> Elasticsearch : 帖子/用户/话题搜索（游标、高亮、限流）
 SearchService --> DataRepository : ES 不可用时用户搜索回退
+CommerceStoreService --> CommerceRepo : 商店/商品增删改查
+CommerceTagService --> CommerceRepo : 商品标签增删改查
+CommerceOrderService --> CommerceRepo : 读取电商平台订单状态
+CommerceRepo --> PostgreSQL : 商店/商品/标签/订单存储
 
 rectangle "应用交互模式" {
   note as N1
