@@ -8,6 +8,7 @@ import { useAuth } from "@/src/presentation/providers/auth-provider";
 import { useTheme } from "@/src/presentation/providers/theme-provider";
 import { theme } from "@/src/shared/theme";
 import { setStoredLocale, type AppLocale } from "@/src/shared/i18n";
+import { Button, Card, FormControl, IconButton, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 
 const Page = styled.div`
   position: relative;
@@ -18,67 +19,23 @@ const Page = styled.div`
   background: ${theme.bg};
 `;
 
-const Card = styled.div`
-  background: ${theme.surface};
-  border-radius: 16px;
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
-`;
-
 const Title = styled.h1`
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: ${theme.text};
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 `;
 
 const Subtitle = styled.p`
   color: ${theme.textSecondary};
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.8125rem;
+  margin-bottom: 1.25rem;
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-`;
-
-const Input = styled.input`
-  padding: 0.75rem 1rem;
-  background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 8px;
-  font-size: 0.9375rem;
-  color: ${theme.text};
-  &:focus {
-    outline: none;
-    border-color: ${theme.primary};
-  }
-  &::placeholder {
-    color: ${theme.textSecondary};
-  }
-`;
-
-const Button = styled.button<{ $loading?: boolean }>`
-  padding: 0.75rem 1rem;
-  background: ${theme.primary};
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  cursor: pointer;
-  opacity: ${(p) => (p.$loading ? 0.7 : 1)};
-  &:hover:not(:disabled) {
-    background: ${theme.primaryHover};
-  }
-  &:disabled {
-    cursor: not-allowed;
-  }
 `;
 
 const ErrorText = styled.p`
@@ -93,32 +50,6 @@ const TopRight = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-`;
-
-const IconBtn = styled.button`
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: ${theme.surfaceAlt};
-  color: ${theme.textSecondary};
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  &:hover {
-    color: ${theme.text};
-  }
-`;
-
-const LangSelect = styled.select`
-  padding: 0.35rem 0.5rem;
-  background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 6px;
-  color: ${theme.text};
-  font-size: 0.8125rem;
-  cursor: pointer;
 `;
 
 const DEFAULT_EMAIL = "admin@whatschat.com";
@@ -152,7 +83,7 @@ export default function LoginPage() {
   return (
     <Page>
       <TopRight>
-        <IconBtn onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
+        <IconButton onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
           {mode === "light" ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -170,24 +101,38 @@ export default function LoginPage() {
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
           )}
-        </IconBtn>
-        <LangSelect value={i18n.language.startsWith("zh") ? "zh" : "en"} onChange={(e) => { setStoredLocale(e.target.value as AppLocale); i18n.changeLanguage(e.target.value); }}>
-          <option value="zh">中文</option>
-          <option value="en">English</option>
-        </LangSelect>
+        </IconButton>
+        <FormControl size="small">
+          <InputLabel id="login-lang-label">{t("common.language")}</InputLabel>
+          <Select
+            labelId="login-lang-label"
+            value={i18n.language.startsWith("zh") ? "zh" : "en"}
+            label={t("common.language")}
+            onChange={(e) => {
+              const next = e.target.value as AppLocale;
+              setStoredLocale(next);
+              i18n.changeLanguage(next);
+            }}
+          >
+            <MenuItem value="zh">中文</MenuItem>
+            <MenuItem value="en">English</MenuItem>
+          </Select>
+        </FormControl>
       </TopRight>
-      <Card>
-        <Title>WhatsChat Admin</Title>
+      <Card sx={{ width: "100%", maxWidth: 350, p: 3 }}>
+        <Title>Instagram Admin</Title>
         <Subtitle>{t("login.subtitle")}</Subtitle>
         <Form onSubmit={handleSubmit}>
-          <Input
+          <TextField
+            size="small"
             type="email"
             placeholder={t("login.email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Input
+          <TextField
+            size="small"
             type="password"
             placeholder={t("login.password")}
             value={password}
@@ -195,7 +140,7 @@ export default function LoginPage() {
             required
           />
           {error && <ErrorText>{error}</ErrorText>}
-          <Button type="submit" disabled={loading} $loading={loading}>
+          <Button type="submit" variant="contained" disabled={loading}>
             {loading ? t("login.submitting") : t("login.submit")}
           </Button>
         </Form>

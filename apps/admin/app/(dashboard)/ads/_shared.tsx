@@ -23,9 +23,9 @@ export const MetricsGrid = styled.div`
 
 export const MetricCard = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
   padding: 0.875rem 1rem;
 `;
 
@@ -43,10 +43,10 @@ export const MetricValue = styled.div`
 
 export const Card = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 1rem 1.1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 export const CardHeader = styled.div`
@@ -170,8 +170,8 @@ export const InlineForm = styled.form`
 `;
 
 export const Input = styled.input`
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
   border: 1px solid ${theme.border};
   background: ${theme.surface};
   color: ${theme.text};
@@ -180,8 +180,8 @@ export const Input = styled.input`
 `;
 
 export const SmallSelect = styled.select`
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
   border: 1px solid ${theme.border};
   background: ${theme.surface};
   color: ${theme.text};

@@ -26,11 +26,11 @@ const BackLink = styled(Link)`
 
 const Card = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid ${theme.border};
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 500px;
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const Avatar = styled.div`
@@ -71,15 +71,15 @@ const Label = styled.span`
 `;
 
 const Actions = styled.div`
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   display: flex;
   gap: 0.75rem;
 `;
 
 const Btn = styled.button<{ $danger?: boolean }>`
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9375rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
   cursor: pointer;
   border: 1px solid ${(p) => (p.$danger ? theme.danger : theme.border)};
   background: ${(p) => (p.$danger ? theme.danger : theme.surfaceAlt)};
@@ -87,6 +87,11 @@ const Btn = styled.button<{ $danger?: boolean }>`
   &:hover {
     opacity: 0.9;
   }
+`;
+
+const StateText = styled.div`
+  color: ${theme.textSecondary};
+  font-size: 0.875rem;
 `;
 
 interface User {
@@ -150,7 +155,7 @@ export default function UserDetailPage() {
         <BackLink href="/users">
           <ArrowLeft size={18} /> {t("users.backToUserList")}
         </BackLink>
-        <div style={{ color: theme.textSecondary }}>{t("common.loading")}</div>
+        <StateText>{t("common.loading")}</StateText>
       </div>
     );
   }
@@ -161,7 +166,7 @@ export default function UserDetailPage() {
         <BackLink href="/users">
           <ArrowLeft size={18} /> {t("users.backToUserList")}
         </BackLink>
-        <div style={{ color: theme.textSecondary }}>{t("users.notFound")}</div>
+        <StateText>{t("users.notFound")}</StateText>
       </div>
     );
   }

@@ -5,11 +5,11 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ChangeEvent,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { Button, FormControl, IconButton, InputLabel, MenuItem, Select } from "@mui/material";
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
@@ -52,7 +52,7 @@ const LayoutRoot = styled.div`
 `;
 
 const Sidebar = styled.aside`
-  width: 252px;
+  width: 244px;
   height: 100vh;
   background: ${theme.surface};
   display: flex;
@@ -76,8 +76,8 @@ const Logo = styled.div`
 const LogoIcon = styled.div`
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: ${theme.primary};
+  border-radius: 11px;
+  background: linear-gradient(135deg, #f58529 0%, #dd2a7b 45%, #8134af 75%, #515bd4 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +118,7 @@ const SectionHead = styled.button`
   margin: 0;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   text-align: left;
   color: ${theme.textSecondary};
@@ -149,11 +149,12 @@ const NavLink = styled(Link, {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   color: ${(p) => (p.active ? theme.text : theme.textSecondary)};
   font-size: 0.9375rem;
   font-weight: ${(p) => (p.active ? 500 : 400)};
   background: ${(p) => (p.active ? theme.surfaceAlt : "transparent")};
+  box-shadow: ${(p) => (p.active ? `inset 2px 0 0 ${theme.primary}` : "none")};
   text-decoration: none;
   &:hover {
     background: ${theme.surfaceAlt};
@@ -172,7 +173,7 @@ const UserCard = styled.div`
   gap: 0.75rem;
   padding: 0.75rem;
   background: ${theme.surfaceAlt};
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 0.5rem;
 `;
 
@@ -217,7 +218,7 @@ const LogoutBtn = styled.button`
   background: transparent;
   color: ${theme.textSecondary};
   font-size: 0.9375rem;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   &:hover {
     background: ${theme.surfaceAlt};
@@ -234,14 +235,24 @@ const Main = styled.main`
   background: ${theme.bg};
 `;
 
+const LoadingMain = styled(Main)`
+  align-items: center;
+  justify-content: center;
+  color: ${theme.textSecondary};
+`;
+
 const TopBar = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: ${theme.surface};
+  padding: 0.875rem 1.25rem;
+  background: color-mix(in srgb, ${theme.surface} 92%, transparent);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid ${theme.border};
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 `;
 
 const TopBarLeft = styled.div`
@@ -280,14 +291,14 @@ const CrumbCurrent = styled.span`
 `;
 
 const TopBarTitle = styled.h1`
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: ${theme.text};
   margin: 0;
 `;
 
 const TopBarSubtitle = styled.p`
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: ${theme.textSecondary};
   margin: 0.25rem 0 0;
 `;
@@ -297,38 +308,10 @@ const TopBarBadge = styled.span`
   align-items: center;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(37, 211, 102, 0.12);
+  background: rgba(0, 149, 246, 0.12);
   color: ${theme.primary};
   font-size: 0.75rem;
   font-weight: 600;
-`;
-
-const SearchTrigger = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem 0.5rem 2.25rem;
-  background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 8px;
-  color: ${theme.textSecondary};
-  font-size: 0.875rem;
-  width: 240px;
-  cursor: pointer;
-  position: relative;
-  text-align: left;
-  &:hover {
-    border-color: ${theme.textSecondary};
-  }
-`;
-
-const SearchTriggerIcon = styled.span`
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${theme.iconMuted};
-  display: flex;
 `;
 
 const SearchKbd = styled.span`
@@ -337,33 +320,15 @@ const SearchKbd = styled.span`
   font-weight: 500;
   color: ${theme.iconMuted};
   border: 1px solid ${theme.border};
-  border-radius: 4px;
+  border-radius: 999px;
   padding: 0.1rem 0.35rem;
   background: ${theme.surface};
-`;
-
-const IconBtn = styled.button`
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  color: ${theme.iconMuted};
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  &:hover {
-    background: ${theme.surfaceAlt};
-    color: ${theme.text};
-  }
 `;
 
 const TopBarTools = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-shrink: 0;
 `;
 
@@ -371,27 +336,12 @@ const ContentArea = styled.div`
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 1.5rem;
+  padding: 1rem;
   & > * {
     width: 100%;
-    max-width: 1360px;
+    max-width: 1240px;
     margin: 0 auto;
   }
-`;
-
-const LangSelect = styled.select`
-  padding: 0.35rem 0.5rem;
-  background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 6px;
-  color: ${theme.text};
-  font-size: 0.8125rem;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667781' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.4rem center;
-  padding-right: 1.5rem;
 `;
 
 const PaletteOverlay = styled.div`
@@ -408,7 +358,7 @@ const PaletteOverlay = styled.div`
 const PalettePanel = styled.div`
   width: min(520px, 100%);
   background: ${theme.surface};
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid ${theme.border};
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
   overflow: hidden;
@@ -447,7 +397,7 @@ const PaletteItem = styled.li<{ $active?: boolean }>`
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   color: ${theme.text};
   background: ${(p) => (p.$active ? theme.surfaceAlt : "transparent")};
@@ -889,7 +839,7 @@ export default function DashboardLayout({
     goPaletteHref,
   ]);
 
-  const handleLocaleChange = (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleLocaleChange = (e: { target: { value: string } }) => {
     const lng = e.target.value as AppLocale;
     setStoredLocale(lng);
     i18n.changeLanguage(lng);
@@ -909,9 +859,9 @@ export default function DashboardLayout({
   if (isLoading) {
     return (
       <LayoutRoot>
-        <Main style={{ display: "flex", alignItems: "center", justifyContent: "center", color: theme.textSecondary }}>
+        <LoadingMain>
           {t("common.loading")}
-        </Main>
+        </LoadingMain>
       </LayoutRoot>
     );
   }
@@ -967,8 +917,10 @@ export default function DashboardLayout({
         <SidebarHeader>
           <Logo>
             <LogoIcon>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none" />
               </svg>
             </LogoIcon>
             <LogoText>WhatsChat Admin</LogoText>
@@ -1042,23 +994,36 @@ export default function DashboardLayout({
             </TopBarSubtitle>
           </TopBarLeft>
           <TopBarTools>
-            <SearchTrigger type="button" onClick={() => setPaletteOpen(true)} aria-label={t("common.jumpTo")}>
-              <SearchTriggerIcon>
-                <Search size={18} />
-              </SearchTriggerIcon>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => setPaletteOpen(true)}
+              aria-label={t("common.jumpTo")}
+              startIcon={<Search size={18} />}
+              sx={{ borderRadius: 999 }}
+            >
               {t("common.jumpTo")}
               <SearchKbd>{isMac ? "⌘K" : "Ctrl+K"}</SearchKbd>
-            </SearchTrigger>
-            <IconBtn onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
+            </Button>
+            <IconButton onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
               {mode === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            </IconBtn>
-            <LangSelect value={i18n.language.startsWith("zh") ? "zh" : "en"} onChange={handleLocaleChange} aria-label={t("common.language")}>
-              <option value="zh">中文</option>
-              <option value="en">English</option>
-            </LangSelect>
-            <IconBtn type="button" aria-label={t("common.notifications")}>
+            </IconButton>
+            <FormControl size="small">
+              <InputLabel id="dashboard-lang-label">{t("common.language")}</InputLabel>
+              <Select
+                labelId="dashboard-lang-label"
+                value={i18n.language.startsWith("zh") ? "zh" : "en"}
+                label={t("common.language")}
+                onChange={handleLocaleChange}
+                sx={{ minWidth: 110 }}
+              >
+                <MenuItem value="zh">中文</MenuItem>
+                <MenuItem value="en">English</MenuItem>
+              </Select>
+            </FormControl>
+            <IconButton type="button" aria-label={t("common.notifications")}>
               <Bell size={20} />
-            </IconBtn>
+            </IconButton>
           </TopBarTools>
         </TopBar>
         <ContentArea>{children}</ContentArea>

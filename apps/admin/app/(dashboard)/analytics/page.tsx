@@ -27,10 +27,10 @@ const PageTitle = styled.h1`
 
 const Card = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  padding: 1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const ChartCard = styled(Card)`
@@ -52,36 +52,37 @@ const DateRangeRow = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 `;
 
 const DateInput = styled.input`
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.8rem;
   border: 1px solid ${theme.border};
-  border-radius: 8px;
+  border-radius: 999px;
   background: ${theme.surface};
   color: ${theme.text};
-  font-size: 0.875rem;
+  font-size: 14px;
 `;
 
 const Button = styled.button`
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   background: ${theme.primary};
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: 999px;
+  font-size: 14px;
   cursor: pointer;
   &:hover {
-    opacity: 0.9;
+    background: ${theme.primaryHover};
   }
 `;
 
 const ChartsRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const TotalBadge = styled.div`
@@ -93,6 +94,12 @@ const TotalBadge = styled.div`
 
 const LoadError = styled.div`
   color: ${theme.danger};
+  padding: 2rem;
+  text-align: center;
+`;
+
+const LoadingText = styled.div`
+  color: ${theme.textSecondary};
   padding: 2rem;
   text-align: center;
 `;
@@ -175,11 +182,7 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading && !overview) {
-    return (
-      <div style={{ color: theme.textSecondary, padding: "2rem", textAlign: "center" }}>
-        {t("common.loading")}
-      </div>
-    );
+    return <LoadingText>{t("common.loading")}</LoadingText>;
   }
   if (error && !overview) {
     return <LoadError>{error}</LoadError>;

@@ -7,58 +7,31 @@ import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search, ChevronRight } from "lucide-react";
+import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 
 const Toolbar = styled.div`
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
-  max-width: 300px;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
-  background: ${theme.inputBg};
-  border: 1px solid ${theme.border};
-  border-radius: 8px;
-  font-size: 0.9375rem;
-  color: ${theme.text};
-  &:focus {
-    outline: none;
-    border-color: ${theme.primary};
-  }
-  &::placeholder {
-    color: ${theme.textSecondary};
-  }
-`;
-
-const SearchWrapper = styled.div`
-  position: relative;
-  & svg {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: ${theme.iconMuted};
-    width: 18px;
-  }
+  margin-bottom: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
 `;
 
 const ChatList = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid ${theme.border};
   overflow: hidden;
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const ChatItem = styled(Link)`
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 0.9rem 1rem;
   border-bottom: 1px solid ${theme.border};
   text-decoration: none;
   color: ${theme.text};
@@ -68,6 +41,12 @@ const ChatItem = styled(Link)`
   &:hover {
     background: ${theme.surfaceAlt};
   }
+`;
+
+const Pager = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 `;
 
 const Avatar = styled.div`
@@ -110,6 +89,12 @@ const ChatTime = styled.div`
 `;
 
 const EmptyState = styled.div`
+  padding: 2rem;
+  text-align: center;
+  color: ${theme.textSecondary};
+`;
+
+const LoadingText = styled.div`
   padding: 2rem;
   text-align: center;
   color: ${theme.textSecondary};
@@ -174,34 +159,28 @@ export default function ChatsPage() {
     <div>
       <form onSubmit={handleSearch}>
         <Toolbar>
-          <SearchWrapper>
-            <Search size={18} />
-            <SearchInput
-              placeholder={t("chats.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </SearchWrapper>
-          <button
-            type="submit"
-            style={{
-              padding: "0.5rem 1rem",
-              background: theme.primary,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
+          <TextField
+            size="small"
+            placeholder={t("chats.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 320 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} />
+                </InputAdornment>
+              ),
             }}
-          >
+          />
+          <Button type="submit" variant="contained">
             {t("chats.search")}
-          </button>
+          </Button>
         </Toolbar>
       </form>
       <ChatList>
         {loading ? (
-          <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-            {t("common.loading")}
-          </div>
+          <LoadingText>{t("common.loading")}</LoadingText>
         ) : (
           chats.length === 0 ? (
             <EmptyState>{t("chats.empty")}</EmptyState>
@@ -229,46 +208,15 @@ export default function ChatsPage() {
         )}
       </ChatList>
       {totalPages > 1 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "0.5rem",
-            marginTop: "1rem",
-          }}
-        >
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: `1px solid ${theme.border}`,
-              background: theme.surface,
-              color: theme.text,
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            {t("common.prev")}
-          </button>
-          <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
-            {page} / {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: `1px solid ${theme.border}`,
-              background: theme.surface,
-              color: theme.text,
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            {t("common.next")}
-          </button>
-        </div>
+        <Pager>
+          <MuiPagination
+            shape="rounded"
+            color="primary"
+            page={page}
+            count={totalPages}
+            onChange={(_, p) => setPage(p)}
+          />
+        </Pager>
       )}
     </div>
   );

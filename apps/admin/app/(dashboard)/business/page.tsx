@@ -14,10 +14,10 @@ const PageRoot = styled.div`
 
 const Card = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 10px;
+  padding: 1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const Grid = styled.div`
@@ -60,7 +60,7 @@ const Toolbar = styled.div`
 const FilterBtn = styled("button", {
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  padding: 0.4rem 0.7rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 999px;
   border: 1px solid ${theme.border};
   background: ${(p) => (p.active ? theme.primary : theme.surface)};
@@ -72,7 +72,7 @@ const FilterBtn = styled("button", {
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 `;
 
 const Th = styled.th`

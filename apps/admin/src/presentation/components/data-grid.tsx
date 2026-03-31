@@ -10,7 +10,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 const GridWrapper = styled.div<{ $clickable?: boolean }>`
   height: 520px;
   width: 100%;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--admin-surface);
   &.ag-theme-alpine {
@@ -19,7 +19,7 @@ const GridWrapper = styled.div<{ $clickable?: boolean }>`
     --ag-header-background-color: var(--admin-surface);
     --ag-border-color: var(--admin-border);
     --ag-row-hover-color: var(--admin-surface-alt);
-    --ag-selected-row-background-color: rgba(37, 211, 102, 0.08);
+    --ag-selected-row-background-color: rgba(0, 149, 246, 0.1);
   }
   ${(p) =>
     p.$clickable &&

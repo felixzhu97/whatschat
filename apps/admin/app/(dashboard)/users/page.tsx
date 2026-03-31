@@ -8,9 +8,9 @@ import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { Search, ChevronRight } from "lucide-react";
+import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
-import type { ColDef } from "ag-grid-community";
 
 const PageTitle = styled.h1`
   font-size: 1.375rem;
@@ -23,63 +23,64 @@ const PageTitle = styled.h1`
 const Toolbar = styled.div`
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
-  max-width: 360px;
-  padding: 0.625rem 1rem 0.625rem 2.5rem;
-  background: ${theme.inputBg};
-  border: none;
-  border-radius: 24px;
-  font-size: 15px;
-  color: ${theme.text};
-  &:focus {
-    outline: none;
-    background: ${theme.surface};
-    box-shadow: 0 0 0 1px ${theme.border};
-  }
-  &::placeholder {
-    color: ${theme.textSecondary};
-  }
-`;
-
-const SearchWrapper = styled.div`
-  position: relative;
-  & svg {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: ${theme.iconMuted};
-    width: 18px;
-  }
+  margin-bottom: 1rem;
 `;
 
 const Pagination = styled.div`
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 0.9rem;
 `;
 
-const PageBtn = styled("button", {
-  shouldForwardProp: (prop) => prop !== "active",
-})<{ active?: boolean }>`
-  padding: 0.5rem 0.875rem;
-  border: 1px solid ${theme.border};
-  background: ${(p) => (p.active ? theme.primary : theme.surface)};
-  color: ${(p) => (p.active ? "#fff" : theme.text)};
-  border-radius: 8px;
+const UserCellWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const UserAvatar = styled.div`
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: ${theme.primary};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+`;
+
+const UserMeta = styled.div`
+  line-height: 1.4;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
+
+const UserTitle = styled.div`
+  font-weight: 500;
+  color: ${theme.text};
   font-size: 15px;
-  cursor: pointer;
-  &:hover:not(:disabled) {
-    background: ${(p) => (p.active ? theme.primary : theme.surfaceAlt)};
-  }
 `;
 
-interface User {
+const UserStatusText = styled.div`
+  font-size: 13px;
+  color: ${theme.textSecondary};
+`;
+
+const UserDetailLink = styled(Link)`
+  color: ${theme.primary};
+  text-decoration: none;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+interface User extends Record<string, unknown> {
   id: string;
   username: string;
   email: string;
@@ -94,31 +95,15 @@ function UserCell(params: { value: string; data: User }) {
   const { data } = params;
   const { t } = useTranslation();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          flexShrink: 0,
-          borderRadius: "50%",
-          background: theme.primary,
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: 500,
-          fontSize: "0.875rem",
-        }}
-      >
+    <UserCellWrap>
+      <UserAvatar>
         {(data?.username || "?").charAt(0).toUpperCase()}
-      </div>
-      <div style={{ lineHeight: 1.4, minHeight: 40, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <div style={{ fontWeight: 500, color: theme.text, fontSize: "15px" }}>{data?.username}</div>
-        <div style={{ fontSize: "13px", color: theme.textSecondary }}>
-          {data?.isOnline ? t("users.online") : t("users.offline")}
-        </div>
-      </div>
-    </div>
+      </UserAvatar>
+      <UserMeta>
+        <UserTitle>{data?.username}</UserTitle>
+        <UserStatusText>{data?.isOnline ? t("users.online") : t("users.offline")}</UserStatusText>
+      </UserMeta>
+    </UserCellWrap>
   );
 }
 
@@ -127,20 +112,10 @@ function ActionCell(params: { data: User }) {
   const { t } = useTranslation();
   if (!data?.id) return null;
   return (
-    <Link
-      href={`/users/${data.id}`}
-      style={{
-        color: theme.primary,
-        textDecoration: "none",
-        fontSize: "15px",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
-      }}
-    >
+    <UserDetailLink href={`/users/${data.id}`}>
       {t("users.detail")}
       <ChevronRight size={18} strokeWidth={2} />
-    </Link>
+    </UserDetailLink>
   );
 }
 
@@ -189,7 +164,7 @@ export default function UsersPage() {
     load(1);
   };
 
-  const columnDefs = useMemo<ColDef<User>[]>(
+  const columnDefs = useMemo(
     () => [
       {
         field: "username",
@@ -210,13 +185,13 @@ export default function UsersPage() {
         headerName: t("users.phone"),
         flex: 1,
         minWidth: 130,
-        valueFormatter: (p) => p.value || "-",
+        valueFormatter: (p: { value?: string }) => p.value || "-",
       },
       {
         field: "createdAt",
         headerName: t("users.registeredAt"),
         minWidth: 130,
-        valueFormatter: (p) =>
+        valueFormatter: (p: { value?: string }) =>
           p.value ? format(new Date(p.value as string), "yyyy-MM-dd", { locale: dateLocale }) : "",
       },
       {
@@ -235,29 +210,23 @@ export default function UsersPage() {
       <PageTitle>{t("users.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
-          <SearchWrapper>
-            <Search size={18} />
-            <SearchInput
-              placeholder={t("users.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </SearchWrapper>
-          <button
-            type="submit"
-            style={{
-              padding: "0.625rem 1.25rem",
-              background: theme.primary,
-              color: "#fff",
-              border: "none",
-              borderRadius: 24,
-              cursor: "pointer",
-              fontSize: "15px",
-              fontWeight: 500,
+          <TextField
+            size="small"
+            placeholder={t("users.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 320 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} />
+                </InputAdornment>
+              ),
             }}
-          >
+          />
+          <Button type="submit" variant="contained">
             {t("users.search")}
-          </button>
+          </Button>
         </Toolbar>
       </form>
       <DataGrid<User>
@@ -268,20 +237,13 @@ export default function UsersPage() {
       />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <PageBtn disabled={pagination.page <= 1} onClick={() => load(pagination.page - 1)}>
-            {t("common.prev")}
-          </PageBtn>
-          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-            <PageBtn key={p} active={p === pagination.page} onClick={() => load(p)}>
-              {p}
-            </PageBtn>
-          ))}
-          <PageBtn
-            disabled={pagination.page >= pagination.totalPages}
-            onClick={() => load(pagination.page + 1)}
-          >
-            {t("common.next")}
-          </PageBtn>
+          <MuiPagination
+            shape="rounded"
+            color="primary"
+            page={pagination.page}
+            count={pagination.totalPages}
+            onChange={(_, p) => load(p)}
+          />
         </Pagination>
       )}
     </div>

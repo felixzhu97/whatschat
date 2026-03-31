@@ -44,6 +44,10 @@ const MediaSection = styled.div`
   position: relative;
 `;
 
+const MediaSectionRelative = styled(MediaSection)`
+  position: relative;
+`;
+
 const MediaSectionClickable = styled(MediaSection)`
   cursor: pointer;
 `;
@@ -224,6 +228,21 @@ const ActionIcon = styled.span`
   align-items: center;
   justify-content: center;
   color: ${TEXT_PRIMARY};
+`;
+
+const LoadingCommentText = styled.div`
+  padding: 16px;
+  color: ${TEXT_SECONDARY};
+  font-size: 14px;
+`;
+
+const EmptyMedia = styled.div`
+  color: #888;
+  padding: 24px;
+`;
+
+const HeaderRelative = styled(PostHeaderRow)`
+  position: relative;
 `;
 
 const CommentList = styled.div`
@@ -421,7 +440,7 @@ export function PostDetailModal({
   return (
     <Overlay onClick={onClose} role="presentation">
       <ModalBox onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-        <MediaSection style={{ position: "relative" }}>
+        <MediaSectionRelative>
           {urls.length > 0 ? (
             <>
               {multi && (
@@ -478,18 +497,18 @@ export function PostDetailModal({
               )}
             </>
           ) : (
-            <div style={{ color: "#888", padding: 24 }}>{t("posts.media")}</div>
+            <EmptyMedia>{t("posts.media")}</EmptyMedia>
           )}
-        </MediaSection>
+        </MediaSectionRelative>
         <RightSection>
-          <PostHeaderRow style={{ position: "relative" }}>
+          <HeaderRelative>
             <PostHeaderLeft>
               <PostHeaderMeta>{post?.userId ?? "—"}</PostHeaderMeta>
             </PostHeaderLeft>
             <CloseBtn type="button" onClick={onClose} aria-label="Close">
               <X size={24} />
             </CloseBtn>
-          </PostHeaderRow>
+          </HeaderRelative>
           {post?.caption != null && String(post.caption).trim() !== "" && (
             <CaptionBlock>
               <CaptionMain>
@@ -502,10 +521,10 @@ export function PostDetailModal({
           )}
           <ActionsRow>
             <ActionIcon>
-              <Heart size={24} style={{ marginRight: 12 }} />
+              <Heart size={24} />
             </ActionIcon>
             <ActionIcon>
-              <MessageCircle size={24} style={{ marginRight: 12 }} />
+              <MessageCircle size={24} />
             </ActionIcon>
             <ActionIcon>
               <Bookmark size={24} />
@@ -520,9 +539,7 @@ export function PostDetailModal({
           </LikesRow>
           <TimeRow>{createdTime || "—"}</TimeRow>
           <CommentList>
-            {loading && (
-              <div style={{ padding: "16px", color: TEXT_SECONDARY, fontSize: 14 }}>…</div>
-            )}
+            {loading && <LoadingCommentText>…</LoadingCommentText>}
             {!loading &&
               comments.map((c, i) => (
                 <CommentItem key={c.id || `${i}`}>

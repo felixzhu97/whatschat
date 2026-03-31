@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { styled } from "@/src/shared/utils/emotion";
 import {
   createAdAccount,
   createAdCampaign,
@@ -35,6 +36,18 @@ import {
   statusLabel,
   objectiveLabel,
 } from "../_shared";
+
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+`;
+
+const RefreshButton = styled(SecondaryButton)`
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8125rem;
+`;
 
 export default function AdsManagerPage() {
   const { t } = useTranslation();
@@ -83,7 +96,7 @@ export default function AdsManagerPage() {
             <CardTitle>{t("ads.moduleManager")}</CardTitle>
             <CardSubtitle>{t("ads.managerSubtitle")}</CardSubtitle>
           </div>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <HeaderActions>
             <Select
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value as string | "all")}
@@ -95,10 +108,10 @@ export default function AdsManagerPage() {
                 </option>
               ))}
             </Select>
-            <SecondaryButton type="button" onClick={() => void reload()}>
+            <RefreshButton type="button" onClick={() => void reload()}>
               {t("common.search")}
-            </SecondaryButton>
-          </div>
+            </RefreshButton>
+          </HeaderActions>
         </CardHeader>
         <SummaryRow>
           <span>{t("ads.accountSummaryCount", { count: accounts.length })}</span>

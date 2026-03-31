@@ -34,16 +34,16 @@ import {
 const MetricsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.875rem;
+  margin-bottom: 1rem;
 `;
 
 const MetricCard = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 10px;
+  padding: 1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const MetricHeader = styled.div`
@@ -57,7 +57,7 @@ const MetricIcon = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(37, 211, 102, 0.15);
+  background: rgba(0, 149, 246, 0.12);
   color: ${theme.primary};
   display: flex;
   align-items: center;
@@ -73,7 +73,7 @@ const MetricChange = styled.span<{ positive?: boolean }>`
 `;
 
 const MetricValue = styled.div`
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   font-weight: 700;
   color: ${theme.text};
   margin-bottom: 0.25rem;
@@ -87,16 +87,16 @@ const MetricLabel = styled.div`
 const ChartsRow = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const ChartCard = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 10px;
+  padding: 1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const ChartTitle = styled.h2`
@@ -113,15 +113,15 @@ const ChartContainer = styled.div`
 const BottomRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
 `;
 
 const ActivityCard = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 10px;
+  padding: 1rem;
   border: 1px solid ${theme.border};
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const ActivityTitle = styled.h2`
@@ -178,6 +178,18 @@ const LoadError = styled.div`
   text-align: center;
 `;
 
+const LoadingText = styled.div`
+  color: ${theme.textSecondary};
+  padding: 2rem;
+  text-align: center;
+`;
+
+const EmptyActivityText = styled.div`
+  color: ${theme.textSecondary};
+  font-size: 0.875rem;
+  padding: 1rem 0;
+`;
+
 interface Stats {
   totalUsers: number;
   totalChats: number;
@@ -221,9 +233,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ color: theme.textSecondary, padding: "2rem", textAlign: "center" }}>
-        {t("common.loading")}
-      </div>
+      <LoadingText>{t("common.loading")}</LoadingText>
     );
   }
   if (!stats) {
@@ -249,9 +259,9 @@ export default function DashboardPage() {
   ];
 
   const platformData = [
-    { name: "Android", value: 62, color: "#25d366" },
-    { name: "iOS", value: 31, color: "#53bdeb" },
-    { name: "Web", value: 7, color: "#667781" },
+    { name: "Android", value: 62, color: "#0095f6" },
+    { name: "iOS", value: 31, color: "#5851db" },
+    { name: "Web", value: 7, color: "#8e8e8e" },
   ];
 
   const recentActivity = stats.recentUsers?.slice(0, 5).map((u) => ({
@@ -332,8 +342,8 @@ export default function DashboardPage() {
                   labelStyle={{ color: theme.text }}
                 />
                 <Legend />
-                <Bar dataKey="sent" fill="#25d366" name={t("chart.sent")} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="received" fill="#53bdeb" name={t("chart.received")} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sent" fill="#0095f6" name={t("chart.sent")} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="received" fill="#5851db" name={t("chart.received")} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -349,7 +359,7 @@ export default function DashboardPage() {
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8 }}
                 />
-                <Line type="monotone" dataKey="users" stroke="#25d366" strokeWidth={2} dot={{ fill: "#25d366" }} name={t("chart.users")} />
+                <Line type="monotone" dataKey="users" stroke="#0095f6" strokeWidth={2} dot={{ fill: "#0095f6" }} name={t("chart.users")} />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -397,9 +407,7 @@ export default function DashboardPage() {
               </ActivityItem>
             ))
           ) : (
-            <div style={{ color: theme.textSecondary, fontSize: "0.875rem", padding: "1rem 0" }}>
-              {t("dashboard.noActivity")}
-            </div>
+            <EmptyActivityText>{t("dashboard.noActivity")}</EmptyActivityText>
           )}
         </ActivityCard>
       </BottomRow>

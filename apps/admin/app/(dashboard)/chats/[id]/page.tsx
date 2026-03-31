@@ -26,14 +26,14 @@ const BackLink = styled(Link)`
 
 const MessageList = styled.div`
   background: ${theme.surface};
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid ${theme.border};
   overflow: hidden;
-  box-shadow: ${theme.shadow};
+  box-shadow: none;
 `;
 
 const MessageItem = styled.div`
-  padding: 1rem 1.25rem;
+  padding: 0.9rem 1rem;
   border-bottom: 1px solid ${theme.border};
   display: flex;
   justify-content: space-between;
@@ -73,10 +73,42 @@ const DeleteBtn = styled.button`
   background: transparent;
   color: ${theme.danger};
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   &:hover {
     background: ${theme.dangerHover};
   }
+`;
+
+const LoadingWrap = styled.div`
+  padding: 2rem;
+  text-align: center;
+  color: ${theme.textSecondary};
+`;
+
+const DeletedText = styled.span`
+  color: ${theme.textSecondary};
+  font-style: italic;
+`;
+
+const Pager = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+`;
+
+const PagerBtn = styled.button`
+  padding: 0.5rem 0.75rem;
+  border: 1px solid ${theme.border};
+  background: ${theme.surface};
+  color: ${theme.text};
+  border-radius: 10px;
+  cursor: pointer;
+`;
+
+const PagerText = styled.span`
+  padding: 0.5rem;
+  color: ${theme.textSecondary};
 `;
 
 const EmptyState = styled.div`
@@ -136,9 +168,7 @@ export default function ChatMessagesPage() {
       </BackLink>
       <MessageList>
         {loading ? (
-          <div style={{ padding: "2rem", textAlign: "center", color: theme.textSecondary }}>
-            {t("common.loading")}
-          </div>
+          <LoadingWrap>{t("common.loading")}</LoadingWrap>
         ) : (
           messages.length === 0 ? (
             <EmptyState>{t("chats.emptyMessages")}</EmptyState>
@@ -151,9 +181,7 @@ export default function ChatMessagesPage() {
                   </MessageSender>
                   <MessageText>
                     {m.isDeleted ? (
-                      <span style={{ color: theme.textSecondary, fontStyle: "italic" }}>
-                        [{t("chats.deleted")}]
-                      </span>
+                      <DeletedText>[{t("chats.deleted")}]</DeletedText>
                     ) : (
                       m.content
                     )}
@@ -173,46 +201,15 @@ export default function ChatMessagesPage() {
         )}
       </MessageList>
       {totalPages > 1 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "0.5rem",
-            marginTop: "1rem",
-          }}
-        >
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: `1px solid ${theme.border}`,
-              background: theme.surface,
-              color: theme.text,
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
+        <Pager>
+          <PagerBtn disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
             {t("common.prev")}
-          </button>
-          <span style={{ padding: "0.5rem", color: theme.textSecondary }}>
-            {page} / {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: `1px solid ${theme.border}`,
-              background: theme.surface,
-              color: theme.text,
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
+          </PagerBtn>
+          <PagerText>{page} / {totalPages}</PagerText>
+          <PagerBtn disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
             {t("common.next")}
-          </button>
-        </div>
+          </PagerBtn>
+        </Pager>
       )}
     </div>
   );

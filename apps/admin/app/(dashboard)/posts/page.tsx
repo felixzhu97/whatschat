@@ -8,53 +8,25 @@ import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { PostDetailModal, type PostDetailForModal, type PostRowForModal } from "@/src/presentation/components/post-detail-modal";
 import { Search, ImageIcon, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import type { ColDef, ValueFormatterParams, ValueGetterParams } from "ag-grid-community";
 
 const PageTitle = styled.h1`
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: ${theme.text};
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   letter-spacing: -0.02em;
 `;
 
 const Toolbar = styled.div`
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
-  max-width: 360px;
-  padding: 0.625rem 1rem 0.625rem 2.5rem;
-  background: ${theme.inputBg};
-  border: none;
-  border-radius: 24px;
-  font-size: 15px;
-  color: ${theme.text};
-  &:focus {
-    outline: none;
-    background: ${theme.surface};
-    box-shadow: 0 0 0 1px ${theme.border};
-  }
-  &::placeholder {
-    color: ${theme.textSecondary};
-  }
-`;
-
-const SearchWrapper = styled.div`
-  position: relative;
-  & svg {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: ${theme.iconMuted};
-    width: 18px;
-  }
+  margin-bottom: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
 `;
 
 const BatchBar = styled.div`
@@ -64,30 +36,196 @@ const BatchBar = styled.div`
   padding: 0.75rem 1rem;
   background: ${theme.surface};
   border: 1px solid ${theme.border};
-  border-radius: 12px;
+  border-radius: 10px;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 `;
 
 const Pagination = styled.div`
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
   margin-top: 1rem;
 `;
 
-const PageBtn = styled("button", {
-  shouldForwardProp: (prop) => prop !== "active",
-})<{ active?: boolean }>`
-  padding: 0.5rem 0.875rem;
-  border: 1px solid ${theme.border};
-  background: ${(p) => (p.active ? theme.primary : theme.surface)};
-  color: ${(p) => (p.active ? "#fff" : theme.text)};
-  border-radius: 8px;
-  font-size: 15px;
+const ToolbarButton = styled.button<{ $variant?: "primary" | "danger" | "ghost" }>`
+  padding: 0.45rem 0.8rem;
+  border-radius: 10px;
+  font-size: 13px;
   cursor: pointer;
-  &:hover:not(:disabled) {
-    background: ${(p) => (p.active ? theme.primary : theme.surfaceAlt)};
-  }
+  border: 1px solid ${theme.border};
+  background: ${theme.surface};
+  color: ${theme.text};
+  ${(p) =>
+    p.$variant === "primary" &&
+    `
+      border-color: transparent;
+      background: ${theme.primary};
+      color: #fff;
+    `}
+  ${(p) =>
+    p.$variant === "danger" &&
+    `
+      border-color: #dc2626;
+      background: transparent;
+      color: #dc2626;
+    `}
+`;
+
+const PrimarySubmitButton = styled(ToolbarButton)`
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  font-size: 14px;
+`;
+
+const SelectedCount = styled.span`
+  font-size: 14px;
+  color: ${theme.text};
+`;
+
+const DetailHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+`;
+
+const DetailTitle = styled.h3`
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+`;
+
+const IconTextButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: ${theme.textSecondary};
+`;
+
+const FullLineButton = styled.button`
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 14px;
+  border: 1px solid ${theme.primary};
+  border-radius: 8px;
+  background: transparent;
+  color: ${theme.primary};
+  cursor: pointer;
+  font-weight: 500;
+`;
+
+const DetailStack = styled.div`
+  color: ${theme.text};
+  word-break: break-word;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const SmallErrorText = styled.div`
+  color: #dc2626;
+  font-size: 13px;
+`;
+
+const SmallMutedText = styled.div`
+  color: ${theme.textSecondary};
+  font-size: 13px;
+`;
+
+const DetailActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid ${theme.border};
+`;
+
+const DetailActionButton = styled.button<{ $danger?: boolean }>`
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  border-radius: 8px;
+  background: ${(p) => (p.$danger ? "rgba(239, 68, 68, 0.1)" : theme.surface)};
+  color: ${(p) => (p.$danger ? "#dc2626" : theme.text)};
+  border: 1px solid ${(p) => (p.$danger ? "#dc2626" : theme.border)};
+  cursor: pointer;
+`;
+
+const DetailRecheckButton = styled.button`
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0.4rem 0.75rem;
+  font-size: 13px;
+  border: 1px solid ${theme.border};
+  border-radius: 8px;
+  background: ${theme.surface};
+  color: ${theme.text};
+  cursor: pointer;
+`;
+
+const ThumbShell = styled.span`
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: ${theme.inputBg};
+  border-radius: 8px;
+  color: ${theme.textSecondary};
+`;
+
+const ThumbWrap = styled.span`
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 48px;
+`;
+
+const ThumbImage = styled.img`
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+`;
+
+const ThumbFallback = styled.span`
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: ${theme.inputBg};
+  border-radius: 8px;
+  color: ${theme.textSecondary};
+`;
+
+const StatusWrap = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const StatusPill = styled.span<{ $bg: string; $color: string }>`
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: ${(p) => p.$bg};
+  color: ${(p) => p.$color};
+`;
+
+const HiddenPill = styled.span`
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.08);
+  color: ${theme.textSecondary};
 `;
 
 const DetailOverlay = styled.div`
@@ -557,34 +695,16 @@ export default function PostsPage() {
           const url = Array.isArray(p.value) ? p.value[0] : null;
           if (!url || !isValidImageUrl(url)) {
             return (
-              <span
-                style={{
-                  display: "inline-flex",
-                  width: 48,
-                  height: 48,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: theme.inputBg,
-                  borderRadius: 8,
-                  color: theme.textSecondary,
-                }}
-                title={url === "[inline]" ? "Inline image" : undefined}
-              >
+              <ThumbShell title={url === "[inline]" ? "Inline image" : undefined}>
                 <ImageIcon size={24} />
-              </span>
+              </ThumbShell>
             );
           }
           return (
-            <span style={{ position: "relative", display: "inline-block", width: 48, height: 48 }}>
-              <img
+            <ThumbWrap>
+              <ThumbImage
                 src={url}
                 alt=""
-                style={{
-                  width: 48,
-                  height: 48,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                }}
                 onError={(e) => {
                   const el = e.target as HTMLImageElement;
                   el.style.display = "none";
@@ -592,25 +712,10 @@ export default function PostsPage() {
                   if (fallback) (fallback as HTMLElement).style.display = "inline-flex";
                 }}
               />
-              <span
-                className="thumb-fallback"
-                style={{
-                  display: "none",
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  width: 48,
-                  height: 48,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: theme.inputBg,
-                  borderRadius: 8,
-                  color: theme.textSecondary,
-                }}
-              >
+              <ThumbFallback className="thumb-fallback">
                 <ImageIcon size={24} />
-              </span>
-            </span>
+              </ThumbFallback>
+            </ThumbWrap>
           );
         },
       },
@@ -687,33 +792,10 @@ export default function PostsPage() {
                 ? "#16a34a"
                 : theme.textSecondary;
           return (
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span
-                style={{
-                  padding: "0.25rem 0.5rem",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: bg,
-                  color,
-                }}
-              >
-                {label}
-              </span>
-              {p.data.hidden && (
-                <span
-                  style={{
-                    padding: "0.2rem 0.4rem",
-                    borderRadius: 6,
-                    fontSize: 11,
-                    background: "rgba(0,0,0,0.08)",
-                    color: theme.textSecondary,
-                  }}
-                >
-                  {t("posts.hidden")}
-                </span>
-              )}
-            </span>
+            <StatusWrap>
+              <StatusPill $bg={bg} $color={color}>{label}</StatusPill>
+              {p.data.hidden && <HiddenPill>{t("posts.hidden")}</HiddenPill>}
+            </StatusWrap>
           );
         },
       },
@@ -726,102 +808,47 @@ export default function PostsPage() {
       <PageTitle>{t("posts.title")}</PageTitle>
       {selectedPostIds.size > 0 && (
         <BatchBar>
-          <span style={{ fontSize: 14, color: theme.text }}>
-            {t("posts.selectedCount", { count: selectedPostIds.size })}
-          </span>
-          <button
-            type="button"
-            onClick={clearSelection}
-            style={{
-              padding: "0.35rem 0.75rem",
-              border: `1px solid ${theme.border}`,
-              background: theme.surface,
-              borderRadius: 8,
-              fontSize: 13,
-              cursor: "pointer",
-              color: theme.textSecondary,
-            }}
-          >
+          <SelectedCount>{t("posts.selectedCount", { count: selectedPostIds.size })}</SelectedCount>
+          <ToolbarButton type="button" onClick={clearSelection}>
             {t("common.cancel")}
-          </button>
-          <button
-            type="button"
-            disabled={batchLoading}
-            onClick={handleBatchHide}
-            style={{
-              padding: "0.35rem 0.75rem",
-              border: "none",
-              background: theme.primary,
-              color: "#fff",
-              borderRadius: 8,
-              fontSize: 13,
-              cursor: batchLoading ? "not-allowed" : "pointer",
-            }}
-          >
+          </ToolbarButton>
+          <ToolbarButton type="button" disabled={batchLoading} onClick={handleBatchHide} $variant="primary">
             {t("posts.batchHide")}
-          </button>
-          <button
-            type="button"
-            disabled={batchLoading}
-            onClick={handleBatchDelete}
-            style={{
-              padding: "0.35rem 0.75rem",
-              border: "1px solid #dc2626",
-              background: "transparent",
-              color: "#dc2626",
-              borderRadius: 8,
-              fontSize: 13,
-              cursor: batchLoading ? "not-allowed" : "pointer",
-            }}
-          >
+          </ToolbarButton>
+          <ToolbarButton type="button" disabled={batchLoading} onClick={handleBatchDelete} $variant="danger">
             {t("posts.batchDelete")}
-          </button>
+          </ToolbarButton>
         </BatchBar>
       )}
       <form onSubmit={handleSearch}>
         <Toolbar>
           {rows.length > 0 && (
-            <button
+            <ToolbarButton
               type="button"
               onClick={() =>
                 selectedPostIds.size === rows.length ? clearSelection() : selectAllCurrentPage()
               }
-              style={{
-                padding: "0.35rem 0.75rem",
-                border: `1px solid ${theme.border}`,
-                background: theme.surface,
-                borderRadius: 8,
-                fontSize: 13,
-                cursor: "pointer",
-                color: theme.text,
-              }}
             >
               {selectedPostIds.size === rows.length ? t("posts.clearSelection") : t("posts.selectAllPage")}
-            </button>
+            </ToolbarButton>
           )}
-          <SearchWrapper>
-            <Search size={18} />
-            <SearchInput
-              placeholder={t("posts.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </SearchWrapper>
-          <button
-            type="submit"
-            style={{
-              padding: "0.625rem 1.25rem",
-              background: theme.primary,
-              color: "#fff",
-              border: "none",
-              borderRadius: 24,
-              cursor: "pointer",
-              fontSize: "15px",
-              fontWeight: 500,
+          <TextField
+            size="small"
+            placeholder={t("posts.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 320 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} />
+                </InputAdornment>
+              ),
             }}
-          >
+          />
+          <Button type="submit" variant="contained">
             {t("posts.search")}
-          </button>
+          </Button>
         </Toolbar>
       </form>
       <DataGrid<PostRow>
@@ -834,42 +861,15 @@ export default function PostsPage() {
       {selectedPost && (
         <DetailOverlay onClick={() => setSelectedPost(null)} role="presentation">
           <DetailPanel onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-              <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 600 }}>{t("posts.detail")}</h3>
-              <button
-                type="button"
-                onClick={() => setSelectedPost(null)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1.25rem",
-                  lineHeight: 1,
-                  color: theme.textSecondary,
-                }}
-                aria-label="Close"
-              >
+            <DetailHeader>
+              <DetailTitle>{t("posts.detail")}</DetailTitle>
+              <IconTextButton type="button" onClick={() => setSelectedPost(null)} aria-label="Close">
                 ×
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowPostDetailModal(true)}
-              style={{
-                width: "100%",
-                marginBottom: "1rem",
-                padding: "0.6rem 1rem",
-                fontSize: 14,
-                border: `1px solid ${theme.primary}`,
-                borderRadius: 8,
-                background: "transparent",
-                color: theme.primary,
-                cursor: "pointer",
-                fontWeight: 500,
-              }}
-            >
+              </IconTextButton>
+            </DetailHeader>
+            <FullLineButton type="button" onClick={() => setShowPostDetailModal(true)}>
               {t("posts.viewContentAndComments")}
-            </button>
+            </FullLineButton>
             <DetailRow>
               <DetailLabel>{t("posts.postType")}</DetailLabel>
               <DetailValue>{selectedPost.type ?? "—"}</DetailValue>
@@ -1012,7 +1012,7 @@ export default function PostsPage() {
             )}
             <DetailRow>
               <DetailLabel>{t("posts.violationRecognition")}</DetailLabel>
-              <DetailValue style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <DetailStack>
                 <span>
                   {t("posts.autoTags")}:{" "}
                   {Array.isArray(selectedPost.autoTags) && selectedPost.autoTags.length > 0
@@ -1037,89 +1037,52 @@ export default function PostsPage() {
                     {t("posts.moderationAt")}: {format(new Date(selectedPost.moderationAt), "yyyy-MM-dd HH:mm:ss", { locale: dateLocale })}
                   </span>
                 )}
-                <button
+                <DetailRecheckButton
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleRecheckModeration(selectedPost.postId)}
-                  style={{
-                    alignSelf: "flex-start",
-                    marginTop: 4,
-                    padding: "0.4rem 0.75rem",
-                    fontSize: 13,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 8,
-                    background: theme.surface,
-                    color: theme.text,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
-                  }}
                 >
                   {t("posts.recheckModeration")}
-                </button>
-              </DetailValue>
+                </DetailRecheckButton>
+              </DetailStack>
             </DetailRow>
             {selectedPost.hidden && (
               <DetailRow>
-                <DetailValue style={{ color: theme.textSecondary, fontSize: 13 }}>{t("posts.hidden")}</DetailValue>
+                <SmallMutedText>{t("posts.hidden")}</SmallMutedText>
               </DetailRow>
             )}
             {actionError && (
               <DetailRow>
-                <DetailValue style={{ color: "#dc2626", fontSize: 13 }}>{actionError}</DetailValue>
+                <SmallErrorText>{actionError}</SmallErrorText>
               </DetailRow>
             )}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1rem", paddingTop: "1rem", borderTop: `1px solid ${theme.border}` }}>
+            <DetailActions>
               {selectedPost.hidden ? (
-                <button
+                <DetailActionButton
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleUnhide(selectedPost.postId)}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    fontSize: 14,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 8,
-                    background: theme.surface,
-                    color: theme.text,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
-                  }}
                 >
                   {t("posts.unhidePost")}
-                </button>
+                </DetailActionButton>
               ) : (
-                <button
+                <DetailActionButton
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleHide(selectedPost.postId)}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    fontSize: 14,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 8,
-                    background: theme.surface,
-                    color: theme.text,
-                    cursor: actionLoading ? "not-allowed" : "pointer",
-                  }}
                 >
                   {t("posts.hidePost")}
-                </button>
+                </DetailActionButton>
               )}
-              <button
+              <DetailActionButton
                 type="button"
                 disabled={actionLoading}
                 onClick={() => handleDelete(selectedPost.postId)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: 14,
-                  border: "1px solid #dc2626",
-                  borderRadius: 8,
-                  background: "rgba(239, 68, 68, 0.1)",
-                  color: "#dc2626",
-                  cursor: actionLoading ? "not-allowed" : "pointer",
-                }}
+                $danger
               >
                 {t("posts.deletePost")}
-              </button>
-            </div>
+              </DetailActionButton>
+            </DetailActions>
           </DetailPanel>
         </DetailOverlay>
       )}
@@ -1139,20 +1102,13 @@ export default function PostsPage() {
       />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <PageBtn disabled={pagination.page <= 1} onClick={() => load(pagination.page - 1)}>
-            {t("common.prev")}
-          </PageBtn>
-          {Array.from({ length: Math.min(pagination.totalPages, 10) }, (_, i) => i + 1).map((p) => (
-            <PageBtn key={p} active={p === pagination.page} onClick={() => load(p)}>
-              {p}
-            </PageBtn>
-          ))}
-          <PageBtn
-            disabled={pagination.page >= pagination.totalPages}
-            onClick={() => load(pagination.page + 1)}
-          >
-            {t("common.next")}
-          </PageBtn>
+          <MuiPagination
+            shape="rounded"
+            color="primary"
+            page={pagination.page}
+            count={Math.min(pagination.totalPages, 10)}
+            onChange={(_, p) => load(p)}
+          />
         </Pagination>
       )}
     </div>
