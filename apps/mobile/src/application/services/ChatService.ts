@@ -1,5 +1,6 @@
-import { apiClient } from '@/src/infrastructure/api/client';
+import type { IHttpClient } from '@/src/domain/ports/http-client.port';
 import { Chat, ChatEntity, ChatType } from '@/src/domain/entities';
+import { getHttpClient } from '@/src/infrastructure/composition-root';
 
 interface ServerChat {
   id: string;
@@ -45,15 +46,17 @@ function mapServerChat(c: ServerChat): Chat {
 }
 
 export class ChatService {
+  constructor(private readonly http: IHttpClient) {}
+
   async getChats(): Promise<Chat[]> {
-    const { data } = await apiClient.get<{ success: boolean; data: unknown[] }>('/chats');
+    const { data } = await this.http.get<{ success: boolean; data: unknown[] }>('/chats');
     if (!data.success || !Array.isArray(data.data)) return [];
     return (data.data as ServerChat[]).map(mapServerChat);
   }
 
   async getChatById(chatId: string): Promise<Chat | null> {
     try {
-      const { data } = await apiClient.get<{ success: boolean; data: unknown }>(`/chats/${chatId}`);
+      const { data } = await this.http.get<{ success: boolean; data: unknown }>(`/chats/${chatId}`);
       if (!data.success || !data.data) return null;
       return mapServerChat(data.data as ServerChat);
     } catch {
@@ -76,5 +79,5 @@ export class ChatService {
   }
 }
 
-export const chatService = new ChatService();
+export const chatService = new ChatService(getHttpClient());
 

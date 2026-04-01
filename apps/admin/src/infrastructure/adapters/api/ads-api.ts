@@ -1,6 +1,17 @@
 import { getApiClient } from "./api-client";
+import pickBy from "lodash/pickBy";
 
 const api = getApiClient();
+
+function buildQuery(params?: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  const picked = pickBy(params ?? {}, (value) => value !== undefined && value !== "");
+  for (const [key, value] of Object.entries(picked)) {
+    search.set(key, String(value));
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+}
 
 export interface AdAccount {
   id: string;
@@ -122,12 +133,9 @@ export interface Paginated<T> {
 }
 
 export async function getAdAccounts(params?: { status?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.status) search.set("status", params.status);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  const res = await api.get<Paginated<AdAccount>>(`ads/accounts${qs ? `?${qs}` : ""}`);
+  const res = await api.get<Paginated<AdAccount>>(
+    `ads/accounts${buildQuery({ status: params?.status, page: params?.page, limit: params?.limit })}`
+  );
   return res;
 }
 
@@ -154,13 +162,14 @@ export async function updateAdAccount(id: string, body: Partial<{
 }
 
 export async function getAdCampaigns(params?: { accountId?: string; status?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.accountId) search.set("accountId", params.accountId);
-  if (params?.status) search.set("status", params.status);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  const res = await api.get<Paginated<AdCampaign>>(`ads/campaigns${qs ? `?${qs}` : ""}`);
+  const res = await api.get<Paginated<AdCampaign>>(
+    `ads/campaigns${buildQuery({
+      accountId: params?.accountId,
+      status: params?.status,
+      page: params?.page,
+      limit: params?.limit,
+    })}`
+  );
   return res;
 }
 
@@ -190,13 +199,14 @@ export async function updateAdCampaign(id: string, body: Partial<{
 }
 
 export async function getAdGroups(params?: { campaignId?: string; placement?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.campaignId) search.set("campaignId", params.campaignId);
-  if (params?.placement) search.set("placement", params.placement);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  const res = await api.get<Paginated<AdGroup>>(`ads/groups${qs ? `?${qs}` : ""}`);
+  const res = await api.get<Paginated<AdGroup>>(
+    `ads/groups${buildQuery({
+      campaignId: params?.campaignId,
+      placement: params?.placement,
+      page: params?.page,
+      limit: params?.limit,
+    })}`
+  );
   return res;
 }
 
@@ -228,13 +238,14 @@ export async function updateAdGroup(id: string, body: Partial<{
 }
 
 export async function getAdCreatives(params?: { campaignId?: string; groupId?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.campaignId) search.set("campaignId", params.campaignId);
-  if (params?.groupId) search.set("groupId", params.groupId);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  const res = await api.get<Paginated<AdCreative>>(`ads/creatives${qs ? `?${qs}` : ""}`);
+  const res = await api.get<Paginated<AdCreative>>(
+    `ads/creatives${buildQuery({
+      campaignId: params?.campaignId,
+      groupId: params?.groupId,
+      page: params?.page,
+      limit: params?.limit,
+    })}`
+  );
   return res;
 }
 
@@ -270,22 +281,20 @@ export async function linkFacebookAdManager(body: FacebookAdManagerLink) {
 }
 
 export async function getPromotablePosts(params?: { page?: number; limit?: number; search?: string }) {
-  const search = new URLSearchParams();
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  if (params?.search) search.set("search", params.search);
-  const qs = search.toString();
-  return api.get<Paginated<PromotablePost>>(`ads/promotions/posts${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<PromotablePost>>(
+    `ads/promotions/posts${buildQuery({ page: params?.page, limit: params?.limit, search: params?.search })}`
+  );
 }
 
 export async function getPromotedPosts(params?: { accountId?: string; status?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.accountId) search.set("accountId", params.accountId);
-  if (params?.status) search.set("status", params.status);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  return api.get<Paginated<PromotedPost>>(`ads/promotions${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<PromotedPost>>(
+    `ads/promotions${buildQuery({
+      accountId: params?.accountId,
+      status: params?.status,
+      page: params?.page,
+      limit: params?.limit,
+    })}`
+  );
 }
 
 export async function createPromotedPost(body: {
@@ -300,11 +309,8 @@ export async function createPromotedPost(body: {
 }
 
 export async function getAdPerformanceSummary(params?: { accountId?: string; from?: string; to?: string }) {
-  const search = new URLSearchParams();
-  if (params?.accountId) search.set("accountId", params.accountId);
-  if (params?.from) search.set("from", params.from);
-  if (params?.to) search.set("to", params.to);
-  const qs = search.toString();
-  return api.get<AdPerformanceSummary>(`ads/analytics/overview${qs ? `?${qs}` : ""}`);
+  return api.get<AdPerformanceSummary>(
+    `ads/analytics/overview${buildQuery({ accountId: params?.accountId, from: params?.from, to: params?.to })}`
+  );
 }
 

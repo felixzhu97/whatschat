@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import uniqBy from 'lodash/uniqBy';
 import { feedService, type MobileFeedPost } from '@/src/application/services';
 
 const INITIAL_LIMIT = 5;
@@ -33,9 +34,7 @@ export function useMobileFeed() {
         setPageState(nextPageState);
         setItems((prev) => {
           if (isInitial) return posts;
-          const seen = new Set(prev.map((p) => p.id));
-          const append = posts.filter((p) => !seen.has(p.id));
-          return [...prev, ...append];
+          return uniqBy([...prev, ...posts], 'id');
         });
       } catch (e) {
         setError(e instanceof Error ? e.message : '加载失败');

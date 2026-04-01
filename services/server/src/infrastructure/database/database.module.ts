@@ -9,6 +9,10 @@ import { ElasticsearchService } from "./elasticsearch.service";
 import { CassandraPostRepository } from "./cassandra-post.repository";
 import { CassandraFeedRepository } from "./cassandra-feed.repository";
 import { CassandraEngagementRepository } from "./cassandra-engagement.repository";
+import { PostRepositoryAdapter } from "../adapters/repositories/post-repository.adapter";
+import { EngagementRepositoryAdapter } from "../adapters/repositories/engagement-repository.adapter";
+import { CommentRepositoryAdapter } from "../adapters/repositories/comment-repository.adapter";
+import { NotificationRepositoryAdapter } from "../adapters/repositories/notification-repository.adapter";
 import { MongoCommentRepository } from "./mongo-comment.repository";
 import { MongoNotificationRepository } from "./mongo-notification.repository";
 
@@ -25,6 +29,14 @@ import { MongoNotificationRepository } from "./mongo-notification.repository";
     CassandraPostRepository,
     CassandraFeedRepository,
     CassandraEngagementRepository,
+    PostRepositoryAdapter,
+    EngagementRepositoryAdapter,
+    CommentRepositoryAdapter,
+    NotificationRepositoryAdapter,
+    { provide: "IPostRepository", useExisting: PostRepositoryAdapter },
+    { provide: "IEngagementRepository", useExisting: EngagementRepositoryAdapter },
+    { provide: "ICommentRepository", useExisting: CommentRepositoryAdapter },
+    { provide: "INotificationRepository", useExisting: NotificationRepositoryAdapter },
     MongoCommentRepository,
     MongoNotificationRepository,
   ],
@@ -39,6 +51,14 @@ import { MongoNotificationRepository } from "./mongo-notification.repository";
     CassandraPostRepository,
     CassandraFeedRepository,
     CassandraEngagementRepository,
+    PostRepositoryAdapter,
+    EngagementRepositoryAdapter,
+    CommentRepositoryAdapter,
+    NotificationRepositoryAdapter,
+    "IPostRepository",
+    "IEngagementRepository",
+    "ICommentRepository",
+    "INotificationRepository",
     MongoCommentRepository,
     MongoNotificationRepository,
   ],

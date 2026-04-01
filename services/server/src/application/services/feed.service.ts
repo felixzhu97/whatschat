@@ -1,6 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import compact from "lodash/compact";
+import keyBy from "lodash/keyBy";
+import orderBy from "lodash/orderBy";
+import uniqBy from "lodash/uniqBy";
 import { FeedCacheService } from "../../infrastructure/cache/feed-cache.service";
-import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
+import type { IEngagementRepository } from "@/domain/interfaces/repositories/engagement.repository.interface";
 import { PostService } from "./post.service";
 import { RecommendationService } from "./recommendation.service";
 import { ExperimentService } from "./experiment.service";
@@ -26,7 +30,8 @@ export class FeedService {
   constructor(
     private readonly feedCache: FeedCacheService,
     private readonly postService: PostService,
-    private readonly engagementRepo: CassandraEngagementRepository,
+    @Inject("IEngagementRepository")
+    private readonly engagementRepo: IEngagementRepository,
     private readonly recommendation: RecommendationService,
     private readonly experiments: ExperimentService,
     private readonly ads: AdService,
@@ -47,11 +52,7 @@ export class FeedService {
       authorId: p.userId,
       createdAt: typeof p.createdAt === "string" ? new Date(p.createdAt) : (p.createdAt as Date),
     }));
-    const mergedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
-    for (const e of [...ownEntries, ...visibleEntries]) {
-      if (!mergedByPost.has(e.postId)) mergedByPost.set(e.postId, e);
-    }
-    const candidates = Array.from(mergedByPost.values());
+    const candidates = uniqBy([...ownEntries, ...visibleEntries], "postId");
     const postIds = candidates.map((e) => e.postId);
     const countsMap = await this.engagementRepo.getEngagementCountsBatch(postIds);
     const now = new Date();
@@ -63,15 +64,11 @@ export class FeedService {
       experimentId: assignment.experimentId,
       variantId: assignment.variantId,
     } as any);
-    const rankedByPost = new Map<string, { postId: string; authorId: string; createdAt: Date }>();
-    for (const e of candidates) {
-      rankedByPost.set(e.postId, e);
-    }
+    const rankedByPost = keyBy(candidates, "postId");
     const ordered = (ranked.items ?? [])
-      .map((item) => rankedByPost.get(item.id))
-      .filter((v): v is { postId: string; authorId: string; createdAt: Date } => Boolean(v));
-    const fallbackSorted = candidates
-      .map((e) => ({
+      .map((item) => rankedByPost[item.id])
+      .filter((v): v is { postId: string; authorId: string; createdAt: Date } => v != null);
+    const fallbackSorted = orderBy(candidates.map((e) => ({
         ...e,
         score: rankScore(
           e.createdAt,
@@ -79,8 +76,7 @@ export class FeedService {
           countsMap.get(e.postId)?.commentCount ?? 0,
           now,
         ),
-      }))
-      .sort((a, b) => b.score - a.score);
+      })), ["score"], ["desc"]);
     const combined = ordered.length > 0 ? ordered : fallbackSorted;
     const page = combined.slice(0, limit).map(({ postId, authorId, createdAt }) => ({
       postId,
@@ -127,10 +123,12 @@ export class FeedService {
     const postIds = entries.map((entry) => entry.postId);
     const rows = await this.postService.getPostsBatch(postIds, currentUserId);
     const visibleIds = new Set(
-      rows
+      compact(
+        rows
         .filter((row): row is Record<string, unknown> => row != null)
         .map((row) => row["postId"])
         .filter((postId): postId is string => typeof postId === "string")
+      )
     );
     return entries.filter((entry) => visibleIds.has(entry.postId));
   }
@@ -144,11 +142,13 @@ export class FeedService {
     const rows = await this.postService.getPostsBatch(postIds, currentUserId);
 
     const videoIds = new Set(
-      rows
+      compact(
+        rows
         .filter((row): row is Record<string, unknown> => row != null)
         .filter((row) => row["type"] === "VIDEO")
         .map((row) => row["postId"])
         .filter((postId): postId is string => typeof postId === "string")
+      )
     );
 
     return entries.filter((entry) => videoIds.has(entry.postId));

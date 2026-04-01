@@ -3,6 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import isEqual from "lodash/isEqual";
+import sortBy from "lodash/sortBy";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { CacheService } from "../../infrastructure/cache/cache.service";
 
@@ -102,12 +104,10 @@ export class ChatsService {
   async createChat(userId: string, data: CreateChatData) {
     const { type, name, avatar, participantIds } = data;
 
-    // 验证参与者
     if (participantIds.length === 0) {
       throw new BadRequestException("至少需要一个参与者");
     }
 
-    // 检查参与者是否存在
     const participants = await this.prisma.user.findMany({
       where: {
         id: {
@@ -120,7 +120,6 @@ export class ChatsService {
       throw new BadRequestException("部分参与者不存在");
     }
 
-    // 如果是私聊，检查是否已存在
     if (
       type === "PRIVATE" &&
       participantIds.length === 1 &&
@@ -137,13 +136,9 @@ export class ChatsService {
 
       const targetUserId = participantIds[0];
       const existingChat = existingChats.find((chat) => {
-        const participantUserIds = chat.participants.map((p) => p.userId);
-        return (
-          participantUserIds.includes(userId) &&
-          targetUserId &&
-          participantUserIds.includes(targetUserId) &&
-          participantUserIds.length === 2
-        );
+        const participantUserIds = sortBy(chat.participants.map((p) => p.userId));
+        const expected = sortBy([userId, targetUserId]);
+        return participantUserIds.length === 2 && isEqual(participantUserIds, expected);
       });
 
       if (existingChat) {
@@ -151,7 +146,6 @@ export class ChatsService {
       }
     }
 
-    // 创建聊天
     const chatData: any = {
       type,
       participants: {
@@ -222,7 +216,6 @@ export class ChatsService {
       throw new NotFoundException("聊天不存在");
     }
 
-    // 检查用户是否为参与者
     const isParticipant = chat.participants.some((p) => p.userId === userId);
     if (!isParticipant) {
       throw new BadRequestException("无权访问此聊天");
@@ -232,7 +225,6 @@ export class ChatsService {
   }
 
   async updateChat(id: string, userId: string, data: UpdateChatData) {
-    // 检查聊天是否存在
     const chat = await this.prisma.chat.findUnique({
       where: { id },
       include: {
@@ -244,13 +236,11 @@ export class ChatsService {
       throw new NotFoundException("聊天不存在");
     }
 
-    // 检查用户是否为参与者
     const isParticipant = chat.participants.some((p) => p.userId === userId);
     if (!isParticipant) {
       throw new BadRequestException("无权修改此聊天");
     }
 
-    // 只有群组可以修改名称和头像
     if (chat.type === "PRIVATE") {
       throw new BadRequestException("私聊不能修改名称和头像");
     }
@@ -295,7 +285,6 @@ export class ChatsService {
       throw new NotFoundException("聊天不存在");
     }
 
-    // 检查用户是否为参与者
     const isParticipant = chat.participants.some((p) => p.userId === userId);
     if (!isParticipant) {
       throw new BadRequestException("无权删除此聊天");

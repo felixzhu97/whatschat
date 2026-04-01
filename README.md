@@ -160,6 +160,13 @@ services/server/src/lib/
 - [C4 模型](docs/en/rd/c4/README.md) – 系统上下文、容器、组件（API/Web/Mobile/Admin/Media Gen/Recommendation/Vision）
 - [TOGAF](docs/en/rd/togaf/README.md) – 业务、应用、数据、技术四大架构域
 
+## 🧱 Clean Architecture 更新（2026-04）
+
+- 服务端（`services/server`）应用层已对核心读写路径采用端口注入：`IPostRepository`、`IEngagementRepository`、`ICommentRepository`、`INotificationRepository`
+- 基础设施层新增并统一使用适配器实现端口：`PostRepositoryAdapter`、`EngagementRepositoryAdapter`、`CommentRepositoryAdapter`、`NotificationRepositoryAdapter`
+- `application/services` 不再直接依赖 `Cassandra*Repository`/`Mongo*Repository`，改为 `@Inject("I...Repository")` 注入
+- `DatabaseModule` 作为组合根完成接口 token 绑定与导出，保持行为不变、实现可替换与可测试
+
 ## 📄 许可证
 
 MIT

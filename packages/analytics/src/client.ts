@@ -1,6 +1,7 @@
 import type { AnalyticsEvent, EventContext } from "./types";
 import type { KnownEventName, KnownEventPayloadMap } from "./events";
 import type { IAnalyticsTransport } from "./transport";
+import isEmpty from "lodash/isEmpty";
 
 export interface AnalyticsConfig {
   transport: IAnalyticsTransport;
@@ -25,7 +26,7 @@ export function createAnalytics(config: AnalyticsConfig): IAnalyticsClient {
       eventName,
       properties,
       timestamp: Date.now(),
-      context: Object.keys(context).length ? context : undefined,
+      context: isEmpty(context) ? undefined : context,
     };
   }
 

@@ -1,3 +1,4 @@
+export type { ApiMessageLike, SocketMessagePayload } from "./message-mapping.types";
 export { MESSAGE_LIMIT } from "./constants";
 export {
   mapApiMessageToMessage,

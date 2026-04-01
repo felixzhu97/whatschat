@@ -1,4 +1,6 @@
 import { Injectable } from "@nestjs/common";
+import flatMap from "lodash/flatMap";
+import orderBy from "lodash/orderBy";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 
 export interface AdRequestContext {
@@ -76,10 +78,9 @@ export class AdService {
       },
       take: context.limit * 4,
     });
-    const flat: AdCandidate[] = [];
-    for (const group of activeGroups) {
-      for (const creative of group.creatives) {
-        flat.push({
+    const flat = flatMap(activeGroups, (group) =>
+      group.creatives.map(
+        (creative: any): AdCandidate => ({
           accountId: group.campaign.accountId,
           campaignId: group.campaignId,
           groupId: group.id,
@@ -87,14 +88,13 @@ export class AdService {
           placement: group.placement,
           bidCents: group.bidCents,
           billingEvent: group.billingEvent,
-        });
-      }
-    }
+        })
+      )
+    );
     if (flat.length === 0) {
       return [];
     }
-    flat.sort((a, b) => b.bidCents - a.bidCents);
-    return flat.slice(0, context.limit);
+    return orderBy(flat, ["bidCents"], ["desc"]).slice(0, context.limit);
   }
 
   async recordDelivery(records: AdDeliveryRecord[]): Promise<void> {

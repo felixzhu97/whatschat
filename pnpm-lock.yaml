@@ -391,6 +391,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.0)(redux@5.0.1))(react@19.2.0)
+      '@types/lodash':
+        specifier: ^4.17.24
+        version: 4.17.24
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
@@ -427,6 +430,9 @@ importers:
       input-otp:
         specifier: 1.4.1
         version: 1.4.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      lodash:
+        specifier: ^4.17.23
+        version: 4.17.23
       lucide-react:
         specifier: ^0.454.0
         version: 0.454.0(react@19.2.0)
@@ -526,6 +532,13 @@ importers:
         version: 2.1.9(@types/node@22.19.11)(jsdom@25.0.1)(lightningcss@1.31.1)(terser@5.46.0)
 
   packages/analytics:
+    dependencies:
+      '@types/lodash':
+        specifier: ^4.17.24
+        version: 4.17.24
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.23
     devDependencies:
       '@types/react':
         specifier: ^18.3.0
@@ -542,9 +555,15 @@ importers:
 
   packages/im:
     dependencies:
+      '@types/lodash':
+        specifier: ^4.17.24
+        version: 4.17.24
       '@whatschat/shared-types':
         specifier: workspace:*
         version: link:../shared-types
+      lodash:
+        specifier: ^4.17.23
+        version: 4.17.23
     devDependencies:
       '@reduxjs/toolkit':
         specifier: ^2.5.0
@@ -621,6 +640,9 @@ importers:
       '@prisma/client':
         specifier: ^5.7.1
         version: 5.22.0(prisma@5.22.0)
+      '@types/lodash':
+        specifier: ^4.17.24
+        version: 4.17.24
       '@whatschat/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
@@ -669,6 +691,9 @@ importers:
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4
+      lodash:
+        specifier: ^4.17.23
+        version: 4.17.23
       moment:
         specifier: ^2.29.4
         version: 2.30.1
@@ -4671,6 +4696,9 @@ packages:
 
   '@types/lodash@4.17.23':
     resolution: {integrity: sha512-RDvF6wTulMPjrNdCoYRC8gNR880JNGT8uB+REUpC2Ns4pRqQJhGz90wh7rgdXDPpCczF3VGktDuFGVnz8zP7HA==}
+
+  '@types/lodash@4.17.24':
+    resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
   '@types/long@4.0.2':
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
@@ -15638,6 +15666,8 @@ snapshots:
       '@types/node': 22.19.11
 
   '@types/lodash@4.17.23': {}
+
+  '@types/lodash@4.17.24': {}
 
   '@types/long@4.0.2': {}
 

@@ -8,7 +8,7 @@
 |----|------|------|
 | 概览 | [overview.puml](./overview.puml) | 业务 → 应用 → 数据 → 技术；推荐流、内容审核、Vision |
 | 业务 | [business-architecture.puml](./business-architecture.puml) | 参与者、能力（消息、类 Instagram 信息流与多媒体、Reels、推荐与探索、内容审核、关注、通话、文件、群组、**广告与投放管理**、行为分析）、流程 |
-| 应用 | [application-architecture.puml](./application-architecture.puml) | Web/移动端/管理端；GraphQL Post **coverUrl**；媒体上传 `POST /media/upload`；WS **notification:new**；通知 MongoDB；探索与发帖；推荐（Celery、Redis）；Vision（标签、审核）；Admin 与广告 API；Analytics `analytics_events`。**移动端**：个人主页、搜索/探索、「设置与动态」栈；`FeedService` REST 探索/搜索/用户帖 + GraphQL |
+| 应用 | [application-architecture.puml](./application-architecture.puml) | Web/移动端/管理端；REST/GraphQL/WS/WebRTC；并明确端口-适配器分层（应用服务 -> 领域端口 -> 基础设施适配器 -> 仓储）；GraphQL Post **coverUrl**、媒体上传 `POST /media/upload`、通知 MongoDB、探索与发帖、推荐、Vision、Admin 与广告 API、Analytics `analytics_events` |
 | 数据 | [data-architecture.puml](./data-architecture.puml) | Post（**cover_url**、moderationStatus、hidden）、上传媒体对象（url/key/mimeType/size）、评论与**活动通知**（MongoDB）、信息流、互动、广告配置与投放、行为埋点 `analytics_events`；PostgreSQL、Redis、Cassandra、MongoDB、Elasticsearch |
 | 技术 | [technology-architecture.puml](./technology-architecture.puml) | Next.js、React Native、NestJS、**GraphQL**、Python（Celery、Vision）、Prisma、Socket.IO、WebRTC、Redis、Docker、Elasticsearch、LightFM、implicit、Annoy、NudeNet、ResNet50 |
 
@@ -21,6 +21,12 @@
 | 推荐 | `services/recommendation` |
 | 媒体生成 | `services/media-gen` |
 | 视觉 | `services/vision` |
+
+## Clean Architecture 说明
+
+- API 应用服务通过领域仓储接口（ports）访问数据能力
+- 基础设施适配器实现端口并委托 Prisma/Cassandra/Mongo 具体仓储
+- 依赖方向保持单向：`application -> domain ports <- infrastructure adapters`
 
 ## 查看
 

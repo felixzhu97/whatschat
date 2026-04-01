@@ -1,5 +1,6 @@
-import { apiClient } from '@/src/infrastructure/api/client';
+import type { IHttpClient } from '@/src/domain/ports/http-client.port';
 import { Message, MessageEntity, MessageType, MessageStatus } from '@/src/domain/entities';
+import { getHttpClient } from '@/src/infrastructure/composition-root';
 
 const SERVER_TYPE_MAP: Record<string, MessageType> = {
   TEXT: MessageType.Text,
@@ -51,8 +52,10 @@ export function mapServerMessagePayload(p: Record<string, unknown>): Message {
 }
 
 export class MessageService {
+  constructor(private readonly http: IHttpClient) {}
+
   async getMessages(chatId: string): Promise<Message[]> {
-    const { data } = await apiClient.get<{ success: boolean; data: unknown[] }>(
+    const { data } = await this.http.get<{ success: boolean; data: unknown[] }>(
       `/messages/${chatId}`,
       { params: { page: 1, limit: 50 } }
     );
@@ -61,7 +64,7 @@ export class MessageService {
   }
 
   async sendMessage(chatId: string, content: string, type: string = 'TEXT'): Promise<Message> {
-    const { data } = await apiClient.post<{ success: boolean; data: unknown }>('/messages', {
+    const { data } = await this.http.post<{ success: boolean; data: unknown }>('/messages', {
       chatId,
       content,
       type,
@@ -71,4 +74,4 @@ export class MessageService {
   }
 }
 
-export const messageService = new MessageService();
+export const messageService = new MessageService(getHttpClient());

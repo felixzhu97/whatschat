@@ -1,26 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import type { PostRow, CreatePostInput } from "@/domain/interfaces/repositories/post.repository.interface";
 import { CassandraService } from "./cassandra.service";
 
-export interface PostRow {
-  user_id: string;
-  created_at: Date;
-  post_id: string;
-  caption: string | null;
-  type: string;
-  media_urls: string[];
-  location: string | null;
-  cover_url: string | null;
-}
-
-export interface CreatePostInput {
-  postId: string;
-  userId: string;
-  caption: string;
-  type: string;
-  mediaUrls: string[];
-  location?: string;
-  coverUrl?: string;
-}
+export type { PostRow, CreatePostInput } from "@/domain/interfaces/repositories/post.repository.interface";
 
 @Injectable()
 export class CassandraPostRepository {

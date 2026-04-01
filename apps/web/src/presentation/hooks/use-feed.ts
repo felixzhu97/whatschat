@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import compact from "lodash/compact";
+import uniq from "lodash/uniq";
+import uniqBy from "lodash/uniqBy";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 import { FeedApiAdapter, type PostDetailRes } from "@/infrastructure/adapters/api/feed-api.adapter";
 import type { FeedPost, SuggestedUser } from "@/shared/types";
@@ -84,9 +87,7 @@ export function useFeed(currentUserId: string | undefined) {
       });
       setPosts((prev) => {
         if (isInitial) return list;
-        const prevIds = new Set(prev.map((p) => p.id));
-        const append = list.filter((p) => !prevIds.has(p.id));
-        return [...prev, ...append];
+        return uniqBy([...prev, ...list], "id");
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
@@ -96,8 +97,8 @@ export function useFeed(currentUserId: string | undefined) {
   }, [currentUserId, pageState, hasMore]);
 
   const authorIds = useMemo(() => {
-    const ids = posts.map((p) => p.userId).filter((id) => typeof id === "string" && id.length > 0);
-    const unique = Array.from(new Set(ids));
+    const ids = compact(posts.map((p) => (typeof p.userId === "string" && p.userId.length > 0 ? p.userId : undefined)));
+    const unique = uniq(ids);
     return currentUserId ? unique.filter((id) => id !== currentUserId) : unique;
   }, [posts, currentUserId]);
 
@@ -174,8 +175,7 @@ export function useFeed(currentUserId: string | undefined) {
     try {
       const list = await api.getSuggestions(10);
       const mapped = (list as Array<{ id: string; username: string; avatar: string | null; description: string }>).map(toSuggestedUser);
-      const seen = new Set<string>();
-      setSuggestions(mapped.filter((s) => (seen.has(s.id) ? false : (seen.add(s.id), true))));
+      setSuggestions(uniqBy(mapped, "id"));
     } finally {
       setSuggestionsLoading(false);
     }

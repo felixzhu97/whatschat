@@ -1,12 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import {
-  MongoNotificationRepository,
+import { Inject, Injectable } from "@nestjs/common";
+import type {
+  INotificationRepository,
   NotificationItem,
-} from "../../infrastructure/database/mongo-notification.repository";
+} from "@/domain/interfaces/repositories/notification.repository.interface";
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly repo: MongoNotificationRepository) {}
+  constructor(
+    @Inject("INotificationRepository")
+    private readonly repo: INotificationRepository
+  ) {}
 
   async list(recipientId: string, limit: number, cursor?: string) {
     const safeLimit = Math.min(Math.max(limit, 1), 50);

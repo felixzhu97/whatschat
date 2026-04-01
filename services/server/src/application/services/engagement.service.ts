@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
-import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import type { IEngagementRepository } from "@/domain/interfaces/repositories/engagement.repository.interface";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
 import { NotificationService } from "./notification.service";
 import { ChatGateway } from "../../presentation/websocket/chat.gateway";
 
 @Injectable()
 export class EngagementService {
   constructor(
-    private readonly engagementRepo: CassandraEngagementRepository,
-    private readonly postRepo: CassandraPostRepository,
+    @Inject("IEngagementRepository")
+    private readonly engagementRepo: IEngagementRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
     private readonly notificationService: NotificationService,
     private readonly chatGateway: ChatGateway,
   ) {}

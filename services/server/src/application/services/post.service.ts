@@ -1,6 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
-import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import compact from "lodash/compact";
+import uniq from "lodash/uniq";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
+import type { IEngagementRepository } from "@/domain/interfaces/repositories/engagement.repository.interface";
 import { ElasticsearchService } from "../../infrastructure/database/elasticsearch.service";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { AiService } from "./ai.service";
@@ -22,8 +24,10 @@ export interface CreatePostData {
 @Injectable()
 export class PostService {
   constructor(
-    private readonly postRepo: CassandraPostRepository,
-    private readonly engagementRepo: CassandraEngagementRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
+    @Inject("IEngagementRepository")
+    private readonly engagementRepo: IEngagementRepository,
     private readonly elasticsearch: ElasticsearchService,
     private readonly kafka: KafkaProducerService,
     private readonly usersService: UsersService,
@@ -185,7 +189,7 @@ export class PostService {
   ): Promise<(Record<string, unknown> | null)[]> {
     if (postIds.length === 0) return [];
     const rows = await Promise.all(postIds.map((id) => this.postRepo.getPostById(id)));
-    const authorIds = [...new Set(rows.filter((r): r is NonNullable<typeof r> => r != null).map((r) => r.user_id))];
+    const authorIds = uniq(compact(rows.map((row) => row?.user_id)));
     const [userMap, countsMap] = await Promise.all([
       this.usersService.getUsersByIds(authorIds),
       this.engagementRepo.getEngagementCountsBatch(postIds),

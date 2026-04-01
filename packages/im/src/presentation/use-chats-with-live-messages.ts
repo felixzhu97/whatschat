@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import type { Message } from "@whatschat/shared-types";
 import type { IWebSocketAdapter, IChatsService, ChatListItem } from "../domain";
-import type { ApiMessageLike, SocketMessagePayload } from "../domain";
 import {
+  type ApiMessageLike,
+  type SocketMessagePayload,
   mapApiMessageToMessage,
   mapSocketPayloadToMessage,
   mergeAndSortMessages,

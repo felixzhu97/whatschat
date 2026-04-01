@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import sortBy from 'lodash/sortBy';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -130,9 +131,7 @@ export default function ChatDetailScreen() {
       if (message.chatId !== params.chatId) return;
       setMessages((prev) => {
         if (prev.some((m) => m.id === message.id)) return prev;
-        return [...prev, message].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
+        return sortBy([...prev, message], (m) => new Date(m.timestamp).getTime());
       });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     },
@@ -145,9 +144,7 @@ export default function ChatDetailScreen() {
       setMessages((prev) => {
         const exists = prev.find((m) => m.id === message.id);
         if (exists) return prev;
-        return [...prev, message].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
+        return sortBy([...prev, message], (m) => new Date(m.timestamp).getTime());
       });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     },
@@ -212,9 +209,7 @@ export default function ChatDetailScreen() {
           forwardedFrom: [],
         });
         setMessages((prev) =>
-          [...prev, temp].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          )
+          sortBy([...prev, temp], (m) => new Date(m.timestamp).getTime())
         );
         setInputText('');
         analytics.track(SEND_MESSAGE, { chatId, type: 'text' });

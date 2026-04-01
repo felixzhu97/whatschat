@@ -1,7 +1,9 @@
 import { IAuthService, AuthState, RegisterData, LoginData } from "../../domain/interfaces/services/auth.service.interface";
 import { User } from "../../domain/entities/user.entity";
-import { getApiClient } from "../../infrastructure/adapters/api/api-client.adapter";
+import type { IApiClient } from "../../domain/interfaces/adapters/api-client.interface";
+import type { IStorageAdapter } from "../../domain/interfaces/adapters/storage.interface";
 import { AuthApiAdapter } from "../../infrastructure/adapters/api/auth-api.adapter";
+import { getAppComposition } from "../../infrastructure/composition-root";
 import { getStorageAdapter } from "../../infrastructure/adapters/storage/storage.adapter";
 
 const STORAGE_KEYS = {
@@ -11,9 +13,6 @@ const STORAGE_KEYS = {
 };
 
 export class AuthService implements IAuthService {
-  private apiClient = getApiClient();
-  private authApi = new AuthApiAdapter(this.apiClient);
-  private storage = getStorageAdapter();
   private authState: AuthState = {
     user: null,
     isAuthenticated: false,
@@ -21,7 +20,11 @@ export class AuthService implements IAuthService {
     error: null,
   };
 
-  constructor() {
+  constructor(
+    private readonly apiClient: IApiClient,
+    private readonly authApi: AuthApiAdapter,
+    private readonly storage: IStorageAdapter,
+  ) {
     this.initializeAuth();
   }
 
@@ -332,7 +335,8 @@ let authServiceInstance: AuthService | null = null;
 
 export const getAuthService = (): IAuthService => {
   if (!authServiceInstance) {
-    authServiceInstance = new AuthService();
+    const { apiClient, authApi } = getAppComposition();
+    authServiceInstance = new AuthService(apiClient, authApi, getStorageAdapter());
   }
   return authServiceInstance;
 };

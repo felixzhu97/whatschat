@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import keyBy from "lodash/keyBy";
+import mapValues from "lodash/mapValues";
 import { PrismaService } from "@/infrastructure/database/prisma.service";
 import { ElasticsearchService } from "@/infrastructure/database/elasticsearch.service";
-import { CassandraPostRepository } from "@/infrastructure/database/cassandra-post.repository";
-import { CassandraEngagementRepository } from "@/infrastructure/database/cassandra-engagement.repository";
-import { MongoCommentRepository } from "@/infrastructure/database/mongo-comment.repository";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
+import type { IEngagementRepository } from "@/domain/interfaces/repositories/engagement.repository.interface";
+import type { ICommentRepository } from "@/domain/interfaces/repositories/comment.repository.interface";
 import { VisionClientService } from "./vision-client.service";
 import { ConfigService } from "@/infrastructure/config/config.service";
 import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
@@ -13,9 +15,12 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly elasticsearch: ElasticsearchService,
-    private readonly postRepo: CassandraPostRepository,
-    private readonly engagementRepo: CassandraEngagementRepository,
-    private readonly commentRepo: MongoCommentRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
+    @Inject("IEngagementRepository")
+    private readonly engagementRepo: IEngagementRepository,
+    @Inject("ICommentRepository")
+    private readonly commentRepo: ICommentRepository,
     private readonly visionClient: VisionClientService,
   ) {}
 
@@ -67,13 +72,10 @@ export class AdminService {
       totalMessages,
       onlineUsers,
       todayMessages,
-      messagesByType: messagesByType.reduce(
-        (acc, item) => {
-          acc[item.type] = item._count.id;
-          return acc;
-        },
-        {} as Record<string, number>
-      ),
+      messagesByType: mapValues(
+        keyBy(messagesByType, "type"),
+        (item) => item?._count.id ?? 0
+      ) as Record<string, number>,
       recentUsers,
     };
   }

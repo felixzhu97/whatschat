@@ -1,4 +1,8 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
+import compact from "lodash/compact";
+import keyBy from "lodash/keyBy";
+import orderBy from "lodash/orderBy";
+import uniq from "lodash/uniq";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { RedisService } from "../../infrastructure/database/redis.service";
 
@@ -52,12 +56,12 @@ export class FollowService {
 
   async checkFollowing(followerId: string, followingIds: string[]): Promise<Set<string>> {
     if (!Array.isArray(followingIds) || followingIds.length === 0) return new Set();
-    const unique = Array.from(
-      new Set(
+    const unique = uniq(
+      compact(
         followingIds
           .map((id) => id?.toString())
-          .filter((id): id is string => typeof id === 'string' && id.length > 0 && id !== followerId),
-      ),
+          .filter((id): id is string => typeof id === "string" && id.length > 0 && id !== followerId)
+      )
     );
     if (unique.length === 0) return new Set();
     const rels = await this.prisma.userFollow.findMany({
@@ -78,8 +82,8 @@ export class FollowService {
         where: { id: { in: ids } },
         select: { id: true, username: true, avatar: true },
       });
-      const orderMap = new Map(ids.map((id, i) => [id, i]));
-      const sorted = users.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+      const orderMap = keyBy(ids.map((id, index) => ({ id, index })), "id");
+      const sorted = orderBy(users, (user) => orderMap[user.id]?.index ?? 999, "asc");
       return sorted.map((u) => ({
         id: u.id,
         username: u.username,
@@ -108,14 +112,13 @@ export class FollowService {
       select: { followingId: true, followerId: true },
     });
 
-    const countByUser = new Map<string, string[]>();
-    for (const row of friendOfFriendRaw) {
-      if (!alreadyFollowing.has(row.followingId)) {
-        const arr = countByUser.get(row.followingId) ?? [];
-        arr.push(row.followerId);
-        countByUser.set(row.followingId, arr);
-      }
-    }
+    const countByUser = friendOfFriendRaw.reduce((acc, row) => {
+      if (alreadyFollowing.has(row.followingId)) return acc;
+      const list = acc.get(row.followingId) ?? [];
+      list.push(row.followerId);
+      acc.set(row.followingId, list);
+      return acc;
+    }, new Map<string, string[]>());
 
     const userIdsFromFoF = Array.from(countByUser.keys());
     const fofUsers = await this.prisma.user.findMany({
@@ -137,18 +140,18 @@ export class FollowService {
       };
     });
 
-    fofWithDesc.sort((a, b) => {
-      const aCount = (countByUser.get(a.id) ?? []).length;
-      const bCount = (countByUser.get(b.id) ?? []).length;
-      return bCount - aCount;
-    });
+    const sortedFof = orderBy(
+      fofWithDesc,
+      (user) => (countByUser.get(user.id) ?? []).length,
+      "desc"
+    );
 
-    const taken = new Set(fofWithDesc.map((u) => u.id));
-    if (fofWithDesc.length >= limit) {
-      return fofWithDesc.slice(0, limit);
+    const taken = new Set(sortedFof.map((u) => u.id));
+    if (sortedFof.length >= limit) {
+      return sortedFof.slice(0, limit);
     }
 
-    const need = limit - fofWithDesc.length;
+    const need = limit - sortedFof.length;
     const rest = await this.prisma.user.findMany({
       where: {
         id: { notIn: [...taken, currentUserId, ...followingIds] },
@@ -165,7 +168,7 @@ export class FollowService {
       description: "Suggested for you",
     }));
 
-    return [...fofWithDesc, ...suggested].slice(0, limit);
+    return [...sortedFof, ...suggested].slice(0, limit);
   }
 
   async getFollowersCount(userId: string): Promise<number> {
@@ -197,7 +200,7 @@ export class FollowService {
       where: { id: { in: ids } },
       select: { id: true, username: true, avatar: true },
     });
-    const orderMap = new Map(ids.map((id, i) => [id, i]));
+    const orderMap = keyBy(ids.map((id, index) => ({ id, index })), "id");
     let followingByCurrent: Set<string> = new Set();
     if (currentUserId && ids.length > 0) {
       const rels = await this.prisma.userFollow.findMany({
@@ -206,8 +209,7 @@ export class FollowService {
       });
       followingByCurrent = new Set(rels.map((r) => r.followingId));
     }
-    const list = users
-      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+    const list = orderBy(users, (user) => orderMap[user.id]?.index ?? 0, "asc")
       .map((u) => ({
         id: u.id,
         username: u.username,
@@ -239,7 +241,7 @@ export class FollowService {
       where: { id: { in: ids } },
       select: { id: true, username: true, avatar: true },
     });
-    const orderMap = new Map(ids.map((id, i) => [id, i]));
+    const orderMap = keyBy(ids.map((id, index) => ({ id, index })), "id");
     let followingByCurrent: Set<string> = new Set();
     if (currentUserId && ids.length > 0) {
       const rels = await this.prisma.userFollow.findMany({
@@ -248,8 +250,7 @@ export class FollowService {
       });
       followingByCurrent = new Set(rels.map((r) => r.followingId));
     }
-    const list = users
-      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
+    const list = orderBy(users, (user) => orderMap[user.id]?.index ?? 0, "asc")
       .map((u) => ({
         id: u.id,
         username: u.username,

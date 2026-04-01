@@ -1,6 +1,7 @@
-import axios, { AxiosError } from 'axios';
-import { API_V1 } from '@/src/config/api';
+import { AxiosError, isAxiosError } from 'axios';
+import type { IHttpClient } from '@/src/domain/ports/http-client.port';
 import { AuthUser } from '@/src/domain/entities';
+import { getHttpClient } from '@/src/infrastructure/composition-root';
 
 export interface LoginPayload {
   email: string;
@@ -25,8 +26,10 @@ export interface AuthResponse {
 }
 
 export class AuthService {
+  constructor(private readonly http: IHttpClient) {}
+
   async login(payload: LoginPayload): Promise<AuthResponse['data']> {
-    const { data } = await axios.post<AuthResponse>(`${API_V1}/auth/login`, payload);
+    const { data } = await this.http.post<AuthResponse>('/auth/login', payload);
     if (!data.success || !data.data) {
       throw new Error(data.message || 'Login failed');
     }
@@ -34,7 +37,7 @@ export class AuthService {
   }
 
   async register(payload: RegisterPayload): Promise<AuthResponse['data']> {
-    const { data } = await axios.post<AuthResponse>(`${API_V1}/auth/register`, payload);
+    const { data } = await this.http.post<AuthResponse>('/auth/register', payload);
     if (!data.success || !data.data) {
       throw new Error(data.message || 'Register failed');
     }
@@ -42,7 +45,7 @@ export class AuthService {
   }
 
   isAuthError(error: unknown): boolean {
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
       const status = (error as AxiosError).response?.status;
       return status === 401 || status === 403;
     }
@@ -50,4 +53,4 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService();
+export const authService = new AuthService(getHttpClient());

@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { MongoCommentRepository } from "../../infrastructure/database/mongo-comment.repository";
-import { CassandraEngagementRepository } from "../../infrastructure/database/cassandra-engagement.repository";
-import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import type { ICommentRepository } from "@/domain/interfaces/repositories/comment.repository.interface";
+import type { IEngagementRepository } from "@/domain/interfaces/repositories/engagement.repository.interface";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
 import { KafkaProducerService } from "../../infrastructure/messaging/kafka-producer.service";
 import { AiService } from "./ai.service";
 import { NotificationService } from "./notification.service";
@@ -10,9 +10,12 @@ import { ChatGateway } from "../../presentation/websocket/chat.gateway";
 @Injectable()
 export class CommentService {
   constructor(
-    private readonly commentRepo: MongoCommentRepository,
-    private readonly engagementRepo: CassandraEngagementRepository,
-    private readonly postRepo: CassandraPostRepository,
+    @Inject("ICommentRepository")
+    private readonly commentRepo: ICommentRepository,
+    @Inject("IEngagementRepository")
+    private readonly engagementRepo: IEngagementRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
     private readonly kafka: KafkaProducerService,
     private readonly notificationService: NotificationService,
     private readonly chatGateway: ChatGateway,

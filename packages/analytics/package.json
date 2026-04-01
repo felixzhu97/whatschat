@@ -19,6 +19,10 @@
     "lint": "eslint src --ext .ts,.tsx",
     "check-types": "npx -p typescript tsc --noEmit"
   },
+  "dependencies": {
+    "@types/lodash": "^4.17.24",
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
     "@types/react": "^18.3.0",
     "react": "^18.3.1",

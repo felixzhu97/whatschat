@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import debounce from "lodash/debounce";
 import { FeedApiAdapter } from "@/infrastructure/adapters/api/feed-api.adapter";
 import { getApiClient } from "@/infrastructure/adapters/api/api-client.adapter";
 
@@ -30,9 +31,6 @@ export function useGlobalSearch() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hashtagSuggestions, setHashtagSuggestions] = useState<unknown[]>([]);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suggestRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const runSearch = useCallback(
     async (q: string, type: SearchType, cursor?: string, append?: boolean) => {
       const trimmed = q.trim();
@@ -96,27 +94,42 @@ export function useGlobalSearch() {
     []
   );
 
-  const loadHashtagSuggestions = useCallback((q: string) => {
-    const t = q.replace(/^#/, "").trim().toLowerCase();
-    if (!t) {
-      setHashtagSuggestions([]);
-      return;
-    }
-    if (suggestRef.current) clearTimeout(suggestRef.current);
-    suggestRef.current = setTimeout(async () => {
+  const loadHashtagSuggestions = useCallback(
+    async (q: string) => {
+      const t = q.replace(/^#/, "").trim().toLowerCase();
+      if (!t) {
+        setHashtagSuggestions([]);
+        return;
+      }
       try {
         const res = await api.search(t, "hashtags", 5);
         setHashtagSuggestions(res.hits);
       } catch {
         setHashtagSuggestions([]);
       }
-      suggestRef.current = null;
-    }, 200);
-  }, []);
+    },
+    []
+  );
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((nextQuery: string, nextType: SearchType) => {
+        void runSearch(nextQuery, nextType);
+      }, DEBOUNCE_MS),
+    [runSearch]
+  );
+
+  const debouncedSuggestions = useMemo(
+    () =>
+      debounce((nextQuery: string) => {
+        void loadHashtagSuggestions(nextQuery);
+      }, 200),
+    [loadHashtagSuggestions]
+  );
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query.trim()) {
+      debouncedSearch.cancel();
       setUserHits([]);
       setPostHits([]);
       setHashtagHits([]);
@@ -127,24 +140,18 @@ export function useGlobalSearch() {
       setError(null);
       return;
     }
-    debounceRef.current = setTimeout(() => {
-      runSearch(query, searchType);
-      debounceRef.current = null;
-    }, DEBOUNCE_MS);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, searchType, runSearch]);
+    debouncedSearch(query, searchType);
+    return () => debouncedSearch.cancel();
+  }, [query, searchType, debouncedSearch]);
 
   useEffect(() => {
     if (searchType === "all" || searchType === "hashtags") {
+      debouncedSuggestions.cancel();
       return;
     }
-    loadHashtagSuggestions(query);
-    return () => {
-      if (suggestRef.current) clearTimeout(suggestRef.current);
-    };
-  }, [query, searchType, loadHashtagSuggestions]);
+    debouncedSuggestions(query);
+    return () => debouncedSuggestions.cancel();
+  }, [query, searchType, debouncedSuggestions]);
 
   const loadMore = useCallback(() => {
     const trimmed = query.trim();

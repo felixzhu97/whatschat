@@ -2,31 +2,25 @@ import { IChatsService } from "../../domain/interfaces/services/chats.service.in
 import { Contact } from "../../domain/entities/contact.entity";
 import { Message } from "../../domain/entities/message.entity";
 import { ChatApiAdapter } from "../../infrastructure/adapters/api/chat-api.adapter";
-import { getApiClient } from "../../infrastructure/adapters/api/api-client.adapter";
+import { getAppComposition } from "../../infrastructure/composition-root";
+import {
+  type ApiChatRow,
+  type ApiMessageRow,
+  mapApiChatRowToContact,
+  mapApiMessageRowToMessage,
+  mapUnknownToContactCreate,
+  mapUnknownToMessageCreate,
+} from "../mappers/chats.mapper";
 
 export class ChatsService implements IChatsService {
-  private chatApi: ChatApiAdapter;
-
-  constructor() {
-    this.chatApi = new ChatApiAdapter(getApiClient());
-  }
+  constructor(private readonly chatApi: ChatApiAdapter) {}
 
   async getChats(): Promise<Contact[]> {
     try {
       const response = await this.chatApi.getChats();
       if (response.success && response.data) {
-        return (response.data as any[]).map((chat: any) =>
-          Contact.create({
-            id: chat.id,
-            name: chat.name || "Chat",
-            avatar: chat.avatar || "",
-            lastMessage: chat.lastMessage?.content ?? "",
-            timestamp: chat.updatedAt ?? "",
-            unreadCount: 0,
-            isOnline: chat.participants?.some((p: any) => p.isOnline) ?? false,
-            isGroup: chat.type === "GROUP",
-          })
-        );
+        const rows = response.data as unknown[];
+        return rows.map((chat) => mapApiChatRowToContact(chat as ApiChatRow));
       }
       return [];
     } catch (error) {
@@ -39,7 +33,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.getChatById(chatId);
       if (response.success && response.data) {
-        return Contact.create(response.data as Parameters<typeof Contact.create>[0]);
+        return mapUnknownToContactCreate(response.data);
       }
       return null;
     } catch (error) {
@@ -56,7 +50,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.createChat(data);
       if (response.success && response.data) {
-        return Contact.create(response.data as Parameters<typeof Contact.create>[0]);
+        return mapUnknownToContactCreate(response.data);
       }
       throw new Error("创建聊天失败");
     } catch (error) {
@@ -72,21 +66,8 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.getChatMessages(chatId, params);
       if (response.success && response.data) {
-        return (response.data as any[]).map((msg: any) =>
-          Message.create({
-            id: msg.id,
-            senderId: msg.senderId,
-            senderName: msg.sender?.username ?? "",
-            content: msg.content,
-            timestamp:
-              typeof msg.timestamp === "string"
-                ? msg.timestamp
-                : msg.createdAt ?? new Date().toISOString(),
-            type: (msg.type?.toLowerCase() ?? "text") as Message["type"],
-            status: "delivered",
-            ...(msg.mediaUrl != null && { mediaUrl: msg.mediaUrl }),
-          })
-        );
+        const rows = response.data as unknown[];
+        return rows.map((msg) => mapApiMessageRowToMessage(msg as ApiMessageRow));
       }
       return [];
     } catch (error) {
@@ -107,7 +88,7 @@ export class ChatsService implements IChatsService {
     try {
       const response = await this.chatApi.sendMessage(chatId, messageData);
       if (response.success && response.data) {
-        return Message.create(response.data as Parameters<typeof Message.create>[0]);
+        return mapUnknownToMessageCreate(response.data);
       }
       throw new Error("发送消息失败");
     } catch (error) {
@@ -126,13 +107,11 @@ export class ChatsService implements IChatsService {
   }
 }
 
-// 创建单例实例
 let chatsServiceInstance: ChatsService | null = null;
 
 export const getChatsService = (): IChatsService => {
   if (!chatsServiceInstance) {
-    chatsServiceInstance = new ChatsService();
+    chatsServiceInstance = new ChatsService(getAppComposition().chatApi);
   }
   return chatsServiceInstance;
 };
-

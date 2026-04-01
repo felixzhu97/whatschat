@@ -1,5 +1,7 @@
 import type { Message } from "@whatschat/shared-types";
-import type { ApiMessageLike, SocketMessagePayload } from "../domain";
+import sortBy from "lodash/sortBy";
+import uniqBy from "lodash/uniqBy";
+import type { ApiMessageLike, SocketMessagePayload } from "./message-mapping.types";
 
 export function mapApiMessageToMessage(m: ApiMessageLike): Message {
   return {
@@ -32,13 +34,7 @@ export function mapSocketPayloadToMessage(payload: SocketMessagePayload): Messag
 }
 
 export function mergeAndSortMessages(api: Message[], live: Message[]): Message[] {
-  const byId = new Map<string, Message>();
-  for (const m of api) byId.set(m.id, m);
-  for (const m of live) {
-    if (!byId.has(m.id)) byId.set(m.id, m);
-  }
-  return Array.from(byId.values()).sort(
-    (a, b) =>
-      new Date(a.timestamp ?? 0).getTime() - new Date(b.timestamp ?? 0).getTime()
+  return sortBy(uniqBy([...api, ...live], "id"), (message) =>
+    new Date(message.timestamp ?? 0).getTime()
   );
 }

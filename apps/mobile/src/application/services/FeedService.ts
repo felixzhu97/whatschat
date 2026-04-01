@@ -1,4 +1,9 @@
-import { apiClient } from '@/src/infrastructure/api/client';
+import type { IHttpClient } from '@/src/domain/ports/http-client.port';
+import { getHttpClient } from '@/src/infrastructure/composition-root';
+import compact from 'lodash/compact';
+import keyBy from 'lodash/keyBy';
+import uniq from 'lodash/uniq';
+import uniqBy from 'lodash/uniqBy';
 
 export interface MobileFeedPost {
   id: string;
@@ -122,6 +127,8 @@ function mapFeedPost(raw: FeedPostRes): MobileFeedPost {
 }
 
 export class FeedService {
+  constructor(private readonly http: IHttpClient) {}
+
   async getFeed(limit: number, pageState?: string) {
     const query = `query Feed($limit: Int, $pageState: String) {
       feed(limit: $limit, pageState: $pageState) {
@@ -151,7 +158,7 @@ export class FeedService {
     }`;
     const variables: { limit: number; pageState?: string } = { limit };
     if (pageState) variables.pageState = pageState;
-    const feedGraphRes = await apiClient.post<FeedGraphqlBody>('/graphql', { query, variables });
+    const feedGraphRes = await this.http.post<FeedGraphqlBody>('/graphql', { query, variables });
     const body = feedGraphRes.data;
     if (body.errors?.length) {
       throw new Error(body.errors[0]?.message ?? 'GraphQL error');
@@ -160,7 +167,7 @@ export class FeedService {
     const entries = Array.isArray(feed?.entries) ? feed?.entries : [];
     const posts = entries
       .map((e) => e.post)
-      .filter((p): p is FeedPostRes => Boolean(p))
+      .filter((p): p is FeedPostRes => p != null)
       .map(mapFeedPost);
     const next = feed?.pageState ?? undefined;
     return {
@@ -198,7 +205,7 @@ export class FeedService {
     }`;
     const variables: { limit: number; pageState?: string } = { limit };
     if (pageState) variables.pageState = pageState;
-    const reelsGraphRes = await apiClient.post<FeedGraphqlBody>('/graphql', { query, variables });
+    const reelsGraphRes = await this.http.post<FeedGraphqlBody>('/graphql', { query, variables });
     const body = reelsGraphRes.data;
     if (body.errors?.length) {
       throw new Error(body.errors[0]?.message ?? 'GraphQL error');
@@ -207,7 +214,7 @@ export class FeedService {
     const entries = Array.isArray(reels?.entries) ? reels?.entries : [];
     const posts = entries
       .map((e) => e.post)
-      .filter((p): p is FeedPostRes => Boolean(p))
+      .filter((p): p is FeedPostRes => p != null)
       .map(mapFeedPost);
     const next = reels?.pageState ?? undefined;
     return {
@@ -217,17 +224,11 @@ export class FeedService {
   }
 
   async getSuggestions(limit: number) {
-    const suggestionsRes = await apiClient.get<{
+    const suggestionsRes = await this.http.get<{
       data?: Array<{ id: string; username: string; avatar: string | null; description: string }>;
     }>(`/users/suggestions?limit=${limit}`);
     const list = Array.isArray(suggestionsRes.data?.data) ? suggestionsRes.data?.data ?? [] : [];
-    const seen = new Set<string>();
-    return list
-      .filter((u) => {
-        if (!u.id || seen.has(u.id)) return false;
-        seen.add(u.id);
-        return true;
-      })
+    return uniqBy(list.filter((u) => Boolean(u.id)), 'id')
       .map<MobileStoryUser>((u) => ({
         id: u.id,
         username: u.username,
@@ -237,7 +238,7 @@ export class FeedService {
 
   async getPostById(postId: string): Promise<MobileFeedPost | null> {
     try {
-      const postRes = await apiClient.get<{ data?: FeedPostRes }>(`/posts/${postId}`);
+      const postRes = await this.http.get<{ data?: FeedPostRes }>(`/posts/${postId}`);
       const raw = postRes.data?.data;
       if (!raw?.postId) return null;
       const createdAt =
@@ -256,7 +257,7 @@ export class FeedService {
     limit: number,
     offset: number
   ): Promise<{ posts: MobileFeedPost[]; total: number; fetchedEntryCount: number }> {
-    const exploreRes = await apiClient.get<{
+    const exploreRes = await this.http.get<{
       entries?: Array<{ postId: string; isSponsored?: boolean }>;
       total?: number;
       data?: { entries?: Array<{ postId: string; isSponsored?: boolean }>; total?: number };
@@ -298,7 +299,7 @@ export class FeedService {
       limit: String(limit),
     });
     if (cursor) params.set('cursor', cursor);
-    const searchRes = await apiClient.get<{
+    const searchRes = await this.http.get<{
       data?: { hits: unknown[]; nextCursor?: string; total?: number };
     }>(`/search?${params.toString()}`);
     const payload = searchRes.data?.data;
@@ -311,16 +312,16 @@ export class FeedService {
         return String(o.postId ?? o.id ?? '');
       })
       .filter(Boolean);
-    const unique = [...new Set(orderedIds)];
+    const unique = uniq(orderedIds);
     const loaded = await Promise.all(unique.map((id) => this.getPostById(id)));
-    const byId = new Map(loaded.filter((p): p is MobileFeedPost => p != null).map((p) => [p.id, p]));
-    const posts = orderedIds.map((id) => byId.get(id)).filter((p): p is MobileFeedPost => p != null);
+    const byId = keyBy(compact(loaded), 'id');
+    const posts = compact(orderedIds.map((id) => byId[id]));
     return { posts, nextCursor, total };
   }
 
   async getUserProfile(userId: string): Promise<MobileUserProfile | null> {
     try {
-      const profileRes = await apiClient.get<{ data?: MobileUserProfile }>(`/users/${userId}`);
+      const profileRes = await this.http.get<{ data?: MobileUserProfile }>(`/users/${userId}`);
       const u = profileRes.data?.data;
       if (!u || typeof u !== 'object') return null;
       return u as MobileUserProfile;
@@ -336,7 +337,7 @@ export class FeedService {
   ): Promise<{ posts: MobileFeedPost[]; nextPageState?: string }> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (pageState) params.set('pageState', pageState);
-    const userPostsRes = await apiClient.get<{
+    const userPostsRes = await this.http.get<{
       posts?: FeedPostRes[];
       pageState?: string | null;
       data?: { posts?: FeedPostRes[]; pageState?: string | null };
@@ -365,5 +366,5 @@ export class FeedService {
   }
 }
 
-export const feedService = new FeedService();
+export const feedService = new FeedService(getHttpClient());
 

@@ -4,14 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
-import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
+import {
+  adminPostsApi,
+  type AdminPostDetailData,
+  type AdminPostRow,
+} from "@/src/infrastructure/adapters/api/posts-api";
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { PostDetailModal, type PostDetailForModal, type PostRowForModal } from "@/src/presentation/components/post-detail-modal";
 import { Search, ImageIcon, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
-import type { ColDef, ValueFormatterParams, ValueGetterParams } from "ag-grid-community";
+import type { ColDef, ITooltipParams, ValueFormatterParams } from "ag-grid-community";
 
 const PageTitle = styled.h1`
   font-size: 1.25rem;
@@ -421,33 +425,10 @@ const DetailCommentContent = styled.div`
 
 const TRUNCATE_LEN = 60;
 
-interface PostDetailData {
-  post: Record<string, unknown>;
-  engagement: { likeCount: number; commentCount: number; saveCount: number };
-  comments: Array<{ id: string; userId: string; content: string; parentId?: string; createdAt: string }>;
-}
-
-interface PostRow extends Record<string, unknown> {
-  postId: string;
-  userId: string;
-  type?: string;
-  caption?: string;
-  hashtags?: string[];
-  autoTags?: string[];
-  mediaUrls?: string[];
-  coverUrl?: string | null;
-  location?: string | null;
-  createdAt: string;
-  moderationStatus?: string;
-  moderationCategories?: string[];
-  moderationAt?: string | null;
-  hidden?: boolean;
-}
-
 export default function PostsPage() {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language.startsWith("zh") ? zhCN : enUS;
-  const [rows, setRows] = useState<PostRow[]>([]);
+  const [rows, setRows] = useState<AdminPostRow[]>([]);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -456,8 +437,8 @@ export default function PostsPage() {
   });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedPost, setSelectedPost] = useState<PostRow | null>(null);
-  const [postDetail, setPostDetail] = useState<PostDetailData | null>(null);
+  const [selectedPost, setSelectedPost] = useState<AdminPostRow | null>(null);
+  const [postDetail, setPostDetail] = useState<AdminPostDetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailMediaIndex, setDetailMediaIndex] = useState(0);
   const [detailVideoPaused, setDetailVideoPaused] = useState(false);
@@ -467,8 +448,6 @@ export default function PostsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [batchLoading, setBatchLoading] = useState(false);
-  const api = getApiClient();
-
   useEffect(() => {
     if (!selectedPost?.postId) {
       setPostDetail(null);
@@ -481,22 +460,20 @@ export default function PostsPage() {
     setDetailVideoPaused(false);
     setDetailLoading(true);
     setPostDetail(null);
-    api
-      .get<{ success: boolean; data: PostDetailData }>(`admin/posts/${selectedPost.postId}/detail`)
+    adminPostsApi
+      .getPostDetail(selectedPost.postId)
       .then((res) => {
-        const data = (res as { data?: PostDetailData }).data;
-        if (res.success && data) setPostDetail(data);
+        if (res.success && res.data) setPostDetail(res.data);
       })
       .finally(() => setDetailLoading(false));
-  }, [selectedPost?.postId, api]);
+  }, [selectedPost?.postId]);
 
   const fetchPostDetail = useCallback(
     async (postId: string): Promise<PostDetailForModal | null> => {
-      const res = await api.get<{ success: boolean; data: PostDetailForModal }>(`admin/posts/${postId}/detail`);
-      const data = (res as { data?: PostDetailForModal }).data;
-      return res.success && data ? data : null;
+      const res = await adminPostsApi.getPostDetail(postId);
+      return res.success && res.data ? (res.data as PostDetailForModal) : null;
     },
-    [api]
+    []
   );
 
   const toggleSelect = useCallback((postId: string) => {
@@ -520,18 +497,17 @@ export default function PostsPage() {
         limit: "20",
         ...(search && { search }),
       });
-      api
-        .get<PostRow[]>(`admin/list/posts?${params}`)
+      adminPostsApi
+        .listPosts(params.toString())
         .then((res) => {
           if (res.success) {
-            const r = res as { data?: PostRow[]; pagination?: typeof pagination };
-            setRows(r.data || []);
-            if (r.pagination) setPagination(r.pagination);
+            setRows(res.data || []);
+            if (res.pagination) setPagination(res.pagination as typeof pagination);
           }
         })
         .finally(() => setLoading(false));
     },
-    [api, search]
+    [search]
   );
 
   useEffect(() => {
@@ -549,7 +525,7 @@ export default function PostsPage() {
       setActionError(null);
       setActionLoading(true);
       try {
-        await api.put(`admin/posts/${postId}/hide`);
+        await adminPostsApi.hidePost(postId);
         setRows((prev) => prev.map((r) => (r.postId === postId ? { ...r, hidden: true } : r)));
         if (selectedPost?.postId === postId) setSelectedPost((p) => (p ? { ...p, hidden: true } : null));
       } catch (e) {
@@ -558,7 +534,7 @@ export default function PostsPage() {
         setActionLoading(false);
       }
     },
-    [api, selectedPost?.postId, t]
+    [selectedPost?.postId, t]
   );
 
   const handleUnhide = useCallback(
@@ -566,7 +542,7 @@ export default function PostsPage() {
       setActionError(null);
       setActionLoading(true);
       try {
-        await api.put(`admin/posts/${postId}/unhide`);
+        await adminPostsApi.unhidePost(postId);
         setRows((prev) => prev.map((r) => (r.postId === postId ? { ...r, hidden: false } : r)));
         if (selectedPost?.postId === postId) setSelectedPost((p) => (p ? { ...p, hidden: false } : null));
       } catch (e) {
@@ -575,7 +551,7 @@ export default function PostsPage() {
         setActionLoading(false);
       }
     },
-    [api, selectedPost?.postId]
+    [selectedPost?.postId]
   );
 
   const handleDelete = useCallback(
@@ -584,7 +560,7 @@ export default function PostsPage() {
       setActionError(null);
       setActionLoading(true);
       try {
-        await api.delete(`admin/posts/${postId}`);
+        await adminPostsApi.deletePost(postId);
         setRows((prev) => prev.filter((r) => r.postId !== postId));
         if (selectedPost?.postId === postId) setSelectedPost(null);
       } catch (e) {
@@ -593,7 +569,7 @@ export default function PostsPage() {
         setActionLoading(false);
       }
     },
-    [api, selectedPost?.postId, t]
+    [selectedPost?.postId, t]
   );
 
   const handleRecheckModeration = useCallback(
@@ -601,10 +577,8 @@ export default function PostsPage() {
       setActionError(null);
       setActionLoading(true);
       try {
-        const res = await api.post<{ moderationStatus: string; moderationCategories: string[]; moderationAt: string }>(
-          `admin/posts/${postId}/recheck-moderation`
-        );
-        const data = (res as { data?: { moderationStatus: string; moderationCategories: string[]; moderationAt: string } }).data;
+        const res = await adminPostsApi.recheckModeration(postId);
+        const data = res.data;
         if (data && selectedPost?.postId === postId) {
           setSelectedPost((p) => (p ? { ...p, ...data } : null));
           setRows((prev) =>
@@ -617,7 +591,7 @@ export default function PostsPage() {
         setActionLoading(false);
       }
     },
-    [api, selectedPost?.postId]
+    [selectedPost?.postId]
   );
 
   const handleBatchDelete = useCallback(async () => {
@@ -626,8 +600,8 @@ export default function PostsPage() {
     setActionError(null);
     setBatchLoading(true);
     try {
-      const res = await api.post<{ deleted: number; failed: string[] }>("admin/posts/batch-delete", { postIds: ids });
-      const data = (res as { data?: { deleted: number; failed: string[] } }).data;
+      const res = await adminPostsApi.batchDelete(ids);
+      const data = res.data;
       if (data) {
         const failedSet = new Set(data.failed || []);
         setRows((prev) => prev.filter((r) => !ids.includes(r.postId) || failedSet.has(r.postId)));
@@ -640,7 +614,7 @@ export default function PostsPage() {
     } finally {
       setBatchLoading(false);
     }
-  }, [api, selectedPostIds, selectedPost, t]);
+  }, [selectedPostIds, selectedPost, t]);
 
   const handleBatchHide = useCallback(async () => {
     const ids = Array.from(selectedPostIds);
@@ -648,8 +622,8 @@ export default function PostsPage() {
     setActionError(null);
     setBatchLoading(true);
     try {
-      const res = await api.post<{ hidden: number; failed: string[] }>("admin/posts/batch-hide", { postIds: ids });
-      const data = (res as { data?: { hidden: number; failed: string[] } }).data;
+      const res = await adminPostsApi.batchHide(ids);
+      const data = res.data;
       if (data) {
         const failedSet = new Set(data.failed || []);
         setRows((prev) =>
@@ -664,19 +638,19 @@ export default function PostsPage() {
     } finally {
       setBatchLoading(false);
     }
-  }, [api, selectedPostIds, selectedPost, t]);
+  }, [selectedPostIds, selectedPost, t]);
 
   const isValidImageUrl = (s: string) =>
     typeof s === "string" && (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("data:"));
 
-  const columnDefs = useMemo<ColDef<PostRow>[]>(
+  const columnDefs = useMemo<ColDef<AdminPostRow>[]>(
     () => [
       {
         colId: "select",
         width: 44,
         maxWidth: 44,
-        suppressSort: true,
-        cellRenderer: (p: { data: PostRow }) => (
+        sortable: false,
+        cellRenderer: (p: { data: AdminPostRow }) => (
           <input
             type="checkbox"
             checked={selectedPostIds.has(p.data.postId)}
@@ -691,7 +665,7 @@ export default function PostsPage() {
         headerName: t("posts.thumbnail"),
         width: 80,
         maxWidth: 80,
-        cellRenderer: (p: { value: string[]; data: PostRow }) => {
+        cellRenderer: (p: { value: string[]; data: AdminPostRow }) => {
           const url = Array.isArray(p.value) ? p.value[0] : null;
           if (!url || !isValidImageUrl(url)) {
             return (
@@ -723,55 +697,56 @@ export default function PostsPage() {
         field: "userId",
         headerName: t("posts.author"),
         minWidth: 140,
-        valueFormatter: (p: ValueFormatterParams<PostRow>) => p.value ?? "—",
+        valueFormatter: (p: ValueFormatterParams<AdminPostRow>) => p.value ?? "—",
       },
       {
         field: "caption",
         headerName: t("posts.caption"),
         flex: 1,
         minWidth: 180,
-        valueFormatter: (p: ValueFormatterParams<PostRow>) => {
+        valueFormatter: (p: ValueFormatterParams<AdminPostRow>) => {
           const s = p.value ? String(p.value) : "";
           return s.length > TRUNCATE_LEN ? s.slice(0, TRUNCATE_LEN) + "…" : s || "—";
         },
-        tooltipValueGetter: (p: ValueGetterParams<PostRow>) => (p.value ? String(p.value) : undefined),
+        tooltipValueGetter: (p: ITooltipParams<AdminPostRow>) =>
+          p.value != null && p.value !== "" ? String(p.value) : undefined,
       },
       {
         field: "hashtags",
         headerName: t("posts.hashtags"),
         minWidth: 140,
-        valueFormatter: (p: ValueFormatterParams<PostRow>) => {
+        valueFormatter: (p: ValueFormatterParams<AdminPostRow>) => {
           const arr = Array.isArray(p.value) ? (p.value as string[]) : [];
           const s = arr.join(", ") || "";
           return s.length > TRUNCATE_LEN ? s.slice(0, TRUNCATE_LEN) + "…" : s || "—";
         },
-        tooltipValueGetter: (p: ValueGetterParams<PostRow>) =>
-          Array.isArray(p.value) ? (p.value as string[]).join(", ") || undefined : undefined,
+        tooltipValueGetter: (p: ITooltipParams<AdminPostRow, string[]>) =>
+          Array.isArray(p.value) ? p.value.join(", ") || undefined : undefined,
       },
       {
         field: "autoTags",
         headerName: t("posts.autoTags"),
         minWidth: 160,
-        valueFormatter: (p: ValueFormatterParams<PostRow>) => {
+        valueFormatter: (p: ValueFormatterParams<AdminPostRow>) => {
           const arr = Array.isArray(p.value) ? (p.value as string[]) : [];
           const s = arr.join(", ") || "";
           return s.length > TRUNCATE_LEN ? s.slice(0, TRUNCATE_LEN) + "…" : s || "—";
         },
-        tooltipValueGetter: (p: ValueGetterParams<PostRow>) =>
-          Array.isArray(p.value) ? (p.value as string[]).join(", ") || undefined : undefined,
+        tooltipValueGetter: (p: ITooltipParams<AdminPostRow, string[]>) =>
+          Array.isArray(p.value) ? p.value.join(", ") || undefined : undefined,
       },
       {
         field: "createdAt",
         headerName: t("posts.createdAt"),
         minWidth: 130,
-        valueFormatter: (p: ValueFormatterParams<PostRow>) =>
+        valueFormatter: (p: ValueFormatterParams<AdminPostRow>) =>
           p.value ? format(new Date(p.value as string), "yyyy-MM-dd HH:mm", { locale: dateLocale }) : "—",
       },
       {
         field: "moderationStatus",
         headerName: t("posts.contentSafety"),
         minWidth: 100,
-        cellRenderer: (p: { value: string; data: PostRow }) => {
+        cellRenderer: (p: { value: string; data: AdminPostRow }) => {
           const s = p.value || "pending";
           const label =
             s === "reject"
@@ -851,7 +826,7 @@ export default function PostsPage() {
           </Button>
         </Toolbar>
       </form>
-      <DataGrid<PostRow>
+      <DataGrid<AdminPostRow>
         rowData={rows}
         columnDefs={columnDefs}
         loading={loading}

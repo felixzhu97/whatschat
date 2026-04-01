@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { Message } from "@whatschat/shared-types";
+import debounce from "lodash/debounce";
+import map from "lodash/map";
+import reject from "lodash/reject";
 import type { IWebSocketAdapter, ChatState } from "../domain";
 
 export interface StorageAdapter {
@@ -26,6 +29,11 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
   const wsManager = getWebSocketAdapter();
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentContactId = useRef(contactId);
+  const remoteTypingOffRef = useRef(
+    debounce(() => {
+      setChatState((prev: ChatState) => ({ ...prev, isTyping: false }));
+    }, 3000)
+  );
 
   useEffect(() => {
     currentContactId.current = contactId;
@@ -98,9 +106,7 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
           isTyping: wsMessage.data?.isTyping ?? false,
         }));
         if (wsMessage.data?.isTyping) {
-          setTimeout(() => {
-            setChatState((prev: ChatState) => ({ ...prev, isTyping: false }));
-          }, 3000);
+          remoteTypingOffRef.current();
         }
       }
     };
@@ -121,6 +127,7 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
     setChatState((prev: ChatState) => ({ ...prev, isConnected: wsManager.isConnected() }));
 
     return () => {
+      remoteTypingOffRef.current.cancel();
       wsManager.off("message", handleMessage);
       wsManager.off("message_status", handleMessageStatus);
       wsManager.off("typing", handleTyping);
@@ -237,7 +244,7 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
   const deleteMessage = useCallback((messageId: string) => {
     const chatId = currentContactId.current;
     setChatState((prev: ChatState) => {
-      const updated = prev.messages.filter((msg: Message) => msg.id !== messageId);
+      const updated = reject(prev.messages, (msg: Message) => msg.id === messageId);
       if (storage) storage.setItem(`chat_${chatId}`, JSON.stringify(updated));
       return { ...prev, messages: updated };
     });
@@ -246,7 +253,7 @@ export function useRealChat(contactId: string, options: UseRealChatOptions) {
   const editMessage = useCallback((messageId: string, newText: string) => {
     const chatId = currentContactId.current;
     setChatState((prev: ChatState) => {
-      const updated = prev.messages.map((msg: Message) =>
+      const updated = map(prev.messages, (msg: Message) =>
         msg.id === messageId ? { ...msg, content: newText, isEdited: true } : msg
       );
       if (storage) storage.setItem(`chat_${chatId}`, JSON.stringify(updated));

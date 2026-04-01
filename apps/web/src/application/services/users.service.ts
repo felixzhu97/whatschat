@@ -1,14 +1,11 @@
 import { IUsersService } from "../../domain/interfaces/services/users.service.interface";
 import { User } from "../../domain/entities/user.entity";
 import { UserApiAdapter } from "../../infrastructure/adapters/api/user-api.adapter";
-import { getApiClient } from "../../infrastructure/adapters/api/api-client.adapter";
+import { getAppComposition } from "../../infrastructure/composition-root";
+import { mapUnknownToUser } from "../mappers/users.mapper";
 
 export class UsersService implements IUsersService {
-  private userApi: UserApiAdapter;
-
-  constructor() {
-    this.userApi = new UserApiAdapter(getApiClient());
-  }
+  constructor(private readonly userApi: UserApiAdapter) {}
 
   async getUsers(params?: {
     page?: number;
@@ -19,9 +16,7 @@ export class UsersService implements IUsersService {
       const response = await this.userApi.getUsers(params);
       if (response.success && response.data) {
         const rows = response.data as unknown[];
-        return rows.map((user: unknown) =>
-          User.create(user as Parameters<typeof User.create>[0])
-        );
+        return rows.map((user) => mapUnknownToUser(user));
       }
       return [];
     } catch (error) {
@@ -34,7 +29,7 @@ export class UsersService implements IUsersService {
     try {
       const response = await this.userApi.getUserById(userId);
       if (response.success && response.data) {
-        return User.create(response.data as Parameters<typeof User.create>[0]);
+        return mapUnknownToUser(response.data);
       }
       return null;
     } catch (error) {
@@ -48,9 +43,7 @@ export class UsersService implements IUsersService {
       const response = await this.userApi.searchUsers(query);
       if (response.success && response.data) {
         const rows = response.data as unknown[];
-        return rows.map((user: unknown) =>
-          User.create(user as Parameters<typeof User.create>[0])
-        );
+        return rows.map((user) => mapUnknownToUser(user));
       }
       return [];
     } catch (error) {
@@ -68,13 +61,11 @@ export class UsersService implements IUsersService {
   }
 }
 
-// 创建单例实例
 let usersServiceInstance: UsersService | null = null;
 
 export const getUsersService = (): IUsersService => {
   if (!usersServiceInstance) {
-    usersServiceInstance = new UsersService();
+    usersServiceInstance = new UsersService(getAppComposition().userApi);
   }
   return usersServiceInstance;
 };
-

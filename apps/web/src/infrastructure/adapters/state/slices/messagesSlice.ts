@@ -1,4 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import difference from "lodash/difference";
+import flatMap from "lodash/flatMap";
+import orderBy from "lodash/orderBy";
 import { Message } from "../../../../domain/entities/message.entity";
 
 interface MessagesState {
@@ -112,13 +115,12 @@ const messagesSlice = createSlice({
       const { contactId, messageIds } = action.payload;
       const list = state.messages[contactId];
       if (list) {
+        const removeIds = new Set(messageIds);
         state.messages[contactId] = list.filter(
-          (m) => !messageIds.includes(m.id)
+          (m) => !removeIds.has(m.id)
         );
       }
-      state.selectedMessages = state.selectedMessages.filter(
-        (id) => !messageIds.includes(id)
-      );
+      state.selectedMessages = difference(state.selectedMessages, messageIds);
     },
     setTyping: (
       state,
@@ -224,17 +226,11 @@ export function isUserTyping(state: MessagesState, contactId: string): boolean {
 }
 
 export function getStarredMessages(state: MessagesState): Message[] {
-  const starred: Message[] = [];
-  for (const contactId in state.messages) {
-    const list = state.messages[contactId] || [];
-    list.forEach((msg) => {
-      if (state.starredMessages.includes(msg.id)) starred.push(msg);
-    });
-  }
-  return starred.sort(
-    (a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  const starredIds = new Set(state.starredMessages);
+  const starred = flatMap(Object.values(state.messages), (list) =>
+    (list || []).filter((msg) => starredIds.has(msg.id))
   );
+  return orderBy(starred, (msg) => new Date(msg.timestamp).getTime(), "desc");
 }
 
 export function searchMessages(
@@ -253,10 +249,7 @@ export function searchMessages(
       if (msg.content.toLowerCase().includes(q)) results.push(msg);
     });
   }
-  return results.sort(
-    (a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  return orderBy(results, (msg) => new Date(msg.timestamp).getTime(), "desc");
 }
 
 export default messagesSlice.reducer;

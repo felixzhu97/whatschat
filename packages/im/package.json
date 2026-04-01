@@ -25,7 +25,9 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@whatschat/shared-types": "workspace:*"
+    "@types/lodash": "^4.17.24",
+    "@whatschat/shared-types": "workspace:*",
+    "lodash": "^4.17.23"
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^2.5.0",

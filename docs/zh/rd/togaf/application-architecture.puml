@@ -106,6 +106,14 @@ package "应用服务层" {
   component [电商订单服务] as CommerceOrderService
 }
 
+package "领域端口层" {
+  component [仓储端口] as RepositoryPorts
+}
+
+package "基础设施适配器层" {
+  component [仓储适配器] as RepositoryAdapters
+}
+
 package "推荐应用" {
   component [推荐任务] as RecJobs #LightYellow
   note right of RecJobs
@@ -199,6 +207,16 @@ CommerceStoreService --> BusinessRules : 使用
 CommerceTagService --> BusinessRules : 使用
 CommerceOrderService --> BusinessRules : 使用
 
+AuthService --> RepositoryPorts : 依赖
+UserService --> RepositoryPorts : 依赖
+MessageService --> RepositoryPorts : 依赖
+ChatService --> RepositoryPorts : 依赖
+PostService --> RepositoryPorts : 依赖
+FeedService --> RepositoryPorts : 依赖
+CommentService --> RepositoryPorts : 依赖
+NotificationService --> RepositoryPorts : 依赖
+RepositoryAdapters --> RepositoryPorts : 实现
+
 \' 服务与数据层
 AuthService --> DataRepository : 数据访问
 UserService --> DataRepository : 数据访问
@@ -219,6 +237,9 @@ ExploreService --> CacheService : 探索列表
 FollowService --> DataRepository : 数据访问
 FollowService --> CacheService : 推荐
 CommentService --> CommentRepo : 数据访问
+RepositoryAdapters --> DataRepository : 委托
+RepositoryAdapters --> PostFeedRepo : 委托
+RepositoryAdapters --> CommentRepo : 委托
 RecJobs --> CacheService : 写入推荐、探索
 RecJobs --> PostgreSQL : ETL 关注（读）
 RecJobs --> Cassandra : ETL 互动、帖子（读）

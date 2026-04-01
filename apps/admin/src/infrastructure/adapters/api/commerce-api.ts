@@ -1,6 +1,17 @@
 import { getApiClient } from "./api-client";
+import pickBy from "lodash/pickBy";
 
 const api = getApiClient();
+
+function buildQuery(params?: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  const picked = pickBy(params ?? {}, (value) => value !== undefined && value !== "");
+  for (const [key, value] of Object.entries(picked)) {
+    search.set(key, String(value));
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+}
 
 export interface Shop {
   id: string;
@@ -55,11 +66,7 @@ export interface Paginated<T> {
 }
 
 export async function getShops(params?: { page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  return api.get<Paginated<Shop>>(`commerce/shops${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<Shop>>(`commerce/shops${buildQuery({ page: params?.page, limit: params?.limit })}`);
 }
 
 export async function createShop(body: { name: string; currency: string }) {
@@ -67,12 +74,9 @@ export async function createShop(body: { name: string; currency: string }) {
 }
 
 export async function getProducts(params?: { shopId?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.shopId) search.set("shopId", params.shopId);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  return api.get<Paginated<Product>>(`commerce/products${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<Product>>(
+    `commerce/products${buildQuery({ shopId: params?.shopId, page: params?.page, limit: params?.limit })}`
+  );
 }
 
 export async function createProduct(body: {
@@ -85,12 +89,9 @@ export async function createProduct(body: {
 }
 
 export async function getProductTags(params?: { page?: number; limit?: number; mediaType?: string }) {
-  const search = new URLSearchParams();
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  if (params?.mediaType) search.set("mediaType", params.mediaType);
-  const qs = search.toString();
-  return api.get<Paginated<ProductTag>>(`commerce/product-tags${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<ProductTag>>(
+    `commerce/product-tags${buildQuery({ page: params?.page, limit: params?.limit, mediaType: params?.mediaType })}`
+  );
 }
 
 export async function createProductTag(body: {
@@ -103,10 +104,7 @@ export async function createProductTag(body: {
 }
 
 export async function getOrders(params?: { status?: string; page?: number; limit?: number }) {
-  const search = new URLSearchParams();
-  if (params?.status) search.set("status", params.status);
-  if (params?.page) search.set("page", String(params.page));
-  if (params?.limit) search.set("limit", String(params.limit));
-  const qs = search.toString();
-  return api.get<Paginated<Order>>(`commerce/orders${qs ? `?${qs}` : ""}`);
+  return api.get<Paginated<Order>>(
+    `commerce/orders${buildQuery({ status: params?.status, page: params?.page, limit: params?.limit })}`
+  );
 }

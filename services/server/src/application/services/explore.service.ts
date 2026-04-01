@@ -1,7 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import keyBy from "lodash/keyBy";
+import orderBy from "lodash/orderBy";
 import { RedisService } from "../../infrastructure/database/redis.service";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { CassandraPostRepository } from "../../infrastructure/database/cassandra-post.repository";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
 import { RecommendationService } from "./recommendation.service";
 import { ExperimentService } from "./experiment.service";
 import { AdService, AdCandidate } from "./ad.service";
@@ -29,7 +31,8 @@ export class ExploreService {
   constructor(
     private readonly redis: RedisService,
     private readonly prisma: PrismaService,
-    private readonly postRepo: CassandraPostRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
     private readonly recommendation: RecommendationService,
     private readonly experiments: ExperimentService,
     private readonly ads: AdService,
@@ -60,10 +63,10 @@ export class ExploreService {
       experimentId: assignment.experimentId,
       variantId: assignment.variantId,
     });
-    const byPost = new Map(pool.map((e) => [e.postId, e]));
+    const byPost = keyBy(pool, "postId");
     const ordered = ranked.items
-      .map((item) => byPost.get(item.id))
-      .filter((v): v is ExploreEntryDto => Boolean(v));
+      .map((item) => byPost[item.id])
+      .filter((v): v is ExploreEntryDto => v != null);
     const orderedOrFallback = ordered.length > 0 ? ordered : pool;
     const total = orderedOrFallback.length;
     const page = orderedOrFallback.slice(offset, offset + limit);
@@ -87,8 +90,7 @@ export class ExploreService {
         });
       }
     }
-    entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return entries.slice(0, 500);
+    return orderBy(entries, (entry) => new Date(entry.createdAt).getTime(), "desc").slice(0, 500);
   }
 
   private async withAds(

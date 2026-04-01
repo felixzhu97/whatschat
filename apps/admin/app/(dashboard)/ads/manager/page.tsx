@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import keyBy from "lodash/keyBy";
 import { useTranslation } from "react-i18next";
 import { styled } from "@/src/shared/utils/emotion";
 import {
@@ -86,6 +87,7 @@ export default function AdsManagerPage() {
   const [accountError, setAccountError] = useState<string | null>(null);
   const [campaignError, setCampaignError] = useState<string | null>(null);
   const [fbError, setFbError] = useState<string | null>(null);
+  const accountById = keyBy(accounts, "id");
 
   return (
     <PageRoot>
@@ -336,7 +338,7 @@ export default function AdsManagerPage() {
                 </tr>
               ) : (
                 filteredCampaigns.map((c) => {
-                  const acc = accounts.find((a) => a.id === c.accountId);
+                  const acc = accountById[c.accountId];
                   const nextStatus = c.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
                   return (
                     <tr key={c.id}>

@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import keyBy from 'lodash/keyBy';
+import sortBy from 'lodash/sortBy';
+import unionBy from 'lodash/unionBy';
+import uniq from 'lodash/uniq';
 import { ActivityIndicator, FlatList, RefreshControl, TouchableOpacity, ViewToken } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useScrollToTop } from '@react-navigation/native';
@@ -193,11 +197,11 @@ export const HomeFeedScreen: React.FC = () => {
 
   const authorIds = useMemo(() => {
     const ids = items.map((p) => p.userId).filter((id) => typeof id === 'string' && id.length > 0);
-    const unique = Array.from(new Set(ids));
+    const unique = uniq(ids);
     return currentUserId ? unique.filter((id) => id !== currentUserId) : unique;
   }, [items, currentUserId]);
 
-  const authorIdsKey = useMemo(() => authorIds.slice().sort().join('|'), [authorIds]);
+  const authorIdsKey = useMemo(() => sortBy(authorIds).join('|'), [authorIds]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -208,8 +212,9 @@ export const HomeFeedScreen: React.FC = () => {
     checkFollowingUsers({ userIds: authorIds })
       .unwrap()
       .then((list) => {
-        const map: Record<string, boolean> = {};
-        for (const x of list) map[x.userId] = x.isFollowing;
+        const map = Object.fromEntries(
+          Object.entries(keyBy(list, 'userId')).map(([userId, row]) => [userId, Boolean(row?.isFollowing)])
+        ) as Record<string, boolean>;
         setFollowingByUserId(map);
       })
       .catch(() => {
@@ -447,11 +452,7 @@ export const HomeFeedScreen: React.FC = () => {
               .unwrap()
               .then((page) => {
                 setNextPageState(page.nextPageState);
-                setItems((prev) => {
-                  const seen = new Set(prev.map((p) => p.id));
-                  const append = (page.posts ?? []).filter((p) => !seen.has(p.id));
-                  return [...prev, ...append];
-                });
+                setItems((prev) => unionBy(prev, page.posts ?? [], 'id'));
               })
               .catch(() => {});
           }}

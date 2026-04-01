@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import debounce from 'lodash/debounce';
 import { ActivityIndicator, Dimensions, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -79,8 +80,6 @@ export const ExploreScreen: React.FC = () => {
   const [exploreHasMore, setExploreHasMore] = useState(true);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [searchHasMore, setSearchHasMore] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const loadExplore = useCallback(async (offset: number, append: boolean) => {
     if (!append) setLoading(true);
     else setLoadingMore(true);
@@ -129,10 +128,9 @@ export const ExploreScreen: React.FC = () => {
     void loadExplore(0, false);
   }, [loadExplore]);
 
-  const scheduleQuery = useCallback(
-    (text: string) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
+  const scheduleQuery = useMemo(
+    () =>
+      debounce((text: string) => {
         const trimmed = text.trim();
         if (!trimmed) {
           setSearchCursor(undefined);
@@ -142,10 +140,11 @@ export const ExploreScreen: React.FC = () => {
           return;
         }
         void loadSearch(trimmed, undefined, false);
-      }, 350);
-    },
+      }, 350),
     [loadExplore, loadSearch]
   );
+
+  useEffect(() => () => scheduleQuery.cancel(), [scheduleQuery]);
 
   const onChangeQuery = (text: string) => {
     setQuery(text);

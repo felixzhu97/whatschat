@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import orderBy from "lodash/orderBy";
+import uniq from "lodash/uniq";
 
 import type { Message, Contact } from "../types";
 
@@ -55,11 +57,7 @@ export class MessageSearchEngine {
 
   addToHistory(query: string) {
     if (!query.trim()) return;
-
-    this.searchHistory = [
-      query,
-      ...this.searchHistory.filter((q) => q !== query),
-    ].slice(0, 20);
+    this.searchHistory = uniq([query, ...this.searchHistory]).slice(0, 20);
     this.saveSearchHistory();
   }
 
@@ -131,7 +129,7 @@ export class MessageSearchEngine {
     });
 
     // 按相关性排序
-    return results.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    return orderBy(results, ["relevanceScore"], ["desc"]);
   }
 
   private parseSearchQuery(query: string): string[] {

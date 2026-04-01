@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import compact from 'lodash/compact';
+import uniq from 'lodash/uniq';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { ElasticsearchService } from '../../infrastructure/database/elasticsearch.service';
 
@@ -94,21 +96,16 @@ export class UsersService {
   }
 
   async getUsersByIds(ids: string[]): Promise<Map<string, { username: string; avatar: string | null }>> {
-    const unique = [...new Set(ids)].filter(Boolean);
+    const unique = uniq(compact(ids));
     if (unique.length === 0) return new Map();
     const users = await this.prisma.user.findMany({
       where: { id: { in: unique } },
       select: { id: true, username: true, avatar: true },
     });
-    const map = new Map<string, { username: string; avatar: string | null }>();
-    for (const u of users) {
-      map.set(u.id, { username: u.username, avatar: u.avatar ?? null });
-    }
-    return map;
+    return new Map(users.map((u) => [u.id, { username: u.username, avatar: u.avatar ?? null }]));
   }
 
   async updateUser(id: string, data: UpdateUserData) {
-    // 检查用户是否存在
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -117,7 +114,6 @@ export class UsersService {
       throw new NotFoundException('用户不存在');
     }
 
-    // 如果更新username或email，检查是否已存在
     if (data.username || data.email || data.phone) {
       const where: any = {};
       if (data.username) {
@@ -198,7 +194,6 @@ export class UsersService {
       throw new BadRequestException('不能阻止自己');
     }
 
-    // 检查被阻止的用户是否存在
     const blockedUser = await this.prisma.user.findUnique({
       where: { id: blockedId },
     });
@@ -207,7 +202,6 @@ export class UsersService {
       throw new NotFoundException('要阻止的用户不存在');
     }
 
-    // 检查是否已经阻止
     const existingBlock = await this.prisma.blockedUser.findUnique({
       where: {
         blockedById_blockedId: {

@@ -8,7 +8,7 @@ TOGAF views for the four architecture domains (PlantUML).
 |--------|------|-------------|
 | Overview | [overview.puml](./overview.puml) | Business → Application → Data → Technology; recommendation flows, content moderation, Vision, **advertising & monetization** |
 | Business | [business-architecture.puml](./business-architecture.puml) | Actors, capabilities (messaging, Instagram-style feed with multi-media, Reels, follow, recommendations, explore, content moderation, calls, file, groups, **ads & campaigns management**, behavior analytics), processes |
-| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/**GraphQL**/WebSocket/WebRTC, NestJS (media upload `POST /media/upload`, Post **cover_url**, Notifications MongoDB, Feed, Explore, Search, Suggestions, Admin recheck/hide/batch, **Ad serving/targeting/pacing + Admin Ads APIs**, analytics_events ingest endpoint used by web/mobile RTK Query mutations) + Python recommendation (Celery, Redis, **ad ETL/metrics** ) + Vision (NudeNet, ResNet50). **Mobile**: Profile + Explore/Search + Settings-and-activity stack; `FeedService` REST explore/search/user posts + GraphQL |
+| Application | [application-architecture.puml](./application-architecture.puml) | Web/Mobile/Admin, REST/**GraphQL**/WebSocket/WebRTC, NestJS services + explicit port/adapter layering (application services -> domain ports -> infrastructure adapters -> repositories), media upload `POST /media/upload`, Post **cover_url**, Notifications MongoDB, Feed/Explore/Search/Admin, **Ad serving/targeting/pacing + Admin Ads APIs**, analytics ingest; Python recommendation + Vision |
 | Data | [data-architecture.puml](./data-architecture.puml) | Post (**mediaUrls** + **coverUrl** Cassandra, moderationStatus, hidden ES), uploaded media object (URL/key/mimeType/size), FeedEntry, Comment, **activity notifications** (MongoDB), **AdAccount/AdCampaign/AdGroup/AdCreative/AdSpend, analytics_events (including feed/reel view/like/save and ad_impression/click/conversion)**; PostgreSQL, Redis, Cassandra, MongoDB, Elasticsearch, Kafka |
 | Technology | [technology-architecture.puml](./technology-architecture.puml) | Next.js, React Native, NestJS, Prisma, **GraphQL**, Socket.IO, WebRTC, Docker, Python (Celery, LightFM, implicit, Annoy; Vision: FastAPI, NudeNet, ResNet50, OpenCV; **ad ETL & metrics**), Redis, Elasticsearch |
 
@@ -21,6 +21,12 @@ TOGAF views for the four architecture domains (PlantUML).
 | Recommendation | `services/recommendation` |
 | Media Gen | `services/media-gen` |
 | Vision | `services/vision` |
+
+## Clean Architecture notes
+
+- API application services use domain repository interfaces (ports)
+- Infrastructure adapters implement ports and delegate to Prisma/Cassandra/Mongo repositories
+- Dependency direction remains one-way: `application -> domain ports <- infrastructure adapters`
 
 ## View
 

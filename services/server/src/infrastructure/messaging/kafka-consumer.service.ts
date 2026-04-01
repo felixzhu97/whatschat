@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import { Kafka, Consumer } from "kafkajs";
 import { ConfigService } from "../config/config.service";
 import { RedisService } from "../database/redis.service";
@@ -6,7 +6,7 @@ import { PrismaService } from "../database/prisma.service";
 import { CassandraFeedRepository } from "../database/cassandra-feed.repository";
 import { CacheService } from "../cache/cache.service";
 import { ElasticsearchService } from "../database/elasticsearch.service";
-import { CassandraPostRepository } from "../database/cassandra-post.repository";
+import type { IPostRepository } from "@/domain/interfaces/repositories/post.repository.interface";
 import { VisionClientService } from "@/application/services/vision-client.service";
 import logger from "@/shared/utils/logger";
 import { HTTP_URL_PREFIX, parseDataUrl } from "@/shared/utils/media-url";
@@ -40,7 +40,8 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly feedRepo: CassandraFeedRepository,
     private readonly cache: CacheService,
     private readonly elasticsearch: ElasticsearchService,
-    private readonly postRepo: CassandraPostRepository,
+    @Inject("IPostRepository")
+    private readonly postRepo: IPostRepository,
     private readonly visionClient: VisionClientService,
   ) {
     this.config = ConfigService.loadConfig();

@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import orderBy from "lodash/orderBy";
 import {
   Search,
   MoreVertical,
@@ -290,14 +291,7 @@ export function Sidebar({
             {searchQuery ? "未找到匹配的联系人" : "暂无联系人"}
           </EmptyState>
         ) : (
-          filteredContacts
-            .sort((a, b) => {
-              // 置顶的联系人排在前面
-              if (a.pinned && !b.pinned) return -1;
-              if (!a.pinned && b.pinned) return 1;
-              return 0;
-            })
-            .map((contact) => (
+          orderBy(filteredContacts, [(contact) => Boolean(contact.pinned)], ["desc"]).map((contact) => (
               <ContactListItem
                 key={contact.id}
                 contact={contact}

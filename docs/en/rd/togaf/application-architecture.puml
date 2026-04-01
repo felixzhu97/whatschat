@@ -112,6 +112,14 @@ package "Application Services Layer" {
   component [Commerce Order Service] as CommerceOrderService
 }
 
+package "Domain Ports Layer" {
+  component [Repository Ports] as RepositoryPorts
+}
+
+package "Infrastructure Adapter Layer" {
+  component [Repository Adapters] as RepositoryAdapters
+}
+
 package "Recommendation Application" {
   component [Recommendation Jobs] as RecJobs #LightYellow
   note right of RecJobs
@@ -220,6 +228,16 @@ CommerceStoreService --> BusinessRules : uses
 CommerceTagService --> BusinessRules : uses
 CommerceOrderService --> BusinessRules : uses
 
+AuthService --> RepositoryPorts : depends on
+UserService --> RepositoryPorts : depends on
+MessageService --> RepositoryPorts : depends on
+ChatService --> RepositoryPorts : depends on
+PostService --> RepositoryPorts : depends on
+FeedService --> RepositoryPorts : depends on
+CommentService --> RepositoryPorts : depends on
+NotificationService --> RepositoryPorts : depends on
+RepositoryAdapters --> RepositoryPorts : implements
+
 \' Services to data layer connections
 AuthService --> DataRepository : data access
 UserService --> DataRepository : data access
@@ -240,6 +258,9 @@ ExploreService --> CacheService : explore list
 FollowService --> DataRepository : data access
 FollowService --> CacheService : suggestions
 CommentService --> CommentRepo : data access
+RepositoryAdapters --> DataRepository : delegates
+RepositoryAdapters --> PostFeedRepo : delegates
+RepositoryAdapters --> CommentRepo : delegates
 RecJobs --> CacheService : write suggestions, explore
 RecJobs --> PostgreSQL : ETL follow (read)
 RecJobs --> Cassandra : ETL engagement, posts (read)
