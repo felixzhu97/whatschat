@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { feedService, type MobileFeedPost } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 import { useGetFeedFirstQuery } from '@/src/presentation/store/api/feedApi';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { WebView } from 'react-native-webview';
@@ -199,9 +200,11 @@ export default function MediaViewerScreen() {
     }
     if (!postId) return;
     let cancelled = false;
-    void feedService.getPostById(postId).then((p) => {
-      if (!cancelled && p) setFetchedPost(p);
-    });
+    void getFeedUseCases()
+      .getPostById(postId)
+      .then((p) => {
+        if (!cancelled && p) setFetchedPost(p);
+      });
     return () => {
       cancelled = true;
     };

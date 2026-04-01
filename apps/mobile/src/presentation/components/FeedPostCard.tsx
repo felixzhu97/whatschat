@@ -15,7 +15,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
-import type { MobileFeedPost } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost } from '@/src/domain/entities';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { WebView } from 'react-native-webview';
 

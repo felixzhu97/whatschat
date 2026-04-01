@@ -1,6 +1,4 @@
-import type { IHttpClient } from '@/src/domain/ports/http-client.port';
 import { Message, MessageEntity, MessageType, MessageStatus } from '@/src/domain/entities';
-import { getHttpClient } from '@/src/infrastructure/composition-root';
 
 const SERVER_TYPE_MAP: Record<string, MessageType> = {
   TEXT: MessageType.Text,
@@ -12,7 +10,7 @@ const SERVER_TYPE_MAP: Record<string, MessageType> = {
   CONTACT: MessageType.Contact,
 };
 
-function mapServerMessage(m: {
+export function mapServerMessagePayloadToMessage(m: {
   id: string;
   chatId: string;
   senderId: string;
@@ -38,8 +36,17 @@ function mapServerMessage(m: {
   });
 }
 
-export function mapServerMessagePayload(p: Record<string, unknown>): Message {
-  return mapServerMessage({
+export function mapRecordToServerMessagePayload(p: Record<string, unknown>): {
+  id: string;
+  chatId: string;
+  senderId: string;
+  type: string;
+  content: string;
+  createdAt: string;
+  updatedAt?: string;
+  sender?: { id: string; username: string; avatar?: string };
+} {
+  return {
     id: p.id as string,
     chatId: p.chatId as string,
     senderId: p.senderId as string,
@@ -48,30 +55,9 @@ export function mapServerMessagePayload(p: Record<string, unknown>): Message {
     createdAt: (p.createdAt as string) ?? new Date().toISOString(),
     updatedAt: p.updatedAt as string | undefined,
     sender: p.sender as { id: string; username: string; avatar?: string } | undefined,
-  });
+  };
 }
 
-export class MessageService {
-  constructor(private readonly http: IHttpClient) {}
-
-  async getMessages(chatId: string): Promise<Message[]> {
-    const { data } = await this.http.get<{ success: boolean; data: unknown[] }>(
-      `/messages/${chatId}`,
-      { params: { page: 1, limit: 50 } }
-    );
-    if (!data.success || !Array.isArray(data.data)) return [];
-    return data.data.map((m) => mapServerMessage(m as Parameters<typeof mapServerMessage>[0]));
-  }
-
-  async sendMessage(chatId: string, content: string, type: string = 'TEXT'): Promise<Message> {
-    const { data } = await this.http.post<{ success: boolean; data: unknown }>('/messages', {
-      chatId,
-      content,
-      type,
-    });
-    if (!data.success || !data.data) throw new Error('Send failed');
-    return mapServerMessagePayload(data.data as Record<string, unknown>);
-  }
+export function mapServerMessagePayload(p: Record<string, unknown>): Message {
+  return mapServerMessagePayloadToMessage(mapRecordToServerMessagePayload(p));
 }
-
-export const messageService = new MessageService(getHttpClient());

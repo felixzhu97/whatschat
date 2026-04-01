@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useSocketStore, useAuthStore, useAppDispatch, connectSocket, disconnectSocket } from '@/src/presentation/stores';
-import { mapServerMessagePayload } from '@/src/application/services/MessageService';
+import { mapServerMessagePayload } from '@/src/application/mappers/message.mapper';
 import { Message } from '@/src/domain/entities';
 
 type OnMessageReceived = (message: Message) => void;

@@ -18,7 +18,7 @@ import type { AuthUser } from '@/src/domain/entities';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
-import { chatService } from '@/src/application/services';
+import { getChatUseCases } from '@/src/infrastructure/composition-root';
 import { useAuthStore } from '@/src/presentation/stores';
 
 const PAGE_BG = '#FFFFFF';
@@ -397,7 +397,7 @@ export default function ChatsScreen() {
 
   const loadChats = React.useCallback(async () => {
     try {
-      const list = await chatService.getChats();
+      const list = await getChatUseCases().getChats();
       setChats(list);
     } catch {
       setChats([]);
@@ -423,7 +423,7 @@ export default function ChatsScreen() {
 
   const listFooter = React.useMemo(() => <ChatsSuggestionsFooter />, []);
 
-  const bannerBottom = insets.bottom + 52;
+  const bannerBottom = insets.bottom - 20;
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: PAGE_BG }}>

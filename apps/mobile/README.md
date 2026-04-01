@@ -8,7 +8,7 @@ React Native + Expo（SDK 55+）客户端，与 `services/server` API 对接；U
 - **状态**：Redux Toolkit、`feedApi`（RTK Query）、`@whatschat/im` 聊天与 RTC
 - **样式**：Emotion（`@emotion/native`）、主题（浅/深/系统，AsyncStorage）
 - **国际化**：i18next（`src/locales/en.ts`、`zh.ts`）
-- **数据访问**：`src/application/services/FeedService.ts`（GraphQL feed/reels；REST explore、search、`/users/:id`、`/posts/user/:id`、`/posts/:id`、用户推荐等）；与 RTK Query 并存
+- **数据访问**：Clean Architecture — `src/domain/ports`（仓储接口）、`src/infrastructure/adapters/repositories`（HTTP 实现）、`src/application/use-cases`（编排）、`src/infrastructure/composition-root.ts`（组合根）；GraphQL feed/reels 与 REST explore/search 等；与 RTK Query 并存
 
 ## Tab 与主要路由
 

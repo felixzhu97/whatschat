@@ -10,4 +10,5 @@ export * from './LiquidGlassBar';
 export * from './TabPageHeader';
 export * from './FeedPostCard';
 export * from './ExploreGridTile';
+export * from './ThemedText';
 

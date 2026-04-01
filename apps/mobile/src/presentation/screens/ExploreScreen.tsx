@@ -4,8 +4,8 @@ import { ActivityIndicator, Dimensions, FlatList, RefreshControl } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { feedService } from '@/src/application/services';
-import type { MobileFeedPost } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 import { ExploreGridTile } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
@@ -85,7 +85,10 @@ export const ExploreScreen: React.FC = () => {
     else setLoadingMore(true);
     setError(null);
     try {
-      const { posts, total, fetchedEntryCount } = await feedService.getExplore(PAGE_SIZE, offset);
+      const { posts, total, fetchedEntryCount } = await getFeedUseCases().getExplore(
+        PAGE_SIZE,
+        offset,
+      );
       const nextOff = offset + fetchedEntryCount;
       setExploreNextOffset(nextOff);
       setExploreHasMore(nextOff < total && fetchedEntryCount > 0);
@@ -108,7 +111,7 @@ export const ExploreScreen: React.FC = () => {
       } else setLoadingMore(true);
       setError(null);
       try {
-        const { posts, nextCursor } = await feedService.searchPosts(q, PAGE_SIZE, cursor);
+        const { posts, nextCursor } = await getFeedUseCases().searchPosts(q, PAGE_SIZE, cursor);
         setSearchCursor(nextCursor);
         setSearchHasMore(Boolean(nextCursor));
         setItems((prev) => (append ? [...prev, ...posts] : posts));

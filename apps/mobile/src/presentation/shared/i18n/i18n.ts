@@ -2,8 +2,8 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { en } from '@/src/locales/en';
-import { zh } from '@/src/locales/zh';
+import { en } from '@/src/presentation/shared/i18n/locales/en';
+import { zh } from '@/src/presentation/shared/i18n/locales/zh';
 
 export const LANG_STORAGE_KEY = '@whatschat_language';
 export type AppLanguage = 'en' | 'zh';

@@ -1,5 +1,6 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
-import { feedService, type MobileFeedPost, type MobileStoryUser } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost, StoryUser as MobileStoryUser } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 import { apiClient } from '@/src/infrastructure/api/client';
 
 type FeedPage = { posts: MobileFeedPost[]; nextPageState?: string };
@@ -92,7 +93,7 @@ export const feedApi = createApi({
     getFeedFirst: build.query<FeedPage, { limit: number }>({
       queryFn: async ({ limit }) => {
         try {
-          const data = await feedService.getFeed(limit);
+          const data = await getFeedUseCases().getFeed(limit);
           return { data };
         } catch (e) {
           return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
@@ -103,7 +104,7 @@ export const feedApi = createApi({
     getFeedMore: build.query<FeedPage, { limit: number; pageState: string }>({
       queryFn: async ({ limit, pageState }) => {
         try {
-          const data = await feedService.getFeed(limit, pageState);
+          const data = await getFeedUseCases().getFeed(limit, pageState);
           return { data };
         } catch (e) {
           return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
@@ -113,7 +114,7 @@ export const feedApi = createApi({
     getReelsFirst: build.query<FeedPage, { limit: number }>({
       queryFn: async ({ limit }) => {
         try {
-          const data = await feedService.getReels(limit);
+          const data = await getFeedUseCases().getReels(limit);
           return { data };
         } catch (e) {
           return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
@@ -124,7 +125,7 @@ export const feedApi = createApi({
     getReelsMore: build.query<FeedPage, { limit: number; pageState: string }>({
       queryFn: async ({ limit, pageState }) => {
         try {
-          const data = await feedService.getReels(limit, pageState);
+          const data = await getFeedUseCases().getReels(limit, pageState);
           return { data };
         } catch (e) {
           return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };
@@ -134,7 +135,7 @@ export const feedApi = createApi({
     getStoryUsers: build.query<MobileStoryUser[], { limit: number }>({
       queryFn: async ({ limit }) => {
         try {
-          const data = await feedService.getSuggestions(limit);
+          const data = await getFeedUseCases().getSuggestions(limit);
           return { data };
         } catch (e) {
           return { error: { status: 'CUSTOM_ERROR', error: e instanceof Error ? e.message : '加载失败' } as any };

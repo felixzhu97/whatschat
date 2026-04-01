@@ -6,7 +6,7 @@ import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAppDispatch, setAuth } from '@/src/presentation/stores';
-import { authService } from '@/src/application/services';
+import { getAuthUseCases } from '@/src/infrastructure/composition-root';
 
 const Page = styled.View`
   flex: 1;
@@ -125,7 +125,7 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      const data = await authService.register({
+      const data = await getAuthUseCases().register({
         username: trimmedUsername,
         email: trimmedEmail,
         password,

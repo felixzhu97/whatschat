@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_V1 } from '@/src/config/api';
+import { API_V1 } from '@/src/infrastructure/config/api';
 
 let tokenCache: string | null = null;
 let unauthorizedHandler: (() => void | Promise<void>) | null = null;

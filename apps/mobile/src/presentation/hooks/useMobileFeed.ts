@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import uniqBy from 'lodash/uniqBy';
-import { feedService, type MobileFeedPost } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 
 const INITIAL_LIMIT = 5;
 const LOAD_MORE_LIMIT = 5;
@@ -29,7 +30,7 @@ export function useMobileFeed() {
         const isInitial = reset || !pageState;
         const limit = isInitial ? INITIAL_LIMIT : LOAD_MORE_LIMIT;
         const currentPageState = isInitial ? undefined : pageState;
-        const { posts, nextPageState } = await feedService.getFeed(limit, currentPageState);
+        const { posts, nextPageState } = await getFeedUseCases().getFeed(limit, currentPageState);
         setHasMore(Boolean(nextPageState));
         setPageState(nextPageState);
         setItems((prev) => {

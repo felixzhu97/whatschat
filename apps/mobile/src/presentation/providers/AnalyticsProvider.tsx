@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { AnalyticsProvider as AnalyticsProviderBase, HttpTransport } from '@whatschat/analytics';
-import { API_V1 } from '@/src/config/api';
+import { API_V1 } from '@/src/infrastructure/config/api';
 import type { RootState } from '@/src/presentation/store';
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {

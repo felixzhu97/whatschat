@@ -13,7 +13,7 @@ import { Chat, ChatType } from '@/src/domain/entities';
 import { ChatListItem } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
-import { chatService } from '@/src/application/services';
+import { getChatUseCases } from '@/src/infrastructure/composition-root';
 
 interface ChatListScreenProps {
   navigation: any;
@@ -129,7 +129,7 @@ export const ChatListScreen: React.FC<ChatListScreenProps> = ({ navigation }) =>
 
   const loadChats = useCallback(async () => {
     try {
-      const list = await chatService.getChats();
+      const list = await getChatUseCases().getChats();
       setChats(list);
       setFilteredChats(list);
     } catch {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { MobileFeedPost } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost } from '@/src/domain/entities';
 import { styled } from '@/src/presentation/shared/emotion';
 
 const Badge = styled.View`

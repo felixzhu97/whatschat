@@ -1,21 +1,9 @@
 import { AxiosError, isAxiosError } from 'axios';
 import type { IHttpClient } from '@/src/domain/ports/http-client.port';
-import { AuthUser } from '@/src/domain/entities';
-import { getHttpClient } from '@/src/infrastructure/composition-root';
+import type { AuthRegisterPayload, AuthSession, IAuthRepository } from '@/src/domain/ports/auth.repository.port';
+import type { AuthUser } from '@/src/domain/entities';
 
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  username: string;
-  phone?: string;
-}
-
-export interface AuthResponse {
+interface AuthResponse {
   success: boolean;
   message: string;
   data: {
@@ -25,18 +13,18 @@ export interface AuthResponse {
   };
 }
 
-export class AuthService {
+export class AuthRepositoryAdapter implements IAuthRepository {
   constructor(private readonly http: IHttpClient) {}
 
-  async login(payload: LoginPayload): Promise<AuthResponse['data']> {
-    const { data } = await this.http.post<AuthResponse>('/auth/login', payload);
+  async login(email: string, password: string): Promise<AuthSession> {
+    const { data } = await this.http.post<AuthResponse>('/auth/login', { email, password });
     if (!data.success || !data.data) {
       throw new Error(data.message || 'Login failed');
     }
     return data.data;
   }
 
-  async register(payload: RegisterPayload): Promise<AuthResponse['data']> {
+  async register(payload: AuthRegisterPayload): Promise<AuthSession> {
     const { data } = await this.http.post<AuthResponse>('/auth/register', payload);
     if (!data.success || !data.data) {
       throw new Error(data.message || 'Register failed');
@@ -52,5 +40,3 @@ export class AuthService {
     return false;
   }
 }
-
-export const authService = new AuthService(getHttpClient());

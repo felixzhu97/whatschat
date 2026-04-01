@@ -6,7 +6,7 @@ import { MessageBubble, ChatInputField } from '@/src/presentation/components';
 import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
-import { messageService } from '@/src/application/services';
+import { getMessageUseCases } from '@/src/infrastructure/composition-root';
 
 interface ChatDetailScreenProps {
   route: { params: { chat: Chat } };
@@ -48,7 +48,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ route, navig
 
   const loadMessages = useCallback(async () => {
     try {
-      const list = await messageService.getMessages(chat.id);
+      const list = await getMessageUseCases().getMessages(chat.id);
       setMessages(list.reverse());
     } catch {
       setMessages([]);
@@ -86,7 +86,7 @@ export const ChatDetailScreen: React.FC<ChatDetailScreenProps> = ({ route, navig
       );
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
       try {
-        const msg = await messageService.sendMessage(chat.id, trimmed);
+        const msg = await getMessageUseCases().sendMessage(chat.id, trimmed);
         setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
       } catch {
         setMessages((prev) =>

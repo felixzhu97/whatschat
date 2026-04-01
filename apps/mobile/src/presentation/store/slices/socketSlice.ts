@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { io, type Socket } from 'socket.io-client';
-import { API_BASE_URL } from '@/src/config/api';
+import { API_BASE_URL } from '@/src/infrastructure/config/api';
 
 interface SocketState {
   socket: Socket | null;

@@ -30,8 +30,7 @@ import { useSocket } from '@/src/presentation/hooks/useSocket';
 import { useCall } from '@/src/presentation/hooks/useCall';
 import { useAnalytics } from '@whatschat/analytics';
 import { CHAT_OPEN, SEND_MESSAGE, CALL_START } from '@whatschat/analytics';
-import { messageService } from '@/src/application/services/MessageService';
-import { chatService } from '@/src/application/services/ChatService';
+import { getChatUseCases, getMessageUseCases } from '@/src/infrastructure/composition-root';
 
 const Container = styled.View`
   flex: 1;
@@ -172,7 +171,7 @@ export default function ChatDetailScreen() {
     }
     let cancelled = false;
     setLoading(true);
-    Promise.all([chatService.getChatById(chatId), messageService.getMessages(chatId)])
+    Promise.all([getChatUseCases().getChatById(chatId), getMessageUseCases().getMessages(chatId)])
       .then(([c, list]) => {
         if (cancelled) return;
         if (c) setChat(c);
@@ -213,15 +212,18 @@ export default function ChatDetailScreen() {
         );
         setInputText('');
         analytics.track(SEND_MESSAGE, { chatId, type: 'text' });
-        messageService.sendMessage(chatId, text.trim()).then((msg) => {
-          setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
-        }).catch(() => {
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === tempId ? new MessageEntity({ ...m, status: MessageStatus.Failed }) : m
-            )
-          );
-        });
+        getMessageUseCases()
+          .sendMessage(chatId, text.trim())
+          .then((msg) => {
+            setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
+          })
+          .catch(() => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === tempId ? new MessageEntity({ ...m, status: MessageStatus.Failed }) : m
+              )
+            );
+          });
       }
     },
     [params.chatId, userId, connected, sendMessage]

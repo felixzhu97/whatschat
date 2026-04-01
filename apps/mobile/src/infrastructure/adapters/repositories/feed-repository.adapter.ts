@@ -1,135 +1,35 @@
 import type { IHttpClient } from '@/src/domain/ports/http-client.port';
-import { getHttpClient } from '@/src/infrastructure/composition-root';
+import type { IFeedRepository } from '@/src/domain/ports/feed.repository.port';
+import type { FeedPost } from '@/src/domain/entities/feed-post';
+import type { StoryUser } from '@/src/domain/entities/story-user';
+import type { UserProfile } from '@/src/domain/entities/user-profile';
 import compact from 'lodash/compact';
 import keyBy from 'lodash/keyBy';
 import uniq from 'lodash/uniq';
 import uniqBy from 'lodash/uniqBy';
-
-export interface MobileFeedPost {
-  id: string;
-  userId: string;
-  username: string;
-  avatar: string;
-  timestamp: string;
-  caption: string;
-  likeCount: number;
-  commentCount: number;
-  imageUrl: string;
-  isLiked: boolean;
-  isSaved: boolean;
-  type?: string;
-  videoUrl?: string;
-  coverImageUrl?: string;
-  mediaUrls: string[];
-}
-
-export interface MobileStoryUser {
-  id: string;
-  username: string;
-  avatar: string;
-}
-
-export interface MobileUserProfile {
-  id?: string;
-  username?: string;
-  email?: string;
-  avatar?: string | null;
-  status?: string | null;
-  followersCount?: number;
-  followingCount?: number;
-}
-
-interface FeedPostRes {
-  postId: string;
-  userId: string;
-  caption: string;
-  type: string;
-  mediaUrls?: string[];
-  coverUrl?: string;
-  location?: string;
-  createdAt: string;
-  username?: string;
-  avatar?: string;
-  likeCount?: number;
-  commentCount?: number;
-  saveCount?: number;
-  isLiked?: boolean;
-  isSaved?: boolean;
-}
+import { mapFeedPostResToFeedPost, type FeedPostRes } from '@/src/application/mappers/feed.mapper';
 
 interface FeedGraphqlBody {
   errors?: Array<{ message?: string }>;
   data?: {
     feed?: {
       pageState?: string | null;
-      entries?: Array<{
-        postId: string;
-        post?: FeedPostRes | null;
-      }>;
+      entries?: Array<{ postId: string; post?: FeedPostRes | null }>;
     };
     reels?: {
       pageState?: string | null;
-      entries?: Array<{
-        postId: string;
-        post?: FeedPostRes | null;
-      }>;
+      entries?: Array<{ postId: string; post?: FeedPostRes | null }>;
     };
   };
 }
 
-const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?|$)/i;
-
-function isVideoUrl(url: string): boolean {
-  if (!url) return false;
-  if (url.startsWith('data:')) return /^data:video\//i.test(url);
-  return VIDEO_EXT.test(url);
-}
-
-function mapFeedPost(raw: FeedPostRes): MobileFeedPost {
-  const urls = raw.mediaUrls ?? [];
-  const first = urls[0];
-  const isVideoType = raw.type === 'VIDEO' || (first != null && isVideoUrl(first));
-
-  let imageUrl = first ?? '';
-  let videoUrl: string | undefined;
-  let coverImageUrl: string | undefined;
-  const storedCover = raw.coverUrl != null && raw.coverUrl !== '' ? raw.coverUrl : undefined;
-
-  if (isVideoType && first && isVideoUrl(first)) {
-    videoUrl = first;
-    const poster = storedCover ?? urls.find((u) => u && !isVideoUrl(u));
-    if (poster) {
-      coverImageUrl = poster;
-      imageUrl = poster;
-    } else {
-      coverImageUrl = undefined;
-      imageUrl = first;
-    }
-  }
-
-  return {
-    id: raw.postId,
-    userId: raw.userId,
-    username: raw.username ?? raw.userId?.slice(0, 8) ?? '',
-    avatar: raw.avatar ?? '',
-    timestamp: raw.createdAt,
-    caption: raw.caption ?? '',
-    likeCount: raw.likeCount ?? 0,
-    commentCount: raw.commentCount ?? 0,
-    imageUrl,
-    isLiked: Boolean(raw.isLiked),
-    isSaved: Boolean(raw.isSaved),
-    type: raw.type,
-    videoUrl,
-    coverImageUrl,
-    mediaUrls: urls,
-  };
-}
-
-export class FeedService {
+export class FeedRepositoryAdapter implements IFeedRepository {
   constructor(private readonly http: IHttpClient) {}
 
-  async getFeed(limit: number, pageState?: string) {
+  async getFeed(limit: number, pageState?: string): Promise<{
+    posts: FeedPost[];
+    nextPageState?: string;
+  }> {
     const query = `query Feed($limit: Int, $pageState: String) {
       feed(limit: $limit, pageState: $pageState) {
         pageState
@@ -168,7 +68,7 @@ export class FeedService {
     const posts = entries
       .map((e) => e.post)
       .filter((p): p is FeedPostRes => p != null)
-      .map(mapFeedPost);
+      .map(mapFeedPostResToFeedPost);
     const next = feed?.pageState ?? undefined;
     return {
       posts,
@@ -176,7 +76,10 @@ export class FeedService {
     };
   }
 
-  async getReels(limit: number, pageState?: string) {
+  async getReels(limit: number, pageState?: string): Promise<{
+    posts: FeedPost[];
+    nextPageState?: string;
+  }> {
     const query = `query Reels($limit: Int, $pageState: String) {
       reels(limit: $limit, pageState: $pageState) {
         pageState
@@ -215,7 +118,7 @@ export class FeedService {
     const posts = entries
       .map((e) => e.post)
       .filter((p): p is FeedPostRes => p != null)
-      .map(mapFeedPost);
+      .map(mapFeedPostResToFeedPost);
     const next = reels?.pageState ?? undefined;
     return {
       posts,
@@ -223,20 +126,19 @@ export class FeedService {
     };
   }
 
-  async getSuggestions(limit: number) {
+  async getSuggestions(limit: number): Promise<StoryUser[]> {
     const suggestionsRes = await this.http.get<{
       data?: Array<{ id: string; username: string; avatar: string | null; description: string }>;
     }>(`/users/suggestions?limit=${limit}`);
     const list = Array.isArray(suggestionsRes.data?.data) ? suggestionsRes.data?.data ?? [] : [];
-    return uniqBy(list.filter((u) => Boolean(u.id)), 'id')
-      .map<MobileStoryUser>((u) => ({
-        id: u.id,
-        username: u.username,
-        avatar: u.avatar ?? '',
-      }));
+    return uniqBy(list.filter((u) => Boolean(u.id)), 'id').map<StoryUser>((u) => ({
+      id: u.id,
+      username: u.username,
+      avatar: u.avatar ?? '',
+    }));
   }
 
-  async getPostById(postId: string): Promise<MobileFeedPost | null> {
+  async getPostById(postId: string): Promise<FeedPost | null> {
     try {
       const postRes = await this.http.get<{ data?: FeedPostRes }>(`/posts/${postId}`);
       const raw = postRes.data?.data;
@@ -247,7 +149,7 @@ export class FeedService {
           : raw.createdAt != null
             ? String(raw.createdAt)
             : '';
-      return mapFeedPost({ ...(raw as FeedPostRes), createdAt });
+      return mapFeedPostResToFeedPost({ ...(raw as FeedPostRes), createdAt });
     } catch {
       return null;
     }
@@ -255,8 +157,8 @@ export class FeedService {
 
   async getExplore(
     limit: number,
-    offset: number
-  ): Promise<{ posts: MobileFeedPost[]; total: number; fetchedEntryCount: number }> {
+    offset: number,
+  ): Promise<{ posts: FeedPost[]; total: number; fetchedEntryCount: number }> {
     const exploreRes = await this.http.get<{
       entries?: Array<{ postId: string; isSponsored?: boolean }>;
       total?: number;
@@ -282,15 +184,15 @@ export class FeedService {
           : 0;
     const postIds = entries.map((e) => e.postId).filter(Boolean);
     const details = await Promise.all(postIds.map((id) => this.getPostById(id)));
-    const posts = details.filter((p): p is MobileFeedPost => p != null);
+    const posts = details.filter((p): p is FeedPost => p != null);
     return { posts, total, fetchedEntryCount: rawEntries.length };
   }
 
   async searchPosts(
     q: string,
     limit: number,
-    cursor?: string
-  ): Promise<{ posts: MobileFeedPost[]; nextCursor?: string; total?: number }> {
+    cursor?: string,
+  ): Promise<{ posts: FeedPost[]; nextCursor?: string; total?: number }> {
     const trimmed = q.trim();
     if (!trimmed) return { posts: [] };
     const params = new URLSearchParams({
@@ -319,12 +221,12 @@ export class FeedService {
     return { posts, nextCursor, total };
   }
 
-  async getUserProfile(userId: string): Promise<MobileUserProfile | null> {
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const profileRes = await this.http.get<{ data?: MobileUserProfile }>(`/users/${userId}`);
+      const profileRes = await this.http.get<{ data?: UserProfile }>(`/users/${userId}`);
       const u = profileRes.data?.data;
       if (!u || typeof u !== 'object') return null;
-      return u as MobileUserProfile;
+      return u as UserProfile;
     } catch {
       return null;
     }
@@ -333,8 +235,8 @@ export class FeedService {
   async getUserPosts(
     userId: string,
     limit: number,
-    pageState?: string
-  ): Promise<{ posts: MobileFeedPost[]; nextPageState?: string }> {
+    pageState?: string,
+  ): Promise<{ posts: FeedPost[]; nextPageState?: string }> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (pageState) params.set('pageState', pageState);
     const userPostsRes = await this.http.get<{
@@ -360,11 +262,8 @@ export class FeedService {
           : r.createdAt != null
             ? String(r.createdAt)
             : '';
-      return mapFeedPost({ ...(r as FeedPostRes), createdAt });
+      return mapFeedPostResToFeedPost({ ...(r as FeedPostRes), createdAt });
     });
     return { posts, nextPageState: next && next !== '' ? String(next) : undefined };
   }
 }
-
-export const feedService = new FeedService(getHttpClient());
-

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { feedService, type MobileStoryUser } from '@/src/application/services';
+import type { StoryUser as MobileStoryUser } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 
 export function useMobileStories(limit: number = 12) {
   const [items, setItems] = useState<MobileStoryUser[]>([]);
@@ -10,7 +11,7 @@ export function useMobileStories(limit: number = 12) {
     setLoading(true);
     setError(null);
     try {
-      const list = await feedService.getSuggestions(limit);
+      const list = await getFeedUseCases().getSuggestions(limit);
       setItems(list);
     } catch (e) {
       setError(e instanceof Error ? e.message : '加载失败');

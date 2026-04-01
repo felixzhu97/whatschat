@@ -6,7 +6,7 @@ import { styled } from '@/src/presentation/shared/emotion';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useTranslation } from '@/src/presentation/shared/i18n';
 import { useAuthStore, useAppDispatch, setAuth } from '@/src/presentation/stores';
-import { authService } from '@/src/application/services';
+import { getAuthUseCases } from '@/src/infrastructure/composition-root';
 
 const DEFAULT_DEV_USER = { email: 'ladygaga@whatschat.com', password: '123456' };
 
@@ -158,7 +158,7 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const data = await authService.login({ email: trimmedEmail, password });
+      const data = await getAuthUseCases().login(trimmedEmail, password);
       await dispatch(setAuth({ token: data.token, refreshToken: data.refreshToken, user: data.user })).unwrap();
       router.replace('/(tabs)/status');
     } catch (err: unknown) {

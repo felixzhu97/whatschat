@@ -14,7 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { feedService, type MobileFeedPost, type MobileUserProfile } from '@/src/application/services';
+import type { FeedPost as MobileFeedPost, UserProfile as MobileUserProfile } from '@/src/domain/entities';
+import { getFeedUseCases } from '@/src/infrastructure/composition-root';
 import { ChatAvatar, ExploreGridTile } from '@/src/presentation/components';
 import { useTheme } from '@/src/presentation/shared/theme';
 import { useAuthStore } from '@/src/presentation/stores';
@@ -331,8 +332,8 @@ export const ProfileScreen: React.FC = () => {
     setLoading(true);
     try {
       const [p, feed] = await Promise.all([
-        feedService.getUserProfile(targetUserId),
-        feedService.getUserPosts(targetUserId, 48),
+        getFeedUseCases().getUserProfile(targetUserId),
+        getFeedUseCases().getUserPosts(targetUserId, 48),
       ]);
       setProfile(
         p ?? {
