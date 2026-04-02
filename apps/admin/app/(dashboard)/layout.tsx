@@ -9,7 +9,8 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { Button, FormControl, IconButton, InputLabel, MenuItem, Select } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
@@ -83,10 +84,27 @@ const LogoIcon = styled.div`
   justify-content: center;
 `;
 
-const LogoText = styled.span`
-  font-size: 1.125rem;
-  font-weight: 600;
+const LogoTextStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+`;
+
+const LogoBrand = styled.span`
+  font-size: 1.0625rem;
+  font-weight: 700;
   color: ${theme.text};
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+`;
+
+const LogoProduct = styled.span`
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: ${theme.textSecondary};
+  line-height: 1.15;
 `;
 
 const NavLabel = styled.div`
@@ -245,7 +263,13 @@ const TopBar = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0.875rem 1.25rem;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+  padding-left: calc(1rem + env(safe-area-inset-left, 0px));
   background: color-mix(in srgb, ${theme.surface} 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid ${theme.border};
@@ -316,6 +340,7 @@ const TopBarBadge = styled.span`
 
 const SearchKbd = styled.span`
   margin-left: auto;
+  flex-shrink: 0;
   font-size: 0.6875rem;
   font-weight: 500;
   color: ${theme.iconMuted};
@@ -328,7 +353,8 @@ const SearchKbd = styled.span`
 const TopBarTools = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
   flex-shrink: 0;
 `;
 
@@ -923,7 +949,10 @@ export default function DashboardLayout({
                 <circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none" />
               </svg>
             </LogoIcon>
-            <LogoText>WhatsChat Admin</LogoText>
+            <LogoTextStack>
+              <LogoBrand>WhatsChat</LogoBrand>
+              <LogoProduct>Admin</LogoProduct>
+            </LogoTextStack>
           </Logo>
         </SidebarHeader>
         <NavLabel>{t("common.nav")}</NavLabel>
@@ -996,34 +1025,40 @@ export default function DashboardLayout({
           <TopBarTools>
             <Button
               type="button"
-              variant="outlined"
+              variant="outline-primary"
+              className="admin-topbar-jump-btn rounded-pill d-inline-flex align-items-center flex-nowrap"
               onClick={() => setPaletteOpen(true)}
               aria-label={t("common.jumpTo")}
-              startIcon={<Search size={18} />}
-              sx={{ borderRadius: 999 }}
             >
-              {t("common.jumpTo")}
+              <Search size={18} aria-hidden className="flex-shrink-0" />
+              <span className="text-nowrap">{t("common.jumpTo")}</span>
               <SearchKbd>{isMac ? "⌘K" : "Ctrl+K"}</SearchKbd>
             </Button>
-            <IconButton onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
+            <button
+              type="button"
+              className="btn btn-link p-2 text-body-secondary flex-shrink-0 d-inline-flex align-items-center justify-content-center"
+              onClick={toggle}
+              title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}
+            >
               {mode === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            </IconButton>
-            <FormControl size="small">
-              <InputLabel id="dashboard-lang-label">{t("common.language")}</InputLabel>
-              <Select
-                labelId="dashboard-lang-label"
-                value={i18n.language.startsWith("zh") ? "zh" : "en"}
-                label={t("common.language")}
-                onChange={handleLocaleChange}
-                sx={{ minWidth: 110 }}
-              >
-                <MenuItem value="zh">中文</MenuItem>
-                <MenuItem value="en">English</MenuItem>
-              </Select>
-            </FormControl>
-            <IconButton type="button" aria-label={t("common.notifications")}>
+            </button>
+            <Form.Select
+              id="dashboard-lang"
+              aria-label={t("common.language")}
+              className="admin-lang-select rounded-pill"
+              value={i18n.language.startsWith("zh") ? "zh" : "en"}
+              onChange={handleLocaleChange}
+            >
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </Form.Select>
+            <button
+              type="button"
+              className="btn btn-link p-2 text-body-secondary flex-shrink-0 d-inline-flex align-items-center justify-content-center"
+              aria-label={t("common.notifications")}
+            >
               <Bell size={20} />
-            </IconButton>
+            </button>
           </TopBarTools>
         </TopBar>
         <ContentArea>{children}</ContentArea>

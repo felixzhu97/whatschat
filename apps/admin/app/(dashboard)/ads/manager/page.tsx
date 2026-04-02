@@ -40,14 +40,8 @@ import {
 
 const HeaderActions = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
   align-items: center;
-`;
-
-const RefreshButton = styled(SecondaryButton)`
-  border-radius: 999px;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.8125rem;
 `;
 
 export default function AdsManagerPage() {
@@ -110,9 +104,9 @@ export default function AdsManagerPage() {
                 </option>
               ))}
             </Select>
-            <RefreshButton type="button" onClick={() => void reload()}>
+            <SecondaryButton type="button" onClick={() => void reload()}>
               {t("common.search")}
-            </RefreshButton>
+            </SecondaryButton>
           </HeaderActions>
         </CardHeader>
         <SummaryRow>

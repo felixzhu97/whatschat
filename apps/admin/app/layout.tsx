@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import { EmotionRegistry } from "./emotion-registry";
 import { Providers } from "./providers";

@@ -12,7 +12,10 @@ import {
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { PostDetailModal, type PostDetailForModal, type PostRowForModal } from "@/src/presentation/components/post-detail-modal";
 import { Search, ImageIcon, ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import { AdminPagination } from "@/src/presentation/components/admin-pagination";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import type { ColDef, ITooltipParams, ValueFormatterParams } from "ag-grid-community";
@@ -216,10 +219,14 @@ const StatusWrap = styled.span`
 `;
 
 const StatusPill = styled.span<{ $bg: string; $color: string }>`
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
   background: ${(p) => p.$bg};
   color: ${(p) => p.$color};
 `;
@@ -756,15 +763,15 @@ export default function PostsPage() {
                 : t("posts.moderationPending");
           const bg =
             s === "reject"
-              ? "rgba(239, 68, 68, 0.15)"
+              ? "rgba(239, 68, 68, 0.14)"
               : s === "pass"
-                ? "rgba(34, 197, 94, 0.15)"
-                : "rgba(156, 163, 175, 0.2)";
+                ? "rgba(22, 163, 74, 0.12)"
+                : "rgba(156, 163, 175, 0.18)";
           const color =
             s === "reject"
-              ? "#dc2626"
+              ? "#b91c1c"
               : s === "pass"
-                ? "#16a34a"
+                ? "#15803d"
                 : theme.textSecondary;
           return (
             <StatusWrap>
@@ -807,21 +814,17 @@ export default function PostsPage() {
               {selectedPostIds.size === rows.length ? t("posts.clearSelection") : t("posts.selectAllPage")}
             </ToolbarButton>
           )}
-          <TextField
-            size="small"
-            placeholder={t("posts.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 320 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={18} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Button type="submit" variant="contained">
+          <InputGroup className="admin-input-group-pill" style={{ width: 320 }}>
+            <InputGroup.Text>
+              <Search size={18} aria-hidden />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder={t("posts.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </InputGroup>
+          <Button type="submit" variant="primary" className="rounded-pill admin-primary-btn">
             {t("posts.search")}
           </Button>
         </Toolbar>
@@ -1077,12 +1080,10 @@ export default function PostsPage() {
       />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <MuiPagination
-            shape="rounded"
-            color="primary"
+          <AdminPagination
             page={pagination.page}
-            count={Math.min(pagination.totalPages, 10)}
-            onChange={(_, p) => load(p)}
+            count={pagination.totalPages}
+            onChange={(p) => load(p)}
           />
         </Pagination>
       )}

@@ -1,7 +1,27 @@
 "use client";
 
-import { styled } from "@/src/shared/utils/emotion";
+import { styled, css } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
+
+const commercePillSelectCss = css`
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid ${theme.border};
+  background-color: ${theme.surface};
+  color: ${theme.text};
+  font-size: 0.8125rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath stroke='%238e8e8e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4.5 6.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.75rem 0.75rem;
+
+  [data-theme="dark"] & {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath stroke='%23a8a8a8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4.5 6.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  }
+`;
 
 export const Wrap = styled.div`
   display: flex;
@@ -54,14 +74,7 @@ export const Input = styled.input`
   font-size: 0.8125rem;
 `;
 
-export const Select = styled.select`
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid ${theme.border};
-  background: ${theme.surface};
-  color: ${theme.text};
-  font-size: 0.8125rem;
-`;
+export const Select = styled.select(commercePillSelectCss);
 
 export const Button = styled.button`
   padding: 0.5rem 0.9rem;

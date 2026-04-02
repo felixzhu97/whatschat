@@ -8,7 +8,10 @@ import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { PostDetailModal, type PostDetailForModal, type PostRowForModal } from "@/src/presentation/components/post-detail-modal";
 import { Search, ImageIcon, ShieldCheck, ShieldAlert, Clock, ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import { AdminPagination } from "@/src/presentation/components/admin-pagination";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import type { ColDef, ValueFormatterParams } from "ag-grid-community";
@@ -261,10 +264,14 @@ const StatusWrap = styled.span`
 `;
 
 const StatusPill = styled.span<{ $bg: string; $color: string }>`
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
   background: ${(p) => p.$bg};
   color: ${(p) => p.$color};
 `;
@@ -805,8 +812,8 @@ export default function ContentSafetyPage() {
       },
       {
         field: "moderationStatus",
-        headerName: t("posts.moderationStatus"),
-        minWidth: 90,
+        headerName: t("posts.contentSafety"),
+        minWidth: 100,
         cellRenderer: (p: { value: string; data: PostRow }) => {
           const s = p.value || "pending";
           const label =
@@ -817,12 +824,12 @@ export default function ContentSafetyPage() {
                 : t("posts.moderationPending");
           const bg =
             s === "reject"
-              ? "rgba(239, 68, 68, 0.15)"
+              ? "rgba(239, 68, 68, 0.14)"
               : s === "pass"
-                ? "rgba(34, 197, 94, 0.15)"
-                : "rgba(156, 163, 175, 0.2)";
+                ? "rgba(22, 163, 74, 0.12)"
+                : "rgba(156, 163, 175, 0.18)";
           const color =
-            s === "reject" ? "#dc2626" : s === "pass" ? "#16a34a" : theme.textSecondary;
+            s === "reject" ? "#b91c1c" : s === "pass" ? "#15803d" : theme.textSecondary;
           return (
             <StatusWrap>
               <StatusPill $bg={bg} $color={color}>{label}</StatusPill>
@@ -920,20 +927,16 @@ export default function ContentSafetyPage() {
               {selectedPostIds.size === rows.length ? t("posts.clearSelection") : t("posts.selectAllPage")}
             </ToolbarButton>
           )}
-          <TextField
-            size="small"
-            placeholder={t("posts.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 280 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={16} />
-                </InputAdornment>
-              ),
-            }}
-          />
+          <InputGroup className="admin-input-group-pill" style={{ width: 280 }}>
+            <InputGroup.Text>
+              <Search size={16} aria-hidden />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder={t("posts.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </InputGroup>
           <FilterBtn type="button" active={statusFilter === ""} onClick={() => setStatusFilter("")}>
             {t("common.all")}
           </FilterBtn>
@@ -946,7 +949,7 @@ export default function ContentSafetyPage() {
           <FilterBtn type="button" active={statusFilter === "pending"} onClick={() => setStatusFilter("pending")}>
             {t("posts.moderationPending")}
           </FilterBtn>
-          <Button type="submit" variant="contained">
+          <Button type="submit" variant="primary" className="rounded-pill admin-primary-btn">
             {t("posts.search")}
           </Button>
         </Toolbar>
@@ -1153,12 +1156,10 @@ export default function ContentSafetyPage() {
       />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <MuiPagination
-            shape="rounded"
-            color="primary"
+          <AdminPagination
             page={pagination.page}
-            count={Math.min(pagination.totalPages, 8)}
-            onChange={(_, p) => load(p)}
+            count={pagination.totalPages}
+            onChange={(p) => load(p)}
           />
         </Pagination>
       )}

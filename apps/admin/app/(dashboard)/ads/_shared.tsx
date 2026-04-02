@@ -1,7 +1,30 @@
 "use client";
 
-import { styled } from "@/src/shared/utils/emotion";
+import { styled, css } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
+
+const pillNativeSelectCss = css`
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: 0 2.375rem 0 0.875rem;
+  border-radius: 999px;
+  border: 1px solid ${theme.border};
+  background-color: ${theme.surface};
+  color: ${theme.text};
+  font-size: 0.875rem;
+  line-height: 1.2;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath stroke='%238e8e8e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4.5 6.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.875rem 0.875rem;
+
+  [data-theme="dark"] & {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath stroke='%23a8a8a8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4.5 6.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  }
+`;
 
 export const PageRoot = styled.div`
   display: flex;
@@ -71,12 +94,19 @@ export const CardSubtitle = styled.p`
 `;
 
 export const Button = styled.button`
-  padding: 0.5rem 0.9rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
   border-radius: 999px;
   border: none;
   background: ${theme.primary};
   color: white;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
   &:hover {
     opacity: 0.9;
@@ -84,12 +114,19 @@ export const Button = styled.button`
 `;
 
 export const SecondaryButton = styled.button`
-  padding: 0.5rem 0.9rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
   border-radius: 999px;
   border: 1px solid ${theme.border};
   background: ${theme.surface};
   color: ${theme.text};
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
   &:hover {
     background: ${theme.surfaceAlt};
@@ -153,40 +190,30 @@ export const ErrorText = styled.div`
   margin-top: 0.5rem;
 `;
 
-export const Select = styled.select`
-  padding: 0.35rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid ${theme.border};
-  background: ${theme.surface};
-  color: ${theme.text};
-  font-size: 0.8125rem;
-`;
+export const Select = styled.select(pillNativeSelectCss);
 
 export const InlineForm = styled.form`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 0.75rem;
 `;
 
 export const Input = styled.input`
-  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: 0 0.875rem;
   border-radius: 999px;
   border: 1px solid ${theme.border};
   background: ${theme.surface};
   color: ${theme.text};
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  line-height: 1.2;
   min-width: 0;
 `;
 
-export const SmallSelect = styled.select`
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid ${theme.border};
-  background: ${theme.surface};
-  color: ${theme.text};
-  font-size: 0.8125rem;
-`;
+export const SmallSelect = styled.select(pillNativeSelectCss);
 
 export const SummaryRow = styled.div`
   display: flex;

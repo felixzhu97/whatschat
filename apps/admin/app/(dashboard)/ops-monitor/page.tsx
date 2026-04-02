@@ -1,37 +1,17 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { styled } from "@/src/shared/utils/emotion";
-import { theme } from "@/src/shared/theme";
-
-const PageTitle = styled.h1`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${theme.text};
-  margin-bottom: 1rem;
-`;
-
-const Card = styled.div`
-  background: ${theme.surface};
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid ${theme.border};
-  max-width: 500px;
-  box-shadow: ${theme.shadow};
-`;
-
-const Text = styled.p`
-  color: ${theme.textSecondary};
-  font-size: 0.9375rem;
-`;
+import Card from "react-bootstrap/Card";
 
 export default function OpsMonitorPage() {
   const { t } = useTranslation();
   return (
     <div>
-      <PageTitle>{t("opsMonitor.title")}</PageTitle>
-      <Card>
-        <Text>{t("opsMonitor.developing")}</Text>
+      <h1 className="h4 fw-semibold text-body mb-3">{t("opsMonitor.title")}</h1>
+      <Card className="rounded-3 border shadow-sm" style={{ maxWidth: 500 }}>
+        <Card.Body className="py-4 px-4 text-body-secondary">
+          {t("opsMonitor.developing")}
+        </Card.Body>
       </Card>
     </div>
   );

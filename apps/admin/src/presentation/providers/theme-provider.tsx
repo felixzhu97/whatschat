@@ -27,6 +27,7 @@ function getStoredTheme(): ThemeMode {
 
 function applyTheme(mode: ThemeMode) {
   document.documentElement.setAttribute("data-theme", mode);
+  document.documentElement.setAttribute("data-bs-theme", mode);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

@@ -21,7 +21,7 @@
 - 🌐 **Web 应用** – Next.js SPA（:4000）；Instagram 风格 UI（导航、feed、Reels、个人主页、全局搜索、通知抽屉、搜索抽屉、探索网格、私信、右侧推荐）；Redux 通知切片 + Socket.IO `notification:new`；i18n（中英切换）；信息流内联广告与点击追踪
 - 📱 **移动端应用** – React Native + Expo（expo-router）；Instagram 风格 **Status**（Stories + 纵向 Feed + 横滑多媒体）、**Reels**、**Messages**（DM 列表与行样式）、**Search**（Explore 三列宫格 + Elasticsearch 帖子搜索，对接 `/posts/explore` 与 `/search`）、**Profile**（个人主页：顶栏、粉丝/关注/帖子、Discover、网格/Reels/标记 Tab、用户帖子 `/posts/user/:id`）；独立栈 **Settings and activity**（分组列表、搜索条、主题/语言/通知/登出，与 Ins 设置页一致）；**create-post**、**media-viewer**（Feed 缓存未命中时 `GET /posts/:id` 补拉）；`apps/mobile` 内 `FeedUseCases` + `FeedRepositoryAdapter`（GraphQL feed/reels、REST explore/search/user posts/profile）；RTK Query 乐观更新与缓存；与 Web 共享 GraphQL feed/reels 与 `@whatschat/analytics` 埋点
 - 📊 **行为与广告分析** – `@whatschat/analytics` SDK；Web/Mobile 上报行为事件（含 post view/like/save 与 ad_impression/ad_click/ad_conversion）；API 接入；管理端可看总览并触发推荐 ETL
-- ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Data Analytics、System Config、Permission & Audit、Ads & Promotions（广告管理/推广帖子/效果分析）、Shopping & Commerce（商店管理/商品标签管理/订单追踪）（:4001）
+- ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Data Analytics、System Config、Permission & Audit、Ads & Promotions（广告管理/推广帖子/效果分析）、Shopping & Commerce（商店管理/商品标签管理/订单追踪）（:4001）；**UI**：Bootstrap 5 · react-bootstrap · Emotion；设计令牌通过 `apps/admin/app/globals.css` 中 `--admin-*` 与 `data-theme`（`light`/`dark`）切换；顶栏统一高度的药丸式跳转（⌘K / Ctrl+K）、语言与主题控件；列表工具栏药丸搜索与 `AdminPagination`（lodash 页码）；广告/电商表单内原生 `<select>` 使用自定义下拉箭头，避免圆角裁切问题
 
 ## 📸 截图
 
@@ -70,7 +70,7 @@
 
 ## 🛠 技术栈
 
-- **前端** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS · React Native · Expo · AG Grid · Recharts · i18next
+- **前端** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS（Web）· Bootstrap · react-bootstrap（Admin）· lodash（Admin 列表/分页/请求参数等）· React Native · Expo · AG Grid · Recharts · i18next
 - **后端** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra（posts/feed/engagement/**post cover_url**）· MongoDB（comments/**activity notifications**）· Elasticsearch（search/moderation）· GraphQL（Apollo Server，code-first feed + reels 查询 + DataLoader；PostType 包含 `coverUrl`；feed/explore 可混入 organic/sponsored）
 - **广告与分析** – `@whatschat/analytics` SDK（web/mobile）· NestJS 分析服务（接入 + 广告指标聚合）· Prisma 广告模型（`AdAccount`/`AdCampaign`/`AdGroup`/`AdCreative`/`AdSpend`）· feed/explore 广告投放/定向/节奏服务 · 管理端 Ads REST API
 - **推荐** – Python（`services/recommendation`）· Celery（Redis broker）· LightFM · implicit（ALS）· Annoy · pandas · NumPy/SciPy；定时任务写入关注推荐与探索列表到 Redis（可选）；ETL 读取 `analytics_events`（含广告）做特征
@@ -82,7 +82,7 @@
 ### 前置要求
 
 - Node.js 18+
-- pnpm 8+
+- pnpm 10+（与根目录 `package.json` 的 `packageManager` 一致）
 - Docker 与 Docker Compose（`services/server/docker-compose.yml`：PostgreSQL、Redis、Kafka、Cassandra、MongoDB、Elasticsearch）
 
 ### 安装
@@ -91,6 +91,10 @@
 pnpm install
 pnpm setup
 ```
+
+安装后，`services/server` 会在 **postinstall** 中执行 `prisma generate` 以生成 Prisma Client。若 Client 缺失或迁移成功仍报类型错误，可在仓库根目录执行 `pnpm --filter whatschat-server run db:generate`。
+
+若在 pnpm 环境下出现个别依赖目录损坏（例如报找不到 `@nestjs/config`、`bcryptjs` 或 `Cannot find module`），可在**仓库根目录**删除对应包的嵌套路径或整块 `node_modules` 后重新执行 `pnpm install`（勿只在子包内单独装包以免与 workspace 解析不一致）。
 
 ### 运行
 
@@ -120,7 +124,7 @@ pnpm start:recommendation # 推荐服务 worker + Celery beat（可选，位于 
 ```bash
 apps/
   web            # Next.js Web 应用（whatschat-web, :4000），含 feed/explore 广告渲染
-  admin          # 管理后台（whatschat-admin, :4001），含 Ads & Promotions 与 Shopping & Commerce
+  admin          # 管理后台（whatschat-admin, :4001）：Bootstrap 5 + react-bootstrap + Emotion + lodash；全局样式见 app/globals.css（--admin-*）
   mobile         # Expo 移动端（react-native-app）
 services/
   server         # NestJS API（whatschat-server, :3001）：REST/GraphQL + 广告投放 + 分析接入 + Ads 管理 API

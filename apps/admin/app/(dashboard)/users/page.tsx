@@ -8,7 +8,10 @@ import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { DataGrid } from "@/src/presentation/components/data-grid";
 import { Search, ChevronRight } from "lucide-react";
-import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import { AdminPagination } from "@/src/presentation/components/admin-pagination";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 
@@ -210,21 +213,17 @@ export default function UsersPage() {
       <PageTitle>{t("users.title")}</PageTitle>
       <form onSubmit={handleSearch}>
         <Toolbar>
-          <TextField
-            size="small"
-            placeholder={t("users.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 320 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={18} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Button type="submit" variant="contained">
+          <InputGroup className="admin-input-group-pill" style={{ width: 320 }}>
+            <InputGroup.Text>
+              <Search size={18} aria-hidden />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder={t("users.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </InputGroup>
+          <Button type="submit" variant="primary" className="rounded-pill admin-primary-btn">
             {t("users.search")}
           </Button>
         </Toolbar>
@@ -237,12 +236,10 @@ export default function UsersPage() {
       />
       {pagination.totalPages > 1 && (
         <Pagination>
-          <MuiPagination
-            shape="rounded"
-            color="primary"
+          <AdminPagination
             page={pagination.page}
             count={pagination.totalPages}
-            onChange={(_, p) => load(p)}
+            onChange={(p) => load(p)}
           />
         </Pagination>
       )}

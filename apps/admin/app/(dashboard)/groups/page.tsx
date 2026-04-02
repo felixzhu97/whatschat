@@ -6,7 +6,10 @@ import { styled } from "@/src/shared/utils/emotion";
 import { theme } from "@/src/shared/theme";
 import { getApiClient } from "@/src/infrastructure/adapters/api/api-client";
 import { Search } from "lucide-react";
-import { Button, InputAdornment, Pagination as MuiPagination, TextField } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import { AdminPagination } from "@/src/presentation/components/admin-pagination";
 import { format } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 
@@ -168,21 +171,17 @@ export default function GroupsPage() {
     <div>
       <form onSubmit={handleSearch}>
         <Toolbar>
-          <TextField
-            size="small"
-            placeholder={t("groups.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 320 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={18} />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Button type="submit" variant="contained">
+          <InputGroup className="admin-input-group-pill" style={{ width: 320 }}>
+            <InputGroup.Text>
+              <Search size={18} aria-hidden />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder={t("groups.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </InputGroup>
+          <Button type="submit" variant="primary" className="rounded-pill admin-primary-btn">
             {t("groups.search")}
           </Button>
         </Toolbar>
@@ -229,12 +228,10 @@ export default function GroupsPage() {
           )}
           {totalPages > 1 && (
             <Pager>
-              <MuiPagination
-                shape="rounded"
-                color="primary"
+              <AdminPagination
                 page={page}
                 count={totalPages}
-                onChange={(_, p) => setPage(p)}
+                onChange={(p) => setPage(p)}
               />
             </Pager>
           )}

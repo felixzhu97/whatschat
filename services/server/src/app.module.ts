@@ -35,7 +35,8 @@ import { AdsModule } from './presentation/ads/ads.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [ConfigService.loadConfig],
-      validate: (config) => ConfigService.validateConfig(config),
+      validate: (config: Record<string, any>) =>
+        ConfigService.validateConfig(config),
     }),
     // Rate limiting module
     ThrottlerModule.forRoot([

@@ -8,7 +8,9 @@ import { useAuth } from "@/src/presentation/providers/auth-provider";
 import { useTheme } from "@/src/presentation/providers/theme-provider";
 import { theme } from "@/src/shared/theme";
 import { setStoredLocale, type AppLocale } from "@/src/shared/i18n";
-import { Button, Card, FormControl, IconButton, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import BsForm from "react-bootstrap/Form";
 
 const Page = styled.div`
   position: relative;
@@ -83,13 +85,18 @@ export default function LoginPage() {
   return (
     <Page>
       <TopRight>
-        <IconButton onClick={toggle} title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}>
+        <button
+          type="button"
+          className="btn btn-link p-2 text-body-secondary"
+          onClick={toggle}
+          title={mode === "light" ? t("common.themeDark") : t("common.themeLight")}
+        >
           {mode === "light" ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
               <line x1="12" y1="21" x2="12" y2="23" />
@@ -101,49 +108,51 @@ export default function LoginPage() {
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
           )}
-        </IconButton>
-        <FormControl size="small">
-          <InputLabel id="login-lang-label">{t("common.language")}</InputLabel>
-          <Select
-            labelId="login-lang-label"
-            value={i18n.language.startsWith("zh") ? "zh" : "en"}
-            label={t("common.language")}
-            onChange={(e) => {
-              const next = e.target.value as AppLocale;
-              setStoredLocale(next);
-              i18n.changeLanguage(next);
-            }}
-          >
-            <MenuItem value="zh">中文</MenuItem>
-            <MenuItem value="en">English</MenuItem>
-          </Select>
-        </FormControl>
+        </button>
+        <BsForm.Select
+          id="login-lang"
+          aria-label={t("common.language")}
+          className="admin-lang-select rounded-pill"
+          value={i18n.language.startsWith("zh") ? "zh" : "en"}
+          onChange={(e) => {
+            const next = e.target.value as AppLocale;
+            setStoredLocale(next);
+            i18n.changeLanguage(next);
+          }}
+        >
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+        </BsForm.Select>
       </TopRight>
-      <Card sx={{ width: "100%", maxWidth: 350, p: 3 }}>
-        <Title>Instagram Admin</Title>
-        <Subtitle>{t("login.subtitle")}</Subtitle>
-        <Form onSubmit={handleSubmit}>
-          <TextField
-            size="small"
-            type="email"
-            placeholder={t("login.email")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            size="small"
-            type="password"
-            placeholder={t("login.password")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <ErrorText>{error}</ErrorText>}
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? t("login.submitting") : t("login.submit")}
-          </Button>
-        </Form>
+      <Card className="w-100 rounded-3" style={{ maxWidth: 350 }}>
+        <Card.Body className="p-4">
+          <Title>Instagram Admin</Title>
+          <Subtitle>{t("login.subtitle")}</Subtitle>
+          <Form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+            <BsForm.Control
+              size="sm"
+              type="email"
+              placeholder={t("login.email")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="rounded-pill"
+            />
+            <BsForm.Control
+              size="sm"
+              type="password"
+              placeholder={t("login.password")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="rounded-pill"
+            />
+            {error ? <ErrorText>{error}</ErrorText> : null}
+            <Button type="submit" variant="primary" className="rounded-pill admin-primary-btn" disabled={loading}>
+              {loading ? t("login.submitting") : t("login.submit")}
+            </Button>
+          </Form>
+        </Card.Body>
       </Card>
     </Page>
   );
