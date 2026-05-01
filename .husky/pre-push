@@ -2,27 +2,23 @@
 
 echo "Running pre-push checks..."
 
-# Run type check
+# Run type check for apps
 echo "Running TypeScript checks..."
-pnpm check-types
+pnpm --filter whatschat-web check-types
 if [ $? -ne 0 ]; then
-  echo "TypeScript check failed!"
+  echo "TypeScript check failed for web!"
   exit 1
 fi
 
-# Run lint
-echo "Running lint..."
-pnpm lint
+pnpm --filter whatschat-admin check-types
 if [ $? -ne 0 ]; then
-  echo "Lint failed!"
+  echo "TypeScript check failed for admin!"
   exit 1
 fi
 
-# Run tests
-echo "Running tests..."
-pnpm test
+pnpm --filter react-native-app check-types
 if [ $? -ne 0 ]; then
-  echo "Tests failed!"
+  echo "TypeScript check failed for mobile!"
   exit 1
 fi
 

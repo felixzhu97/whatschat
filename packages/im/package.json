@@ -17,7 +17,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts",
-    "check-types": "npx -p typescript tsc --noEmit"
+    "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
     "@reduxjs/toolkit": "^2.0.0",
@@ -32,6 +32,9 @@
   "devDependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@types/react": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "eslint": "^9.23.0",
     "react": "^18.3.1",
     "tsup": "^8.0.0",
     "typescript": "5.8.2"

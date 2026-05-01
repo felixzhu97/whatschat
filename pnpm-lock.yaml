@@ -87,6 +87,15 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.29.0
+        version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.29.0
+        version: 8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      eslint:
+        specifier: ^9.23.0
+        version: 9.39.3(jiti@1.21.7)
       typescript:
         specifier: ^5
         version: 5.8.2
@@ -515,12 +524,21 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.29.0
+        version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.29.0
+        version: 8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.7.0(vite@5.4.21(@types/node@22.19.11)(lightningcss@1.31.1)(terser@5.46.0))
       '@vitest/coverage-v8':
         specifier: ^2.1.8
         version: 2.1.9(vitest@2.1.9(@types/node@22.19.11)(jsdom@25.0.1)(lightningcss@1.31.1)(terser@5.46.0))
+      eslint:
+        specifier: ^9.23.0
+        version: 9.39.3(jiti@1.21.7)
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -549,6 +567,15 @@ importers:
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.29.0
+        version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.29.0
+        version: 8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      eslint:
+        specifier: ^9.23.0
+        version: 9.39.3(jiti@1.21.7)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -577,6 +604,15 @@ importers:
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.29.0
+        version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.29.0
+        version: 8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      eslint:
+        specifier: ^9.23.0
+        version: 9.39.3(jiti@1.21.7)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -589,6 +625,15 @@ importers:
 
   packages/shared-types:
     devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.29.0
+        version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^8.29.0
+        version: 8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
+      eslint:
+        specifier: ^9.23.0
+        version: 9.39.3(jiti@1.21.7)
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)

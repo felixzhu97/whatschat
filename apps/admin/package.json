@@ -5,8 +5,8 @@
   "scripts": {
     "build": "pnpm exec next build",
     "dev": "pnpm exec next dev --port 4001",
-    "check-types": "npx -p typescript tsc --noEmit",
-    "lint": "pnpm exec next lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx",
     "start": "pnpm exec next start --port 4001"
   },
   "dependencies": {
@@ -32,6 +32,9 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "eslint": "^9.23.0",
     "typescript": "^5"
   }
 }
