@@ -15,11 +15,13 @@ SERVER_DIR="$ROOT_DIR/services/server"
 MEDIA_GEN_DIR="$ROOT_DIR/services/media-gen"
 RECOMMENDATION_DIR="$ROOT_DIR/services/recommendation"
 VISION_DIR="$ROOT_DIR/services/vision"
+RAG_DIR="$ROOT_DIR/services/rag"
 SERVER_PID=""
 MEDIA_GEN_PID=""
 VISION_PID=""
 RECOMMENDATION_PID=""
 RECOMMENDATION_API_PID=""
+RAG_PID=""
 
 cleanup() {
   [ -n "$SERVER_PID" ] && kill $SERVER_PID 2>/dev/null || true
@@ -27,6 +29,7 @@ cleanup() {
   [ -n "$VISION_PID" ] && kill $VISION_PID 2>/dev/null || true
   [ -n "$RECOMMENDATION_PID" ] && kill $RECOMMENDATION_PID 2>/dev/null || true
   [ -n "$RECOMMENDATION_API_PID" ] && kill $RECOMMENDATION_API_PID 2>/dev/null || true
+  [ -n "$RAG_PID" ] && kill $RAG_PID 2>/dev/null || true
   exit 0
 }
 trap cleanup SIGINT SIGTERM
@@ -53,10 +56,11 @@ docker compose version >/dev/null 2>&1 || COMPOSE_CMD="docker-compose"
 cd "$SERVER_DIR"
 export COMPOSE_PROJECT_NAME=whatschat
 $COMPOSE_CMD -f docker-compose.yml down 2>/dev/null || true
-$COMPOSE_CMD -f docker-compose.yml up -d --wait postgres redis kafka cassandra mongodb elasticsearch 2>/dev/null || true
+$COMPOSE_CMD -f docker-compose.yml up -d --wait postgres redis kafka cassandra mongodb elasticsearch qdrant 2>/dev/null || true
 for i in $(seq 1 60); do
   nc -z 127.0.0.1 5433 2>/dev/null && nc -z 127.0.0.1 6379 2>/dev/null && nc -z 127.0.0.1 9092 2>/dev/null && \
-  nc -z 127.0.0.1 9042 2>/dev/null && nc -z 127.0.0.1 27017 2>/dev/null && nc -z 127.0.0.1 9200 2>/dev/null && break
+  nc -z 127.0.0.1 9042 2>/dev/null && nc -z 127.0.0.1 27017 2>/dev/null && nc -z 127.0.0.1 9200 2>/dev/null && \
+  nc -z 127.0.0.1 6333 2>/dev/null && break
   sleep 1
 done
 sleep 2
@@ -97,6 +101,21 @@ if [ -d "$VISION_DIR" ] && [ -f "$VISION_DIR/requirements.txt" ] && command -v p
   sleep 2
   kill -0 $VISION_PID 2>/dev/null && echo -e "${GREEN}Vision service started on http://localhost:8001${NC}" || VISION_PID=""
 fi
+
+echo "[5.5/6] Starting RAG service..."
+if [ -d "$RAG_DIR" ] && [ -f "$RAG_DIR/requirements.txt" ] && command -v python3 >/dev/null 2>&1; then
+  (cd "$RAG_DIR" && {
+    if [ ! -d ".venv" ]; then
+      python3 -m venv .venv
+    fi
+    .venv/bin/pip install -r requirements.txt -q 2>/dev/null || true
+  }) &
+  (cd "$RAG_DIR" && PYTHONPATH="$ROOT_DIR" .venv/bin/python -m uvicorn src.main:app --host 0.0.0.0 --port 8002) &
+  RAG_PID=$!
+  sleep 2
+  kill -0 $RAG_PID 2>/dev/null && echo -e "${GREEN}RAG service started on http://localhost:8002${NC}" || RAG_PID=""
+fi
+
 [ ! -d "$ROOT_DIR/node_modules" ] && pnpm install
 cd "$ROOT_DIR"
 pnpm --filter whatschat-server dev &
@@ -142,5 +161,5 @@ if [ -d "$RECOMMENDATION_DIR" ] && command -v python3 >/dev/null 2>&1; then
   fi
 fi
 
-echo -e "\n${GREEN}Ready. API: http://localhost:3001  Vision: http://localhost:8001  (Ctrl+C to stop)${NC}\n"
+echo -e "\n${GREEN}Ready. API: http://localhost:3001  Vision: http://localhost:8001  RAG: http://localhost:8002  (Ctrl+C to stop)${NC}\n"
 wait $SERVER_PID

@@ -1,15 +1,42 @@
 # API Documentation
 
-This folder contains API documentation and the Postman test collection for WhatsChat.
+This folder contains API documentation for all WhatsChat services.
 
-## Contents
+## Services
 
-### Postman collection
+| Service | Port | Description |
+|---------|------|-------------|
+| [Server (NestJS)](./server-api.md) | 3001 | Main API server |
+| [RAG Service](./rag-api.md) | 8002 | Semantic search and RAG |
+| [Media Gen](./media-gen-api.md) | 3456 | Image, video, voice generation |
+| [Vision](./vision-api.md) | 8001 | Image tagging and moderation |
+| [Recommendation](./recommendation-api.md) | 8000 | Feed ranking and recall |
 
-- [whatschat-api.postman_collection.json](../../zh/rd/api/whatschat-api.postman_collection.json) – Full Postman collection for WhatsChat API
+---
 
-It includes test cases for:
+## Quick Links
 
+### RAG Service (Semantic Search)
+- [RAG API](./rag-api.md) - Document upload, web crawler, RAG query
+
+### Media Generation
+- [Media Gen API](./media-gen-api.md) - Image/Video/Voice synthesis
+
+### Vision & Moderation
+- [Vision API](./vision-api.md) - Image tags and NSFW detection
+
+### Recommendation
+- [Recommendation API](./recommendation-api.md) - Feed ranking and recall
+
+---
+
+## Server API
+
+### Postman Collection
+
+- [whatschat-api.postman_collection.json](../../zh/rd/api/whatschat-api.postman_collection.json) – Full Postman collection for WhatsChat Server API
+
+#### Included Tests:
 - Health check
 - User authentication
 - Messages
@@ -17,55 +44,16 @@ It includes test cases for:
 - WebSocket connection
 - Other business endpoints
 
-## How to use
-
-### Import the collection
+### How to use Postman
 
 1. Open Postman
 2. Click **Import**
-3. Select `whatschat-api.postman_collection.json` (from `docs/zh/rd/api/`)
-4. The collection will appear in Postman
+3. Select `whatschat-api.postman_collection.json`
+4. Configure `base_url` environment variable:
+   - Development: `http://localhost:4000`
+   - Production: `https://api.whatschat.com`
+5. Run requests
 
-### Environment variables
+---
 
-Configure before running requests:
-
-- `base_url` – API base URL  
-  - Development: `http://localhost:4000`  
-  - Production: `https://api.whatschat.com`
-
-### Run tests
-
-1. Select an endpoint in the collection
-2. Ensure `base_url` is set
-3. Click **Send** and check the response
-
-### Run collection
-
-1. Select the collection or a folder
-2. Click **Run**
-3. Choose tests and run
-
-## API groups
-
-- **Health** – Server status
-- **Auth** – Register, login, token refresh
-- **Users** – Profile and updates
-- **Messages** – Send, receive, list
-- **Files** – Upload, download, manage
-- **WebSocket** – Real-time connection (requires WebSocket support in Postman)
-
-## Notes
-
-- Start the server before calling APIs
-- Some endpoints require authentication
-- File upload may need correct path configuration
-
-## References
-
-- [Postman docs](https://learning.postman.com/)
-- [Collection schema](https://schema.getpostman.com/json/collection/v2.1.0/docs/index.html)
-
-English | [中文](../../zh/rd/api/README.md)
-
-Last updated: December 2025
+English | [中文](./README.md)

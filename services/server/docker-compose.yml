@@ -104,6 +104,20 @@ services:
       retries: 15
       start_period: 40s
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_REST_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf 'http://localhost:6333/readyz' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   postgres_data:
     driver: local
@@ -114,4 +128,6 @@ volumes:
   mongodb_data:
     driver: local
   elasticsearch_data:
+    driver: local
+  qdrant_data:
     driver: local
