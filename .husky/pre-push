@@ -1,0 +1,29 @@
+#!/bin/sh
+
+echo "Running pre-push checks..."
+
+# Run type check
+echo "Running TypeScript checks..."
+pnpm check-types
+if [ $? -ne 0 ]; then
+  echo "TypeScript check failed!"
+  exit 1
+fi
+
+# Run lint
+echo "Running lint..."
+pnpm lint
+if [ $? -ne 0 ]; then
+  echo "Lint failed!"
+  exit 1
+fi
+
+# Run tests
+echo "Running tests..."
+pnpm test
+if [ $? -ne 0 ]; then
+  echo "Tests failed!"
+  exit 1
+fi
+
+echo "All checks passed!"

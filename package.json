@@ -34,9 +34,13 @@
     "stop": "./scripts/app/stop.sh dev",
     "stop:prod": "./scripts/app/stop.sh prod",
     "test": "turbo run test",
-    "test:watch": "turbo run test:watch --concurrency=23"
+    "test:watch": "turbo run test:watch --concurrency=23",
+    "pre-push": "pnpm check-types && pnpm lint && pnpm test",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.6.0",
     "turbo": "^2.5.4",
     "typescript": "5.8.2"
