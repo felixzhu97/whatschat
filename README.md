@@ -2,42 +2,75 @@
 
 WhatsFeed – 集即时聊天、社交动态、AI 助手与内容创作为一体的社交平台。
 
-## ✨ 功能特性
+## 功能特性
 
-- 💬 **实时聊天** – 基于 Socket.IO 的即时消息（仅真实连接）
+- 💬 **实时聊天** – 基于 Socket.IO 的即时消息
 - 📞 **音视频通话** – 基于 WebRTC 的语音与视频通话
 - 📎 **文件分享** – 发送图片、文档与媒体文件
 - 👥 **联系人管理** – 添加、搜索与管理联系人
 - 🔍 **消息搜索** – 基于 Elasticsearch 的全文检索
 - 🔐 **身份认证** – 基于 JWT + bcrypt 的认证体系
-- 🤖 **AI 文本** – 通过 Ollama 提供流式对话（可配置 base URL/model）
-- 🖼️ **图片/视频/语音生成** – 自建 media-gen（Python/FastAPI, :3456）：图片（Stable Diffusion）、视频（CogVideoX）、语音（edge-tts）；或仅图片走 Replicate
-- 📷 **动态与帖子** – 支持多图/视频 + 文案发帖；媒体先通过 `POST /api/v1/media/upload` 上传，再调用 `POST /api/v1/posts` 提交；视频封面单独存储在 Cassandra `coverUrl`（不混入 `mediaUrls`）；首页基于关注关系展示真实帖子（Cassandra + Kafka post.created）；`POST /api/v1/graphql` 一次请求获取 feed/reels + 帖子详情；Reels 与个人主页网格优先使用封面；Explore 网格最大宽度 963px 居中；动态与评论弹窗支持多媒体轮播；评论存储在 MongoDB
-- 🧲 **广告系统** – 广告账户/活动/广告组/创意存储在 PostgreSQL；广告服务按定向与节奏将赞助内容混入 feed/explore；曝光/点击/转化通过 `@whatschat/analytics` 上报并聚合，用于报表与推荐
-- 🛡️ **内容审核** – Vision 服务（Python/FastAPI, :8001）：图片/视频 NSFW 检测（NudeNet）、标签推荐（ResNet50）；发帖同步审核 + Kafka 异步链路；管理端支持复审、隐藏、批量删除
-- 🔎 **全局搜索** – 基于 Elasticsearch 搜索帖子、用户、话题；支持游标分页与高亮；限流（60/min）；用户在注册/更新时入索引，话题在 post.created 后入索引；可选同步脚本 `pnpm run search:sync-users`
-- 🎯 **推荐系统** – 关注推荐、互动排序 feed、探索流推荐；Python 推荐服务（LightFM、implicit ALS、Annoy）+ Celery worker；可选使用 Redis/Kafka/PostgreSQL/Cassandra 数据；ETL 会读取广告分析数据构建特征
-- 🔮 **RAG 问答** – RAG 服务（Python/FastAPI, :8002）：文档上传（PDF/TXT/MD）、网页爬虫、语义搜索、LLM 生成答案；基于 Qdrant 向量数据库存储文档嵌入向量
-- 👤 **社交能力** – 关注/取关、个人主页粉丝/关注数、列表弹窗无限滚动与行内关注操作
-- 🌐 **Web 应用** – Next.js SPA（:4000）；Instagram 风格 UI（导航、feed、Reels、个人主页、全局搜索、通知抽屉、搜索抽屉、探索网格、私信、右侧推荐）；Redux 通知切片 + Socket.IO `notification:new`；i18n（中英切换）；信息流内联广告与点击追踪
-- 📱 **移动端应用** – React Native + Expo（expo-router）；Instagram 风格 **Status**（Stories + 纵向 Feed + 横滑多媒体）、**Reels**、**Messages**（DM 列表与行样式）、**Search**（Explore 三列宫格 + Elasticsearch 帖子搜索，对接 `/posts/explore` 与 `/search`）、**Profile**（个人主页：顶栏、粉丝/关注/帖子、Discover、网格/Reels/标记 Tab、用户帖子 `/posts/user/:id`）；独立栈 **Settings and activity**（分组列表、搜索条、主题/语言/通知/登出，与 Ins 设置页一致）；**create-post**、**media-viewer**（Feed 缓存未命中时 `GET /posts/:id` 补拉）；`apps/mobile` 内 `FeedUseCases` + `FeedRepositoryAdapter`（GraphQL feed/reels、REST explore/search/user posts/profile）；RTK Query 乐观更新与缓存；与 Web 共享 GraphQL feed/reels 与 `@whatschat/analytics` 埋点
-- 📊 **行为与广告分析** – `@whatschat/analytics` SDK；Web/Mobile 上报行为事件（含 post view/like/save 与 ad_impression/ad_click/ad_conversion）；API 接入；管理端可看总览并触发推荐 ETL
-- ⚙️ **管理后台** – Dashboard、Users、Content Safety（审核统计、复审、隐藏、批量删除）、Ops Monitor、Data Analytics、System Config、Permission & Audit、Ads & Promotions（广告管理/推广帖子/效果分析）、Shopping & Commerce（商店管理/商品标签管理/订单追踪）（:4001）；**UI**：Bootstrap 5 · react-bootstrap · Emotion；设计令牌通过 `apps/admin/app/globals.css` 中 `--admin-*` 与 `data-theme`（`light`/`dark`）切换；顶栏统一高度的药丸式跳转（⌘K / Ctrl+K）、语言与主题控件；列表工具栏药丸搜索与 `AdminPagination`（lodash 页码）；广告/电商表单内原生 `<select>` 使用自定义下拉箭头，避免圆角裁切问题
+- 🤖 **AI 助手** – 通过 Ollama 提供流式对话
+- 🖼️ **内容生成** – 图片（Stable Diffusion）、视频（CogVideoX）、语音（edge-tts）
+- 📷 **动态与帖子** – 支持多图/视频发帖、评论、点赞、收藏
+- 🧲 **广告系统** – 广告投放、曝光/点击/转化追踪
+- 🛡️ **内容审核** – NSFW 检测、标签推荐、复审管理
+- 🔎 **全局搜索** – 搜索帖子、用户、话题
+- 🎯 **推荐系统** – 关注推荐、Feed 排序、探索流推荐
+- 🔮 **RAG 问答** – 文档上传、语义搜索、LLM 生成答案
+- 👤 **社交能力** – 关注、粉丝、个人主页
+- 🌐 **Web 应用** – Next.js SPA，Instagram 风格 UI
+- 📱 **移动端** – React Native + Expo，iOS/Android 双平台
+- 📊 **行为分析** – 事件上报、漏斗分析、数据看板
+- ⚙️ **管理后台** – 用户管理、内容审核、数据分析、系统配置
 
-## 📸 截图
+## 技术栈
+
+### 前端
+- Next.js · React · TypeScript · Emotion · Redux Toolkit
+- Tailwind CSS（Web）· Bootstrap · react-bootstrap（Admin）
+- lodash（Admin）· React Native · Expo · AG Grid · Recharts · i18next
+
+### 后端
+- NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra · MongoDB · Elasticsearch · GraphQL
+
+### AI / 媒体
+- Ollama（文本流式）· FastAPI · Stable Diffusion · CogVideoX · edge-tts · Qdrant
+
+### 视觉 / 推荐
+- Python 服务（Vision/Recommendation/RAG）· NudeNet · ResNet50 · LightFM · implicit · Annoy · Celery
+
+## 项目结构
+
+```bash
+apps/
+  web            # Next.js Web 应用 (:4000)
+  admin          # 管理后台 (:4001)
+  mobile         # Expo 移动端
+services/
+  server         # NestJS API (:3001)
+  media-gen      # 媒体生成服务 (:3456)
+  recommendation # 推荐服务 + Celery
+  vision         # 内容审核服务 (:8001)
+  rag            # RAG 问答服务 (:8002)
+packages/
+  shared-types   # 共享类型
+  im             # IM 与 RTC 模块
+  analytics      # 分析 SDK
+```
+
+## 截图
 
 ### 移动端
 
 <p align="center">
-  <img src="./screenshots/mobile-feed-new-01.png" width="220" alt="移动端新截图 1">
-  <img src="./screenshots/mobile-feed-new-02.png" width="220" alt="移动端新截图 2">
+  <img src="./screenshots/mobile-feed-new-01.png" width="220" alt="移动端截图 1">
+  <img src="./screenshots/mobile-feed-new-02.png" width="220" alt="移动端截图 2">
+  <img src="./screenshots/mobile-feed-new-03.png" width="220" alt="移动端截图 3">
 </p>
 <p align="center">
-  <img src="./screenshots/mobile-feed-new-03.png" width="220" alt="移动端新截图 3">
-  <img src="./screenshots/mobile-feed-new-04.png" width="220" alt="移动端新截图 4">
-</p>
-<p align="center">
-  <img src="./screenshots/mobile-feed-new-05.png" width="220" alt="移动端新截图 5">
+  <img src="./screenshots/mobile-feed-new-04.png" width="220" alt="移动端截图 4">
+  <img src="./screenshots/mobile-feed-new-05.png" width="220" alt="移动端截图 5">
 </p>
 
 ### Web 端
@@ -69,23 +102,13 @@ WhatsFeed – 集即时聊天、社交动态、AI 助手与内容创作为一体
   <img src="./screenshots/admin-users.png" width="340" alt="管理端用户页">
 </p>
 
-## 🛠 技术栈
-
-- **前端** – Next.js · React · TypeScript · Emotion · Redux Toolkit · Tailwind CSS（Web）· Bootstrap · react-bootstrap（Admin）· lodash（Admin 列表/分页/请求参数等）· React Native · Expo · AG Grid · Recharts · i18next
-- **后端** – NestJS · Prisma · PostgreSQL · Redis · Socket.IO · Kafka · Cassandra（posts/feed/engagement/**post cover_url**）· MongoDB（comments/**activity notifications**）· Elasticsearch（search/moderation）· GraphQL（Apollo Server，code-first feed + reels 查询 + DataLoader；PostType 包含 `coverUrl`；feed/explore 可混入 organic/sponsored）
-- **广告与分析** – `@whatschat/analytics` SDK（web/mobile）· NestJS 分析服务（接入 + 广告指标聚合）· Prisma 广告模型（`AdAccount`/`AdCampaign`/`AdGroup`/`AdCreative`/`AdSpend`）· feed/explore 广告投放/定向/节奏服务 · 管理端 Ads REST API
-- **推荐** – Python（`services/recommendation`）· Celery（Redis broker）· LightFM · implicit（ALS）· Annoy · pandas · NumPy/SciPy；定时任务写入关注推荐与探索列表到 Redis（可选）；ETL 读取 `analytics_events`（含广告）做特征
-- **视觉审核** – Python（`services/vision`）· FastAPI · NudeNet（NSFW）· ResNet50（标签）· OpenCV（视频帧）；发帖同步审核；Kafka 消费后更新 ES
-- **RAG** – Python（`services/rag`）· FastAPI · Qdrant（向量数据库）· Ollama（嵌入 + LLM）；文档解析、文本分块、向量存储、RAG 查询
-- **AI / 媒体** – Ollama（文本流式）+ 自建 media-gen（Python/FastAPI：diffusers + CogVideoX + edge-tts）；图片可选 Replicate
-
-## 🚀 快速开始
+## 快速开始
 
 ### 前置要求
 
 - Node.js 18+
-- pnpm 10+（与根目录 `package.json` 的 `packageManager` 一致）
-- Docker 与 Docker Compose（`services/server/docker-compose.yml`：PostgreSQL、Redis、Kafka、Cassandra、MongoDB、Elasticsearch、Qdrant）
+- pnpm 10+
+- Docker 与 Docker Compose
 
 ### 安装
 
@@ -94,88 +117,48 @@ pnpm install
 pnpm setup
 ```
 
-安装后，`services/server` 会在 **postinstall** 中执行 `prisma generate` 以生成 Prisma Client。若 Client 缺失或迁移成功仍报类型错误，可在仓库根目录执行 `pnpm --filter whatschat-server run db:generate`。
-
-若在 pnpm 环境下出现个别依赖目录损坏（例如报找不到 `@nestjs/config`、`bcryptjs` 或 `Cannot find module`），可在**仓库根目录**删除对应包的嵌套路径或整块 `node_modules` 后重新执行 `pnpm install`（勿只在子包内单独装包以免与 workspace 解析不一致）。
-
 ### 运行
 
 ```bash
-pnpm start              # 全量：Docker + migrate + seed + search:sync-users + media-gen(:3456) + Vision(:8001) + RAG(:8002)
-pnpm start:server       # 仅服务端：Docker(postgres/redis/kafka) + NestJS API(:3001)
-pnpm start:web          # Web 应用 :4000
-pnpm start:admin        # 管理端 :4001
-pnpm start:mobile:ios   # 或 start:mobile:android
-pnpm start:recommendation # 推荐服务 worker + Celery beat（可选，位于 services/recommendation）
+pnpm start              # 全量启动
+pnpm start:server       # 仅服务端
+pnpm start:web          # Web 应用
+pnpm start:admin        # 管理端
+pnpm start:mobile:ios   # 移动端
 ```
-
-在仓库根目录执行 `scripts/app/start.sh [dev|prod]` 可一键运行 Docker、migrate、seed、Elasticsearch 用户同步，然后启动 server（以及可选 media-gen / recommendation / Vision）。
 
 ### 环境变量
 
-- `services/server/.env`：复制自 `services/server/.env.example`
-  - **AI**：`OLLAMA_BASE_URL`、`OLLAMA_DEFAULT_MODEL`
-  - **媒体（图/视频/语音）**：`MEDIA_GENERATION_API_URL`（如 `http://localhost:3456`）；或仅图片场景使用 `REPLICATE_API_TOKEN`
-- **Vision（审核/标签）**：`VISION_SERVICE_URL`（默认 `http://localhost:8001`）
-- **RAG（问答）**：`RAG_SERVICE_URL`（默认 `http://localhost:8002`）
-- `apps/web/.env.local`：`NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`、`NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001`（可选）
-- `apps/admin/.env.local`：`NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
-- `ADMIN_EMAILS=admin@whatschat.com`（逗号分隔）用于管理权限
-
-## 📁 项目结构
-
 ```bash
-apps/
-  web            # Next.js Web 应用（whatschat-web, :4000），含 feed/explore 广告渲染
-  admin          # 管理后台（whatschat-admin, :4001）：Bootstrap 5 + react-bootstrap + Emotion + lodash；全局样式见 app/globals.css（--admin-*）
-  mobile         # Expo 移动端（react-native-app）
-services/
-  server         # NestJS API（whatschat-server, :3001）：REST/GraphQL + 广告投放 + 分析接入 + Ads 管理 API
-  media-gen      # 自建媒体生成服务（Python/FastAPI, :3456）
-  recommendation # 推荐服务 + Celery + FastAPI rank(:8000)，通过 ETL 读取 analytics_events（含广告）
-  vision         # 内容审核与标签推荐（Python/FastAPI, :8001）
-|  rag            # RAG 服务：文档上传、网页爬虫、语义搜索（Python/FastAPI, :8002）
-packages/
-  shared-types      # 共享类型与常量（@whatschat/shared-types）
-  im                # IM 与内嵌 RTC 模块（@whatschat/im，RTC 源码在 packages/im/src/rtc）
-  analytics         # 行为与广告分析 SDK（@whatschat/analytics）
-services/server/src/lib/
-  llm               # Ollama 聊天客户端（仅 API 服务使用）
-  image-generation  # 图片生成（HTTP 任务 API 或 Replicate）
-  video-generation  # 视频生成（HTTP 任务 API 或 Replicate）
+# services/server/.env
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_DEFAULT_MODEL=llama3
+MEDIA_GENERATION_API_URL=http://localhost:3456
+VISION_SERVICE_URL=http://localhost:8001
+RAG_SERVICE_URL=http://localhost:8002
+
+# apps/web/.env.local
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+
+# apps/admin/.env.local
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+ADMIN_EMAILS=admin@whatschat.com
 ```
 
-**代码映射（C4/TOGAF）**
-- API Server：`services/server`（GraphQL feed/reels、广告投放、分析接入、Ads 管理 API）
-- Media Gen：`services/media-gen`
-- Recommendation：`services/recommendation`（含广告 ETL）
-- Vision：`services/vision`
-- RAG：`services/rag`
-- Web/Admin/Mobile：`apps/web`、`apps/admin`、`apps/mobile`
-
-**共享包**
-- `@whatschat/shared-types`：User/Message/Chat/Contact/Call 类型
-- `@whatschat/im`：聊天 slices、hooks（`useRealChat`、`useChatsWithLiveMessages`）；RTC 与领域模型（`RTCCallState`、`ICallManager`、`useCall`、`createCallManager`、`formatDuration`、`CallManagerStub`）位于 `packages/im/src/rtc` 并由包入口重导出
-- `@whatschat/analytics`：事件类型与上报 API；Web/Mobile 上报，Admin 通过 REST 读取（含 ad_impression/ad_click/ad_conversion）
-
-**API 服务内建库**（`services/server/src/lib`，不发布为 workspace 包）
-- `llm`：Ollama 聊天与流式接口
-- `image-generation`：图片生成（HTTP 轮询或 Replicate）
-- `video-generation`：视频生成（HTTP 轮询或 Replicate）
-
-## 📚 文档
+## 文档
 
 - [文档索引](docs/README.md)
-- [C4 模型](docs/en/rd/c4/README.md) – 系统上下文、容器、组件（API/Web/Mobile/Admin/Media Gen/Recommendation/Vision/RAG）
-- [TOGAF](docs/en/rd/togaf/README.md) – 业务、应用、数据、技术四大架构域
+- [C4 模型](docs/en/rd/c4/README.md)
+- [TOGAF](docs/en/rd/togaf/README.md)
 
-## 🧱 Clean Architecture 更新（2026-04）
+## Clean Architecture（2026-04）
 
-- 服务端（`services/server`）应用层已对核心读写路径采用端口注入：`IPostRepository`、`IEngagementRepository`、`ICommentRepository`、`INotificationRepository`
-- 基础设施层新增并统一使用适配器实现端口：`PostRepositoryAdapter`、`EngagementRepositoryAdapter`、`CommentRepositoryAdapter`、`NotificationRepositoryAdapter`
-- `application/services` 不再直接依赖 `Cassandra*Repository`/`Mongo*Repository`，改为 `@Inject("I...Repository")` 注入
-- `DatabaseModule` 作为组合根完成接口 token 绑定与导出，保持行为不变、实现可替换与可测试
+服务端已采用端口-适配器模式：
 
-## 📄 许可证
+- **端口接口**：`IPostRepository`、`IEngagementRepository`、`ICommentRepository`、`INotificationRepository`
+- **适配器实现**：`PostRepositoryAdapter`、`EngagementRepositoryAdapter`、`CommentRepositoryAdapter`、`NotificationRepositoryAdapter`
+- **依赖注入**：通过 `@Inject("I...Repository")` 解耦，数据存储可替换（Cassandra/MongoDB）
+
+## 许可证
 
 MIT
