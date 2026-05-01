@@ -17,6 +17,7 @@ WhatsFeed – 集即时聊天、社交动态、AI 助手与内容创作为一体
 - 🛡️ **内容审核** – Vision 服务（Python/FastAPI, :8001）：图片/视频 NSFW 检测（NudeNet）、标签推荐（ResNet50）；发帖同步审核 + Kafka 异步链路；管理端支持复审、隐藏、批量删除
 - 🔎 **全局搜索** – 基于 Elasticsearch 搜索帖子、用户、话题；支持游标分页与高亮；限流（60/min）；用户在注册/更新时入索引，话题在 post.created 后入索引；可选同步脚本 `pnpm run search:sync-users`
 - 🎯 **推荐系统** – 关注推荐、互动排序 feed、探索流推荐；Python 推荐服务（LightFM、implicit ALS、Annoy）+ Celery worker；可选使用 Redis/Kafka/PostgreSQL/Cassandra 数据；ETL 会读取广告分析数据构建特征
+- 🔮 **RAG 问答** – RAG 服务（Python/FastAPI, :8002）：文档上传（PDF/TXT/MD）、网页爬虫、语义搜索、LLM 生成答案；基于 Qdrant 向量数据库存储文档嵌入向量
 - 👤 **社交能力** – 关注/取关、个人主页粉丝/关注数、列表弹窗无限滚动与行内关注操作
 - 🌐 **Web 应用** – Next.js SPA（:4000）；Instagram 风格 UI（导航、feed、Reels、个人主页、全局搜索、通知抽屉、搜索抽屉、探索网格、私信、右侧推荐）；Redux 通知切片 + Socket.IO `notification:new`；i18n（中英切换）；信息流内联广告与点击追踪
 - 📱 **移动端应用** – React Native + Expo（expo-router）；Instagram 风格 **Status**（Stories + 纵向 Feed + 横滑多媒体）、**Reels**、**Messages**（DM 列表与行样式）、**Search**（Explore 三列宫格 + Elasticsearch 帖子搜索，对接 `/posts/explore` 与 `/search`）、**Profile**（个人主页：顶栏、粉丝/关注/帖子、Discover、网格/Reels/标记 Tab、用户帖子 `/posts/user/:id`）；独立栈 **Settings and activity**（分组列表、搜索条、主题/语言/通知/登出，与 Ins 设置页一致）；**create-post**、**media-viewer**（Feed 缓存未命中时 `GET /posts/:id` 补拉）；`apps/mobile` 内 `FeedUseCases` + `FeedRepositoryAdapter`（GraphQL feed/reels、REST explore/search/user posts/profile）；RTK Query 乐观更新与缓存；与 Web 共享 GraphQL feed/reels 与 `@whatschat/analytics` 埋点
@@ -75,6 +76,7 @@ WhatsFeed – 集即时聊天、社交动态、AI 助手与内容创作为一体
 - **广告与分析** – `@whatschat/analytics` SDK（web/mobile）· NestJS 分析服务（接入 + 广告指标聚合）· Prisma 广告模型（`AdAccount`/`AdCampaign`/`AdGroup`/`AdCreative`/`AdSpend`）· feed/explore 广告投放/定向/节奏服务 · 管理端 Ads REST API
 - **推荐** – Python（`services/recommendation`）· Celery（Redis broker）· LightFM · implicit（ALS）· Annoy · pandas · NumPy/SciPy；定时任务写入关注推荐与探索列表到 Redis（可选）；ETL 读取 `analytics_events`（含广告）做特征
 - **视觉审核** – Python（`services/vision`）· FastAPI · NudeNet（NSFW）· ResNet50（标签）· OpenCV（视频帧）；发帖同步审核；Kafka 消费后更新 ES
+- **RAG** – Python（`services/rag`）· FastAPI · Qdrant（向量数据库）· Ollama（嵌入 + LLM）；文档解析、文本分块、向量存储、RAG 查询
 - **AI / 媒体** – Ollama（文本流式）+ 自建 media-gen（Python/FastAPI：diffusers + CogVideoX + edge-tts）；图片可选 Replicate
 
 ## 🚀 快速开始
@@ -83,7 +85,7 @@ WhatsFeed – 集即时聊天、社交动态、AI 助手与内容创作为一体
 
 - Node.js 18+
 - pnpm 10+（与根目录 `package.json` 的 `packageManager` 一致）
-- Docker 与 Docker Compose（`services/server/docker-compose.yml`：PostgreSQL、Redis、Kafka、Cassandra、MongoDB、Elasticsearch）
+- Docker 与 Docker Compose（`services/server/docker-compose.yml`：PostgreSQL、Redis、Kafka、Cassandra、MongoDB、Elasticsearch、Qdrant）
 
 ### 安装
 
@@ -99,7 +101,7 @@ pnpm setup
 ### 运行
 
 ```bash
-pnpm start              # 全量：Docker + migrate + seed + search:sync-users + media-gen(:3456) + API(:3001) + Vision(:8001)
+pnpm start              # 全量：Docker + migrate + seed + search:sync-users + media-gen(:3456) + Vision(:8001) + RAG(:8002)
 pnpm start:server       # 仅服务端：Docker(postgres/redis/kafka) + NestJS API(:3001)
 pnpm start:web          # Web 应用 :4000
 pnpm start:admin        # 管理端 :4001
@@ -115,6 +117,7 @@ pnpm start:recommendation # 推荐服务 worker + Celery beat（可选，位于 
   - **AI**：`OLLAMA_BASE_URL`、`OLLAMA_DEFAULT_MODEL`
   - **媒体（图/视频/语音）**：`MEDIA_GENERATION_API_URL`（如 `http://localhost:3456`）；或仅图片场景使用 `REPLICATE_API_TOKEN`
 - **Vision（审核/标签）**：`VISION_SERVICE_URL`（默认 `http://localhost:8001`）
+- **RAG（问答）**：`RAG_SERVICE_URL`（默认 `http://localhost:8002`）
 - `apps/web/.env.local`：`NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`、`NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001`（可选）
 - `apps/admin/.env.local`：`NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
 - `ADMIN_EMAILS=admin@whatschat.com`（逗号分隔）用于管理权限
@@ -131,6 +134,7 @@ services/
   media-gen      # 自建媒体生成服务（Python/FastAPI, :3456）
   recommendation # 推荐服务 + Celery + FastAPI rank(:8000)，通过 ETL 读取 analytics_events（含广告）
   vision         # 内容审核与标签推荐（Python/FastAPI, :8001）
+|  rag            # RAG 服务：文档上传、网页爬虫、语义搜索（Python/FastAPI, :8002）
 packages/
   shared-types      # 共享类型与常量（@whatschat/shared-types）
   im                # IM 与内嵌 RTC 模块（@whatschat/im，RTC 源码在 packages/im/src/rtc）
@@ -146,6 +150,7 @@ services/server/src/lib/
 - Media Gen：`services/media-gen`
 - Recommendation：`services/recommendation`（含广告 ETL）
 - Vision：`services/vision`
+- RAG：`services/rag`
 - Web/Admin/Mobile：`apps/web`、`apps/admin`、`apps/mobile`
 
 **共享包**
@@ -161,7 +166,7 @@ services/server/src/lib/
 ## 📚 文档
 
 - [文档索引](docs/README.md)
-- [C4 模型](docs/en/rd/c4/README.md) – 系统上下文、容器、组件（API/Web/Mobile/Admin/Media Gen/Recommendation/Vision）
+- [C4 模型](docs/en/rd/c4/README.md) – 系统上下文、容器、组件（API/Web/Mobile/Admin/Media Gen/Recommendation/Vision/RAG）
 - [TOGAF](docs/en/rd/togaf/README.md) – 业务、应用、数据、技术四大架构域
 
 ## 🧱 Clean Architecture 更新（2026-04）
