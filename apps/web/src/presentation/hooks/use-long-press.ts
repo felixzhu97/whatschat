@@ -43,8 +43,12 @@ export function useLongPress({
       event?: React.MouseEvent | React.TouchEvent,
       shouldTriggerClick = true
     ) => {
-      timeout.current && clearTimeout(timeout.current);
-      shouldTriggerClick && !isLongPressing && onPress && onPress();
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
+      if (shouldTriggerClick && !isLongPressing && onPress) {
+        onPress();
+      }
 
       if (shouldPreventDefault && target.current) {
         target.current.removeEventListener("touchend", preventDefault);

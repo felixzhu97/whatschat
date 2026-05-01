@@ -66,6 +66,7 @@
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.27.0",
     "@emotion/babel-plugin": "^11.13.5",
+    "@eslint/js": "^9.23.0",
     "@react-native-community/cli": "^19.0.0",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.14",

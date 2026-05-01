@@ -302,8 +302,8 @@ export function SearchSuggestions({
                 onClick={() => longPressEvents.onPress && longPressEvents.onPress(suggestion)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  if (suggestion.type === "recent" && onRemoveRecent) {
-                    longPressEvents.onLongPress && longPressEvents.onLongPress(index, suggestion);
+                  if (suggestion.type === "recent" && onRemoveRecent && longPressEvents.onLongPress) {
+                    longPressEvents.onLongPress(index, suggestion);
                   }
                 }}
               >

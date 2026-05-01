@@ -75,6 +75,9 @@ importers:
         specifier: ^2.15.0
         version: 2.15.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@types/lodash':
         specifier: ^4.17.23
         version: 4.17.23
@@ -96,6 +99,12 @@ importers:
       eslint:
         specifier: ^9.23.0
         version: 9.39.3(jiti@1.21.7)
+      eslint-plugin-react:
+        specifier: ^7.37.4
+        version: 7.37.5(eslint@9.39.3(jiti@1.21.7))
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       typescript:
         specifier: ^5
         version: 5.8.2
@@ -250,6 +259,9 @@ importers:
       '@emotion/babel-plugin':
         specifier: ^11.13.5
         version: 11.13.5
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@react-native-community/cli':
         specifier: ^19.0.0
         version: 19.1.2(typescript@5.8.2)
@@ -506,6 +518,9 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.9.1
@@ -539,6 +554,12 @@ importers:
       eslint:
         specifier: ^9.23.0
         version: 9.39.3(jiti@1.21.7)
+      eslint-plugin-react:
+        specifier: ^7.37.4
+        version: 7.37.5(eslint@9.39.3(jiti@1.21.7))
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -564,6 +585,9 @@ importers:
         specifier: ^4.17.21
         version: 4.17.23
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.28
@@ -576,6 +600,9 @@ importers:
       eslint:
         specifier: ^9.23.0
         version: 9.39.3(jiti@1.21.7)
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -598,6 +625,9 @@ importers:
         specifier: ^4.17.23
         version: 4.17.23
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.11.2(react-redux@9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
@@ -613,6 +643,9 @@ importers:
       eslint:
         specifier: ^9.23.0
         version: 9.39.3(jiti@1.21.7)
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -625,6 +658,9 @@ importers:
 
   packages/shared-types:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.23.0
+        version: 9.39.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.29.0
         version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2))(eslint@9.39.3(jiti@1.21.7))(typescript@5.8.2)
@@ -634,6 +670,9 @@ importers:
       eslint:
         specifier: ^9.23.0
         version: 9.39.3(jiti@1.21.7)
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(typescript@5.8.2)(yaml@2.8.2)

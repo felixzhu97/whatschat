@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { EventContext } from "./types";
 import type { KnownEventName, KnownEventPayloadMap } from "./events";
 import { createAnalytics } from "./client";

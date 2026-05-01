@@ -144,12 +144,6 @@ const ToolbarButton = styled.button<{ $variant?: "primary" | "danger" | "ghost" 
     `}
 `;
 
-const PrimarySubmitButton = styled(ToolbarButton)`
-  border-radius: 999px;
-  padding: 0.6rem 1rem;
-  font-size: 14px;
-`;
-
 const SelectedCount = styled.span`
   font-size: 14px;
   color: ${theme.text};

@@ -32,13 +32,11 @@ function applyTheme(mode: ThemeMode) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>("light");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = getStoredTheme();
     setModeState(stored);
     applyTheme(stored);
-    setMounted(true);
   }, []);
 
   const setMode = useCallback((newMode: ThemeMode) => {
