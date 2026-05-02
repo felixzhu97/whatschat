@@ -37,6 +37,9 @@ dev = [
     "pytest-cov>=4.1.0",
 ]
 
+[project.scripts]
+test = "pytest tests/ -v"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

@@ -26,4 +26,22 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Run Python tests
+echo "Running Python services tests..."
+
+# RAG service tests
+if [ -d "services/rag" ]; then
+  echo "Running RAG service tests..."
+  cd services/rag
+  if [ -f "pyproject.toml" ]; then
+    python -m pytest tests/ -v --tb=short 2>/dev/null || python3 -m pytest tests/ -v --tb=short 2>/dev/null || pytest tests/ -v --tb=short
+    if [ $? -ne 0 ]; then
+      echo "RAG service tests failed!"
+      cd ../..
+      exit 1
+    fi
+  fi
+  cd ../..
+fi
+
 echo "All checks passed!"
