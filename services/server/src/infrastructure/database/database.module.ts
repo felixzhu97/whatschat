@@ -73,19 +73,19 @@ export class DatabaseModule implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    await this.prisma.onModuleInit();
-    await this.redis.onModuleInit();
-    await this.cassandra.onModuleInit();
-    await this.mongo.onModuleInit();
-    await this.elasticsearch.onModuleInit();
+    if (this.prisma) await this.prisma.onModuleInit();
+    if (this.redis) await this.redis.onModuleInit();
+    if (this.cassandra) await this.cassandra.onModuleInit();
+    if (this.mongo) await this.mongo.onModuleInit();
+    if (this.elasticsearch) await this.elasticsearch.onModuleInit();
   }
 
   async onModuleDestroy() {
-    await this.elasticsearch.onModuleDestroy();
-    await this.mongo.onModuleDestroy();
-    await this.cassandra.onModuleDestroy();
-    await this.prisma.onModuleDestroy();
-    await this.redis.onModuleDestroy();
+    if (this.elasticsearch) await this.elasticsearch.onModuleDestroy();
+    if (this.mongo) await this.mongo.onModuleDestroy();
+    if (this.cassandra) await this.cassandra.onModuleDestroy();
+    if (this.prisma) await this.prisma.onModuleDestroy();
+    if (this.redis) await this.redis.onModuleDestroy();
   }
 }
 

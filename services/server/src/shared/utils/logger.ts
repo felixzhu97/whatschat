@@ -16,7 +16,6 @@ function redactBase64ForLog(msg: string): string {
 
 const logDir = path.join(__dirname, "../../logs");
 
-// 定义日志级别
 const levels = {
   error: 0,
   warn: 1,
@@ -25,14 +24,12 @@ const levels = {
   debug: 4,
 };
 
-// 根据环境选择日志级别
 const level = () => {
   const env = process.env["NODE_ENV"] || "development";
   const isDevelopment = env === "development";
   return isDevelopment ? "debug" : "warn";
 };
 
-// 定义日志颜色
 const colors = {
   error: "red",
   warn: "yellow",
@@ -43,28 +40,14 @@ const colors = {
 
 winston.addColors(colors);
 
-const redactFormat = winston.format((info) => {
-  if (typeof info.message === "string") {
-    info.message = redactBase64ForLog(info.message);
-  }
-  return info;
-});
-
-const format = winston.format.combine(
-  redactFormat(),
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
-  winston.format.colorize({ all: true }),
-  winston.format.printf((info) => `${info["timestamp"]} ${info["level"]}: ${info["message"]}`)
+const consoleFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.simple()
 );
 
-// 定义传输器
-const transports = [
-  // 控制台输出
+const logTransports = [
   new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    ),
+    format: consoleFormat,
   }),
 
   new DailyRotateFile({
@@ -74,7 +57,6 @@ const transports = [
     maxSize: "20m",
     maxFiles: "14d",
     format: winston.format.combine(
-      redactFormat(),
       winston.format.timestamp(),
       winston.format.json()
     ),
@@ -86,34 +68,34 @@ const transports = [
     maxSize: "20m",
     maxFiles: "14d",
     format: winston.format.combine(
-      redactFormat(),
       winston.format.timestamp(),
       winston.format.json()
     ),
   }),
 ];
 
-// 创建logger实例
 const logger = winston.createLogger({
   level: level(),
   levels,
-  format,
-  transports,
+  format: winston.format.combine(
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
+    winston.format.colorize({ all: true }),
+    winston.format.printf((info) => {
+      const msg = typeof info.message === "string" ? redactBase64ForLog(info.message) : info.message;
+      return `${info["timestamp"]} ${info["level"]}: ${msg}`;
+    })
+  ),
+  transports: logTransports,
 });
 
-// 开发环境下添加更多调试信息
 if (process.env["NODE_ENV"] === "development") {
   logger.add(
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
+      format: consoleFormat,
     })
   );
 }
 
-// 创建请求日志中间件
 export const requestLogger = (req: any, res: any, next: any) => {
   const start = Date.now();
 
@@ -131,7 +113,6 @@ export const requestLogger = (req: any, res: any, next: any) => {
   next();
 };
 
-// 创建错误日志中间件
 export const errorLogger = (err: any, req: any, _res: any, next: any) => {
   logger.error(
     `${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`
