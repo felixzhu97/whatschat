@@ -4,6 +4,23 @@ import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ChatArea } from "@/src/presentation/components/chat/chat-area";
 
+// Mock i18n and locales FIRST
+vi.mock("@/shared/locales/en", () => ({}));
+vi.mock("@/shared/locales/zh", () => ({}));
+vi.mock("@/shared/i18n", () => ({
+  default: {
+    t: (key: string) => key,
+    language: "zh",
+    use: vi.fn(),
+  },
+  LANG_STORAGE_KEY: "whatschat_web_lang",
+  setStoredLocale: vi.fn(),
+  getLocale: vi.fn(),
+  useTranslation: vi.fn(() => ({
+    t: (key: string) => key,
+  })),
+}));
+
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
   Button: ({ children, onClick, disabled, ...props }: any) => (
@@ -30,15 +47,88 @@ vi.mock("@/components/ui/separator", () => ({
 }));
 
 // Mock Lucide React icons
-vi.mock("lucide-react", () => ({
-  Send: () => <div data-testid="send-icon" />,
-  Paperclip: () => <div data-testid="paperclip-icon" />,
-  Smile: () => <div data-testid="smile-icon" />,
-  Mic: () => <div data-testid="mic-icon" />,
-  Phone: () => <div data-testid="phone-icon" />,
-  Video: () => <div data-testid="video-icon" />,
-  MoreVertical: () => <div data-testid="more-vertical-icon" />,
-}));
+vi.mock("lucide-react", () => {
+  const createMockIcon = (name: string) => {
+    const MockIcon = () => <div data-testid={`${name.toLowerCase()}-icon`} data-icon-name={name} />;
+    MockIcon.displayName = name;
+    return MockIcon;
+  };
+  
+  return {
+    __esModule: true,
+    Send: createMockIcon("Send"),
+    Paperclip: createMockIcon("Paperclip"),
+    Smile: createMockIcon("Smile"),
+    Mic: createMockIcon("Mic"),
+    Phone: createMockIcon("Phone"),
+    Video: createMockIcon("Video"),
+    MoreVertical: createMockIcon("MoreVertical"),
+    FileText: createMockIcon("FileText"),
+    X: createMockIcon("X"),
+    Search: createMockIcon("Search"),
+    MapPin: createMockIcon("MapPin"),
+    Clock: createMockIcon("Clock"),
+    UserPlus: createMockIcon("UserPlus"),
+    QrCode: createMockIcon("QrCode"),
+    Check: createMockIcon("Check"),
+    CheckCheck: createMockIcon("CheckCheck"),
+    Reply: createMockIcon("Reply"),
+    Star: createMockIcon("Star"),
+    Copy: createMockIcon("Copy"),
+    Trash2: createMockIcon("Trash2"),
+    Forward: createMockIcon("Forward"),
+    Play: createMockIcon("Play"),
+    Download: createMockIcon("Download"),
+    Edit: createMockIcon("Edit"),
+    Info: createMockIcon("Info"),
+    Image: createMockIcon("Image"),
+    ImageIcon: createMockIcon("ImageIcon"),
+    Camera: createMockIcon("Camera"),
+    Square: createMockIcon("Square"),
+    Sparkles: createMockIcon("Sparkles"),
+    CalendarIcon: createMockIcon("CalendarIcon"),
+    Hash: createMockIcon("Hash"),
+    SquarePen: createMockIcon("SquarePen"),
+    ChevronDown: createMockIcon("ChevronDown"),
+    ChevronUp: createMockIcon("ChevronUp"),
+    Circle: createMockIcon("Circle"),
+    ArrowLeft: createMockIcon("ArrowLeft"),
+    ArrowRight: createMockIcon("ArrowRight"),
+    VideoOff: createMockIcon("VideoOff"),
+    VolumeX: createMockIcon("VolumeX"),
+    Heart: createMockIcon("Heart"),
+    Bookmark: createMockIcon("Bookmark"),
+    Loader2: createMockIcon("Loader2"),
+    Pause: createMockIcon("Pause"),
+    BellOff: createMockIcon("BellOff"),
+    UserCheck: createMockIcon("UserCheck"),
+    LayoutGrid: createMockIcon("LayoutGrid"),
+    AtSign: createMockIcon("AtSign"),
+    Settings: createMockIcon("Settings"),
+    Bell: createMockIcon("Bell"),
+    Lock: createMockIcon("Lock"),
+    Globe: createMockIcon("Globe"),
+    Users: createMockIcon("Users"),
+    Plus: createMockIcon("Plus"),
+    ChevronLeft: createMockIcon("ChevronLeft"),
+    ChevronRight: createMockIcon("ChevronRight"),
+    MoreHorizontal: createMockIcon("MoreHorizontal"),
+    MessageCircle: createMockIcon("MessageCircle"),
+    PhoneIncoming: createMockIcon("PhoneIncoming"),
+    PhoneOutgoing: createMockIcon("PhoneOutgoing"),
+    PhoneMissed: createMockIcon("PhoneMissed"),
+    PhoneOff: createMockIcon("PhoneOff"),
+    Volume2: createMockIcon("Volume2"),
+    Maximize2: createMockIcon("Maximize2"),
+    Minimize2: createMockIcon("Minimize2"),
+    SmilePlus: createMockIcon("SmilePlus"),
+    Laugh: createMockIcon("Laugh"),
+    Frown: createMockIcon("Frown"),
+    ThumbsUp: createMockIcon("ThumbsUp"),
+    Hand: createMockIcon("Hand"),
+    default: createMockIcon("Default"),
+  };
+});
 
 // Mock MessageBubble component
 vi.mock("@/components/message-bubble", () => ({
@@ -76,7 +166,7 @@ vi.mock("@/components/emoji-picker", () => ({
 }));
 
 // Mock MessageInput component
-vi.mock("@/components/message-input", () => ({
+vi.mock("@/presentation/components/chat/message-input", () => ({
   MessageInput: (props: any) => (
     <div data-testid="message-input">
       <input placeholder="输入消息..." />
@@ -89,7 +179,7 @@ vi.mock("@/components/message-input", () => ({
 }));
 
 // Mock ChatHeader component
-vi.mock("@/components/chat-header", () => ({
+vi.mock("@/presentation/components/chat/chat-header", () => ({
   ChatHeader: ({ contact, isTyping }: any) => (
     <div data-testid="chat-header">
       <h2>{contact.name}</h2>
@@ -101,7 +191,7 @@ vi.mock("@/components/chat-header", () => ({
 }));
 
 // Mock MessageArea component
-vi.mock("@/components/message-area", () => ({
+vi.mock("@/presentation/components/chat/message-area", () => ({
   MessageArea: ({ messages }: any) => (
     <div data-testid="message-area">
       {messages.map((message: any) => (

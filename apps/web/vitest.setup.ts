@@ -2,6 +2,23 @@ import "@testing-library/jest-dom";
 import { vi } from "vitest";
 import React from "react";
 
+// hoisting is enabled for vitest, so this will be hoisted
+vi.mock("@/shared/locales/en", () => ({}));
+vi.mock("@/shared/locales/zh", () => ({}));
+vi.mock("@/shared/i18n", () => ({
+  default: {
+    t: (key: string) => key,
+    language: "zh",
+    use: vi.fn(),
+  },
+  LANG_STORAGE_KEY: "whatschat_web_lang",
+  setStoredLocale: vi.fn(),
+  getLocale: vi.fn(),
+  useTranslation: vi.fn(() => ({
+    t: (key: string) => key,
+  })),
+}));
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -69,3 +86,14 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
+
+// Mock GrowthBook
+vi.mock("@growthbook/growthbook-react", () => ({
+  GrowthBookProvider: ({ children }: { children: React.ReactNode }) => children,
+  useFeatureIsOn: vi.fn(() => false),
+  useFeatureValue: vi.fn(() => undefined),
+  useGrowthBook: vi.fn(),
+}));

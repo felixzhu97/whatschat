@@ -4,7 +4,9 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    jsxImportSource: '@emotion/react',
+  })],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -32,8 +34,9 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './'),
-    },
+    alias: [
+      { find: /^@\/(shared|domain|infrastructure|application|presentation)\/(.*)/, replacement: path.resolve(__dirname, './src/$1/$2') },
+      { find: /^@\//, replacement: path.resolve(__dirname, './') + '/' },
+    ],
   },
 })
