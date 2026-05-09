@@ -24,17 +24,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/query", tags=["Query"])
 
 
-async def generate_answer(
+def build_context_and_prompt(
     query: str,
     context_texts: list[str],
-    provider: str,
-    model: str,
-    openai_client: Optional[AsyncOpenAI] = None,
-) -> str:
-    """Generate an answer using the LLM with retrieved context."""
-    settings = get_settings()
-
-    # Build context from retrieved documents
+) -> tuple[str, str]:
+    """Build context string and system prompt from retrieved documents."""
     context = "\n\n".join([
         f"[Source {i+1}]: {text[:500]}..." if len(text) > 500 else f"[Source {i+1}]: {text}"
         for i, text in enumerate(context_texts)
@@ -52,6 +46,19 @@ Instructions:
 4. Be concise but thorough.
 5. If you're uncertain, acknowledge the uncertainty.
 """
+    return context, system_prompt
+
+
+async def generate_answer(
+    query: str,
+    context_texts: list[str],
+    provider: str,
+    model: str,
+    openai_client: Optional[AsyncOpenAI] = None,
+) -> str:
+    """Generate an answer using the LLM with retrieved context."""
+    settings = get_settings()
+    _, system_prompt = build_context_and_prompt(query, context_texts)
 
     if provider == "ollama":
         client = ollama.AsyncClient(host=settings.ollama_base_url)
@@ -94,24 +101,7 @@ async def generate_answer_stream(
 ) -> AsyncGenerator[str, None]:
     """Generate an answer using the LLM with retrieved context (streaming)."""
     settings = get_settings()
-
-    context = "\n\n".join([
-        f"[Source {i+1}]: {text[:500]}..." if len(text) > 500 else f"[Source {i+1}]: {text}"
-        for i, text in enumerate(context_texts)
-    ])
-
-    system_prompt = f"""You are a helpful assistant that answers questions based on the provided context.
-    
-Context:
-{context}
-
-Instructions:
-1. Answer the question based ONLY on the provided context.
-2. If the context doesn't contain enough information to answer the question, say so.
-3. Cite your sources using [Source N] notation when referencing specific information.
-4. Be concise but thorough.
-5. If you're uncertain, acknowledge the uncertainty.
-"""
+    _, system_prompt = build_context_and_prompt(query, context_texts)
 
     if provider == "ollama":
         client = ollama.AsyncClient(host=settings.ollama_base_url)
@@ -152,6 +142,32 @@ Instructions:
             yield f"data: Error: LLM service unavailable\n\n"
 
 
+async def search_collections(
+    embeddings: EmbeddingService,
+    qdrant: QdrantService,
+    query_vector: list[float],
+    collection: Optional[str],
+    top_k: int,
+) -> list[dict]:
+    """Search across specified collections and return combined results."""
+    collections_to_search = [collection] if collection else ["documents", "posts", "comments", "webpages"]
+    all_results = []
+
+    for coll in collections_to_search:
+        try:
+            results = await qdrant.search(
+                collection=coll,
+                query_vector=query_vector,
+                top_k=top_k,
+            )
+            all_results.extend(results)
+        except Exception as e:
+            logger.warning(f"Failed to search collection {coll}: {e}")
+
+    all_results.sort(key=lambda x: x["score"], reverse=True)
+    return all_results
+
+
 @router.post("", response_model=QueryResponse)
 async def query(
     request: QueryRequest,
@@ -167,28 +183,10 @@ async def query(
     settings = get_settings()
 
     try:
-        # Generate query embedding
         query_vector = await embeddings.embed_single(request.query)
-
-        # Determine which collection to search
-        collections_to_search = [request.collection] if request.collection else ["documents", "posts", "comments", "webpages"]
-
-        # Search all relevant collections
-        all_results = []
-        for collection in collections_to_search:
-            try:
-                results = await qdrant.search(
-                    collection=collection,
-                    query_vector=query_vector,
-                    top_k=request.top_k,
-                    query_filter=request.filter_metadata,
-                )
-                all_results.extend(results)
-            except Exception as e:
-                logger.warning(f"Failed to search collection {collection}: {e}")
-
-        # Sort by score and take top k
-        all_results.sort(key=lambda x: x["score"], reverse=True)
+        all_results = await search_collections(
+            embeddings, qdrant, query_vector, request.collection, request.top_k
+        )
         top_results = all_results[:request.top_k]
 
         if not top_results:
@@ -201,10 +199,7 @@ async def query(
                 generation_time_ms=int((time.time() - start_time) * 1000),
             )
 
-        # Extract context texts
         context_texts = [r["payload"]["text"] for r in top_results]
-
-        # Generate answer
         answer = await generate_answer(
             query=request.query,
             context_texts=context_texts,
@@ -212,7 +207,6 @@ async def query(
             model=settings.llm_model if settings.llm_provider == "ollama" else settings.openai_llm_model,
         )
 
-        # Build source documents
         sources = []
         if request.include_sources:
             for result in top_results:
@@ -261,28 +255,10 @@ async def query_stream(
     settings = get_settings()
 
     try:
-        # Generate query embedding
         query_vector = await embeddings.embed_single(request.query)
-
-        # Determine which collection to search
-        collections_to_search = [request.collection] if request.collection else ["documents", "posts", "comments", "webpages"]
-
-        # Search all relevant collections
-        all_results = []
-        for collection in collections_to_search:
-            try:
-                results = await qdrant.search(
-                    collection=collection,
-                    query_vector=query_vector,
-                    top_k=request.top_k,
-                    query_filter=request.filter_metadata,
-                )
-                all_results.extend(results)
-            except Exception as e:
-                logger.warning(f"Failed to search collection {collection}: {e}")
-
-        # Sort by score and take top k
-        all_results.sort(key=lambda x: x["score"], reverse=True)
+        all_results = await search_collections(
+            embeddings, qdrant, query_vector, request.collection, request.top_k
+        )
         top_results = all_results[:request.top_k]
 
         if not top_results:
@@ -295,10 +271,7 @@ async def query_stream(
                 media_type="text/event-stream",
             )
 
-        # Extract context texts
         context_texts = [r["payload"]["text"] for r in top_results]
-
-        # Create OpenAI client if needed
         openai_client = None
         if settings.llm_provider == "openai":
             openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
