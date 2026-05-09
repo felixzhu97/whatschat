@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:clean": "find __tests__ -name '*.js' -delete && find __tests__ -name '*.d.ts' -delete && find __tests__ -name '*.d.ts.map' -delete && find __tests__ -name '*.js.map' -delete",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
