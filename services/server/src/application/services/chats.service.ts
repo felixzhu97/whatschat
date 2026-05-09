@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import isEqual from "lodash/isEqual";
 import sortBy from "lodash/sortBy";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -20,6 +21,33 @@ export interface UpdateChatData {
   avatar?: string;
 }
 
+export interface ChatListItem {
+  id: string;
+  type: string;
+  name: string | null;
+  avatar: string | null;
+  isArchived: boolean;
+  isMuted: boolean;
+  participants: Array<{
+    id: string;
+    username: string;
+    avatar: string | null;
+    isOnline: boolean;
+    status: string | null;
+  }>;
+  lastMessage: {
+    id: string;
+    content: string;
+    createdAt: Date;
+    sender: {
+      id: string;
+      username: string;
+      avatar: string | null;
+    };
+  } | null;
+  updatedAt: Date;
+}
+
 const CHATS_CACHE_KEY = (uid: string) => `chats:${uid}`;
 
 @Injectable()
@@ -29,9 +57,9 @@ export class ChatsService {
     private readonly cache: CacheService,
   ) {}
 
-  async getChats(userId: string): Promise<unknown[]> {
+  async getChats(userId: string): Promise<ChatListItem[]> {
     const cacheKey = CHATS_CACHE_KEY(userId);
-    const cached = await this.cache.get<unknown[]>(cacheKey);
+    const cached = await this.cache.get<ChatListItem[]>(cacheKey);
     if (cached) return cached;
 
     const chatParticipants = await this.prisma.chatParticipant.findMany({
@@ -75,7 +103,7 @@ export class ChatsService {
       },
     });
 
-    const result = chatParticipants.map((cp) => {
+    const result: ChatListItem[] = chatParticipants.map((cp) => {
       const otherParticipant = cp.chat.type === "PRIVATE"
         ? cp.chat.participants.find((p) => p.user.id !== userId)?.user
         : null;
@@ -146,10 +174,10 @@ export class ChatsService {
       }
     }
 
-    const chatData: any = {
+    const chatData: Prisma.ChatCreateInput = {
       type,
       participants: {
-        create: [{ userId }, ...participantIds.map((pid) => ({ userId: pid }))],
+        create: [{ user: { connect: { id: userId } } }, ...participantIds.map((pid) => ({ user: { connect: { id: pid } } }))],
       },
     };
 
@@ -245,7 +273,7 @@ export class ChatsService {
       throw new BadRequestException("私聊不能修改名称和头像");
     }
 
-    const updateData: any = {
+    const updateData: Prisma.ChatUpdateInput = {
       updatedAt: new Date(),
     };
 
