@@ -21,6 +21,36 @@ module.exports = {
       lines: 90,
       statements: 90,
     },
+    "./src/application/mappers/chat.mapper.ts": {
+      branches: 80,
+      functions: 100,
+      lines: 80,
+      statements: 80,
+    },
+    "./src/application/use-cases/chat.use-cases.ts": {
+      branches: 80,
+      functions: 100,
+      lines: 80,
+      statements: 80,
+    },
+    "./src/application/use-cases/message.use-cases.ts": {
+      branches: 80,
+      functions: 100,
+      lines: 80,
+      statements: 80,
+    },
+    "./src/application/use-cases/auth.use-cases.ts": {
+      branches: 80,
+      functions: 100,
+      lines: 80,
+      statements: 80,
+    },
+    "./src/application/use-cases/feed.use-cases.ts": {
+      branches: 80,
+      functions: 100,
+      lines: 80,
+      statements: 80,
+    },
   },
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
