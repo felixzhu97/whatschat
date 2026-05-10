@@ -18,6 +18,7 @@ export default defineConfig({
       '**/*.js',
       '**/*.d.ts',
     ],
+    reporters: ['default', 'verbose'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -13,6 +13,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     css: true,
     pool: 'threads',
+    reporters: ['default', 'verbose'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

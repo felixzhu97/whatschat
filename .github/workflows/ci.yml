@@ -34,9 +34,43 @@ jobs:
         run: pnpm lint
 
       - name: Run tests
-        run: pnpm test
+        run: |
+          # Capture test output per project
+          for dir in "apps/web" "services/server" "packages/shared-types" "packages/im"; do
+            if [ -d "$dir" ]; then
+              pnpm --filter "$dir" test 2>&1 | tee "$dir-test-output.log" || true
+            fi
+          done
+          # Mobile tests
+          if [ -d "apps/mobile" ]; then
+            pnpm --filter "react-native-app" test 2>&1 | tee "apps-mobile-test-output.log" || true
+          fi
         env:
           TZ: Asia/Shanghai
+
+      - name: Display test results in summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          display_test_output() {
+            local name=$1
+            local file=$2
+            if [ -f "$file" ]; then
+              echo "### $name" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat "$file" | head -n 100 >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          }
+
+          display_test_output "🌐 apps/web" "apps/web-test-output.log"
+          display_test_output "🖥️ services/server" "services/server-test-output.log"
+          display_test_output "📦 packages/shared-types" "packages/shared-types-test-output.log"
+          display_test_output "💬 packages/im" "packages/im-test-output.log"
+          display_test_output "📱 apps/mobile" "apps-mobile-test-output.log"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
