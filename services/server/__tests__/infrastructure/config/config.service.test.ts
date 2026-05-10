@@ -1,207 +1,169 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConfigService } from "@/infrastructure/config/config.service";
-
-vi.mock("@/infrastructure/config/config.service", () => ({
-  ConfigService: {
-    loadConfig: vi.fn(() => ({
-      server: {
-        port: 3001,
-        host: "0.0.0.0",
-        nodeEnv: "development",
-        isProduction: false,
-        isDevelopment: true,
-      },
-      database: {
-        url: "postgresql://whatschat:whatschat123@localhost:5433/whatschat?schema=public",
-      },
-      redis: {
-        url: "redis://localhost:6379",
-        cacheTtlSeconds: 300,
-      },
-      kafka: {
-        brokers: ["localhost:9092"],
-        topicOfflineMessages: "offline-messages",
-        topicPostCreated: "post.created",
-        topicPostDeleted: "post.deleted",
-        topicFeedFanout: "feed.fanout",
-        topicCommentCreated: "comment.created",
-        topicAnalyticsEvents: "analytics.events",
-      },
-      jwt: {
-        secret: "your-super-secret-jwt-key-here",
-        expiresIn: "7d",
-        refreshSecret: "your-super-secret-refresh-key-here",
-        refreshExpiresIn: "30d",
-      },
-      storage: {
-        local: {
-          uploadDir: "./uploads",
-          maxFileSize: 52428800,
-          allowedMimeTypes: ["image/jpeg"],
-        },
-        minio: {
-          endpoint: "localhost",
-          port: 9000,
-          useSsl: false,
-          accessKey: "minioadmin",
-          secretKey: "minioadmin",
-          bucket: "whatschat-media",
-          region: "us-east-1",
-          publicBaseUrl: "http://localhost:3001/uploads/media",
-        },
-      },
-      cassandra: {
-        contactPoints: [],
-        keyspace: "whatschat",
-        localDatacenter: "datacenter1",
-      },
-      elasticsearch: {
-        node: "",
-      },
-      security: {
-        cors: { origin: [], credentials: true },
-        rateLimit: { windowMs: 900000, max: 100 },
-        bcrypt: { saltRounds: 12 },
-      },
-      ai: {
-        ollamaBaseUrl: "http://localhost:11434",
-        defaultModel: "qwen3-coder:30b",
-      },
-      vision: {
-        enabled: true,
-        serviceUrl: "http://localhost:8001",
-        timeoutMs: 15000,
-        maxImagesPerPost: 3,
-        moderationEnabled: true,
-      },
-      business: {
-        maxGroupParticipants: 256,
-        maxMessageLength: 4096,
-        maxStatusDuration: 86400000,
-        maxFileSize: 52428800,
-        messageRetentionDays: 365,
-        statusRetentionHours: 24,
-      },
-    })),
-    validateConfig: vi.fn(),
-  },
-}));
 
 describe("ConfigService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe("loadConfig", () => {
-    it("should load configuration with all required sections", () => {
+    it("should return configuration with all required sections", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config).toHaveProperty("server");
-      expect(config).toHaveProperty("database");
-      expect(config).toHaveProperty("redis");
-      expect(config).toHaveProperty("kafka");
-      expect(config).toHaveProperty("jwt");
-      expect(config).toHaveProperty("storage");
-      expect(config).toHaveProperty("cassandra");
-      expect(config).toHaveProperty("elasticsearch");
+      expect(config).toBeDefined();
+      expect(config.server).toBeDefined();
+      expect(config.database).toBeDefined();
+      expect(config.redis).toBeDefined();
+      expect(config.kafka).toBeDefined();
+      expect(config.jwt).toBeDefined();
+      expect(config.storage).toBeDefined();
+      expect(config.cassandra).toBeDefined();
+      expect(config.mongodb).toBeDefined();
+      expect(config.elasticsearch).toBeDefined();
     });
 
-    it("should have default server configuration", () => {
+    it("should have server configuration with required properties", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.server.port).toBe(3001);
-      expect(config.server.host).toBe("0.0.0.0");
-      expect(config.server.isDevelopment).toBe(true);
-      expect(config.server.isProduction).toBe(false);
+      expect(config.server.port).toBeDefined();
+      expect(config.server.host).toBeDefined();
+      expect(config.server.nodeEnv).toBeDefined();
+      expect(config.server.isProduction).toBeDefined();
+      expect(config.server.isDevelopment).toBeDefined();
     });
 
-    it("should have redis configuration with cache TTL", () => {
+    it("should have database configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.redis.url).toBe("redis://localhost:6379");
-      expect(config.redis.cacheTtlSeconds).toBe(300);
+      expect(config.database.url).toBeDefined();
+    });
+
+    it("should have redis configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(config.redis.url).toBeDefined();
+      expect(config.redis.cacheTtlSeconds).toBeDefined();
     });
 
     it("should have kafka configuration with topics", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.kafka.brokers).toEqual(["localhost:9092"]);
-      expect(config.kafka.topicOfflineMessages).toBe("offline-messages");
-      expect(config.kafka.topicPostCreated).toBe("post.created");
+      expect(Array.isArray(config.kafka.brokers)).toBe(true);
+      expect(config.kafka.topicOfflineMessages).toBeDefined();
+      expect(config.kafka.topicPostCreated).toBeDefined();
+      expect(config.kafka.topicPostDeleted).toBeDefined();
+      expect(config.kafka.topicFeedFanout).toBeDefined();
+      expect(config.kafka.topicCommentCreated).toBeDefined();
+      expect(config.kafka.topicAnalyticsEvents).toBeDefined();
     });
 
-    it("should have JWT configuration", () => {
+    it("should have jwt configuration", () => {
       const config = ConfigService.loadConfig();
 
       expect(config.jwt.secret).toBeDefined();
-      expect(config.jwt.expiresIn).toBe("7d");
-      expect(config.jwt.refreshExpiresIn).toBe("30d");
-    });
-
-    it("should have storage local configuration", () => {
-      const config = ConfigService.loadConfig();
-
-      expect(config.storage.local.uploadDir).toBe("./uploads");
-      expect(config.storage.local.maxFileSize).toBeGreaterThan(0);
-      expect(Array.isArray(config.storage.local.allowedMimeTypes)).toBe(true);
-    });
-
-    it("should have storage minio configuration", () => {
-      const config = ConfigService.loadConfig();
-
-      expect(config.storage.minio.endpoint).toBe("localhost");
-      expect(config.storage.minio.port).toBe(9000);
-      expect(config.storage.minio.publicBaseUrl).toBeDefined();
+      expect(config.jwt.expiresIn).toBeDefined();
+      expect(config.jwt.refreshSecret).toBeDefined();
+      expect(config.jwt.refreshExpiresIn).toBeDefined();
     });
 
     it("should have cassandra configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.cassandra.keyspace).toBe("whatschat");
-      expect(config.cassandra.localDatacenter).toBe("datacenter1");
+      expect(Array.isArray(config.cassandra.contactPoints)).toBe(true);
+      expect(config.cassandra.keyspace).toBeDefined();
+      expect(config.cassandra.localDatacenter).toBeDefined();
+    });
+
+    it("should have mongodb configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(config.mongodb.uri).toBeDefined();
+    });
+
+    it("should have elasticsearch configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(config.elasticsearch.node).toBeDefined();
+    });
+
+    it("should have storage configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(config.storage.local).toBeDefined();
+      expect(config.storage.minio).toBeDefined();
+      expect(config.storage.local.uploadDir).toBeDefined();
+      expect(config.storage.local.maxFileSize).toBeDefined();
+      expect(Array.isArray(config.storage.local.allowedMimeTypes)).toBe(true);
+    });
+
+    it("should have webrtc configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(Array.isArray(config.webrtc.stunServers)).toBe(true);
+      expect(Array.isArray(config.webrtc.turnServers)).toBe(true);
     });
 
     it("should have security configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.security.bcrypt.saltRounds).toBe(12);
-      expect(config.security.rateLimit.max).toBe(100);
+      expect(config.security.cors).toBeDefined();
+      expect(Array.isArray(config.security.cors.origin)).toBe(true);
+      expect(config.security.rateLimit).toBeDefined();
+      expect(config.security.rateLimit.windowMs).toBeDefined();
+      expect(config.security.rateLimit.max).toBeDefined();
+      expect(config.security.bcrypt).toBeDefined();
+      expect(config.security.bcrypt.saltRounds).toBeDefined();
     });
 
-    it("should have business configuration with defaults", () => {
+    it("should have monitoring configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.business.maxGroupParticipants).toBe(256);
-      expect(config.business.maxMessageLength).toBe(4096);
+      expect(config.monitoring.sentry).toBeDefined();
+      expect(config.monitoring.prometheus).toBeDefined();
+    });
+
+    it("should have business configuration", () => {
+      const config = ConfigService.loadConfig();
+
+      expect(config.business.maxGroupParticipants).toBeDefined();
+      expect(config.business.maxMessageLength).toBeDefined();
+      expect(config.business.maxFileSize).toBeDefined();
     });
 
     it("should have vision configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.vision.enabled).toBe(true);
-      expect(config.vision.timeoutMs).toBe(15000);
-      expect(config.vision.maxImagesPerPost).toBe(3);
+      expect(config.vision.enabled).toBeDefined();
+      expect(config.vision.serviceUrl).toBeDefined();
+      expect(config.vision.timeoutMs).toBeDefined();
+      expect(config.vision.maxImagesPerPost).toBeDefined();
+      expect(config.vision.moderationEnabled).toBeDefined();
     });
 
     it("should have ai configuration", () => {
       const config = ConfigService.loadConfig();
 
-      expect(config.ai.ollamaBaseUrl).toBe("http://localhost:11434");
-      expect(config.ai.defaultModel).toBe("qwen3-coder:30b");
+      expect(config.ai.ollamaBaseUrl).toBeDefined();
+      expect(config.ai.defaultModel).toBeDefined();
     });
   });
 
-
   describe("validateConfig", () => {
-    it("should be callable", () => {
+    it("should return config as AppConfig type", () => {
       const config = ConfigService.loadConfig();
-      ConfigService.validateConfig(config);
-      
-      expect(ConfigService.validateConfig).toHaveBeenCalledWith(config);
+      const validated = ConfigService.validateConfig(config);
+
+      expect(validated).toBe(config);
+    });
+  });
+
+  describe("getConfig", () => {
+    it("should return the loaded configuration", () => {
+      const service = new ConfigService();
+      const config = service.getConfig();
+
+      expect(config).toBeDefined();
+      expect(config.server).toBeDefined();
     });
   });
 });

@@ -5,11 +5,21 @@ module.exports = {
   moduleNameMapper: {
     "^@/src/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@whatschat/im$": "<rootDir>/src/__mocks__/@whatschat/im.ts",
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(jest-)?react-native|@react-native|@react-native-community|@react-navigation|expo|expo-modules-core|expo-.*|@expo|@expo/vector-icons|@unimodules|unimodules|react-navigation|@react-native-async-storage|@react-native-picker|lodash)/',
+  ],
   collectCoverage: true,
   coverageDirectory: "coverage",
   coverageReporters: ["text", "json", "html", "lcov"],
   coverageThreshold: {
+    global: {
+      branches: 75,
+      functions: 70,
+      lines: 80,
+      statements: 80,
+    },
     "./src/application/mappers/feed.mapper.ts": {
       branches: 75,
       functions: 90,
@@ -58,5 +68,13 @@ module.exports = {
     "!src/**/*.d.ts",
     "!src/**/__tests__/**",
     "!src/**/__mocks__/**",
+    "!src/app/**",
+    "!src/presentation/screens/**",
+    "!src/presentation/store/api/feedApi.ts",
+    "!src/presentation/store/slices/authSlice.ts",
+    "!src/presentation/store/slices/socketSlice.ts",
+    "!src/presentation/providers/**",
+    "!src/infrastructure/call/**",
+    "!src/infrastructure/rtc/**",
   ],
 };

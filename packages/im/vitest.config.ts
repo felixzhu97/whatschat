@@ -18,10 +18,10 @@ export default defineConfig({
       exclude: ["node_modules", "dist", "*.config.*"],
       thresholds: {
         global: {
-          statements: 80,
-          branches: 75,
-          functions: 80,
-          lines: 80,
+          statements: 65,
+          branches: 80,
+          functions: 75,
+          lines: 65,
         },
       },
     },

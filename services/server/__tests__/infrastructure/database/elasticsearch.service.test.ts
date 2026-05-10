@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ElasticsearchService } from "@/infrastructure/database/elasticsearch.service";
 import { ConfigService } from "@/infrastructure/config/config.service";
 
@@ -22,49 +22,51 @@ describe("ElasticsearchService", () => {
     service = new ElasticsearchService();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe("constructor", () => {
-    it("should load configuration from ConfigService", () => {
-      expect(ConfigService.loadConfig).toHaveBeenCalled();
-    });
-
     it("should create service instance", () => {
       expect(service).toBeDefined();
+    });
+
+    it("should load configuration from ConfigService", () => {
+      expect(ConfigService.loadConfig).toHaveBeenCalled();
     });
   });
 
   describe("getClient", () => {
-    it("should return the elasticsearch client", () => {
+    it("should return null when not connected", () => {
       const client = service.getClient();
-      expect(client).toBeDefined();
+      expect(client).toBeNull();
     });
   });
 
   describe("isConnected", () => {
-    it("should return connection status", () => {
-      const status = service.isConnected();
-      expect(typeof status).toBe("boolean");
+    it("should return false when not connected", () => {
+      expect(service.isConnected()).toBe(false);
     });
   });
 
   describe("indexUser", () => {
-    it("should be callable with user payload", async () => {
+    it("should not throw when client is null", async () => {
       await expect(
         service.indexUser({
-          id: "user123",
+          id: "user-1",
           username: "testuser",
-          createdAt: "2024-01-01T00:00:00Z",
+          createdAt: "2024-01-01",
         })
-      ).resolves.toBeUndefined();
+      ).resolves.not.toThrow();
     });
   });
 
   describe("deleteUser", () => {
-    it("should be callable with user id", async () => {
-      await expect(service.deleteUser("user123")).resolves.toBeUndefined();
+    it("should not throw when client is null", async () => {
+      await expect(service.deleteUser("user-1")).resolves.not.toThrow();
+    });
+  });
+
+  describe("onModuleDestroy", () => {
+    it("should set client to null", async () => {
+      await service.onModuleDestroy();
+      expect(service.getClient()).toBeNull();
     });
   });
 });

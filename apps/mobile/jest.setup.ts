@@ -31,3 +31,4 @@ jest.mock('react-i18next', () => ({
     init: jest.fn(),
   },
 }));
+

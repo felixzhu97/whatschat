@@ -12,7 +12,7 @@ fi
 
 # Run lint
 echo "Running lint..."
-pnpm lint
+pnpm lint -- --quiet
 if [ $? -ne 0 ]; then
   echo "Lint failed!"
   exit 1
@@ -20,7 +20,7 @@ fi
 
 # Run tests
 echo "Running tests..."
-pnpm test
+pnpm test -- --silent
 if [ $? -ne 0 ]; then
   echo "Tests failed!"
   exit 1

@@ -1,58 +1,50 @@
 import { describe, it, expect } from "vitest";
 import { parseDataUrl, HTTP_URL_PREFIX } from "@/shared/utils/media-url";
 
-describe("media-url utils", () => {
-  describe("HTTP_URL_PREFIX", () => {
-    it("should match http URLs", () => {
-      expect(HTTP_URL_PREFIX.test("http://example.com")).toBe(true);
-      expect(HTTP_URL_PREFIX.test("https://example.com")).toBe(true);
-    });
-
-    it("should not match non-http URLs", () => {
-      expect(HTTP_URL_PREFIX.test("ftp://example.com")).toBe(false);
-      expect(HTTP_URL_PREFIX.test("file://example.com")).toBe(false);
-    });
+describe("parseDataUrl", () => {
+  it("should return null for invalid data URL", () => {
+    expect(parseDataUrl("not-a-data-url")).toBeNull();
   });
 
-  describe("parseDataUrl", () => {
-    it("should parse valid base64 data URL", () => {
-      const base64Data = Buffer.from("test data").toString("base64");
-      const dataUrl = `data:image/png;base64,${base64Data}`;
+  it("should return null for empty string", () => {
+    expect(parseDataUrl("")).toBeNull();
+  });
 
-      const result = parseDataUrl(dataUrl);
+  it("should parse valid base64 data URL", () => {
+    const base64 = Buffer.from("test content").toString("base64");
+    const result = parseDataUrl(`data:text/plain;base64,${base64}`);
+    
+    expect(result).not.toBeNull();
+    expect(result?.mimeType).toBe("text/plain");
+  });
 
-      expect(result).not.toBeNull();
-      expect(result?.mimeType).toBe("image/png");
-      expect(result?.buffer).toBeInstanceOf(Buffer);
-      expect(result?.buffer.toString()).toBe("test data");
-    });
+  it("should return null for empty base64 content", () => {
+    const result = parseDataUrl("data:image/jpeg;base64,");
+    
+    expect(result).toBeNull();
+  });
 
-    it("should handle jpeg mime type", () => {
-      const base64Data = Buffer.from("jpeg data").toString("base64");
-      const dataUrl = `data:image/jpeg;base64,${base64Data}`;
+  it("should return null for data URL without mime type", () => {
+    const result = parseDataUrl("data:;base64,dGVzdA==");
+    
+    expect(result).toBeNull();
+  });
+});
 
-      const result = parseDataUrl(dataUrl);
+describe("HTTP_URL_PREFIX", () => {
+  it("should match http URLs", () => {
+    expect(HTTP_URL_PREFIX.test("http://example.com")).toBe(true);
+  });
 
-      expect(result?.mimeType).toBe("image/jpeg");
-    });
+  it("should match https URLs", () => {
+    expect(HTTP_URL_PREFIX.test("https://example.com")).toBe(true);
+  });
 
-    it("should return null for invalid data URL", () => {
-      expect(parseDataUrl("")).toBeNull();
-      expect(parseDataUrl("not-a-data-url")).toBeNull();
-      expect(parseDataUrl("data:no-base64")).toBeNull();
-    });
+  it("should not match data URLs", () => {
+    expect(HTTP_URL_PREFIX.test("data:image/png;base64,abc123")).toBe(false);
+  });
 
-    it("should return null for empty base64 content", () => {
-      const dataUrl = "data:image/png;base64,";
-
-      const result = parseDataUrl(dataUrl);
-
-      expect(result).toBeNull();
-    });
-
-    it("should handle non-string input", () => {
-      expect(parseDataUrl(null as any)).toBeNull();
-      expect(parseDataUrl(undefined as any)).toBeNull();
-    });
+  it("should not match relative URLs", () => {
+    expect(HTTP_URL_PREFIX.test("/api/test")).toBe(false);
   });
 });

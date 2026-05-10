@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CassandraService } from "@/infrastructure/database/cassandra.service";
 import { ConfigService } from "@/infrastructure/config/config.service";
 
@@ -22,31 +22,32 @@ describe("CassandraService", () => {
     service = new CassandraService();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe("constructor", () => {
-    it("should load configuration from ConfigService", () => {
-      expect(ConfigService.loadConfig).toHaveBeenCalled();
-    });
-
     it("should create service instance", () => {
       expect(service).toBeDefined();
+    });
+
+    it("should load configuration from ConfigService", () => {
+      expect(ConfigService.loadConfig).toHaveBeenCalled();
     });
   });
 
   describe("getClient", () => {
-    it("should return the cassandra client instance", () => {
+    it("should return null when not connected", () => {
       const client = service.getClient();
-      expect(client).toBeDefined();
+      expect(client).toBeNull();
     });
   });
 
   describe("isConnected", () => {
-    it("should return connection status", () => {
-      const status = service.isConnected();
-      expect(typeof status).toBe("boolean");
+    it("should return false when not connected", () => {
+      expect(service.isConnected()).toBe(false);
+    });
+  });
+
+  describe("onModuleDestroy", () => {
+    it("should not throw when client is null", async () => {
+      await expect(service.onModuleDestroy()).resolves.not.toThrow();
     });
   });
 });

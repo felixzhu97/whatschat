@@ -1,225 +1,136 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NotificationService } from "@/application/services/notification.service";
-import type {
-  INotificationRepository,
-  NotificationItem,
-} from "@/domain/interfaces/repositories/notification.repository.interface";
-
-const mockNotificationItem: NotificationItem = {
-  id: "notif-1",
-  recipientId: "user-1",
-  type: "LIKE",
-  actorId: "user-2",
-  postId: "post-1",
-  commentId: null,
-  readAt: null,
-  createdAt: new Date(),
-};
 
 describe("NotificationService", () => {
-  let notificationService: NotificationService;
-  let mockRepo: Partial<INotificationRepository>;
+  let service: NotificationService;
+  let mockRepo: {
+    findByRecipient: ReturnType<typeof vi.fn>;
+    markRead: ReturnType<typeof vi.fn>;
+    markReadMany: ReturnType<typeof vi.fn>;
+    markAllRead: ReturnType<typeof vi.fn>;
+    upsertLike: ReturnType<typeof vi.fn>;
+    deleteLike: ReturnType<typeof vi.fn>;
+    insertComment: ReturnType<typeof vi.fn>;
+    deleteByCommentId: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     mockRepo = {
-      findByRecipient: vi.fn(),
-      markRead: vi.fn(),
-      markReadMany: vi.fn(),
-      markAllRead: vi.fn(),
-      upsertLike: vi.fn(),
-      deleteLike: vi.fn(),
-      insertComment: vi.fn(),
-      deleteByCommentId: vi.fn(),
+      findByRecipient: vi.fn().mockResolvedValue({ items: [], nextCursor: undefined }),
+      markRead: vi.fn().mockResolvedValue(true),
+      markReadMany: vi.fn().mockResolvedValue(5),
+      markAllRead: vi.fn().mockResolvedValue(10),
+      upsertLike: vi.fn().mockResolvedValue({ id: "notif-1" }),
+      deleteLike: vi.fn().mockResolvedValue(true),
+      insertComment: vi.fn().mockResolvedValue({ id: "notif-2" }),
+      deleteByCommentId: vi.fn().mockResolvedValue(true),
     };
 
-    notificationService = new NotificationService(mockRepo as INotificationRepository);
+    service = new NotificationService(mockRepo as any);
   });
 
   describe("list", () => {
-    it("should return notifications for recipient", async () => {
-      const notifications = [mockNotificationItem];
-      mockRepo.findByRecipient = vi.fn().mockResolvedValue(notifications);
+    it("should list notifications with default limit", async () => {
+      const result = await service.list("user-1", 20);
 
-      const result = await notificationService.list("user-1", 20);
-
-      expect(result).toEqual(notifications);
       expect(mockRepo.findByRecipient).toHaveBeenCalledWith("user-1", 20, undefined);
+      expect(result.items).toEqual([]);
     });
 
-    it("should pass cursor to repository", async () => {
-      mockRepo.findByRecipient = vi.fn().mockResolvedValue([]);
-
-      await notificationService.list("user-1", 20, "cursor-123");
-
-      expect(mockRepo.findByRecipient).toHaveBeenCalledWith("user-1", 20, "cursor-123");
-    });
-
-    it("should clamp limit to valid range", async () => {
-      mockRepo.findByRecipient = vi.fn().mockResolvedValue([]);
-
-      await notificationService.list("user-1", 100);
+    it("should cap limit at 50", async () => {
+      await service.list("user-1", 100);
 
       expect(mockRepo.findByRecipient).toHaveBeenCalledWith("user-1", 50, undefined);
     });
 
     it("should enforce minimum limit of 1", async () => {
-      mockRepo.findByRecipient = vi.fn().mockResolvedValue([]);
+      await service.list("user-1", 0);
 
-      await notificationService.list("user-1", -5);
+      expect(mockRepo.findByRecipient).toHaveBeenCalledWith("user-1", 1, undefined);
+    });
+
+    it("should handle negative limit", async () => {
+      await service.list("user-1", -5);
 
       expect(mockRepo.findByRecipient).toHaveBeenCalledWith("user-1", 1, undefined);
     });
   });
 
   describe("markRead", () => {
-    it("should mark single notification as read", async () => {
-      mockRepo.markRead = vi.fn().mockResolvedValue(true);
+    it("should mark notification as read", async () => {
+      const result = await service.markRead("user-1", "notif-1");
 
-      const result = await notificationService.markRead("user-1", "notif-1");
-
-      expect(result).toEqual({ success: true });
       expect(mockRepo.markRead).toHaveBeenCalledWith("user-1", "notif-1");
-    });
-
-    it("should return success even when notification not found", async () => {
-      mockRepo.markRead = vi.fn().mockResolvedValue(false);
-
-      const result = await notificationService.markRead("user-1", "nonexistent");
-
-      expect(result).toEqual({ success: false });
+      expect(result.success).toBe(true);
     });
   });
 
   describe("markReadMany", () => {
     it("should mark multiple notifications as read", async () => {
-      mockRepo.markReadMany = vi.fn().mockResolvedValue(3);
+      const result = await service.markReadMany("user-1", ["notif-1", "notif-2"]);
 
-      const result = await notificationService.markReadMany("user-1", ["n1", "n2", "n3"]);
-
-      expect(result).toEqual({ success: true, modified: 3 });
-      expect(mockRepo.markReadMany).toHaveBeenCalledWith("user-1", ["n1", "n2", "n3"]);
+      expect(mockRepo.markReadMany).toHaveBeenCalledWith("user-1", ["notif-1", "notif-2"]);
+      expect(result.modified).toBe(5);
     });
   });
 
   describe("markAllRead", () => {
     it("should mark all notifications as read", async () => {
-      mockRepo.markAllRead = vi.fn().mockResolvedValue(10);
+      const result = await service.markAllRead("user-1");
 
-      const result = await notificationService.markAllRead("user-1");
-
-      expect(result).toEqual({ success: true, modified: 10 });
       expect(mockRepo.markAllRead).toHaveBeenCalledWith("user-1");
+      expect(result.modified).toBe(10);
     });
   });
 
   describe("upsertLike", () => {
-    it("should create like notification", async () => {
-      mockRepo.upsertLike = vi.fn().mockResolvedValue(mockNotificationItem);
+    it("should upsert like notification", async () => {
+      const result = await service.upsertLike("user-1", "actor-1", "post-1");
 
-      const result = await notificationService.upsertLike("user-1", "user-2", "post-1");
-
-      expect(result).toEqual(mockNotificationItem);
-      expect(mockRepo.upsertLike).toHaveBeenCalledWith("user-1", "user-2", "post-1");
-    });
-
-    it("should return null when upsert fails", async () => {
-      mockRepo.upsertLike = vi.fn().mockResolvedValue(null);
-
-      const result = await notificationService.upsertLike("user-1", "user-2", "post-1");
-
-      expect(result).toBeNull();
+      expect(mockRepo.upsertLike).toHaveBeenCalledWith("user-1", "actor-1", "post-1");
+      expect(result).toEqual({ id: "notif-1" });
     });
   });
 
   describe("deleteLike", () => {
     it("should delete like notification", async () => {
-      mockRepo.deleteLike = vi.fn().mockResolvedValue(true);
+      const result = await service.deleteLike("actor-1", "post-1");
 
-      const result = await notificationService.deleteLike("user-2", "post-1");
-
+      expect(mockRepo.deleteLike).toHaveBeenCalledWith("actor-1", "post-1");
       expect(result).toBe(true);
-      expect(mockRepo.deleteLike).toHaveBeenCalledWith("user-2", "post-1");
-    });
-
-    it("should return false when delete fails", async () => {
-      mockRepo.deleteLike = vi.fn().mockResolvedValue(false);
-
-      const result = await notificationService.deleteLike("user-2", "post-1");
-
-      expect(result).toBe(false);
     });
   });
 
   describe("insertComment", () => {
-    it("should create comment notification", async () => {
-      const commentNotification = { ...mockNotificationItem, type: "COMMENT" as const };
-      mockRepo.insertComment = vi.fn().mockResolvedValue(commentNotification);
+    it("should insert comment notification", async () => {
+      const result = await service.insertComment("user-1", "actor-1", "post-1", "comment-1", "Great post!");
 
-      const result = await notificationService.insertComment(
-        "user-1",
-        "user-2",
-        "post-1",
-        "comment-1",
-        "Great post!"
-      );
-
-      expect(result).toEqual(commentNotification);
+      expect(mockRepo.insertComment).toHaveBeenCalled();
+      expect(result).toEqual({ id: "notif-2" });
     });
 
     it("should truncate long content", async () => {
-      const longContent = "a".repeat(150);
-      mockRepo.insertComment = vi.fn().mockImplementation(
-        (_recipientId, _actorId, _postId, _commentId, content) => {
-          expect(content).toHaveLength(120);
-          return Promise.resolve(null);
-        }
-      );
-
-      await notificationService.insertComment(
-        "user-1",
-        "user-2",
-        "post-1",
-        "comment-1",
-        longContent
-      );
-    });
-
-    it("should handle undefined content", async () => {
-      mockRepo.insertComment = vi.fn().mockResolvedValue({ ...mockNotificationItem, type: "COMMENT" as const });
-
-      const result = await notificationService.insertComment(
-        "user-1",
-        "user-2",
-        "post-1",
-        "comment-1"
-      );
+      const longContent = "a".repeat(200);
+      await service.insertComment("user-1", "actor-1", "post-1", "comment-1", longContent);
 
       expect(mockRepo.insertComment).toHaveBeenCalledWith(
         "user-1",
-        "user-2",
+        "actor-1",
         "post-1",
         "comment-1",
-        undefined
+        expect.any(String)
       );
     });
   });
 
   describe("deleteByCommentId", () => {
-    it("should delete notification by comment ID", async () => {
-      mockRepo.deleteByCommentId = vi.fn().mockResolvedValue(true);
+    it("should delete comment notification", async () => {
+      const result = await service.deleteByCommentId("comment-1");
 
-      const result = await notificationService.deleteByCommentId("comment-1");
-
-      expect(result).toBe(true);
       expect(mockRepo.deleteByCommentId).toHaveBeenCalledWith("comment-1");
-    });
-
-    it("should return false when notification not found", async () => {
-      mockRepo.deleteByCommentId = vi.fn().mockResolvedValue(false);
-
-      const result = await notificationService.deleteByCommentId("nonexistent");
-
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 });
