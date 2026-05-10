@@ -44,7 +44,7 @@ describe('useSocket', () => {
     it('dispatches connectSocket when token exists', async () => {
       let storeState = { socket: null, connected: false };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('test-token');
 
@@ -66,7 +66,7 @@ describe('useSocket', () => {
     it('does not emit when socket is null', () => {
       let storeState = { socket: null, connected: false };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -83,7 +83,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -104,7 +104,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -127,7 +127,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -140,7 +140,7 @@ describe('useSocket', () => {
     it('does not register listeners when socket is null', () => {
       let storeState = { socket: null, connected: false };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -156,7 +156,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -178,7 +178,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -202,7 +202,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 
@@ -215,7 +215,7 @@ describe('useSocket', () => {
       const mockSocket = createMockSocket();
       let storeState = { socket: mockSocket, connected: true };
       (require('@/src/presentation/stores').useSocketStore as jest.Mock).mockImplementation(
-        (selector: Function) => selector(storeState)
+        (selector: (state: typeof storeState) => unknown) => selector(storeState)
       );
       (require('@/src/presentation/stores').useAuthStore as jest.Mock).mockReturnValue('token');
 

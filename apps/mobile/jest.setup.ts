@@ -4,7 +4,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, options?: Record<string, unknown>) => {
+    t: (key: string, options?: { count?: number }) => {
       const translations: Record<string, string> = {
         'chats.activeNow': 'Active now',
         'chats.yesterday': 'Yesterday',
