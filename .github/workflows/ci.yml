@@ -21,7 +21,19 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
@@ -48,7 +60,19 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Download build artifacts
@@ -75,7 +99,19 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Download build artifacts
@@ -102,7 +138,19 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Download build artifacts
