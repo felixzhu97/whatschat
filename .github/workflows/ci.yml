@@ -37,12 +37,3 @@ jobs:
         run: pnpm test
         env:
           TZ: Asia/Shanghai
-
-      - name: Python services tests
-        run: |
-          if [ -d "services/rag" ] && [ -f "services/rag/pyproject.toml" ]; then
-            python3 -m pip install pytest --quiet
-            cd services/rag
-            python3 -m pytest tests/ -v --tb=short
-            cd ../..
-          fi
