@@ -1,8 +1,8 @@
 #!/bin/sh
 
-echo "Running pre-push checks..."
+echo "Running pre-commit checks..."
 
-# Run type check
+# Run TypeScript check
 echo "Running TypeScript checks..."
 pnpm check-types
 if [ $? -ne 0 ]; then
@@ -26,7 +26,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Run Python tests
+# Run Python services tests
 echo "Running Python services tests..."
 
 # RAG service tests

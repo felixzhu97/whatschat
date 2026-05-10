@@ -126,7 +126,8 @@ describe('chat.mapper', () => {
       expect(result.lastMessageContent).toBe('Hello there!');
       expect(result.lastMessageSender).toBe('Alice');
       expect(result.lastMessageTime).toBeInstanceOf(Date);
-      expect(result.lastMessageTime.getTime()).toBe(new Date('2024-06-15T10:00:00Z').getTime());
+      const lastMessageTime = result.lastMessageTime as Date;
+      expect(lastMessageTime.getTime()).toBe(new Date('2024-06-15T10:00:00Z').getTime());
     });
 
     it('handles null lastMessage', () => {
