@@ -8,6 +8,7 @@ module.exports = {
   },
   collectCoverage: true,
   coverageDirectory: "coverage",
+  coverageReporters: ["text", "json", "html", "lcov"],
   coverageThreshold: {
     "./src/application/mappers/feed.mapper.ts": {
       branches: 75,

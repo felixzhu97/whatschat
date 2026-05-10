@@ -17,16 +17,20 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^9.23.0",
     "globals": "^16.0.0",
     "tsup": "^8.0.0",
-    "typescript": "5.8.2"
+    "typescript": "5.8.2",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

@@ -1,0 +1,187 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { MessagesService } from "@/src/application/services/messages.service";
+
+const mockMessage = {
+  id: "msg-1",
+  senderId: "user-1",
+  senderName: "Test",
+  content: "Hello",
+  timestamp: new Date().toISOString(),
+  type: "text" as const,
+  status: "sent" as const,
+  isStarred: false,
+  toggleStar: vi.fn(() => ({ ...mockMessage, isStarred: true })),
+  edit: vi.fn(() => ({ ...mockMessage, content: "Edited" })),
+};
+
+vi.mock("@/src/infrastructure/adapters/state/store", () => ({
+  store: {
+    getState: vi.fn(() => ({
+      messages: {
+        messages: { "contact-1": [mockMessage] },
+        currentUserId: "user-1",
+        searchResults: [],
+        starredMessages: [],
+        typingUsers: {},
+      },
+    })),
+    dispatch: vi.fn(),
+  },
+}));
+
+vi.mock("@/src/infrastructure/adapters/state/slices/messagesSlice", () => ({
+  addMessage: vi.fn(),
+  updateMessage: vi.fn(),
+  deleteMessage: vi.fn(),
+  deleteMessages: vi.fn(),
+  setTyping: vi.fn(),
+  setReplyingTo: vi.fn(),
+  setEditingMessage: vi.fn(),
+  setSearchResults: vi.fn(),
+  toggleStarMessage: vi.fn(),
+  toggleStarMessageAction: vi.fn(),
+  generateMessageId: vi.fn(() => "mock-id"),
+  canEditMessage: vi.fn(() => false),
+  getMessagesForContact: vi.fn(() => []),
+  getMessageById: vi.fn(() => mockMessage),
+  getLastMessage: vi.fn(() => mockMessage),
+  getUnreadCount: vi.fn(() => 0),
+  isUserTyping: vi.fn(() => false),
+  getStarredMessages: vi.fn(() => []),
+  searchMessages: vi.fn(() => []),
+}));
+
+describe("MessagesService", () => {
+  let messagesService: MessagesService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    messagesService = new MessagesService();
+  });
+
+  describe("constructor", () => {
+    it("should create instance without error", () => {
+      expect(messagesService).toBeDefined();
+    });
+  });
+
+  describe("getMessagesForContact", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.getMessagesForContact("contact-1")).not.toThrow();
+    });
+  });
+
+  describe("addMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.addMessage("contact-1", mockMessage as any)).not.toThrow();
+    });
+  });
+
+  describe("updateMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.updateMessage("contact-1", "msg-1", {})).not.toThrow();
+    });
+  });
+
+  describe("deleteMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.deleteMessage("contact-1", "msg-1")).not.toThrow();
+    });
+  });
+
+  describe("deleteMessages", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.deleteMessages("contact-1", ["msg-1"])).not.toThrow();
+    });
+  });
+
+  describe("sendMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.sendMessage("contact-1", "Hello")).not.toThrow();
+    });
+  });
+
+  describe("editMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.editMessage("contact-1", "msg-1", "New content")).not.toThrow();
+    });
+  });
+
+  describe("forwardMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.forwardMessage("msg-1", ["contact-2"])).not.toThrow();
+    });
+  });
+
+  describe("replyToMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.replyToMessage("contact-1", mockMessage as any, "Reply")).not.toThrow();
+    });
+  });
+
+  describe("markAsRead", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.markAsRead("contact-1", ["msg-1"])).not.toThrow();
+    });
+  });
+
+  describe("markAsDelivered", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.markAsDelivered("contact-1", ["msg-1"])).not.toThrow();
+    });
+  });
+
+  describe("updateMessageStatus", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.updateMessageStatus("contact-1", "msg-1", "delivered")).not.toThrow();
+    });
+  });
+
+  describe("toggleStarMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.toggleStarMessage("contact-1", "msg-1")).not.toThrow();
+    });
+  });
+
+  describe("getStarredMessages", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.getStarredMessages()).not.toThrow();
+    });
+  });
+
+  describe("searchMessages", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.searchMessages("test")).not.toThrow();
+    });
+  });
+
+  describe("getMessageById", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.getMessageById("contact-1", "msg-1")).not.toThrow();
+    });
+  });
+
+  describe("getLastMessage", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.getLastMessage("contact-1")).not.toThrow();
+    });
+  });
+
+  describe("getUnreadCount", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.getUnreadCount("contact-1")).not.toThrow();
+    });
+  });
+
+  describe("setTyping", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.setTyping("contact-1", true)).not.toThrow();
+    });
+  });
+
+  describe("isUserTyping", () => {
+    it("should be callable", () => {
+      expect(() => messagesService.isUserTyping("contact-1")).not.toThrow();
+    });
+  });
+});

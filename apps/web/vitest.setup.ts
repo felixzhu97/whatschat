@@ -97,3 +97,26 @@ vi.mock("@growthbook/growthbook-react", () => ({
   useFeatureValue: vi.fn(() => undefined),
   useGrowthBook: vi.fn(),
 }));
+
+// Mock localStorage with proper implementation
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = value; },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { store = {}; },
+    get length() { return Object.keys(store).length; },
+    key: (i: number) => Object.keys(store)[i] ?? null,
+  };
+})();
+Object.defineProperty(globalThis, "localStorage", { value: localStorageMock });
+
+// Mock indexedDB
+if (!globalThis.indexedDB) {
+  const indexedDBMock = {
+    open: vi.fn(),
+    deleteDatabase: vi.fn(),
+  };
+  Object.defineProperty(globalThis, "indexedDB", { value: indexedDBMock });
+}
