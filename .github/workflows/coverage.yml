@@ -1,0 +1,136 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm --filter './packages/**' build
+
+      - name: Run tests with coverage
+        run: pnpm test
+        env:
+          TZ: Asia/Shanghai
+
+      - name: Generate coverage report
+        run: |
+          echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Mobile app coverage (Jest)
+        run: |
+          if [ -f "apps/mobile/coverage/lcov.info" ]; then
+            echo "### 📱 apps/mobile (Jest)" >> $GITHUB_STEP_SUMMARY
+            
+            # Parse Jest lcov.info format for line coverage
+            LINE_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
+              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} END{if(l>0) printf "%.1f", (h/l)*100; else print "N/A"}')
+            
+            # Parse function coverage
+            FN_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
+              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} /^FN:/{fn++} /^FNF:/{fnf=$2} END{if(fnf>0) printf "%.1f", (fn/fnf)*100; else print "N/A"}')
+            
+            # Parse branch coverage
+            BR_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
+              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} /^BRH:/{bh+=$2} /^BRF:/{bf+=$2} END{if(bf>0) printf "%.1f", (bh/bf)*100; else print "N/A"}')
+            
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "Lines     : ${LINE_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
+            echo "Functions : ${FN_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
+            echo "Branches  : ${BR_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Web app coverage (Vitest)
+        run: |
+          if [ -f "apps/web/coverage/coverage-summary.json" ]; then
+            echo "### 🌐 apps/web (Vitest)" >> $GITHUB_STEP_SUMMARY
+            cat apps/web/coverage/coverage-summary.json | jq -r '
+              "```\n" +
+              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "```\n"
+            ' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Server coverage (Vitest)
+        run: |
+          if [ -f "services/server/coverage/coverage-summary.json" ]; then
+            echo "### 🖥️ services/server (Vitest)" >> $GITHUB_STEP_SUMMARY
+            cat services/server/coverage/coverage-summary.json | jq -r '
+              "```\n" +
+              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "```\n"
+            ' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Shared-types coverage (Vitest)
+        run: |
+          if [ -f "packages/shared-types/coverage/coverage-summary.json" ]; then
+            echo "### 📦 packages/shared-types (Vitest)" >> $GITHUB_STEP_SUMMARY
+            cat packages/shared-types/coverage/coverage-summary.json | jq -r '
+              "```\n" +
+              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "```\n"
+            ' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: IM package coverage (Vitest)
+        run: |
+          if [ -f "packages/im/coverage/coverage-summary.json" ]; then
+            echo "### 💬 packages/im (Vitest)" >> $GITHUB_STEP_SUMMARY
+            cat packages/im/coverage/coverage-summary.json | jq -r '
+              "```\n" +
+              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
+              "```\n"
+            ' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: '**/coverage/'
+          retention-days: 7
+
+      - name: Coverage report link
+        run: |
+          echo "📊 [View HTML Coverage Reports](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)" >> $GITHUB_STEP_SUMMARY
