@@ -1,83 +1,199 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { SearchService } from "@/application/services/search.service";
+import { USER_DOMAIN, STRING_VALUES } from "@whatschat/shared-types/test-utils/domain-values";
+
+// =============================================================================
+// MOCK FACTORIES
+// =============================================================================
+
+/**
+ * Creates a mock Elasticsearch client with optional search response
+ */
+const createMockEsClient = (searchResponse?: any) => ({
+  search: vi.fn().mockResolvedValue(searchResponse ?? { hits: { hits: [] } }),
+});
+
+/**
+ * Creates a mock Elasticsearch service
+ */
+const createMockElasticsearchService = (client: ReturnType<typeof createMockEsClient> | null) => ({
+  getClient: vi.fn().mockReturnValue(client),
+});
+
+/**
+ * Creates a mock Prisma user findMany response
+ */
+const createMockPrismaUsers = (users: any[]) => ({
+  user: {
+    findMany: vi.fn().mockResolvedValue(users),
+  },
+});
+
+// =============================================================================
+// TEST DATA - Using domain values
+// =============================================================================
+
+const TEST_USER_ID = USER_DOMAIN.VALID.id;
+const TEST_USERNAME = USER_DOMAIN.VALID.username;
 
 describe("SearchService", () => {
   let service: SearchService;
-  let mockEs: { getClient: ReturnType<typeof vi.fn> };
-  let mockPrisma: {
-    user: { findMany: ReturnType<typeof vi.fn> };
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    mockEs = {
-      getClient: vi.fn().mockReturnValue(null),
-    };
-
-    mockPrisma = {
-      user: { findMany: vi.fn().mockResolvedValue([]) },
-    };
-
-    service = new SearchService(mockEs as any, mockPrisma as any);
-  });
 
   describe("searchUsers", () => {
-    it("should use fallback when elasticsearch is not available", async () => {
-      mockPrisma.user.findMany.mockResolvedValue([
-        { id: "user-1", username: "testuser", avatar: null, createdAt: new Date() },
-      ]);
+    describe("ES unavailable - fallback behavior", () => {
+      it("should use Prisma fallback when Elasticsearch returns null client", async () => {
+        const mockEs = createMockElasticsearchService(null);
+        const mockPrisma = createMockPrismaUsers([
+          { id: TEST_USER_ID, username: TEST_USERNAME, avatar: null, createdAt: new Date() },
+        ]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      const result = await service.searchUsers("test", 10);
+        const result = await service.searchUsers(TEST_USERNAME, 10);
 
-      expect(result.hits).toHaveLength(1);
+        expect(result.hits).toHaveLength(1);
+        expect(result.hits[0].id).toBe(TEST_USER_ID);
+      });
+
+      it("should use Prisma fallback when getClient returns undefined", async () => {
+        const mockEs = createMockElasticsearchService(undefined);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchUsers("query", 10);
+
+        expect(result.hits).toEqual([]);
+        expect(mockPrisma.user.findMany).toHaveBeenCalled();
+      });
     });
 
-    it("should return empty for empty query", async () => {
-      const result = await service.searchUsers("", 10);
+    describe("query validation", () => {
+      it.each([
+        { label: "empty string", query: STRING_VALUES.EMPTY },
+        { label: "whitespace only", query: STRING_VALUES.WHITESPACE },
+        { label: "tabs only", query: STRING_VALUES.TAB },
+      ])("should return empty for $label query", async ({ query }) => {
+        const mockClient = createMockEsClient();
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      expect(result.hits).toEqual([]);
+        const result = await service.searchUsers(query, 10);
+
+        expect(result.hits).toEqual([]);
+      });
     });
 
-    it("should return empty for whitespace query", async () => {
-      const result = await service.searchUsers("   ", 10);
-
-      expect(result.hits).toEqual([]);
-    });
-
-    it("should search with elasticsearch when available", async () => {
-      const mockClient = {
-        search: vi.fn().mockResolvedValue({
+    describe("Elasticsearch search", () => {
+      it("should search users with Elasticsearch when available", async () => {
+        const mockClient = createMockEsClient({
           hits: {
             hits: [
               {
-                _id: "user-1",
-                _source: { username: "testuser", avatar: null },
-                sort: [new Date().toISOString(), "user-1"],
+                _id: TEST_USER_ID,
+                _source: { username: TEST_USERNAME, avatar: null },
+                sort: [new Date().toISOString(), TEST_USER_ID],
               },
             ],
             total: { value: 1 },
           },
-        }),
-      };
-      mockEs.getClient.mockReturnValue(mockClient);
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      const result = await service.searchUsers("test", 10);
+        const result = await service.searchUsers(TEST_USERNAME, 10);
 
-      expect(mockClient.search).toHaveBeenCalled();
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            index: "users",
+            query: expect.any(Object),
+            size: 11,
+          })
+        );
+        expect(result.hits).toHaveLength(1);
+        expect(result.hits[0].id).toBe(TEST_USER_ID);
+      });
+
+      it("should normalize query to lowercase", async () => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [] },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        await service.searchUsers("TEST", 10);
+
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              bool: expect.objectContaining({
+                should: expect.arrayContaining([
+                  expect.objectContaining({
+                    multi_match: expect.objectContaining({ query: "test" }),
+                  }),
+                ]),
+              }),
+            }),
+          })
+        );
+      });
+
+      it("should handle pagination with cursor", async () => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [] },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const cursor = Buffer.from(JSON.stringify([new Date().toISOString(), TEST_USER_ID]), "utf8").toString("base64url");
+        await service.searchUsers(TEST_USERNAME, 10, cursor);
+
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({ search_after: expect.any(Array) })
+        );
+      });
+
+      it("should return empty hits when search returns null", async () => {
+        const mockClient = createMockEsClient({ hits: { hits: null } });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchUsers(TEST_USERNAME, 10);
+
+        expect(result.hits).toEqual([]);
+      });
     });
   });
 
   describe("searchPosts", () => {
-    it("should return empty when elasticsearch is not available", async () => {
-      const result = await service.searchPosts("test", 10);
+    describe("ES unavailable", () => {
+      it("should return empty when Elasticsearch is not available", async () => {
+        const mockEs = createMockElasticsearchService(null);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      expect(result.hits).toEqual([]);
+        const result = await service.searchPosts("test", 10);
+
+        expect(result.hits).toEqual([]);
+      });
+
+      it("should return empty when getClient returns null", async () => {
+        const mockEs = createMockElasticsearchService(null);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchPosts("query", 10);
+
+        expect(result.hits).toEqual([]);
+      });
     });
 
-    it("should search posts with elasticsearch", async () => {
-      const mockClient = {
-        search: vi.fn().mockResolvedValue({
+    describe("Elasticsearch search", () => {
+      it("should search posts with Elasticsearch", async () => {
+        const mockClient = createMockEsClient({
           hits: {
             hits: [
               {
@@ -88,26 +204,88 @@ describe("SearchService", () => {
             ],
             total: { value: 1 },
           },
-        }),
-      };
-      mockEs.getClient.mockReturnValue(mockClient);
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      const result = await service.searchPosts("test", 10);
+        const result = await service.searchPosts("test", 10);
 
-      expect(mockClient.search).toHaveBeenCalled();
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            index: "posts",
+            query: expect.any(Object),
+            size: 11,
+            track_total_hits: 10000,
+          })
+        );
+        expect(result.hits).toHaveLength(1);
+      });
+
+      it.each([
+        { label: "caption field", caption: "Hello World", expectedFields: ["caption", "hashtags", "autoTags"] },
+        { label: "hashtag search", caption: "#whatsfeed", expectedFields: ["caption", "hashtags", "autoTags"] },
+        { label: "unicode content", caption: STRING_VALUES.UNICODE_EMOJI, expectedFields: ["caption", "hashtags", "autoTags"] },
+      ])("should search across fields for $label", async ({ caption }) => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [], total: { value: 0 } },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        await service.searchPosts(caption, 10);
+
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              multi_match: expect.objectContaining({ fields: expect.arrayContaining(["caption", "hashtags"]) }),
+            }),
+          })
+        );
+      });
+
+      it("should return total count from Elasticsearch response", async () => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [], total: { value: 42 } },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchPosts("test", 10);
+
+        expect(result.total).toBe(42);
+      });
     });
   });
 
   describe("searchHashtags", () => {
-    it("should return empty when elasticsearch is not available", async () => {
-      const result = await service.searchHashtags("#test", 10);
+    describe("ES unavailable", () => {
+      it("should return empty when Elasticsearch is not available", async () => {
+        const mockEs = createMockElasticsearchService(null);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      expect(result.hits).toEqual([]);
+        const result = await service.searchHashtags("#test", 10);
+
+        expect(result.hits).toEqual([]);
+      });
+
+      it("should return empty when getClient returns null", async () => {
+        const mockEs = createMockElasticsearchService(null);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchHashtags("test", 10);
+
+        expect(result.hits).toEqual([]);
+      });
     });
 
-    it("should search hashtags with elasticsearch", async () => {
-      const mockClient = {
-        search: vi.fn().mockResolvedValue({
+    describe("Elasticsearch search", () => {
+      it("should search hashtags with Elasticsearch", async () => {
+        const mockClient = createMockEsClient({
           hits: {
             hits: [
               {
@@ -116,13 +294,76 @@ describe("SearchService", () => {
               },
             ],
           },
-        }),
-      };
-      mockEs.getClient.mockReturnValue(mockClient);
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
 
-      const result = await service.searchHashtags("#test", 10);
+        const result = await service.searchHashtags("#test", 10);
 
-      expect(mockClient.search).toHaveBeenCalled();
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            index: "hashtags",
+            query: expect.objectContaining({
+              prefix: expect.objectContaining({ tag: "test" }),
+            }),
+          })
+        );
+        expect(result.hits).toHaveLength(1);
+      });
+
+it("should strip single leading hash from query", async () => {
+      const mockClient = createMockEsClient({
+        hits: { hits: [] },
+      });
+      const mockEs = createMockElasticsearchService(mockClient);
+      const mockPrisma = createMockPrismaUsers([]);
+      service = new SearchService(mockEs as any, mockPrisma as any);
+
+      await service.searchHashtags("##multiple", 10);
+
+      // Only strips one leading #
+      expect(mockClient.search).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            prefix: expect.objectContaining({ tag: "#multiple" }),
+          }),
+        })
+      );
+    });
+
+      it("should lowercase hashtag query", async () => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [] },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        await service.searchHashtags("#UPPERCASE", 10);
+
+        expect(mockClient.search).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: expect.objectContaining({
+              prefix: expect.objectContaining({ tag: "uppercase" }),
+            }),
+          })
+        );
+      });
+
+      it("should handle empty result set", async () => {
+        const mockClient = createMockEsClient({
+          hits: { hits: [] },
+        });
+        const mockEs = createMockElasticsearchService(mockClient);
+        const mockPrisma = createMockPrismaUsers([]);
+        service = new SearchService(mockEs as any, mockPrisma as any);
+
+        const result = await service.searchHashtags("#nonexistent", 10);
+
+        expect(result.hits).toEqual([]);
+        expect(result.nextCursor).toBeUndefined();
+      });
     });
   });
 });
