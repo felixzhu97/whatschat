@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: [],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     reporters: process.env.CI
-      ? ['default', 'github-actions', 'verbose']
+      ? ['verbose']
       : ['default', 'verbose'],
     coverage: {
       provider: 'v8',

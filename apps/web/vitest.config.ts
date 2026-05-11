@@ -14,7 +14,7 @@ export default defineConfig({
     css: true,
     pool: 'threads',
     reporters: process.env.CI
-      ? ['default', 'github-actions', 'verbose']
+      ? ['verbose']
       : ['default', 'verbose'],
     coverage: {
       provider: 'v8',

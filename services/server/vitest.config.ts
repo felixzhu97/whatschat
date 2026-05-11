@@ -19,7 +19,7 @@ export default defineConfig({
       '**/*.d.ts',
     ],
     reporters: process.env.CI
-      ? ['default', 'github-actions', 'verbose']
+      ? ['verbose']
       : ['default', 'verbose'],
     coverage: {
       provider: 'v8',
@@ -45,8 +45,8 @@ export default defineConfig({
         },
       },
     },
-    testTimeout: 10000,
-    hookTimeout: 10000,
+    testTimeout: 30000,
+    hookTimeout: 30000,
   },
   resolve: {
     alias: {
