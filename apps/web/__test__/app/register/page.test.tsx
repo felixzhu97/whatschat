@@ -70,6 +70,18 @@ vi.mock("@/components/ui/input", () => ({
   ),
 }));
 
+vi.mock("@/src/presentation/components/ui/select", () => ({
+  Select: ({ children, value, onValueChange }: any) => (
+    <div data-testid="select" data-value={value} onClick={() => onValueChange?.("January")}>
+      {children}
+    </div>
+  ),
+  SelectContent: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ children, value }: any) => <div data-value={value}>{children}</div>,
+  SelectTrigger: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
+}));
+
 vi.mock("lucide-react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("lucide-react")>();
   return {

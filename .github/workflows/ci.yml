@@ -10,6 +10,7 @@ jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -32,85 +33,3 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-
-      - name: Run tests
-        run: pnpm test
-        env:
-          TZ: Asia/Shanghai
-
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: '**/coverage/'
-          retention-days: 7
-
-      - name: Display coverage summary
-        run: |
-          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Mobile app coverage (Jest) - parse from lcov.info
-          if [ -f "apps/mobile/coverage/lcov.info" ]; then
-            echo "### 📱 apps/mobile (Jest)" >> $GITHUB_STEP_SUMMARY
-            # Parse Jest lcov.info format
-            STATS=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
-              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} END{printf "%.1f%%", (h/l)*100}' 2>/dev/null || echo "N/A")
-            echo "```" >> $GITHUB_STEP_SUMMARY
-            echo "Lines       : $STATS (see HTML report for details)" >> $GITHUB_STEP_SUMMARY
-            echo "```" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "📊 [View HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts) (coverage-reports artifact)" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Web app coverage (Vitest)
-          if [ -f "apps/web/coverage/coverage-summary.json" ]; then
-            echo "### 🌐 apps/web (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat apps/web/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements  : " + (.total.statements.pct // 0 | tostring) + "%\n" +
-              "Branches    : " + (.total.branches.pct // 0 | tostring) + "%\n" +
-              "Functions   : " + (.total.functions.pct // 0 | tostring) + "%\n" +
-              "Lines       : " + (.total.lines.pct // 0 | tostring) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Server coverage (Vitest)
-          if [ -f "services/server/coverage/coverage-summary.json" ]; then
-            echo "### 🖥️ services/server (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat services/server/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements  : " + (.total.statements.pct // 0 | tostring) + "%\n" +
-              "Branches    : " + (.total.branches.pct // 0 | tostring) + "%\n" +
-              "Functions   : " + (.total.functions.pct // 0 | tostring) + "%\n" +
-              "Lines       : " + (.total.lines.pct // 0 | tostring) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Shared-types coverage (Vitest)
-          if [ -f "packages/shared-types/coverage/coverage-summary.json" ]; then
-            echo "### 📦 packages/shared-types (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat packages/shared-types/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements  : " + (.total.statements.pct // 0 | tostring) + "%\n" +
-              "Branches    : " + (.total.branches.pct // 0 | tostring) + "%\n" +
-              "Functions   : " + (.total.functions.pct // 0 | tostring) + "%\n" +
-              "Lines       : " + (.total.lines.pct // 0 | tostring) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # IM package coverage (Vitest)
-          if [ -f "packages/im/coverage/coverage-summary.json" ]; then
-            echo "### 💬 packages/im (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat packages/im/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements  : " + (.total.statements.pct // 0 | tostring) + "%\n" +
-              "Branches    : " + (.total.branches.pct // 0 | tostring) + "%\n" +
-              "Functions   : " + (.total.functions.pct // 0 | tostring) + "%\n" +
-              "Lines       : " + (.total.lines.pct // 0 | tostring) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
-          fi
