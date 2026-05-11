@@ -9,9 +9,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "pnpm test:coverage",
+    "test": "jest --coverage",
     "test:watchAll": "jest --watchAll",
-    "test:coverage": "jest --coverage --silent",
+    "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts,.tsx --fix --config eslint.config.js"
   },
   "dependencies": {
