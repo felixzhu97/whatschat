@@ -34,93 +34,118 @@ jobs:
         env:
           TZ: Asia/Shanghai
 
-      - name: Generate coverage report
+      - name: Generate test results summary
         run: |
-          echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Mobile app coverage (Jest)
+      # Mobile app tests summary (Jest)
+      - name: Mobile app tests (Jest)
+        if: always()
         run: |
-          if [ -f "apps/mobile/coverage/lcov.info" ]; then
+          if [ -d "apps/mobile" ]; then
             echo "### 📱 apps/mobile (Jest)" >> $GITHUB_STEP_SUMMARY
             
-            # Parse Jest lcov.info format for line coverage
-            LINE_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
-              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} END{if(l>0) printf "%.1f", (h/l)*100; else print "N/A"}')
-            
-            # Parse function coverage
-            FN_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
-              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} /^FN:/{fn++} /^FNF:/{fnf=$2} END{if(fnf>0) printf "%.1f", (fn/fnf)*100; else print "N/A"}')
-            
-            # Parse branch coverage
-            BR_COVERAGE=$(awk '/^SF:/{f=1} f{print} /^end_of_record/{f=0}' apps/mobile/coverage/lcov.info | \
-              awk -F':' '/^LH:/{h+=$2} /^LF:/{l+=$2} /^BRH:/{bh+=$2} /^BRF:/{bf+=$2} END{if(bf>0) printf "%.1f", (bh/bf)*100; else print "N/A"}')
-            
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "Lines     : ${LINE_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
-            echo "Functions : ${FN_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
-            echo "Branches  : ${BR_COVERAGE:-N/A}%" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            # Parse Jest JSON report
+            if [ -f "apps/mobile/coverage/coverage-final.json" ]; then
+              JEST_STATS=$(cat apps/mobile/coverage/coverage-final.json | jq -r '
+                "```\n" +
+                "Tests     : " + (.numTotalTests // "N/A") | tostring + " total\n" +
+                "Passed    : " + (.numPassedTests // "N/A") | tostring + "\n" +
+                "Failed    : " + (.numFailedTests // "0") | tostring + "\n" +
+                "Skipped   : " + (.numSkippedTests // "0") | tostring + "\n" +
+                "Suites    : " + (.numTotalTestSuites // "N/A") | tostring + " total\n" +
+                "Duration  : " + (.testTime // "N/A") + "s\n" +
+                "```\n"
+              ' 2>/dev/null || echo "```\nNo test data available\n```\n")
+              echo "$JEST_STATS" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "```\nNo test data available\n```" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Web app coverage (Vitest)
+      # Web app tests summary (Vitest)
+      - name: Web app tests (Vitest)
+        if: always()
         run: |
-          if [ -f "apps/web/coverage/coverage-summary.json" ]; then
+          if [ -d "apps/web" ]; then
             echo "### 🌐 apps/web (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat apps/web/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
+            if [ -f "apps/web/coverage/coverage-summary.json" ]; then
+              cat apps/web/coverage/coverage-summary.json | jq -r '
+                "```\n" +
+                "Statements : " + (.total.statements.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Branches  : " + (.total.branches.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Functions : " + (.total.functions.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Lines     : " + (.total.lines.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "```\n"
+              ' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "```\nNo test data available\n```" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Server coverage (Vitest)
+      # Server tests summary (Vitest)
+      - name: Server tests (Vitest)
+        if: always()
         run: |
-          if [ -f "services/server/coverage/coverage-summary.json" ]; then
+          if [ -d "services/server" ]; then
             echo "### 🖥️ services/server (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat services/server/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
+            if [ -f "services/server/coverage/coverage-summary.json" ]; then
+              cat services/server/coverage/coverage-summary.json | jq -r '
+                "```\n" +
+                "Statements : " + (.total.statements.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Branches  : " + (.total.branches.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Functions : " + (.total.functions.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Lines     : " + (.total.lines.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "```\n"
+              ' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "```\nNo test data available\n```" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Shared-types coverage (Vitest)
+      # Shared-types tests summary (Vitest)
+      - name: Shared-types tests (Vitest)
+        if: always()
         run: |
-          if [ -f "packages/shared-types/coverage/coverage-summary.json" ]; then
+          if [ -d "packages/shared-types" ]; then
             echo "### 📦 packages/shared-types (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat packages/shared-types/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
+            if [ -f "packages/shared-types/coverage/coverage-summary.json" ]; then
+              cat packages/shared-types/coverage/coverage-summary.json | jq -r '
+                "```\n" +
+                "Statements : " + (.total.statements.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Branches  : " + (.total.branches.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Functions : " + (.total.functions.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Lines     : " + (.total.lines.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "```\n"
+              ' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "```\nNo test data available\n```" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: IM package coverage (Vitest)
+      # IM package tests summary (Vitest)
+      - name: IM package tests (Vitest)
+        if: always()
         run: |
-          if [ -f "packages/im/coverage/coverage-summary.json" ]; then
+          if [ -d "packages/im" ]; then
             echo "### 💬 packages/im (Vitest)" >> $GITHUB_STEP_SUMMARY
-            cat packages/im/coverage/coverage-summary.json | jq -r '
-              "```\n" +
-              "Statements : " + (.total.statements.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Branches   : " + (.total.branches.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Functions  : " + (.total.functions.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "Lines      : " + (.total.lines.pct // 0 | . * 100 | .[0:5]) + "%\n" +
-              "```\n"
-            ' >> $GITHUB_STEP_SUMMARY
+            if [ -f "packages/im/coverage/coverage-summary.json" ]; then
+              cat packages/im/coverage/coverage-summary.json | jq -r '
+                "```\n" +
+                "Statements : " + (.total.statements.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Branches  : " + (.total.branches.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Functions : " + (.total.functions.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "Lines     : " + (.total.lines.pct // 0 | . * 100 | tostring | .[0:5]) + "%\n" +
+                "```\n"
+              ' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "```\nNo test data available\n```" >> $GITHUB_STEP_SUMMARY
+            fi
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 

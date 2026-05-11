@@ -5,7 +5,9 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
-    reporters: ['default', 'verbose'],
+    reporters: process.env.CI
+      ? ['default', 'github-actions', 'verbose']
+      : ['default', 'verbose'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
