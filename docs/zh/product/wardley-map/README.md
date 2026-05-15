@@ -1,6 +1,10 @@
-# WhatsChat 沃德利地图 (Wardley Map)
+# WhatsFeed 沃德利地图 (Wardley Map)
 
-本文件夹包含 WhatsChat 即时通讯平台的沃德利地图文档。
+本文件夹包含 WhatsFeed 社交平台的沃德利地图文档。
+
+## 沃德利地图
+
+![WhatsFeed 沃德利地图](./images/Wardley_Map_WhatsFeed.png)
 
 ## 📊 沃德利地图简介
 
@@ -8,10 +12,6 @@
 
 - **价值链（Y轴）**：从用户需求到基础设施的垂直分层
 - **演化阶段（X轴）**：从创新（Genesis）到商品（Commodity）的水平演进
-
-## 📁 文件说明
-
-- [`wardley-map.puml`](./wardley-map.puml) - WhatsChat 系统的完整沃德利地图（PlantUML 格式）
 
 ## 🎯 使用场景
 
@@ -35,17 +35,17 @@
 
 ### 价值链分层（Y轴）
 
-1. **用户需求层**：即时通讯、音视频通话、文件共享
-2. **应用层**：Web应用、移动应用
-3. **平台层**：消息处理、认证授权、通话管理、文件管理、搜索服务、推送通知
-4. **基础设施层**：数据库、缓存、存储、搜索引擎、WebSocket、WebRTC、CDN、容器服务
+1. **用户需求层**：即时通讯、社交动态、音视频通话、内容创作、文件分享、发现推荐、AI 助手
+2. **应用层**：Web 应用、移动应用、管理后台
+3. **平台服务层**：消息服务、认证授权、通话服务、内容服务、媒体处理、搜索服务、推送通知、推荐服务、内容审核、RAG 问答
+4. **基础设施层**：PostgreSQL、Redis、Cassandra、MongoDB、Elasticsearch、对象存储、CDN、WebSocket、容器服务、Qdrant、Ollama
 
 ### 演化阶段（X轴）
 
-- **Genesis (创新)**：AI 智能助手、智能搜索、高级 WebRTC
-- **Custom Built (定制构建)**：消息处理服务、通话管理服务、文件管理服务
-- **Product (产品化)**：Web/移动应用、认证服务、推送通知、搜索引擎
-- **Commodity (商品化)**：数据库、缓存、存储、CDN、容器服务
+- **Genesis (创新)**：AI 助手、内容生成、RAG 问答、高级推荐
+- **Custom Built (定制构建)**：实时消息、WebRTC 通话、社交互动、内容审核
+- **Product (产品化)**：Web 应用、移动应用、认证平台、搜索平台、推送通知
+- **Commodity (商品化)**：数据库服务、存储服务、容器服务、向量数据库
 
 ## 🔧 如何查看
 
@@ -79,7 +79,7 @@ plantuml -tsvg docs/zh/product/wardley-map/wardley-map.puml
 
 ## 📚 相关文档
 
-- [架构设计文档](../architecture/) - 查看其他架构图
+- [架构设计文档](../rd/c4/) - 查看 C4 架构图
 - [项目文档首页](../README.md) - 返回文档首页
 
 ## 🔗 参考资源
@@ -90,6 +90,6 @@ plantuml -tsvg docs/zh/product/wardley-map/wardley-map.puml
 
 ---
 
-中文 | [English](../../../en/product/wardley-map/README.md)
+[English](../../en/product/wardley-map/README.md)
 
-最后更新时间：2025年12月
+最后更新时间：2026年5月

@@ -1,184 +1,206 @@
-@startuml Wardley_Map
+@startuml Wardley_Map_WhatsFeed
 
 !theme plain
 
 skinparam linetype ortho
-
 skinparam packageStyle rectangle
 
-title WhatsChat 即时通讯平台 - 沃德利地图 (Wardley Map)
+title WhatsFeed 社交平台 - 沃德利地图 (Wardley Map)\n' 价值链（Y轴）：用户需求 → 应用 → 平台 → 基础设施\n' 演化轴（X轴）：Genesis → Custom Built → Product → Commodity
 
 ' ============================================
-' 价值网络和组件演化阶段
+' 第四层：用户需求层（最上方）
 ' ============================================
-'
-' Y轴（从上到下）：价值网络 - 从用户需求到基础设施
-' X轴（从左到右）：演化阶段 - Genesis → Custom Built → Product → Commodity
-'
-
 package "用户需求层 (User Needs)" #E3F2FD {
-  class UserNeeds {
+  class UserMessaging <<(U,#1E88E5) 用户需求>> {
     + 即时通讯需求
+    + 社交动态需求
     + 音视频通话需求
-    + 文件共享需求
-    --
-    实时消息传递
-    语音视频通话
-    多媒体文件分享
-    群组聊天
-    消息搜索
+    + 内容创作需求
+    + 文件分享需求
+    + 发现与推荐需求
+    + AI 助手需求
   }
 }
 
-package "应用层 (Application)" #BBDEFB {
-  class WebApplication {
-    + Web 应用
-    --
-    Next.js 15 + React 19
-    响应式界面
-    实时消息显示
-    音视频通话界面
-    文件上传下载
+' ============================================
+' 第三层：应用层
+' ============================================
+package "应用层 (Applications)" #BBDEFB {
+  class WebApp <<(A,#1976D2) Web应用>> {
+    + Next.js 15 + React 19
+    + Instagram 风格 UI
+    + Emotion + Redux Toolkit
+    + Tailwind CSS
+    + 实时消息界面
+    + 动态发布与浏览
   }
-  
-  class MobileApplication {
-    + 移动应用
-    --
-    Flutter 跨平台
-    原生体验
-    推送通知
-    离线消息
-    媒体播放
+
+  class MobileApp <<(A,#1976D2) 移动应用>> {
+    + React Native + Expo
+    + iOS/Android 双平台
+    + 原生体验优化
+    + 推送通知集成
+    + 离线消息同步
+    + 媒体播放
+  }
+
+  class AdminApp <<(A,#1976D2) 管理后台>> {
+    + 用户管理
+    + 内容审核
+    + 数据分析看板
+    + 系统配置
+    + Bootstrap + AG Grid
   }
 }
 
-package "平台层 (Platform)" #90CAF9 {
-  class MessageService {
-    + 消息处理服务
-    --
-    实时消息路由
-    消息持久化
-    消息状态管理
-    消息推送
+' ============================================
+' 第二层：平台服务层
+' ============================================
+package "平台服务层 (Platform Services)" #90CAF9 {
+  class MessageService <<(S,#1565C0) 消息服务>> {
+    + Socket.IO 实时通信
+    + 消息持久化
+    + 消息状态管理
+    + 离线消息队列
+    + Kafka 消息分发
   }
-  
-  class AuthService {
-    + 认证授权服务
-    --
-    JWT 令牌管理
-    Passport 策略
-    用户会话管理
-    权限控制
+
+  class AuthService <<(S,#1565C0) 认证授权服务>> {
+    + JWT 令牌管理
+    + Passport 多策略
+    + 用户会话管理
+    + 权限控制
+    + 第三方登录
   }
-  
-  class CallService {
-    + 通话管理服务
-    --
-    WebRTC 信令
-    通话状态管理
-    媒体协商
-    通话记录
+
+  class CallService <<(S,#1565C0) 通话服务>> {
+    + WebRTC 信令服务
+    + 通话状态管理
+    + 媒体协商
+    + 通话记录
+    + STUN/TURN 集成
   }
-  
-  class FileService {
-    + 文件管理服务
-    --
-    文件上传下载
-    文件存储管理
-    文件预览
-    文件权限控制
+
+  class PostService <<(S,#1565C0) 内容服务>> {
+    + 动态发布/编辑/删除
+    + 多媒体上传
+    + 评论与点赞
+    + 收藏功能
+    + 话题标签
   }
-  
-  class SearchService {
-    + 搜索服务
-    --
-    全文检索
-    消息历史搜索
-    联系人搜索
-    智能推荐
+
+  class MediaService <<(S,#1565C0) 媒体处理服务>> {
+    + 图片生成 (Stable Diffusion)
+    + 视频生成 (CogVideoX)
+    + 语音合成 (edge-tts)
+    + 图片压缩/裁剪
   }
-  
-  class NotificationService {
-    + 推送通知服务
-    --
-    FCM/APNs 集成
-    消息推送
-    离线通知
-    推送统计
+
+  class SearchService <<(S,#1565C0) 搜索服务>> {
+    + Elasticsearch 全文检索
+    + 用户/帖子搜索
+    + 消息历史搜索
+    + 话题搜索
+  }
+
+  class NotificationService <<(S,#1565C0) 推送通知服务>> {
+    + FCM/APNs 集成
+    + 实时推送
+    + 离线通知
+    + 推送统计
+  }
+
+  class RecommendationService <<(S,#1565C0) 推荐服务>> {
+    + 关注推荐 (LightFM)
+    + Feed 排序 (PyTorch)
+    + 探索流推荐
+    + 冷启动处理
+  }
+
+  class VisionService <<(S,#1565C0) 内容审核服务>> {
+    + NSFW 检测 (NudeNet)
+    + 标签推荐
+    + 复审管理
+    + 质量评估
+  }
+
+  class RAGService <<(S,#1565C0) RAG 问答服务>> {
+    + 文档语义搜索
+    + LLM 生成答案
+    + 流式响应
+    + 多源查询
   }
 }
 
+' ============================================
+' 第一层：基础设施层（最下方）
+' ============================================
 package "基础设施层 (Infrastructure)" #64B5F6 {
-  class DatabaseService {
-    + 数据库服务
-    --
-    PostgreSQL 主数据库
-    数据持久化
-    数据备份恢复
-    读写分离
+  class PostgreSQL <<(I,#0D47A1) PostgreSQL>> {
+    + 主数据库
+    + Prisma ORM
+    + 读写分离
   }
-  
-  class CacheService {
+
+  class Redis <<(I,#0D47A1) Redis>> {
     + 缓存服务
-    --
-    Redis 缓存
-    会话缓存
-    消息队列
-    实时状态
+    + 会话存储
+    + 消息队列
+    + 推荐结果缓存
   }
-  
-  class StorageService {
-    + 存储服务
-    --
-    本地文件存储
-    文件存储
-    媒体文件管理
-    CDN 集成
+
+  class Cassandra <<(I,#0D47A1) Cassandra>> {
+    + 时序数据存储
+    + 互动数据 (点赞/评论)
+    + 高写入吞吐
   }
-  
-  class SearchEngine {
-    + 搜索引擎
-    --
-    Elasticsearch
-    全文索引
-    搜索优化
-    数据同步
+
+  class MongoDB <<(I,#0D47A1) MongoDB>> {
+    + 文件元数据
+    + 媒体信息
+    + 灵活文档存储
   }
-  
-  class WebSocketService {
-    + WebSocket 服务
-    --
-    Socket.io
-    实时通信
-    连接管理
-    消息广播
+
+  class Elasticsearch <<(I,#0D47A1) Elasticsearch>> {
+    + 全文索引
+    + 日志存储
+    + 搜索优化
   }
-  
-  class WebRTCService {
-    + WebRTC 服务
-    --
-    P2P 通信
-    STUN/TURN 服务器
-    媒体流处理
-    NAT 穿透
+
+  class ObjectStorage <<(I,#0D47A1) 对象存储>> {
+    + 媒体文件存储
+    + CDN 集成
+    + 备份存储
   }
-  
-  class CDNService {
-    + CDN 服务
-    --
-    静态资源加速
-    全球分发
-    缓存策略
-    负载均衡
+
+  class CDN <<(I,#0D47A1) CDN>> {
+    + 静态资源加速
+    + 全球分发
+    + 缓存策略
   }
-  
-  class ContainerService {
-    + 容器服务
-    --
-    Docker 容器化
-    Kubernetes 编排
-    自动扩缩容
-    服务发现
+
+  class WebSocket <<(I,#0D47A1) WebSocket>> {
+    + Socket.IO
+    + 实时通信
+    + 连接管理
+  }
+
+  class ContainerService <<(I,#0D47A1) 容器服务>> {
+    + Docker 容器化
+    + K8s 编排
+    + 自动扩缩容
+  }
+
+  class Qdrant <<(I,#0D47A1) Qdrant>> {
+    + 向量数据库
+    + RAG 语义搜索
+    + 相似度检索
+  }
+
+  class Ollama <<(I,#0D47A1) Ollama>> {
+    + 本地 LLM
+    + 文本嵌入
+    + 流式生成
   }
 }
 
@@ -186,231 +208,248 @@ package "基础设施层 (Infrastructure)" #64B5F6 {
 ' 演化阶段标注
 ' ============================================
 
+' Genesis 阶段（创新） - 左侧
 package "Genesis (创新)" #FFF9C4 {
-  class AIAssistant {
-    + AI 智能助手
-    --
-    智能消息推荐
-    自动回复建议
-    内容理解
-    情感分析
+  class AIAssistant <<(G,#F9A825) AI 助手>> {
+    + 智能回复建议
+    + 内容理解
+    + 情感分析
+    + 对话生成
   }
-  
-  class SmartSearch {
-    + 智能搜索
-    --
-    语义搜索
-    上下文理解
-    智能排序
-    个性化推荐
+
+  class ContentGeneration <<(G,#F9A825) 内容生成>> {
+    + AI 图片生成
+    + AI 视频生成
+    + AI 语音合成
+    + 风格迁移
   }
-  
-  class AdvancedWebRTC {
-    + 高级 WebRTC
-    --
-    低延迟优化
-    自适应码率
-    网络质量检测
-    智能路由
+
+  class RAGQA <<(G,#F9A825) RAG 问答>> {
+    + 语义搜索
+    + 上下文理解
+    + 知识库问答
+    + 流式响应
   }
-  
-  note right of AIAssistant
-    Genesis 阶段
-    创新技术，高差异化
-  end note
-  
-  note right of SmartSearch
-    Genesis 阶段
-    新兴搜索技术
-  end note
-  
-  note right of AdvancedWebRTC
-    Genesis 阶段
-    优化的音视频技术
-  end note
+
+  class AdvancedRecommendations <<(G,#F9A825) 高级推荐>> {
+    + 深度学习排序
+    + 多目标优化
+    + 实时个性化
+    + 冷启动推荐
+  }
 }
 
+' Custom Built 阶段（定制构建） - 中左
 package "Custom Built (定制构建)" #FFE0B2 {
-  note right of MessageService
-    定制构建阶段
-    平台核心差异化能力
-    实时消息处理逻辑
-  end note
-  
-  note right of CallService
-    定制构建阶段
-    WebRTC 信令服务
-    通话业务逻辑
-  end note
-  
-  note right of FileService
-    定制构建阶段
-    文件管理业务逻辑
-    权限控制机制
-  end note
+  class RealtimeMessaging <<(C,#FB8C00) 实时消息>> {
+    + Socket.IO 定制
+    + 消息路由逻辑
+    + 离线同步策略
+    + 已读回执
+  }
+
+  class WebRTCCalls <<(C,#FB8C00) WebRTC 通话>> {
+    + 信令服务定制
+    + 通话质量优化
+    + 弱网自适应
+    + 多人通话
+  }
+
+  class PostEngagement <<(C,#FB8C00) 社交互动>> {
+    + 动态发布流程
+    + 评论嵌套
+    + 点赞/收藏逻辑
+    + 分享机制
+  }
+
+  class ContentModeration <<(C,#FB8C00) 内容审核>> {
+    + NSFW 检测集成
+    + 人工复审流程
+    + 标签推荐算法
+    + 申诉处理
+  }
 }
 
+' Product 阶段（产品化） - 中右
 package "Product (产品化)" #C8E6C9 {
-  note right of WebApplication
-    产品化阶段
-    标准化前端框架
-  end note
-  
-  note right of MobileApplication
-    产品化阶段
-    标准化移动框架
-  end note
-  
-  note right of AuthService
-    产品化阶段
-    标准化认证方案
-  end note
-  
-  note right of NotificationService
-    产品化阶段
-    标准化推送服务
-  end note
-  
-  note right of SearchEngine
-    产品化阶段
-    标准化搜索引擎
-  end note
-  
-  note right of WebSocketService
-    产品化阶段
-    标准化 WebSocket 库
-  end note
+  class WebApplication <<(P,#43A047) Web 应用>> {
+    + Next.js 框架
+    + 标准化 UI 组件
+    + Redux 状态管理
+  }
+
+  class MobileApplication <<(P,#43A047) 移动应用>> {
+    + React Native
+    + Expo 标准化
+    + 跨平台适配
+  }
+
+  class AuthPlatform <<(P,#43A047) 认证平台>> {
+    + JWT 标准方案
+    + Passport 策略
+    + OAuth 集成
+  }
+
+  class SearchPlatform <<(P,#43A047) 搜索平台>> {
+    + Elasticsearch
+    + 标准化分词
+    + 搜索建议
+  }
+
+  class PushNotification <<(P,#43A047) 推送通知>> {
+    + FCM 集成
+    + APNs 集成
+    + 消息模板
+  }
 }
 
+' Commodity 阶段（商品化） - 右侧
 package "Commodity (商品化)" #E1BEE7 {
-  note right of DatabaseService
-    商品化阶段
-    标准化数据库服务
-  end note
-  
-  note right of CacheService
-    商品化阶段
-    标准化缓存服务
-  end note
-  
-  note right of StorageService
-    商品化阶段
-    标准化对象存储
-  end note
-  
-  note right of CDNService
-    商品化阶段
-    标准化 CDN 服务
-  end note
-  
-  note right of ContainerService
-    商品化阶段
-    标准化容器服务
-  end note
+  class Databases <<(D,#7B1FA2) 数据库服务>> {
+    + PostgreSQL
+    + Redis 缓存
+    + MongoDB
+    + Cassandra
+  }
+
+  class Storage <<(D,#7B1FA2) 存储服务>> {
+    + S3/OSS 对象存储
+    + CDN 分发
+    + 备份服务
+  }
+
+  class Containers <<(D,#7B1FA2) 容器服务>> {
+    + Docker
+    + Kubernetes
+    + 容器编排
+  }
+
+  class VectorStore <<(D,#7B1FA2) 向量数据库>> {
+    + Qdrant
+    + 向量检索
+    + 近似搜索
+  }
 }
 
 ' ============================================
-' 价值网络依赖关系
+' 依赖关系
 ' ============================================
 
-UserNeeds --> WebApplication : 使用
-UserNeeds --> MobileApplication : 使用
+' 用户需求 → 应用层
+UserMessaging --> WebApp : 使用
+UserMessaging --> MobileApp : 使用
 
-WebApplication --> MessageService : 依赖
-WebApplication --> AuthService : 依赖
-WebApplication --> CallService : 依赖
-WebApplication --> FileService : 依赖
-WebApplication --> SearchService : 依赖
+' 应用层 → 平台服务层
+WebApp --> MessageService : 依赖
+WebApp --> AuthService : 依赖
+WebApp --> PostService : 依赖
+WebApp --> SearchService : 依赖
+WebApp --> NotificationService : 依赖
 
-MobileApplication --> MessageService : 依赖
-MobileApplication --> AuthService : 依赖
-MobileApplication --> CallService : 依赖
-MobileApplication --> FileService : 依赖
-MobileApplication --> NotificationService : 依赖
+MobileApp --> MessageService : 依赖
+MobileApp --> AuthService : 依赖
+MobileApp --> PostService : 依赖
+MobileApp --> NotificationService : 依赖
+MobileApp --> CallService : 依赖
 
-MessageService --> DatabaseService : 需要
-MessageService --> CacheService : 需要
-MessageService --> WebSocketService : 需要
+AdminApp --> AuthService : 依赖
+AdminApp --> VisionService : 依赖
 
-AuthService --> DatabaseService : 需要
-AuthService --> CacheService : 需要
+' 平台服务层 → 基础设施层
+MessageService --> Redis : 需要
+MessageService --> WebSocket : 需要
+MessageService --> Kafka : 需要
 
-CallService --> WebRTCService : 需要
-CallService --> DatabaseService : 需要
+AuthService --> PostgreSQL : 需要
+AuthService --> Redis : 需要
 
-FileService --> StorageService : 需要
-FileService --> CDNService : 需要
+CallService --> WebSocket : 需要
 
-SearchService --> SearchEngine : 需要
-SearchEngine --> DatabaseService : 需要
+PostService --> PostgreSQL : 需要
+PostService --> Redis : 需要
+PostService --> MediaService : 需要
+PostService --> VisionService : 需要
 
-NotificationService --> WebSocketService : 需要
+MediaService --> ObjectStorage : 需要
+MediaService --> CDN : 需要
 
-StorageService --> CDNService : 使用
+SearchService --> Elasticsearch : 需要
 
-ContainerService --> DatabaseService : 托管
-ContainerService --> CacheService : 托管
-ContainerService --> StorageService : 托管
+NotificationService --> WebSocket : 需要
+
+RecommendationService --> Redis : 需要
+RecommendationService --> Cassandra : 需要
+RecommendationService --> PostgreSQL : 需要
+
+VisionService --> PostgreSQL : 需要
+
+RAGService --> Qdrant : 需要
+RAGService --> Ollama : 需要
+
+' 基础设施内部依赖
+ObjectStorage --> CDN : 使用
+ContainerService --> Databases : 托管
+ContainerService --> Redis : 托管
+
+' Genesis 组件依赖
+AIAssistant --> Ollama : 需要
+ContentGeneration --> Ollama : 需要
+RAGQA --> Ollama : 需要
+RAGQA --> Qdrant : 需要
+AdvancedRecommendations --> Ollama : 需要
 
 ' ============================================
-' 演化路径说明
+' 战略演进说明
 ' ============================================
 
 note top of AIAssistant
-  **Genesis (创新阶段)**
-  
-  新兴技术和服务：
-  - AI 智能助手：利用 AI 技术提供智能消息推荐和自动回复
-  - 智能搜索：语义搜索和上下文理解
-  - 高级 WebRTC：低延迟优化和自适应码率
-  - 这些功能处于创新阶段，具有高差异化和不确定性
+  **Genesis 战略要点**
+  - AI 能力是核心差异化
+  - 持续投入模型优化
+  - 探索新 AI 应用场景
 end note
 
-note top of MessageService
-  **Custom Built (定制构建阶段)**
-  
-  平台核心能力：
-  - 消息处理服务：平台的核心差异化功能，实时消息路由和状态管理
-  - 通话管理服务：WebRTC 信令和业务逻辑
-  - 文件管理服务：定制化的文件处理和权限控制
-  - 这些功能需要持续投入和优化
+note top of RealtimeMessaging
+  **Custom Built 战略要点**
+  - 实时消息是平台核心
+  - 保持技术领先
+  - 优化用户体验
 end note
 
 note top of WebApplication
-  **Product (产品化阶段)**
-  
-  标准化产品：
-  - Web 应用：基于 Next.js 和 React 的标准化前端
-  - 移动应用：基于 Flutter 的跨平台解决方案
-  - 认证服务：标准化的 JWT 和 Passport 认证
-  - 推送通知：标准化的 FCM/APNs 集成
-  - 这些功能已经产品化，可以稳定提供
+  **Product 战略要点**
+  - 采用成熟技术栈
+  - 平衡开发效率
+  - 保持灵活性
 end note
 
-note top of DatabaseService
-  **Commodity (商品化阶段)**
-  
-  基础设施服务：
-  - 数据库、缓存、存储、CDN、容器等服务
-  - 这些是标准化的云服务
-  - 可以轻松替换和采购
-  - 成本优化的重要方向
+note top of Databases
+  **Commodity 战略要点**
+  - 使用托管服务降低运维
+  - 专注于核心业务
+  - 成本优化重点
 end note
 
 ' ============================================
-' 图例说明
+' 图例
 ' ============================================
 
 legend right
-  |<#FFF9C4> Genesis | 创新阶段 - 新兴技术，高不确定性 |
-  |<#FFE0B2> Custom Built | 定制构建阶段 - 核心差异化能力 |
-  |<#C8E6C9> Product | 产品化阶段 - 标准化产品 |
-  |<#E1BEE7> Commodity | 商品化阶段 - 标准化服务 |
+  |= 颜色 |= 演化阶段 |= 说明 |
+  |<#FFF9C4> Genesis | 创新阶段 | 新兴技术，高不确定性，高差异化 |
+  |<#FFE0B2> Custom Built | 定制构建 | 核心差异化能力，需要持续投入 |
+  |<#C8E6C9> Product | 产品化 | 标准化产品，可稳定供应 |
+  |<#E1BEE7> Commodity | 商品化 | 标准化服务，易替换，成本优化 |
   |
-  |<#E3F2FD> 用户需求层 | 最终用户的需求和价值 |
-  |<#BBDEFB> 应用层 | 面向用户的应用功能 |
-  |<#90CAF9> 平台层 | 平台核心能力 |
-  |<#64B5F6> 基础设施层 | 底层支撑服务 |
+  |= 标记 |= 层级 |= 说明 |
+  |<#1E88E5> (U) | 用户需求层 | 最终用户需求 |
+  |<#1976D2> (A) | 应用层 | 面向用户的应用 |
+  |<#1565C0> (S) | 平台服务层 | 平台核心能力 |
+  |<#0D47A1> (I) | 基础设施层 | 底层支撑服务 |
+  |<#F9A825> (G) | Genesis | 创新组件 |
+  |<#FB8C00> (C) | Custom Built | 定制组件 |
+  |<#43A047> (P) | Product | 产品化组件 |
+  |<#7B1FA2> (D) | Commodity | 商品化组件 |
 endlegend
 
 @enduml
