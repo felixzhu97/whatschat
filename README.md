@@ -145,10 +145,41 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ADMIN_EMAILS=admin@whatschat.com
 ```
 
+## C4 模型架构图
+
+WhatsFeed 采用 C4 模型进行架构可视化设计，从系统上下文、容器、组件三个层级描述系统架构。
+
+### C1 系统上下文图
+
+![C1 系统上下文](./docs/zh/rd/c4/images/system-context.png)
+
+### C2 容器图
+
+![C2 容器](./docs/zh/rd/c4/images/containers.png)
+
+### C3 组件图
+
+#### API Server
+
+![C3 API Server](./docs/zh/rd/c4/images/components-api-server.png)
+
+#### Web App
+
+![C3 Web App](./docs/zh/rd/c4/images/components-web-app.png)
+
+#### Mobile App
+
+![C3 Mobile App](./docs/zh/rd/c4/images/components-mobile-app.png)
+
+#### Admin App
+
+![C3 Admin App](./docs/zh/rd/c4/images/components-admin-app.png)
+
 ## 文档
 
 - [文档索引](docs/README.md)
-- [C4 模型](docs/en/rd/c4/README.md)
+- [C4 模型（中文）](docs/zh/rd/c4/README.md)
+- [C4 Model (English)](docs/en/rd/c4/README.md)
 - [TOGAF](docs/en/rd/togaf/README.md)
 
 ## Clean Architecture（2026-04）
